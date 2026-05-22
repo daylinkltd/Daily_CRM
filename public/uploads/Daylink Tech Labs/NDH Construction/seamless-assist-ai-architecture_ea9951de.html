@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seamless Assist — AI Employee Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --accent: #7b6cff;
+
+    --rev: #4f9cf9;
+    --rev-glow: rgba(79,156,249,0.15);
+    --mkt: #f97b4f;
+    --mkt-glow: rgba(249,123,79,0.15);
+    --ops: #4fc98a;
+    --ops-glow: rgba(79,201,138,0.15);
+    --fin: #f9d44f;
+    --fin-glow: rgba(249,212,79,0.15);
+    --ppl: #c94fc9;
+    --ppl-glow: rgba(201,79,201,0.15);
+    --ceo: #ff4f7b;
+    --ceo-glow: rgba(255,79,123,0.2);
+    --bus: #ffffff;
+    --bus-glow: rgba(255,255,255,0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  header {
+    padding: 40px 48px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-top: 6px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* MAIN LAYOUT */
+  .architecture {
+    padding: 40px 48px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* TASK BUS - spine */
+  .task-bus {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 24px 0;
+    z-index: 10;
+  }
+
+  .task-bus-inner {
+    background: var(--surface2);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    box-shadow: 0 0 40px rgba(123,108,255,0.08);
+  }
+
+  .task-bus-inner::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, transparent, rgba(123,108,255,0.3), transparent);
+    z-index: -1;
+    animation: busGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes busGlow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  .bus-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .bus-pulse {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .pulse-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .pulse-dot:nth-child(2) { animation-delay: 0.3s; }
+  .pulse-dot:nth-child(3) { animation-delay: 0.6s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .bus-stats {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .bus-stats span { color: var(--text); }
+
+  /* CEO LAYER */
+  .ceo-layer {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .ceo-node {
+    background: linear-gradient(135deg, rgba(255,79,123,0.12), rgba(123,108,255,0.08));
+    border: 1px solid rgba(255,79,123,0.3);
+    border-radius: 14px;
+    padding: 16px 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ceo-node::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(255,79,123,0.15), transparent 70%);
+  }
+
+  .ceo-node:hover {
+    border-color: rgba(255,79,123,0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(255,79,123,0.15);
+  }
+
+  .node-emoji { font-size: 22px; margin-bottom: 4px; }
+  .node-name { font-size: 13px; font-weight: 700; }
+  .node-role { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 2px; }
+
+  /* DEPARTMENTS GRID */
+  .departments {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+
+  .dept {
+    background: var(--surface);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+
+  .dept:hover { border-color: rgba(255,255,255,0.12); }
+
+  .dept-header {
+    padding: 14px 18px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dept-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dept-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .dept-agents {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .agent {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 10px 13px;
+    cursor: pointer;
+    transition: all 0.18s;
+    border: 1px solid transparent;
+    position: relative;
+  }
+
+  .agent:hover {
+    border-color: var(--dept-color, rgba(255,255,255,0.1));
+    transform: translateX(2px);
+  }
+
+  .agent.active {
+    border-color: var(--dept-color, rgba(255,255,255,0.2));
+    box-shadow: inset 0 0 0 1px var(--dept-color, transparent);
+  }
+
+  .agent-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .agent-name {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .agent-status {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #4fc98a;
+    box-shadow: 0 0 6px #4fc98a;
+    animation: statusBlink 2s ease-in-out infinite;
+  }
+
+  @keyframes statusBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .agent-desc {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-top: 3px;
+    line-height: 1.5;
+  }
+
+  .agent-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .tool-tag {
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    color: var(--muted);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* CONNECTIONS */
+  .connector-layer {
+    position: relative;
+    height: 0;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  /* DETAIL PANEL */
+  .detail-panel {
+    position: fixed;
+    right: -440px;
+    top: 0;
+    width: 420px;
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 40px 32px;
+    overflow-y: auto;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 500;
+  }
+
+  .detail-panel.open { right: 0; }
+
+  .panel-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .panel-dept-label {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .panel-name {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .panel-tagline {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .panel-section {
+    margin-bottom: 20px;
+  }
+
+  .panel-section-title {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .panel-list li {
+    font-size: 12px;
+    color: var(--text);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .panel-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  .panel-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .panel-tag {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text);
+  }
+
+  .panel-handoffs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .handoff-item {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .handoff-arrow {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .handoff-text {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .handoff-text strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* Flows section below */
+  .flows-section {
+    padding: 0 48px 48px;
+  }
+
+  .flows-title {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .flows-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+
+  .flow-name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 5px 0;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 22px;
+    width: 1px;
+    height: calc(100% - 4px);
+    background: var(--border);
+  }
+
+  .step-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-content {
+    font-size: 11px;
+    line-height: 1.4;
+    padding-top: 2px;
+  }
+
+  .step-agent {
+    font-weight: 700;
+    display: block;
+  }
+
+  .step-action {
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+  }
+
+  .step-human {
+    font-size: 9px;
+    background: rgba(255,79,123,0.12);
+    color: #ff4f7b;
+    border: 1px solid rgba(255,79,123,0.2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 2px;
+  }
+
+  .step-auto {
+    font-size: 9px;
+    background: rgba(79,201,138,0.1);
+    color: #4fc98a;
+    border: 1px solid rgba(79,201,138,0.2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 2px;
+  }
+
+  /* Overlay for panel */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 499;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  /* Dept color vars applied inline */
+  .dept-rev .agent:hover, .dept-rev .agent.active { --dept-color: var(--rev); }
+  .dept-mkt .agent:hover, .dept-mkt .agent.active { --dept-color: var(--mkt); }
+  .dept-ops .agent:hover, .dept-ops .agent.active { --dept-color: var(--ops); }
+  .dept-fin .agent:hover, .dept-fin .agent.active { --dept-color: var(--fin); }
+  .dept-ppl .agent:hover, .dept-ppl .agent.active { --dept-color: var(--ppl); }
+
+  .scroll-hint {
+    text-align: center;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    padding: 12px;
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+
+<header>
+  <div>
+    <div class="logo">Seamless Assist · AI Operations System™</div>
+    <h1>AI <span>Employee</span> Architecture</h1>
+    <div class="subtitle">20 agents · 5 departments · 1 shared task bus</div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--rev)"></div> Revenue</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--mkt)"></div> Marketing</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--ops)"></div> Operations</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--fin)"></div> Intelligence</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--ppl)"></div> People</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--ceo)"></div> CEO Layer</div>
+  </div>
+</header>
+
+<div class="architecture">
+
+  <!-- CEO LAYER -->
+  <div class="ceo-layer">
+    <div class="ceo-node" onclick="showAgent('briefing')">
+      <div class="node-emoji">☀️</div>
+      <div class="node-name">Daily Briefing</div>
+      <div class="node-role">Push · 7am daily</div>
+    </div>
+    <div class="ceo-node" onclick="showAgent('dashboard')">
+      <div class="node-emoji">📊</div>
+      <div class="node-name">CEO Dashboard</div>
+      <div class="node-role">Pull · Always live</div>
+    </div>
+    <div class="ceo-node" onclick="showAgent('meta')">
+      <div class="node-emoji">🧠</div>
+      <div class="node-name">Meta-Agent</div>
+      <div class="node-role">Chat · On demand</div>
+    </div>
+  </div>
+
+  <!-- TASK BUS -->
+  <div class="task-bus">
+    <div class="task-bus-inner">
+      <div class="bus-label">Shared Task Bus</div>
+      <div class="bus-pulse">
+        <div class="pulse-dot"></div>
+        <div class="pulse-dot"></div>
+        <div class="pulse-dot"></div>
+      </div>
+      <div class="bus-stats">Tasks logged · picked up · escalated · <span>human-in-loop flagged</span></div>
+      <div class="bus-pulse" style="transform:scaleX(-1)">
+        <div class="pulse-dot"></div>
+        <div class="pulse-dot"></div>
+        <div class="pulse-dot"></div>
+      </div>
+      <div class="bus-label">PostgreSQL + Event Queue</div>
+    </div>
+  </div>
+
+  <!-- DEPARTMENTS -->
+  <div class="departments">
+
+    <!-- REVENUE -->
+    <div class="dept dept-rev">
+      <div class="dept-header">
+        <div class="dept-dot" style="background:var(--rev)"></div>
+        <div class="dept-title" style="color:var(--rev)">Revenue</div>
+      </div>
+      <div class="dept-agents">
+        <div class="agent" onclick="showAgent('scout')">
+          <div class="agent-top"><span class="agent-name">🔍 Scout</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Lead generation & ICP filtering</div>
+          <div class="agent-tools"><span class="tool-tag">Clawbot</span><span class="tool-tag">PostgreSQL</span><span class="tool-tag">Claude</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('researcher')">
+          <div class="agent-top"><span class="agent-name">🔬 Researcher</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Lead enrichment & pain signals</div>
+          <div class="agent-tools"><span class="tool-tag">Web</span><span class="tool-tag">Claude</span><span class="tool-tag">GHL</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('closer')">
+          <div class="agent-top"><span class="agent-name">📨 Closer</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Outreach & objection handling</div>
+          <div class="agent-tools"><span class="tool-tag">GHL</span><span class="tool-tag">Claude</span><span class="tool-tag">Email/SMS</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('booker')">
+          <div class="agent-top"><span class="agent-name">📅 Booker</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Audit scheduling & confirmations</div>
+          <div class="agent-tools"><span class="tool-tag">GHL</span><span class="tool-tag">Calendar</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('seller')">
+          <div class="agent-top"><span class="agent-name">💼 Seller</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Sales call prep & proposals</div>
+          <div class="agent-tools"><span class="tool-tag">Claude</span><span class="tool-tag">GHL</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKETING -->
+    <div class="dept dept-mkt">
+      <div class="dept-header">
+        <div class="dept-dot" style="background:var(--mkt)"></div>
+        <div class="dept-title" style="color:var(--mkt)">Marketing</div>
+      </div>
+      <div class="dept-agents">
+        <div class="agent" onclick="showAgent('copywriter')">
+          <div class="agent-top"><span class="agent-name">✍️ Copywriter</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Blogs, emails, landing pages</div>
+          <div class="agent-tools"><span class="tool-tag">Claude</span><span class="tool-tag">WordPress</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('social')">
+          <div class="agent-top"><span class="agent-name">📱 Social</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Content creation & scheduling</div>
+          <div class="agent-tools"><span class="tool-tag">Claude</span><span class="tool-tag">Buffer</span><span class="tool-tag">Canva</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('admanager')">
+          <div class="agent-top"><span class="agent-name">📣 Ad Manager</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Google/Meta copy & reporting</div>
+          <div class="agent-tools"><span class="tool-tag">Google Ads</span><span class="tool-tag">Meta</span><span class="tool-tag">Claude</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('webupdater')">
+          <div class="agent-top"><span class="agent-name">🌐 Web Updater</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Triggered site content updates</div>
+          <div class="agent-tools"><span class="tool-tag">WordPress</span><span class="tool-tag">Claude</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('offerarchitect')">
+          <div class="agent-top"><span class="agent-name">🏗️ Offer Architect</span><div class="agent-status"></div></div>
+          <div class="agent-desc">New offer ideation & structuring</div>
+          <div class="agent-tools"><span class="tool-tag">Claude</span><span class="tool-tag">Docs</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPERATIONS -->
+    <div class="dept dept-ops">
+      <div class="dept-header">
+        <div class="dept-dot" style="background:var(--ops)"></div>
+        <div class="dept-title" style="color:var(--ops)">Operations</div>
+      </div>
+      <div class="dept-agents">
+        <div class="agent" onclick="showAgent('opschief')">
+          <div class="agent-top"><span class="agent-name">⚙️ Ops Chief</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Task routing & SLA monitoring</div>
+          <div class="agent-tools"><span class="tool-tag">PostgreSQL</span><span class="tool-tag">Claude</span><span class="tool-tag">Slack</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('scribe')">
+          <div class="agent-top"><span class="agent-name">📋 Scribe</span><div class="agent-status"></div></div>
+          <div class="agent-desc">SOP generation & versioning</div>
+          <div class="agent-tools"><span class="tool-tag">Claude</span><span class="tool-tag">Notion</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('auditor')">
+          <div class="agent-top"><span class="agent-name">🔎 Auditor</span><div class="agent-status"></div></div>
+          <div class="agent-desc">QA scoring VA work output</div>
+          <div class="agent-tools"><span class="tool-tag">Claude</span><span class="tool-tag">Rubrics</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('concierge')">
+          <div class="agent-top"><span class="agent-name">💬 Concierge</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Client comms & weekly updates</div>
+          <div class="agent-tools"><span class="tool-tag">GHL</span><span class="tool-tag">Claude</span><span class="tool-tag">Email</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTELLIGENCE -->
+    <div class="dept dept-fin">
+      <div class="dept-header">
+        <div class="dept-dot" style="background:var(--fin)"></div>
+        <div class="dept-title" style="color:var(--fin)">Intelligence</div>
+      </div>
+      <div class="dept-agents">
+        <div class="agent" onclick="showAgent('analyst')">
+          <div class="agent-top"><span class="agent-name">📈 Analyst</span><div class="agent-status"></div></div>
+          <div class="agent-desc">MRR trends & client health</div>
+          <div class="agent-tools"><span class="tool-tag">QuickBooks</span><span class="tool-tag">Mindbody</span><span class="tool-tag">Claude</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('scorecard')">
+          <div class="agent-top"><span class="agent-name">🏆 Scorecard</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Business KPIs & CEO brief</div>
+          <div class="agent-tools"><span class="tool-tag">All sources</span><span class="tool-tag">Claude</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PEOPLE -->
+    <div class="dept dept-ppl">
+      <div class="dept-header">
+        <div class="dept-dot" style="background:var(--ppl)"></div>
+        <div class="dept-title" style="color:var(--ppl)">People</div>
+      </div>
+      <div class="dept-agents">
+        <div class="agent" onclick="showAgent('recruiter')">
+          <div class="agent-top"><span class="agent-name">🌍 Recruiter</span><div class="agent-status"></div></div>
+          <div class="agent-desc">VA sourcing · LATAM/PH/IN/EE/KE</div>
+          <div class="agent-tools"><span class="tool-tag">Manatal</span><span class="tool-tag">Claude</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('interviewer')">
+          <div class="agent-top"><span class="agent-name">🎤 Interviewer</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Goodfit.so → ranked → human call</div>
+          <div class="agent-tools"><span class="tool-tag">Goodfit.so</span><span class="tool-tag">Manatal</span><span class="tool-tag">Calendar</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('trainer')">
+          <div class="agent-top"><span class="agent-name">🎓 Trainer</span><div class="agent-status"></div></div>
+          <div class="agent-desc">VA onboarding & certification</div>
+          <div class="agent-tools"><span class="tool-tag">Claude</span><span class="tool-tag">Notion</span><span class="tool-tag">LMS</span></div>
+        </div>
+        <div class="agent" onclick="showAgent('hrmonitor')">
+          <div class="agent-top"><span class="agent-name">👁️ HR Monitor</span><div class="agent-status"></div></div>
+          <div class="agent-desc">Staff performance & retention risk</div>
+          <div class="agent-tools"><span class="tool-tag">Manatal</span><span class="tool-tag">Claude</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- KEY FLOWS -->
+<div class="flows-section">
+  <div class="flows-title">Key Agent Flows — click agents above to see full detail</div>
+  <div class="flows-grid">
+
+    <div class="flow-card">
+      <div class="flow-name" style="color:var(--rev)">🔵 Lead → Audit Booked</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--rev);color:var(--rev)">1</div>
+          <div class="step-content"><span class="step-agent">Scout</span><span class="step-action">Scrapes & ICP-scores lead</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--rev);color:var(--rev)">2</div>
+          <div class="step-content"><span class="step-agent">Researcher</span><span class="step-action">Enriches with pain signals</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--rev);color:var(--rev)">3</div>
+          <div class="step-content"><span class="step-agent">Closer</span><span class="step-action">Drafts personalized outreach</span><span class="step-human">human reviews</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--rev);color:var(--rev)">4</div>
+          <div class="step-content"><span class="step-agent">Closer</span><span class="step-action">Sends + manages replies/objections</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--rev);color:var(--rev)">5</div>
+          <div class="step-content"><span class="step-agent">Booker</span><span class="step-action">Schedules audit + confirms</span><span class="step-auto">auto</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-name" style="color:var(--ppl)">🟣 VA Hired → Deployed</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--ppl);color:var(--ppl)">1</div>
+          <div class="step-content"><span class="step-agent">Recruiter</span><span class="step-action">Sources & ranks candidates</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--ppl);color:var(--ppl)">2</div>
+          <div class="step-content"><span class="step-agent">Recruiter</span><span class="step-action">Manual button → Goodfit.so</span><span class="step-human">human approves</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--ppl);color:var(--ppl)">3</div>
+          <div class="step-content"><span class="step-agent">Interviewer</span><span class="step-action">Scores Goodfit results</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--ppl);color:var(--ppl)">4</div>
+          <div class="step-content"><span class="step-agent">Interviewer</span><span class="step-action">Books in-person interview</span><span class="step-human">human conducts</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--ppl);color:var(--ppl)">5</div>
+          <div class="step-content"><span class="step-agent">Trainer</span><span class="step-action">Onboarding + certification</span><span class="step-auto">auto</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-name" style="color:var(--fin)">🟡 Weekly CEO Brief</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--fin);color:var(--fin)">1</div>
+          <div class="step-content"><span class="step-agent">Analyst</span><span class="step-action">Pulls revenue + client health data</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--fin);color:var(--fin)">2</div>
+          <div class="step-content"><span class="step-agent">Auditor</span><span class="step-action">Aggregates VA QA scores</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--fin);color:var(--fin)">3</div>
+          <div class="step-content"><span class="step-agent">HR Monitor</span><span class="step-action">Flags retention risks</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--fin);color:var(--fin)">4</div>
+          <div class="step-content"><span class="step-agent">Scorecard</span><span class="step-action">Compiles cross-dept KPIs</span><span class="step-auto">auto</span></div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num" style="border-color:var(--fin);color:var(--fin)">5</div>
+          <div class="step-content"><span class="step-agent">Briefing</span><span class="step-action">Pushes to Sheetal @ 7am</span><span class="step-auto">auto</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="scroll-hint">↑ Click any agent card for full spec · task bus connects all agents · human-in-loop flags shown in red</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div id="panelContent"></div>
+</div>
+
+<script>
+const agents = {
+  briefing: {
+    dept: 'CEO Interface', color: '#ff4f7b',
+    name: 'Daily Briefing',
+    tagline: 'Push delivery · Every morning at 7am · No login required',
+    responsibilities: [
+      'Aggregates signals from all 5 departments overnight',
+      'Surfaces only what needs Sheetal\'s attention today',
+      'Flags items requiring a human decision (with context)',
+      'Revenue pipeline: leads added, audits booked, proposals sent',
+      'Ops health: active VA placements, SLA breaches, client flags',
+      'People: recruitment pipeline stage, training completions',
+      'Marketing: content published, ad performance delta, site traffic'
+    ],
+    tools: ['Scorecard agent', 'All dept agents', 'Email/Slack push'],
+    handoffs: [
+      { to: 'Meta-Agent', trigger: 'Sheetal replies to a brief item → meta-agent takes action' },
+      { to: 'Ops Chief', trigger: 'SLA breach flagged → escalation task created' }
+    ]
+  },
+  dashboard: {
+    dept: 'CEO Interface', color: '#ff4f7b',
+    name: 'CEO Dashboard',
+    tagline: 'Pull interface · Live KPIs · Always-on visibility',
+    responsibilities: [
+      'Real-time MRR, pipeline value, and burn rate at a glance',
+      'VA deployment map: who is placed where, performance score',
+      'Lead funnel: volume, conversion rate per stage, velocity',
+      'Marketing performance: CAC, content output, ad spend vs return',
+      'People health: headcount, open roles, training status',
+      'Client health scores: churn risk, satisfaction signals, upsell flags',
+      'Filterable by department, time range, client, or VA'
+    ],
+    tools: ['Analyst', 'Scorecard', 'PostgreSQL', 'Revenue Intelligence Dashboard'],
+    handoffs: [
+      { to: 'Meta-Agent', trigger: 'Sheetal clicks any metric to ask a question about it' },
+      { to: 'Analyst', trigger: 'Deep-dive request on any data point' }
+    ]
+  },
+  meta: {
+    dept: 'CEO Interface', color: '#ff4f7b',
+    name: 'Meta-Agent',
+    tagline: 'On-demand chat interface · Query any department · Dispatch any task',
+    responsibilities: [
+      '"What\'s our pipeline look like this week?" → queries Analyst + Scout',
+      '"Draft a new offer for med spas" → dispatches Offer Architect',
+      '"Who are our top 3 VA candidates right now?" → queries Recruiter',
+      '"Write a follow-up for the lead from Tuesday" → dispatches Closer',
+      '"What did the Auditor flag this week?" → queries Auditor',
+      'Maintains conversation context across multi-turn queries',
+      'Can dispatch tasks to any agent and report back results'
+    ],
+    tools: ['Claude API', 'All agent interfaces', 'Task Bus'],
+    handoffs: [
+      { to: 'Any agent', trigger: 'Sheetal issues a natural language command' },
+      { to: 'Task Bus', trigger: 'Dispatched tasks logged for visibility and audit' }
+    ]
+  },
+  scout: {
+    dept: 'Revenue', color: '#4f9cf9',
+    name: 'Scout',
+    tagline: 'Lead generation · ICP filtering · Pipeline seeding',
+    responsibilities: [
+      'Runs Clawbot/Antigravity scraping jobs on defined ICP criteria',
+      'Filters: wellness verticals, $10K–$500K MRR signals, geo, headcount',
+      'Deduplicates against existing PostgreSQL lead database',
+      'Scores each lead 0–100 against ICP rubric before passing on',
+      'Flags high-confidence leads for priority Researcher enrichment',
+      'Logs all sourced leads to task bus with score and source metadata',
+      'Generic service: any ICP-defined B2B scraping + scoring pipeline'
+    ],
+    tools: ['Clawbot/Antigravity', 'PostgreSQL', 'Claude API'],
+    handoffs: [
+      { to: 'Researcher', trigger: 'Lead scored >60 → auto-enrichment task created' },
+      { to: 'Human review queue', trigger: 'Lead scored 40–60 → flagged for manual ICP check' }
+    ]
+  },
+  researcher: {
+    dept: 'Revenue', color: '#4f9cf9',
+    name: 'Researcher',
+    tagline: 'Lead enrichment · Pain signal detection · Personalization fuel',
+    responsibilities: [
+      'Visits business website, LinkedIn, Google reviews, social profiles',
+      'Extracts: tech stack signals, team size, operational pain mentions',
+      'Generates a "pain brief" — 3 bullet personalization hooks per lead',
+      'Identifies the likely decision-maker and their communication style',
+      'Scores likelihood of operational chaos (the core SA pain point)',
+      'Writes a one-paragraph prospect profile stored with lead record',
+      'Generic service: any B2B lead enrichment + buyer profile generation'
+    ],
+    tools: ['Web fetch', 'Claude API', 'GoHighLevel'],
+    handoffs: [
+      { to: 'Closer', trigger: 'Enrichment complete → personalized outreach task queued' },
+      { to: 'Seller', trigger: 'High-value lead (>$3K MRR potential) → expedited path' }
+    ]
+  },
+  closer: {
+    dept: 'Revenue', color: '#4f9cf9',
+    name: 'Closer',
+    tagline: 'Outreach · Follow-up sequences · Objection handling',
+    responsibilities: [
+      'Generates personalized first-touch email/LinkedIn/SMS using pain brief',
+      'Runs multi-step follow-up sequence (3–7 touches, adaptive timing)',
+      'Detects reply sentiment: interested / objecting / unsubscribe',
+      'Handles objections asynchronously using the Grand Slam Playbook',
+      'Escalates hot replies to Booker for audit scheduling immediately',
+      'Flags unusual replies or hostile responses for human review',
+      'Generic service: LLM-personalized multi-channel outreach sequencer'
+    ],
+    tools: ['GoHighLevel', 'Claude API', 'Email/SMS'],
+    handoffs: [
+      { to: 'Booker', trigger: 'Positive reply or booking intent detected → audit scheduling' },
+      { to: 'Human', trigger: 'Hot prospect requesting direct call or price negotiation' }
+    ]
+  },
+  booker: {
+    dept: 'Revenue', color: '#4f9cf9',
+    name: 'Booker',
+    tagline: 'Calendar management · Audit scheduling · Confirmation flows',
+    responsibilities: [
+      'Manages Sheetal\'s calendar availability in real time',
+      'Sends booking links or proposes specific times based on availability',
+      'Sends confirmation email with audit prep context and expectations',
+      'Sends reminder sequence: 24hr, 1hr before audit',
+      'Handles reschedule requests and no-shows automatically',
+      'Logs all booked, completed, and missed audits to task bus',
+      'Generic service: intelligent scheduling + confirmation flow for any service business'
+    ],
+    tools: ['GoHighLevel', 'Google Calendar', 'Claude API'],
+    handoffs: [
+      { to: 'Seller', trigger: 'Audit confirmed → pre-call research brief generated' },
+      { to: 'Closer', trigger: 'No-show → re-engagement sequence triggered' }
+    ]
+  },
+  seller: {
+    dept: 'Revenue', color: '#4f9cf9',
+    name: 'Seller',
+    tagline: 'Sales call prep · Post-call follow-up · Proposal generation',
+    responsibilities: [
+      'Generates pre-call brief: prospect profile, pain hooks, recommended tier',
+      'Prepares objection cue cards based on lead\'s detected concerns',
+      'After call: listens to GHL recording, extracts key objections and next steps',
+      'Generates personalized proposal with correct tier recommendation',
+      'Sends post-call follow-up email within 30 minutes of call end',
+      'Logs call outcome (closed / follow-up / lost) with reason',
+      'Generic service: sales enablement + post-call automation layer'
+    ],
+    tools: ['Claude API', 'GoHighLevel', 'Call recordings'],
+    handoffs: [
+      { to: 'Concierge', trigger: 'Deal closed → client onboarding sequence begins' },
+      { to: 'Closer', trigger: 'Follow-up needed → nurture task queued' }
+    ]
+  },
+  copywriter: {
+    dept: 'Marketing', color: '#f97b4f',
+    name: 'Copywriter',
+    tagline: 'Blogs · Email sequences · Landing pages · Offer copy',
+    responsibilities: [
+      'Generates SEO blog posts (1,200–2,500 words) on wellness ops topics',
+      'Writes email sequences: nurture, onboarding, re-engagement, upsell',
+      'Creates landing page copy aligned to Grand Slam Offer framework',
+      'Maintains Seamless Assist brand voice and terminology consistency',
+      'Adapts copy for different ICP segments (fitness, med spa, coach)',
+      'Produces A/B variants for high-traffic pages automatically',
+      'Generic service: brand-voice-aware content factory for any vertical'
+    ],
+    tools: ['Claude API', 'WordPress MCP', 'Brand guidelines'],
+    handoffs: [
+      { to: 'Web Updater', trigger: 'New blog published → site updated, internal links checked' },
+      { to: 'Social', trigger: 'Blog published → social snippets generated' },
+      { to: 'Ad Manager', trigger: 'New offer copy → ad variants created' }
+    ]
+  },
+  social: {
+    dept: 'Marketing', color: '#f97b4f',
+    name: 'Social',
+    tagline: 'Content creation · Scheduling · Platform management',
+    responsibilities: [
+      'Generates platform-native content: LinkedIn, Instagram, X, Facebook',
+      'Repurposes blog posts into 5–10 social assets per post',
+      'Maintains a 30-day rolling content calendar',
+      'Monitors engagement and flags viral or negative posts for review',
+      'Generates response suggestions for comments and DMs',
+      'Tracks follower growth and content performance weekly',
+      'Generic service: multi-platform social content engine for any brand'
+    ],
+    tools: ['Claude API', 'Buffer/Hootsuite', 'Canva MCP'],
+    handoffs: [
+      { to: 'Copywriter', trigger: 'High-performing post → suggests long-form expansion' },
+      { to: 'Ad Manager', trigger: 'Top organic post → suggests paid amplification' }
+    ]
+  },
+  admanager: {
+    dept: 'Marketing', color: '#f97b4f',
+    name: 'Ad Manager',
+    tagline: 'Google/Meta ad copy · Audience briefs · Performance reporting',
+    responsibilities: [
+      'Writes Google Search ad copy (headlines, descriptions, extensions)',
+      'Writes Meta ad copy and hooks (3 variants per campaign)',
+      'Generates audience targeting briefs based on ICP signals',
+      'Monitors campaign performance and flags underperformers',
+      'Generates weekly spend vs. return report for CEO Dashboard',
+      'Suggests budget reallocation when ROAS drops below threshold',
+      'Generic service: LLM-assisted paid media copywriting + monitoring layer'
+    ],
+    tools: ['Google Ads API', 'Meta API', 'Claude API'],
+    handoffs: [
+      { to: 'Copywriter', trigger: 'High-converting ad → expand to landing page/email' },
+      { to: 'Scorecard', trigger: 'Weekly performance data → fed into business KPIs' }
+    ]
+  },
+  webupdater: {
+    dept: 'Marketing', color: '#f97b4f',
+    name: 'Web Updater',
+    tagline: 'Triggered site updates · Offer changes · Content freshness',
+    responsibilities: [
+      'Listens for trigger events: new offer, price change, new case study',
+      'Updates relevant website pages via WordPress API',
+      'Ensures offer copy on site stays in sync with current Grand Slam framing',
+      'Adds new blog posts, landing pages, and testimonials on command',
+      'Checks internal links and SEO metadata on every update',
+      'Logs all site changes with rollback info for safety',
+      'Generic service: CMS automation layer triggered by business events'
+    ],
+    tools: ['WordPress MCP', 'Claude API', 'SEO checks'],
+    handoffs: [
+      { to: 'Copywriter', trigger: 'Page needs copy refresh → generates updated version for review' },
+      { to: 'Human', trigger: 'Major structural page changes → require approval before publish' }
+    ]
+  },
+  offerarchitect: {
+    dept: 'Marketing', color: '#f97b4f',
+    name: 'Offer Architect',
+    tagline: 'New offer ideation · Hormozi framework · Pricing structure',
+    responsibilities: [
+      'Analyzes market signals and client feedback for offer gaps',
+      'Generates new offer concepts using Hormozi\'s Value Equation',
+      'Structures bonus stacks, guarantees, and scarcity mechanics',
+      'Produces a full offer brief: positioning, pricing, objection pre-empts',
+      'Compares new offer against existing tiers for cannibalization risk',
+      'Generates A/B positioning variants for testing',
+      'Generic service: offer strategy engine for any service or product business'
+    ],
+    tools: ['Claude API', 'Market research', 'Grand Slam Playbook'],
+    handoffs: [
+      { to: 'Copywriter', trigger: 'Offer approved → full copy suite generated' },
+      { to: 'Web Updater', trigger: 'Offer live → site updated across all relevant pages' }
+    ]
+  },
+  opschief: {
+    dept: 'Operations', color: '#4fc98a',
+    name: 'Ops Chief',
+    tagline: 'Task routing · SLA monitoring · Escalation triggers · Internal brain',
+    responsibilities: [
+      'Routes all tasks on the shared bus to the correct agent',
+      'Monitors SLA compliance for all active VA placements',
+      'Triggers replacement protocol if VA SLA breach detected',
+      'Generates weekly internal ops summary for team leads',
+      'Manages client onboarding milestone tracking (Days 1–30)',
+      'Flags client health degradation to Concierge for proactive outreach',
+      'Generic service: operations orchestration layer for any service business'
+    ],
+    tools: ['PostgreSQL', 'Claude API', 'Slack'],
+    handoffs: [
+      { to: 'Scribe', trigger: 'New client onboarded → SOP build task queued' },
+      { to: 'Auditor', trigger: 'Weekly QA run → scores VA output batches' },
+      { to: 'Concierge', trigger: 'Client milestone or health flag → comms task created' }
+    ]
+  },
+  scribe: {
+    dept: 'Operations', color: '#4fc98a',
+    name: 'Scribe',
+    tagline: 'SOP generation · Process documentation · Drift detection',
+    responsibilities: [
+      'Observes VA task outputs and infers process steps',
+      'Generates structured SOPs from observed patterns + templates',
+      'Versions all SOPs and tracks changes over time',
+      'Detects when VA output deviates from documented SOP',
+      'Surfaces drift alerts to Ops Chief and Auditor',
+      'Exports SOP library as client-facing documentation on request',
+      'Generic service: process documentation engine for any ops-heavy business'
+    ],
+    tools: ['Claude API', 'Notion MCP', 'Task logs'],
+    handoffs: [
+      { to: 'Auditor', trigger: 'SOP updated → QA rubric updated accordingly' },
+      { to: 'Trainer', trigger: 'New SOP created → training module generated' }
+    ]
+  },
+  auditor: {
+    dept: 'Operations', color: '#4fc98a',
+    name: 'Auditor',
+    tagline: 'QA scoring · VA work evaluation · Performance management input',
+    responsibilities: [
+      'Scores VA work output samples against defined quality rubrics',
+      'Flags work below threshold for human team lead review',
+      'Generates monthly VA performance report per placement',
+      'Tracks quality trend over time: improving, stable, declining',
+      'Identifies which task types have highest error rates',
+      'Feeds scores into HR Monitor for retention risk calculation',
+      'Generic service: AI QA engine for any human or AI work product'
+    ],
+    tools: ['Claude API', 'Rubric database', 'Task logs'],
+    handoffs: [
+      { to: 'HR Monitor', trigger: 'Score below threshold 2 weeks running → retention flag' },
+      { to: 'Trainer', trigger: 'Recurring error type → targeted retraining task created' },
+      { to: 'Ops Chief', trigger: 'Critical QA failure → escalation to team lead' }
+    ]
+  },
+  concierge: {
+    dept: 'Operations', color: '#4fc98a',
+    name: 'Concierge',
+    tagline: 'Client comms · Weekly updates · Proactive relationship management',
+    responsibilities: [
+      'Sends weekly operations update to each active client',
+      'Manages check-in scheduling and confirmation flows',
+      'Sends proactive messages when client health score drops',
+      'Generates renewal and upsell prompts at appropriate milestones',
+      'Handles routine client questions (escalates complex ones)',
+      'Logs all client touchpoints to GHL for relationship history',
+      'Generic service: automated but personalized client communication layer'
+    ],
+    tools: ['GoHighLevel', 'Claude API', 'Email'],
+    handoffs: [
+      { to: 'Seller', trigger: 'Upsell signal detected → opportunity brief created' },
+      { to: 'Ops Chief', trigger: 'Client complaint → internal escalation task' }
+    ]
+  },
+  analyst: {
+    dept: 'Intelligence', color: '#f9d44f',
+    name: 'Analyst',
+    tagline: 'Revenue intelligence · MRR trends · Client health · Churn risk',
+    responsibilities: [
+      'Pulls data from QuickBooks, Mindbody/ZenPlanner, GoHighLevel nightly',
+      'Calculates MRR, churn rate, expansion revenue, and LTV',
+      'Generates client health scores (usage, engagement, payment, comms)',
+      'Identifies churn risk signals 30–60 days before likely churn',
+      'Surfaces upsell opportunities based on usage patterns',
+      'Feeds structured data to Scorecard and CEO Dashboard',
+      'Generic service: BI layer that sits on any set of operational APIs'
+    ],
+    tools: ['QuickBooks API', 'Mindbody/ZenPlanner', 'GoHighLevel', 'Claude'],
+    handoffs: [
+      { to: 'Concierge', trigger: 'Client health score drops → proactive outreach triggered' },
+      { to: 'Scorecard', trigger: 'Weekly data pull → CEO brief input' }
+    ]
+  },
+  scorecard: {
+    dept: 'Intelligence', color: '#f9d44f',
+    name: 'Scorecard',
+    tagline: 'Business KPIs · Cross-department health · CEO weekly brief',
+    responsibilities: [
+      'Aggregates KPIs from all 5 departments into a single score',
+      'Tracks company-level metrics: MRR, CAC, LTV, VA utilization, NPS',
+      'Generates the weekly CEO brief narrative (not just numbers — insight)',
+      'Compares this week vs last week vs last month vs target',
+      'Flags leading indicators of problems before they become P&L events',
+      'Produces the monthly board-ready summary',
+      'Generic service: cross-functional business health monitor for any company'
+    ],
+    tools: ['All department feeds', 'Claude API', 'Dashboard'],
+    handoffs: [
+      { to: 'Daily Briefing', trigger: 'Every morning → brief compiled and pushed' },
+      { to: 'Meta-Agent', trigger: 'Any metric can be queried conversationally' }
+    ]
+  },
+  recruiter: {
+    dept: 'People', color: '#c94fc9',
+    name: 'Recruiter',
+    tagline: 'VA sourcing · LATAM / PH / India / Eastern Europe / Kenya',
+    responsibilities: [
+      'Posts roles to relevant job boards per region (Onlinejobs.ph, LinkedIn, etc.)',
+      'Ingests applications into Manatal automatically',
+      'Runs initial screening: English proficiency, tech requirements, availability',
+      'Applies ranking model to score each candidate against role profile',
+      'Surfaces top-ranked candidates with score rationale in Manatal',
+      'Provides manual "Send to Goodfit" button for approved candidates',
+      'Generic service: geo-aware VA/contractor recruitment pipeline'
+    ],
+    tools: ['Manatal MCP', 'Claude API', 'Job boards per region'],
+    handoffs: [
+      { to: 'Interviewer', trigger: 'Human approves candidate → Goodfit.so interview triggered' }
+    ]
+  },
+  interviewer: {
+    dept: 'People', color: '#c94fc9',
+    name: 'Interviewer',
+    tagline: 'Goodfit.so async → scored results → human in-person interview',
+    responsibilities: [
+      'Receives Goodfit.so interview completion webhook',
+      'Scores Goodfit results against role-specific rubric using Claude',
+      'Generates a structured candidate brief: strengths, concerns, fit score',
+      'Surfaces shortlist to human interviewer with brief attached',
+      'Schedules in-person or video interview with Sheetal or team lead',
+      'Sends candidate prep email and interviewer brief',
+      'Generic service: structured async → sync interview pipeline for any hiring flow'
+    ],
+    tools: ['Goodfit.so', 'Manatal MCP', 'Google Calendar', 'Claude'],
+    handoffs: [
+      { to: 'Human interviewer', trigger: 'In-person interview scheduled → brief delivered' },
+      { to: 'Trainer', trigger: 'Candidate hired → onboarding sequence begins' }
+    ]
+  },
+  trainer: {
+    dept: 'People', color: '#c94fc9',
+    name: 'Trainer',
+    tagline: 'VA onboarding · Curriculum delivery · Certification tracking',
+    responsibilities: [
+      'Delivers structured onboarding curriculum over first 5 business days',
+      'Modules: SA brand/tone, tools stack, client communication standards, SOPs',
+      'Generates knowledge check assessments after each module',
+      'Issues AI Certification upon passing all assessments',
+      'Tracks training completion status per VA in Manatal',
+      'Triggers retraining tasks when Auditor flags recurring errors',
+      'Generic service: modular employee training + certification engine'
+    ],
+    tools: ['Claude API', 'Notion MCP', 'Manatal', 'LMS/quiz layer'],
+    handoffs: [
+      { to: 'Ops Chief', trigger: 'VA certified → deployment-ready flag set in system' },
+      { to: 'Scribe', trigger: 'New VA starts → SOP library access provisioned' }
+    ]
+  },
+  hrmonitor: {
+    dept: 'People', color: '#c94fc9',
+    name: 'HR Monitor',
+    tagline: 'Staff performance · Retention risk · Satisfaction signals',
+    responsibilities: [
+      'Tracks attendance, response times, and task completion rates per VA',
+      'Aggregates Auditor QA scores into rolling performance trend',
+      'Detects early retention risk: score drops, engagement decline, comms gaps',
+      'Generates monthly VA performance summary for team leads',
+      'Flags VAs for performance improvement process or replacement',
+      'Monitors client ↔ VA relationship health (not just output quality)',
+      'Generic service: people analytics layer for any remote-first team'
+    ],
+    tools: ['Manatal MCP', 'Claude API', 'Task logs', 'Auditor feeds'],
+    handoffs: [
+      { to: 'Recruiter', trigger: 'VA flagged for replacement → pipeline opened proactively' },
+      { to: 'Trainer', trigger: 'Performance issue → targeted coaching task created' },
+      { to: 'Ops Chief', trigger: 'High retention risk → client contingency plan triggered' }
+    ]
+  }
+};
+
+function showAgent(id) {
+  const a = agents[id];
+  if (!a) return;
+  const panel = document.getElementById('detailPanel');
+  const content = document.getElementById('panelContent');
+
+  content.innerHTML = `
+    <div class="panel-dept-label" style="color:${a.color}">${a.dept}</div>
+    <div class="panel-name">${a.name}</div>
+    <div class="panel-tagline">${a.tagline}</div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Responsibilities</div>
+      <ul class="panel-list">${a.responsibilities.map(r => `<li>${r}</li>`).join('')}</ul>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Tools & Integrations</div>
+      <div class="panel-tags">${a.tools.map(t => `<span class="panel-tag">${t}</span>`).join('')}</div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Handoffs</div>
+      <div class="panel-handoffs">
+        ${a.handoffs.map(h => `
+          <div class="handoff-item">
+            <div class="handoff-arrow" style="color:${a.color}">→</div>
+            <div class="handoff-text"><strong>${h.to}</strong>${h.trigger}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  panel.classList.add('open');
+  document.getElementById('overlay').classList.add('active');
+}
+
+function closePanel() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('active');
+}
+</script>
+</body>
+</html>

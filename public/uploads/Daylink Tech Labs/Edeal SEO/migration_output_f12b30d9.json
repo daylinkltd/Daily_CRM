@@ -1,0 +1,1 @@
+{"success":true,"message":"Bulk SI migration completed","stats":{"savings":{"total":5,"migrated":0,"skipped":5},"rd":{"total":1,"migrated":0,"skipped":1},"fdMis":{"total":0,"migrated":0,"skipped":0},"loans":{"total":2,"migrated":0,"skipped":2},"errors":[]}}

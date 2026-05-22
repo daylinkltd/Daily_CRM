@@ -1,0 +1,857 @@
+{
+  "/Users/swaraj/Documents/projects/Daily_CRM/postcss.config.mjs": {
+    "mtime": 1779135031.0,
+    "ast_hash": "239f3ebf717465dc636818a1a619398d",
+    "semantic_hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/next-env.d.ts": {
+    "mtime": 1779274235.2417617,
+    "ast_hash": "d0f8375ae1199dc7acd3977fc33b78b8",
+    "semantic_hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/package.json": {
+    "mtime": 1779135031.0,
+    "ast_hash": "7811944d3dd18e850c87f64445a66295",
+    "semantic_hash": "7811944d3dd18e850c87f64445a66295"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/components.json": {
+    "mtime": 1779135031.0,
+    "ast_hash": "fc5c9e9a7b93eeb2f7b4e1ce0959e4a6",
+    "semantic_hash": "fc5c9e9a7b93eeb2f7b4e1ce0959e4a6"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/tsconfig.json": {
+    "mtime": 1779135031.0,
+    "ast_hash": "ee17fd1c97c735e9f3564e3f5251f125",
+    "semantic_hash": "ee17fd1c97c735e9f3564e3f5251f125"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/vitest.config.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "a68f97159b9f77d90e65bd7b734b171f",
+    "semantic_hash": "a68f97159b9f77d90e65bd7b734b171f"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/eslint.config.mjs": {
+    "mtime": 1779135031.0,
+    "ast_hash": "dfa1f5f6a7037bf39dc510f30b180002",
+    "semantic_hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/next.config.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "aa1f703e8a016ce8dfc30b5149333f67",
+    "semantic_hash": "aa1f703e8a016ce8dfc30b5149333f67"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/009_multi_tenant_saas.sql": {
+    "mtime": 1779201070.286808,
+    "ast_hash": "7a64e8f89d69b4508e62176de5d06313",
+    "semantic_hash": "7a64e8f89d69b4508e62176de5d06313"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/006_automations.sql": {
+    "mtime": 1779191418.500953,
+    "ast_hash": "4836ab477e8d44ff9ebffe676ca8679a",
+    "semantic_hash": "4836ab477e8d44ff9ebffe676ca8679a"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/002_pipelines_enhancements.sql": {
+    "mtime": 1779135031.0,
+    "ast_hash": "fee6e25aed3636eb93d96379b4f8b1f1",
+    "semantic_hash": "fee6e25aed3636eb93d96379b4f8b1f1"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/005_broadcast_counts_incremental.sql": {
+    "mtime": 1779135031.0,
+    "ast_hash": "fd6b932b168b8eacba5874cbf1bdc21e",
+    "semantic_hash": "fd6b932b168b8eacba5874cbf1bdc21e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/008_profile_avatars_storage.sql": {
+    "mtime": 1779135031.0,
+    "ast_hash": "c811436337d84a353392fef4378f4a2a",
+    "semantic_hash": "c811436337d84a353392fef4378f4a2a"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/004_contact_delete_set_null.sql": {
+    "mtime": 1779135031.0,
+    "ast_hash": "8457b7f4b773ddca034a182942adc944",
+    "semantic_hash": "8457b7f4b773ddca034a182942adc944"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/007_automations_increment_counter.sql": {
+    "mtime": 1779135031.0,
+    "ast_hash": "48961728b34a75590fa2199907d4a535",
+    "semantic_hash": "48961728b34a75590fa2199907d4a535"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/003_broadcast_recipient_wamid.sql": {
+    "mtime": 1779135031.0,
+    "ast_hash": "0f6aee3d97ab7747e7221c8f34f0b343",
+    "semantic_hash": "0f6aee3d97ab7747e7221c8f34f0b343"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/013_create_workspace_rpc.sql": {
+    "mtime": 1779274592.4610038,
+    "ast_hash": "0846e8ab60ccd70680ee9733b9976051",
+    "semantic_hash": "0846e8ab60ccd70680ee9733b9976051"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/010_workspace_schema.sql": {
+    "mtime": 1779259741.4311163,
+    "ast_hash": "61713622cf9ea1ffdf4e8830e6fa33c6",
+    "semantic_hash": "61713622cf9ea1ffdf4e8830e6fa33c6"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/001_initial_schema.sql": {
+    "mtime": 1779191416.4776344,
+    "ast_hash": "c7cc81f06b37df2064038ed64806b528",
+    "semantic_hash": "c7cc81f06b37df2064038ed64806b528"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/012_workspace_rls_fix.sql": {
+    "mtime": 1779274433.8119125,
+    "ast_hash": "5843138630997a4bd64273ed09682868",
+    "semantic_hash": "5843138630997a4bd64273ed09682868"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/migrations/011_whatsapp_providers.sql": {
+    "mtime": 1779268053.0711458,
+    "ast_hash": "cfc5522fe84a2c1deff084dcb9faba3d",
+    "semantic_hash": "cfc5522fe84a2c1deff084dcb9faba3d"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/supabase/.temp/linked-project.json": {
+    "mtime": 1779191261.2174141,
+    "ast_hash": "c56f3f102d14519432dcd22b184f5ce5",
+    "semantic_hash": "c56f3f102d14519432dcd22b184f5ce5"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/proxy.ts": {
+    "mtime": 1779186865.9016736,
+    "ast_hash": "44b31ac22e548c9259bfb43990f34310",
+    "semantic_hash": "44b31ac22e548c9259bfb43990f34310"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/types/index.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "3e7995900e7bcf6eb9035b652b4ba3b4",
+    "semantic_hash": "3e7995900e7bcf6eb9035b652b4ba3b4"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/icon.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "5bd52f4968ce8d45a30dc42ffc7f363b",
+    "semantic_hash": "5bd52f4968ce8d45a30dc42ffc7f363b"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/layout.tsx": {
+    "mtime": 1779197962.552929,
+    "ast_hash": "2d03aef07a4f3759794564e0cdbbec8e",
+    "semantic_hash": "2d03aef07a4f3759794564e0cdbbec8e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/page.tsx": {
+    "mtime": 1779198594.6124642,
+    "ast_hash": "0fd07ed85ac58fc98b643ca264f88144",
+    "semantic_hash": "0fd07ed85ac58fc98b643ca264f88144"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/saas-admin/layout.tsx": {
+    "mtime": 1779267934.56171,
+    "ast_hash": "b88b9bc3d716e57f1070c2c91d75f661",
+    "semantic_hash": "b88b9bc3d716e57f1070c2c91d75f661"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/saas-admin/dashboard/page.tsx": {
+    "mtime": 1779268035.6097639,
+    "ast_hash": "37da25dddac8c550e0b2ef6a94f5528b",
+    "semantic_hash": "37da25dddac8c550e0b2ef6a94f5528b"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/saas-admin/login/page.tsx": {
+    "mtime": 1779267945.9173114,
+    "ast_hash": "51757777e2fea0a211da310a82c02324",
+    "semantic_hash": "51757777e2fea0a211da310a82c02324"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/automations/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "255dcfe9e3cdd6dae4f632ade5dbabad",
+    "semantic_hash": "255dcfe9e3cdd6dae4f632ade5dbabad"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/automations/[id]/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "7b888ac63827c25a3c292453659fe0a7",
+    "semantic_hash": "7b888ac63827c25a3c292453659fe0a7"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/automations/[id]/duplicate/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "209d56bcd330231be71dcbe879bf98d6",
+    "semantic_hash": "209d56bcd330231be71dcbe879bf98d6"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/automations/engine/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "7fc9d015aeee4cfa07e22ebce85705ef",
+    "semantic_hash": "7fc9d015aeee4cfa07e22ebce85705ef"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/automations/cron/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "f00adbaed2747612b15c046cc5e9f00a",
+    "semantic_hash": "f00adbaed2747612b15c046cc5e9f00a"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/whatsapp/webhook/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "e0a8625608c3d7fb614fe919586a7bd0",
+    "semantic_hash": "e0a8625608c3d7fb614fe919586a7bd0"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/whatsapp/config/route.ts": {
+    "mtime": 1779268134.6888387,
+    "ast_hash": "1a98086862de5d1b3eb5e7a436121c4f",
+    "semantic_hash": "1a98086862de5d1b3eb5e7a436121c4f"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/whatsapp/templates/sync/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "1f206d5237bd691ad8edc35a67f747cc",
+    "semantic_hash": "1f206d5237bd691ad8edc35a67f747cc"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/whatsapp/send/route.ts": {
+    "mtime": 1779268418.2209077,
+    "ast_hash": "024cdbde6ec39a9899bcb0e7afb82d6a",
+    "semantic_hash": "024cdbde6ec39a9899bcb0e7afb82d6a"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/whatsapp/broadcast/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "a10982a06e2957bb3c37c4312518ab94",
+    "semantic_hash": "a10982a06e2957bb3c37c4312518ab94"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/api/whatsapp/media/[mediaId]/route.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "668b1639d9512ee017d5487d08ae687f",
+    "semantic_hash": "668b1639d9512ee017d5487d08ae687f"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(auth)/layout.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "af7aeab8f6693743e862d9ece159aeae",
+    "semantic_hash": "af7aeab8f6693743e862d9ece159aeae"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(auth)/signup/page.tsx": {
+    "mtime": 1779199451.5745296,
+    "ast_hash": "13d1e84a3af1264a09c4c6f692410862",
+    "semantic_hash": "13d1e84a3af1264a09c4c6f692410862"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(auth)/forgot-password/page.tsx": {
+    "mtime": 1779199451.5750127,
+    "ast_hash": "81f8942d13b6b0a5e26c53ce2e030183",
+    "semantic_hash": "81f8942d13b6b0a5e26c53ce2e030183"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(auth)/login/page.tsx": {
+    "mtime": 1779199451.5754426,
+    "ast_hash": "ad9af731c4d34af2177132dffaac9b13",
+    "semantic_hash": "ad9af731c4d34af2177132dffaac9b13"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/layout.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "2d133c72e43541cab8409a3bb3198e86",
+    "semantic_hash": "2d133c72e43541cab8409a3bb3198e86"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/dashboard-shell.tsx": {
+    "mtime": 1779222675.1010756,
+    "ast_hash": "7c8c834b9ef21370e5104e66c5c018e1",
+    "semantic_hash": "7c8c834b9ef21370e5104e66c5c018e1"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/settings/page.tsx": {
+    "mtime": 1779222713.7714298,
+    "ast_hash": "0c6e8eca71cc440165441d1b17bf1232",
+    "semantic_hash": "0c6e8eca71cc440165441d1b17bf1232"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/broadcasts/page.tsx": {
+    "mtime": 1779199451.5765004,
+    "ast_hash": "9c40f474c405184c7df0f872a41c0ec8",
+    "semantic_hash": "9c40f474c405184c7df0f872a41c0ec8"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/broadcasts/new/page.tsx": {
+    "mtime": 1779199451.5770042,
+    "ast_hash": "1c491094cd10883c5166dcf5921d6342",
+    "semantic_hash": "1c491094cd10883c5166dcf5921d6342"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/broadcasts/[id]/page.tsx": {
+    "mtime": 1779199451.5776863,
+    "ast_hash": "bd5624e2d9388bf8a327d783ebad3001",
+    "semantic_hash": "bd5624e2d9388bf8a327d783ebad3001"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/inbox/page.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "b08441a58bfc2da250f9b7077ce41835",
+    "semantic_hash": "b08441a58bfc2da250f9b7077ce41835"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/contacts/page.tsx": {
+    "mtime": 1779222843.8092134,
+    "ast_hash": "cdf4663ebbf82d8983cec324b7fb2dce",
+    "semantic_hash": "cdf4663ebbf82d8983cec324b7fb2dce"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/pipelines/page.tsx": {
+    "mtime": 1779222971.0473247,
+    "ast_hash": "cc158d70b63b29348a44d2dcf996f4ee",
+    "semantic_hash": "cc158d70b63b29348a44d2dcf996f4ee"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/docs/page.tsx": {
+    "mtime": 1779201068.2023857,
+    "ast_hash": "d9ed80a517666f6404699e930b50c9da",
+    "semantic_hash": "d9ed80a517666f6404699e930b50c9da"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/dashboard/page.tsx": {
+    "mtime": 1779223078.0177517,
+    "ast_hash": "2b44391c2259d38bb7a6e398a9bc62bf",
+    "semantic_hash": "2b44391c2259d38bb7a6e398a9bc62bf"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/integrations/page.tsx": {
+    "mtime": 1779202366.4407332,
+    "ast_hash": "dd647ea7ca51dbfc3b3fb7c10c6d5425",
+    "semantic_hash": "dd647ea7ca51dbfc3b3fb7c10c6d5425"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/automations/page.tsx": {
+    "mtime": 1779199451.5801907,
+    "ast_hash": "72077b042b288e215230c74f99503458",
+    "semantic_hash": "72077b042b288e215230c74f99503458"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/automations/new/page.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "a9704f6263736a69f9257dac299688cd",
+    "semantic_hash": "a9704f6263736a69f9257dac299688cd"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/automations/[id]/edit/page.tsx": {
+    "mtime": 1779199451.5806055,
+    "ast_hash": "08559aebf8584616756c3a23de569d20",
+    "semantic_hash": "08559aebf8584616756c3a23de569d20"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/app/(dashboard)/automations/[id]/logs/page.tsx": {
+    "mtime": 1779199451.580997,
+    "ast_hash": "84a927b17ed8c2e0a2567b759b0b6b6e",
+    "semantic_hash": "84a927b17ed8c2e0a2567b759b0b6b6e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/tabs.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "429035bc858475cd3bcedbb08a5ba8da",
+    "semantic_hash": "429035bc858475cd3bcedbb08a5ba8da"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/card.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "77a10bd948ca424972a28e704a3df604",
+    "semantic_hash": "77a10bd948ca424972a28e704a3df604"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/popover.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "5e697fcc6dcfa06acb4d79e51ae4dbf7",
+    "semantic_hash": "5e697fcc6dcfa06acb4d79e51ae4dbf7"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/sheet.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "43ad8bec991f7a28d2aa22d4f374e6b7",
+    "semantic_hash": "43ad8bec991f7a28d2aa22d4f374e6b7"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/scroll-area.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "ac8fc719d0fd13c77c933474827337da",
+    "semantic_hash": "ac8fc719d0fd13c77c933474827337da"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/label.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "a70440da86bfc6a07f15197cca48cb08",
+    "semantic_hash": "a70440da86bfc6a07f15197cca48cb08"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/accordion.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "f04f5e2a04ec1972b53225e4c694cbd9",
+    "semantic_hash": "f04f5e2a04ec1972b53225e4c694cbd9"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/tooltip.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "6566a444ce6c0a87d6611903430534fa",
+    "semantic_hash": "6566a444ce6c0a87d6611903430534fa"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/alert.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "cdb08d0146416f8f890c9ab5a66d76a1",
+    "semantic_hash": "cdb08d0146416f8f890c9ab5a66d76a1"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/switch.tsx": {
+    "mtime": 1779199451.5824697,
+    "ast_hash": "ea97a1db94fe9b6f4c71d4d0cb8a61fa",
+    "semantic_hash": "ea97a1db94fe9b6f4c71d4d0cb8a61fa"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/radio-group.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "dab241ed149814052e52d1c9da34e754",
+    "semantic_hash": "dab241ed149814052e52d1c9da34e754"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/avatar.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "8b41492907a73176027427a3f0fd2302",
+    "semantic_hash": "8b41492907a73176027427a3f0fd2302"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/dialog.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "d9618a63d34473ec512321cc12d43692",
+    "semantic_hash": "d9618a63d34473ec512321cc12d43692"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/badge.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "e4ec840217040d5630ee6ed7213a1d72",
+    "semantic_hash": "e4ec840217040d5630ee6ed7213a1d72"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/table.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "44f87727e60080863edb00fdd2fcd8da",
+    "semantic_hash": "44f87727e60080863edb00fdd2fcd8da"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/separator.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "3de2dca3e47ab29c4b1f632671545628",
+    "semantic_hash": "3de2dca3e47ab29c4b1f632671545628"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/button.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "705bf3552a39e0c722665ccbecb30654",
+    "semantic_hash": "705bf3552a39e0c722665ccbecb30654"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/dropdown-menu.tsx": {
+    "mtime": 1779274314.473596,
+    "ast_hash": "5a21d8287b97776a8de0e263b276af64",
+    "semantic_hash": "5a21d8287b97776a8de0e263b276af64"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/select.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "ab95f478cb74d1906b07425c15b124cc",
+    "semantic_hash": "ab95f478cb74d1906b07425c15b124cc"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/textarea.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "d448d2a90e48542e51b93a1189127bf2",
+    "semantic_hash": "d448d2a90e48542e51b93a1189127bf2"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/ui/input.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "0607b02d99a2e92f9509223f36ccc6ec",
+    "semantic_hash": "0607b02d99a2e92f9509223f36ccc6ec"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/forms-config.tsx": {
+    "mtime": 1779202364.4072294,
+    "ast_hash": "7e710a2106910f71cd02f11687c0d41e",
+    "semantic_hash": "7e710a2106910f71cd02f11687c0d41e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/profile-form.tsx": {
+    "mtime": 1779200618.4777842,
+    "ast_hash": "6893f6a6cd16a3a2476abb4e0ec8726b",
+    "semantic_hash": "6893f6a6cd16a3a2476abb4e0ec8726b"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/sms-config.tsx": {
+    "mtime": 1779200400.4395387,
+    "ast_hash": "ae1026757ce6ef7d72351e8e98ec2831",
+    "semantic_hash": "ae1026757ce6ef7d72351e8e98ec2831"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/workspace-settings.tsx": {
+    "mtime": 1779222705.4778109,
+    "ast_hash": "d5576e15bebe8516e414b0bb0c91d345",
+    "semantic_hash": "d5576e15bebe8516e414b0bb0c91d345"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/sheets-config.tsx": {
+    "mtime": 1779202362.3721414,
+    "ast_hash": "b9bd6076faf0619f4ffa3294e1748d2b",
+    "semantic_hash": "b9bd6076faf0619f4ffa3294e1748d2b"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/messenger-config.tsx": {
+    "mtime": 1779200394.3591592,
+    "ast_hash": "0683c28ef862bbdf311389a027352c13",
+    "semantic_hash": "0683c28ef862bbdf311389a027352c13"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/template-manager.tsx": {
+    "mtime": 1779199451.5854504,
+    "ast_hash": "1bdda3a49c3e9ab68549c47eae07aecc",
+    "semantic_hash": "1bdda3a49c3e9ab68549c47eae07aecc"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/sessions-card.tsx": {
+    "mtime": 1779199451.585789,
+    "ast_hash": "ec521ed1914fd44c44fd8d9ea00b49e1",
+    "semantic_hash": "ec521ed1914fd44c44fd8d9ea00b49e1"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/email-config.tsx": {
+    "mtime": 1779200398.4168344,
+    "ast_hash": "a4090043d327c7d32028374a32a82215",
+    "semantic_hash": "a4090043d327c7d32028374a32a82215"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/whatsapp-config.tsx": {
+    "mtime": 1779268664.9692824,
+    "ast_hash": "b158f2dbce33003a00775c3ba4b90992",
+    "semantic_hash": "b158f2dbce33003a00775c3ba4b90992"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/tag-manager.tsx": {
+    "mtime": 1779222984.162924,
+    "ast_hash": "79537de8e31947d7c925fdae285ca5ce",
+    "semantic_hash": "79537de8e31947d7c925fdae285ca5ce"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/settings/instagram-config.tsx": {
+    "mtime": 1779201119.2149115,
+    "ast_hash": "0227e643c09f0f5602de8008e94b11da",
+    "semantic_hash": "0227e643c09f0f5602de8008e94b11da"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/broadcasts/step1-choose-template.tsx": {
+    "mtime": 1779222894.0742369,
+    "ast_hash": "b23e25c23d391c0fead3954ae79187b4",
+    "semantic_hash": "b23e25c23d391c0fead3954ae79187b4"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/broadcasts/step2-select-audience.tsx": {
+    "mtime": 1779258930.446038,
+    "ast_hash": "5e18b4193209e4aabf9289d2719b2a09",
+    "semantic_hash": "5e18b4193209e4aabf9289d2719b2a09"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/broadcasts/step3-personalize.tsx": {
+    "mtime": 1779222951.0948513,
+    "ast_hash": "1d61852a299628b32e478ee80de8e53b",
+    "semantic_hash": "1d61852a299628b32e478ee80de8e53b"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/broadcasts/step4-schedule-send.tsx": {
+    "mtime": 1779222959.2317593,
+    "ast_hash": "cbf9270e8dc5b2ff01043c58e2f460e6",
+    "semantic_hash": "cbf9270e8dc5b2ff01043c58e2f460e6"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/inbox/template-picker.tsx": {
+    "mtime": 1779199451.5918047,
+    "ast_hash": "5908b96c7d0e8a8e7b02beaca201ed53",
+    "semantic_hash": "5908b96c7d0e8a8e7b02beaca201ed53"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/inbox/message-bubble.tsx": {
+    "mtime": 1779199451.593373,
+    "ast_hash": "067a5b1d30ef0c60ebc693846bcf2dd3",
+    "semantic_hash": "067a5b1d30ef0c60ebc693846bcf2dd3"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/inbox/contact-sidebar.tsx": {
+    "mtime": 1779199451.594286,
+    "ast_hash": "fad69c30da3df2c9d3a3bac0464d8fd7",
+    "semantic_hash": "fad69c30da3df2c9d3a3bac0464d8fd7"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/inbox/conversation-list.tsx": {
+    "mtime": 1779199451.5954669,
+    "ast_hash": "5aeda1a990d1919175bf6c6ec42820e5",
+    "semantic_hash": "5aeda1a990d1919175bf6c6ec42820e5"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/inbox/message-composer.tsx": {
+    "mtime": 1779199451.5960793,
+    "ast_hash": "23df44955784d6ce4e533087632c3476",
+    "semantic_hash": "23df44955784d6ce4e533087632c3476"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/inbox/message-thread.tsx": {
+    "mtime": 1779199451.59651,
+    "ast_hash": "f899100e48440e9ca8aa4a7a4e0914c4",
+    "semantic_hash": "f899100e48440e9ca8aa4a7a4e0914c4"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/layout/workspace-switcher.tsx": {
+    "mtime": 1779258944.9068587,
+    "ast_hash": "25ae0a7851433ec57053284b82c860af",
+    "semantic_hash": "25ae0a7851433ec57053284b82c860af"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/layout/header.tsx": {
+    "mtime": 1779199451.597736,
+    "ast_hash": "8892c4a8f211a8a2c10ce57beb3abcaa",
+    "semantic_hash": "8892c4a8f211a8a2c10ce57beb3abcaa"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/layout/sidebar.tsx": {
+    "mtime": 1779267853.134476,
+    "ast_hash": "0797494a16fb5405642edbd8a517877a",
+    "semantic_hash": "0797494a16fb5405642edbd8a517877a"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/contacts/contact-detail-view.tsx": {
+    "mtime": 1779222877.1430342,
+    "ast_hash": "6b326a7c95199e97b7bbd3404286cd11",
+    "semantic_hash": "6b326a7c95199e97b7bbd3404286cd11"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/contacts/import-modal.tsx": {
+    "mtime": 1779222885.3452027,
+    "ast_hash": "6b53daf559ca6cc83fade3b80a6907d2",
+    "semantic_hash": "6b53daf559ca6cc83fade3b80a6907d2"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/contacts/contact-form.tsx": {
+    "mtime": 1779222858.8284957,
+    "ast_hash": "6b903f1c4a76ea890f5e4d5377d30693",
+    "semantic_hash": "6b903f1c4a76ea890f5e4d5377d30693"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/pipelines/pipeline-board.tsx": {
+    "mtime": 1779199451.6027906,
+    "ast_hash": "253c78021657b234b3ee7e590618c4bd",
+    "semantic_hash": "253c78021657b234b3ee7e590618c4bd"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/pipelines/deal-card.tsx": {
+    "mtime": 1779199451.6031344,
+    "ast_hash": "f574c356d9ba67b4645672d3b96038c3",
+    "semantic_hash": "f574c356d9ba67b4645672d3b96038c3"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/pipelines/deal-form.tsx": {
+    "mtime": 1779222977.481485,
+    "ast_hash": "04f80e62f149b046c0fb927cf04350c6",
+    "semantic_hash": "04f80e62f149b046c0fb927cf04350c6"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/pipelines/pipeline-analytics.tsx": {
+    "mtime": 1779199451.6043952,
+    "ast_hash": "255f10662c474ad559e2332bc7ee5e15",
+    "semantic_hash": "255f10662c474ad559e2332bc7ee5e15"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/pipelines/pipeline-settings.tsx": {
+    "mtime": 1779199451.6048412,
+    "ast_hash": "c8e587c0668420add10377a7243215d7",
+    "semantic_hash": "c8e587c0668420add10377a7243215d7"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/dashboard/conversations-chart.tsx": {
+    "mtime": 1779199451.6055799,
+    "ast_hash": "338853992c10080e9b3f825152064c46",
+    "semantic_hash": "338853992c10080e9b3f825152064c46"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/dashboard/quick-actions.tsx": {
+    "mtime": 1779199451.606165,
+    "ast_hash": "313a650a81e8aa62c972909a416d43d0",
+    "semantic_hash": "313a650a81e8aa62c972909a416d43d0"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/dashboard/metric-card.tsx": {
+    "mtime": 1779199451.6064746,
+    "ast_hash": "89240f72e843547135378145d9f2aee6",
+    "semantic_hash": "89240f72e843547135378145d9f2aee6"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/dashboard/empty-state.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "976704c5368bd0e8e30a1c6589609fb5",
+    "semantic_hash": "976704c5368bd0e8e30a1c6589609fb5"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/dashboard/activity-feed.tsx": {
+    "mtime": 1779199451.6077325,
+    "ast_hash": "e6e2a813b5856b2d12f904eed3d7d406",
+    "semantic_hash": "e6e2a813b5856b2d12f904eed3d7d406"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/dashboard/response-time-chart.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "cef77c655770e571fb018ac8df39009f",
+    "semantic_hash": "cef77c655770e571fb018ac8df39009f"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/dashboard/pipeline-donut.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "b8d257b1dc7683b9d2afb064db6f92da",
+    "semantic_hash": "b8d257b1dc7683b9d2afb064db6f92da"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/dashboard/skeleton.tsx": {
+    "mtime": 1779135031.0,
+    "ast_hash": "6a8d5829d5d272d251b15031567ba537",
+    "semantic_hash": "6a8d5829d5d272d251b15031567ba537"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/components/automations/automation-builder.tsx": {
+    "mtime": 1779199451.610104,
+    "ast_hash": "ef06102f85c4c0e375904b22b82c3c24",
+    "semantic_hash": "ef06102f85c4c0e375904b22b82c3c24"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/hooks/use-total-unread.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "1016aea91fee86a3a97924e9ded9e64b",
+    "semantic_hash": "1016aea91fee86a3a97924e9ded9e64b"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/hooks/use-auth.tsx": {
+    "mtime": 1779222670.6669393,
+    "ast_hash": "92d60febb0993388a84e2507d8037b2d",
+    "semantic_hash": "92d60febb0993388a84e2507d8037b2d"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/hooks/use-workspace.tsx": {
+    "mtime": 1779276863.2446144,
+    "ast_hash": "3c78d286b6785ef499b11fa45a5890cc",
+    "semantic_hash": "3c78d286b6785ef499b11fa45a5890cc"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/hooks/use-broadcast-sending.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "a9d1f176aecbf3900b662fd25417aa0b",
+    "semantic_hash": "a9d1f176aecbf3900b662fd25417aa0b"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/hooks/use-realtime.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "77901fccbf274d0f14e08c214f010bf9",
+    "semantic_hash": "77901fccbf274d0f14e08c214f010bf9"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/utils.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "5a6fd53fdcf2be529e9cc0b718fde352",
+    "semantic_hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/rate-limit.test.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "5c66f4b414e1fb338a221e2a56daf319",
+    "semantic_hash": "5c66f4b414e1fb338a221e2a56daf319"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/rate-limit.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "196f778572951c3a862a395a70d908a1",
+    "semantic_hash": "196f778572951c3a862a395a70d908a1"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/broadcast-status.test.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "ccc617dc51219a391bfe0cfbdc37387d",
+    "semantic_hash": "ccc617dc51219a391bfe0cfbdc37387d"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/broadcast-status.ts": {
+    "mtime": 1779199451.614245,
+    "ast_hash": "18ba57191c7a14a71afdf244ffa0a11f",
+    "semantic_hash": "18ba57191c7a14a71afdf244ffa0a11f"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/supabase/client.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "7117d1a705019efa34fd2422948f7165",
+    "semantic_hash": "7117d1a705019efa34fd2422948f7165"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/supabase/server.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "07ed39d1ee9a7b35ac6c754c519cc4f4",
+    "semantic_hash": "07ed39d1ee9a7b35ac6c754c519cc4f4"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/dashboard/date-utils.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "52ce23f9103f65d41bec6858871cae9c",
+    "semantic_hash": "52ce23f9103f65d41bec6858871cae9c"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/dashboard/queries.ts": {
+    "mtime": 1779223059.676913,
+    "ast_hash": "26af7237cddb0e13a357cb101fae61e9",
+    "semantic_hash": "26af7237cddb0e13a357cb101fae61e9"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/dashboard/date-utils.test.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "57f5c6f21b95e696741aad6ab1bd5fae",
+    "semantic_hash": "57f5c6f21b95e696741aad6ab1bd5fae"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/dashboard/types.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "ee0b426a7602d5e6304055ef11a30bcc",
+    "semantic_hash": "ee0b426a7602d5e6304055ef11a30bcc"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/automations/steps-tree.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "074b75020cad4d0e76380394f866be23",
+    "semantic_hash": "074b75020cad4d0e76380394f866be23"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/automations/admin-client.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "0cd19ad3a687b9c4562d9983550579b3",
+    "semantic_hash": "0cd19ad3a687b9c4562d9983550579b3"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/automations/validate.test.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "204a807b090dd2cb3a226d82c020ad30",
+    "semantic_hash": "204a807b090dd2cb3a226d82c020ad30"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/automations/engine.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "d440511448d672fab147c13caf1397be",
+    "semantic_hash": "d440511448d672fab147c13caf1397be"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/automations/templates.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "89f55ce44493c6f87284e0d2efef9c1a",
+    "semantic_hash": "89f55ce44493c6f87284e0d2efef9c1a"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/automations/validate.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "66275046613f5fa15ec31e1118f44354",
+    "semantic_hash": "66275046613f5fa15ec31e1118f44354"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/automations/trigger-meta.ts": {
+    "mtime": 1779199451.6168413,
+    "ast_hash": "7cfbfb9cafe53b2ac6c06507bcce8c7c",
+    "semantic_hash": "7cfbfb9cafe53b2ac6c06507bcce8c7c"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/automations/meta-send.ts": {
+    "mtime": 1779268493.6622355,
+    "ast_hash": "96ce6cffd5580f3c3997c21315d24e49",
+    "semantic_hash": "96ce6cffd5580f3c3997c21315d24e49"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/webhook-signature.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "126e1410f67f1ccee32c34f2e973ba57",
+    "semantic_hash": "126e1410f67f1ccee32c34f2e973ba57"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/phone-utils.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "a8e70c48bbc2e5c8926556186f6a2ffa",
+    "semantic_hash": "a8e70c48bbc2e5c8926556186f6a2ffa"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/phone-utils.test.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "3bf5d3e7c68755db658c5ae779f22c0e",
+    "semantic_hash": "3bf5d3e7c68755db658c5ae779f22c0e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/encryption.test.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "963558c64e9eba0d1d1badd2c5a7bdac",
+    "semantic_hash": "963558c64e9eba0d1d1badd2c5a7bdac"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/webhook-signature.test.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "cb7a2da2a5b0e31b7c3b73fe5e1edeb8",
+    "semantic_hash": "cb7a2da2a5b0e31b7c3b73fe5e1edeb8"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/provider-interface.ts": {
+    "mtime": 1779268102.889745,
+    "ast_hash": "b00f60a4affc157e437d1f3939f673f1",
+    "semantic_hash": "b00f60a4affc157e437d1f3939f673f1"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/meta-api.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "9780c5d991e0ece4da6c2875a8ff402d",
+    "semantic_hash": "9780c5d991e0ece4da6c2875a8ff402d"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/encryption.ts": {
+    "mtime": 1779135031.0,
+    "ast_hash": "b59da779b7ee6fbdfe588ee1c4a6ec2e",
+    "semantic_hash": "b59da779b7ee6fbdfe588ee1c4a6ec2e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/providers/mock-provider.ts": {
+    "mtime": 1779268118.7517402,
+    "ast_hash": "ce73bcebe22c253d09acc1cc022f444d",
+    "semantic_hash": "ce73bcebe22c253d09acc1cc022f444d"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/providers/factory.ts": {
+    "mtime": 1779268120.95902,
+    "ast_hash": "2811b96d6227e05fffdff4e1110cf0f7",
+    "semantic_hash": "2811b96d6227e05fffdff4e1110cf0f7"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/providers/meta-provider.ts": {
+    "mtime": 1779268097.469005,
+    "ast_hash": "909c839e059f7cb3364c3abab95e57b3",
+    "semantic_hash": "909c839e059f7cb3364c3abab95e57b3"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/src/lib/whatsapp/providers/twilio-provider.ts": {
+    "mtime": 1779268115.1147637,
+    "ast_hash": "0cd48fd392b50cc226a720cdb655280e",
+    "semantic_hash": "0cd48fd392b50cc226a720cdb655280e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/README.md": {
+    "mtime": 1779135031.0,
+    "ast_hash": "edc009c2186ca02b6c4664e4a1d3ecec",
+    "semantic_hash": "edc009c2186ca02b6c4664e4a1d3ecec"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/CONTRIBUTING.md": {
+    "mtime": 1779135031.0,
+    "ast_hash": "0d7c3a9ee96c0aee26f637af34b59039",
+    "semantic_hash": "0d7c3a9ee96c0aee26f637af34b59039"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/AGENTS.md": {
+    "mtime": 1779135031.0,
+    "ast_hash": "9e09241799026ac05be315a2f0b50055",
+    "semantic_hash": "9e09241799026ac05be315a2f0b50055"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/CLAUDE.md": {
+    "mtime": 1779135031.0,
+    "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
+    "semantic_hash": "5c27369b226fcf2be8a6cfe52224e767"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/.agents/workflows/graphify.md": {
+    "mtime": 1779277114.784139,
+    "ast_hash": "afa1ffc01aa56ac681c7335686f44767",
+    "semantic_hash": "afa1ffc01aa56ac681c7335686f44767"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/.agents/rules/graphify.md": {
+    "mtime": 1779277114.7838364,
+    "ast_hash": "f1e53ecc9194573d3c28fc116c743a2e",
+    "semantic_hash": "f1e53ecc9194573d3c28fc116c743a2e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/public/file.svg": {
+    "mtime": 1779135031.0,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/public/vercel.svg": {
+    "mtime": 1779135031.0,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/public/next.svg": {
+    "mtime": 1779135031.0,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/public/globe.svg": {
+    "mtime": 1779135031.0,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "/Users/swaraj/Documents/projects/Daily_CRM/public/window.svg": {
+    "mtime": 1779135031.0,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  }
+}
