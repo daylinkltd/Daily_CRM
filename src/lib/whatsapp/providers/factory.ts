@@ -2,6 +2,7 @@ import { WhatsAppProvider } from "../provider-interface";
 import { MetaProvider } from "./meta-provider";
 import { TwilioProvider } from "./twilio-provider";
 import { MockProvider } from "./mock-provider";
+import { ApiAutoProvider } from "./api-auto-provider";
 
 /**
  * Factory function to retrieve the appropriate WhatsApp API driver.
@@ -14,6 +15,8 @@ export function getWhatsAppProvider(provider: string): WhatsAppProvider {
       return new TwilioProvider();
     case "mock":
       return new MockProvider();
+    case "apiauto":
+      return new ApiAutoProvider();
     case "meta":
     default:
       return new MetaProvider();

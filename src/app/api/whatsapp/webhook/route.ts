@@ -148,19 +148,47 @@ export async function POST(request: Request) {
   const rawBody = await request.text()
   const signature = request.headers.get('x-hub-signature-256')
 
-  if (!verifyMetaWebhookSignature(rawBody, signature)) {
-    // 401 (not 200) — we want Meta's delivery dashboard to show failures
-    // loudly if a misconfiguration causes signatures to stop matching,
-    // rather than silently eating events.
-    console.warn('[webhook] rejected request with invalid signature')
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-  }
-
   let body: { entry?: WhatsAppWebhookEntry[] }
   try {
     body = JSON.parse(rawBody)
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  // Determine if signature verification can be safely bypassed.
+  // We only bypass if ALL phone_number_ids in the payload belong to providers
+  // like 'apiauto' or 'mock' which do not use Meta's HMAC signing.
+  let requiresSignature = true
+  const phoneIds = new Set<string>()
+
+  if (body.entry) {
+    for (const entry of body.entry) {
+      for (const change of entry.changes) {
+        if (change.value.metadata?.phone_number_id) {
+          phoneIds.add(change.value.metadata.phone_number_id)
+        }
+      }
+    }
+  }
+
+  if (phoneIds.size > 0) {
+    const { data: configs } = await supabaseAdmin()
+      .from('whatsapp_config')
+      .select('provider')
+      .in('phone_number_id', Array.from(phoneIds))
+    
+    // If we successfully found configurations and NONE of them are 'meta', we can bypass.
+    if (configs && configs.length > 0) {
+      requiresSignature = configs.some((c: { provider: string }) => c.provider === 'meta')
+    }
+  }
+
+  if (requiresSignature && !verifyMetaWebhookSignature(rawBody, signature)) {
+    // 401 (not 200) — we want Meta's delivery dashboard to show failures
+    // loudly if a misconfiguration causes signatures to stop matching,
+    // rather than silently eating events.
+    console.warn('[webhook] rejected request with invalid signature')
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
   // Process asynchronously so we can ack Meta within their timeout.

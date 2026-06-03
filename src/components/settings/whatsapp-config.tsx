@@ -33,7 +33,7 @@ import {
 
 const MASKED_TOKEN = '••••••••••••••••';
 
-type Provider = 'meta' | 'twilio' | 'mock';
+type Provider = 'meta' | 'twilio' | 'mock' | 'apiauto';
 type ConnectionStatus = 'connected' | 'disconnected' | 'unknown';
 
 interface ProviderTab {
@@ -65,6 +65,13 @@ const PROVIDER_TABS: ProviderTab[] = [
     icon: <Bot className="h-4 w-4" />,
     description: 'Free local simulator. No real messages sent.',
     color: 'text-emerald-400',
+  },
+  {
+    id: 'apiauto',
+    label: 'ApiAuto.in',
+    icon: <Zap className="h-4 w-4" />,
+    description: 'Connect via official.apiauto.in API.',
+    color: 'text-violet-400',
   },
 ];
 
@@ -398,6 +405,7 @@ export function WhatsAppConfig() {
               {selectedProvider === 'meta' && 'Enter your Meta WhatsApp Business API credentials from the Meta Developer Dashboard.'}
               {selectedProvider === 'twilio' && 'Enter your Twilio Account SID, Auth Token, and WhatsApp sender number.'}
               {selectedProvider === 'mock' && 'No real credentials needed — the simulator accepts any values and returns instant successes.'}
+              {selectedProvider === 'apiauto' && 'Enter your ApiAuto token and Business Phone Number ID.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -421,8 +429,8 @@ export function WhatsAppConfig() {
               />
             </div>
 
-            {/* WABA ID / Account SID — not shown for mock */}
-            {selectedProvider !== 'mock' && (
+            {/* WABA ID / Account SID — not shown for mock or apiauto */}
+            {!['mock', 'apiauto'].includes(selectedProvider) && (
               <div className="space-y-2">
                 <Label className="text-slate-300">
                   {selectedProvider === 'twilio' ? 'Twilio Account SID' : 'WhatsApp Business Account ID'}
@@ -444,12 +452,12 @@ export function WhatsAppConfig() {
             {selectedProvider !== 'mock' && (
               <div className="space-y-2">
                 <Label className="text-slate-300">
-                  {selectedProvider === 'twilio' ? 'Auth Token' : 'Permanent Access Token'}
+                  {selectedProvider === 'twilio' ? 'Auth Token' : selectedProvider === 'apiauto' ? 'ApiAuto API Key' : 'Permanent Access Token'}
                 </Label>
                 <div className="relative">
                   <Input
                     type={showToken ? 'text' : 'password'}
-                    placeholder={selectedProvider === 'twilio' ? 'Enter your Twilio Auth Token' : 'Enter your Meta access token'}
+                    placeholder={selectedProvider === 'twilio' ? 'Enter your Twilio Auth Token' : selectedProvider === 'apiauto' ? 'Enter your ApiAuto token' : 'Enter your Meta access token'}
                     value={accessToken}
                     onChange={(e) => { setAccessToken(e.target.value); setTokenEdited(true); }}
                     onFocus={() => {
@@ -502,13 +510,13 @@ export function WhatsAppConfig() {
           </CardContent>
         </Card>
 
-        {/* Webhook URL — shown for Meta only */}
-        {selectedProvider === 'meta' && (
+        {/* Webhook URL — shown for Meta and ApiAuto */}
+        {(selectedProvider === 'meta' || selectedProvider === 'apiauto') && (
           <Card className="bg-slate-900 border-slate-700">
             <CardHeader>
               <CardTitle className="text-white">Webhook Configuration</CardTitle>
               <CardDescription className="text-slate-400">
-                Use this URL as your webhook callback in the Meta App Dashboard.
+                Use this URL as your webhook callback in the {selectedProvider === 'meta' ? 'Meta App Dashboard' : 'ApiAuto platform'}.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -688,6 +696,39 @@ export function WhatsAppConfig() {
                 <p>All sends will appear in the inbox as delivered, and the message IDs will start with <code className="text-emerald-400 bg-slate-800 px-1 rounded">mock-msg-</code>.</p>
                 <p>Perfect for testing automations, broadcasts, and CRM workflows without incurring API costs.</p>
               </div>
+            )}
+
+            {selectedProvider === 'apiauto' && (
+              <Accordion>
+                <AccordionItem className="border-slate-700">
+                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+                    <span className="flex items-center gap-2">
+                      <span className="flex size-5 items-center justify-center rounded-full bg-violet-500 text-xs font-bold text-white">1</span>
+                      Get ApiAuto Credentials
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-slate-400">
+                    <ol className="list-decimal list-inside space-y-1 text-sm">
+                      <li>Go to <span className="text-violet-400">official.apiauto.in</span></li>
+                      <li>Copy your <strong className="text-slate-200">Business Phone Number ID</strong></li>
+                      <li>Copy your <strong className="text-slate-200">API Key</strong> (Access Token)</li>
+                    </ol>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem className="border-slate-700">
+                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+                    <span className="flex items-center gap-2">
+                      <span className="flex size-5 items-center justify-center rounded-full bg-violet-500 text-xs font-bold text-white">2</span>
+                      Important Inbound Webhook Note
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-slate-400">
+                    <p className="text-sm">
+                      The ApiAuto platform currently limits incoming webhook configuration. Outbound messaging will work perfectly, but inbound replies from customers may not be forwarded to this CRM unless ApiAuto provides webhook forwarding.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             )}
 
             <div className="mt-4 pt-4 border-t border-slate-700 space-y-2">
