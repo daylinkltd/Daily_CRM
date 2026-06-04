@@ -155,6 +155,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
+  // ── Debug capture ──────────────────────────────────────────────────────────
+  // Log EVERY incoming request so we can inspect the exact payload format
+  // coming from ApiAuto (or any provider). Remove after debugging is done.
+  const incomingHeaders: Record<string, string> = {}
+  request.headers.forEach((v, k) => { incomingHeaders[k] = v })
+  void (supabaseAdmin() as ReturnType<typeof supabaseAdmin> & { from: (t: string) => { insert: (d: unknown) => Promise<unknown> } })
+    .from('webhook_debug_log')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert({
+      method: 'POST',
+      headers: incomingHeaders,
+      body: body as unknown,
+      raw_body: rawBody.slice(0, 5000),
+      note: `sig=${signature ? 'present' : 'none'}`,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)
+    .then(() => { /* fire and forget */ })
+    .catch((e: unknown) => { console.warn('[webhook] debug log failed:', e) })
+  // ── End debug capture ──────────────────────────────────────────────────────
+
+
   // Determine if signature verification can be safely bypassed.
   // Strategy:
   // 1. If the payload contains phone_number_ids we recognise as 'apiauto' -> bypass
