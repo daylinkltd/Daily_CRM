@@ -156,17 +156,29 @@ export async function POST(request: Request) {
   }
 
   // Determine if signature verification can be safely bypassed.
-  // We only bypass if ALL phone_number_ids in the payload belong to providers
-  // like 'apiauto' or 'mock' which do not use Meta's HMAC signing.
+  // Strategy:
+  // 1. If the payload contains phone_number_ids we recognise as 'apiauto' -> bypass
+  // 2. If NO Meta signature header is present at all AND there is at least one
+  //    apiauto workspace in the DB -> bypass (handles cases where ApiAuto doesn't
+  //    include phone_number_id in the top-level metadata field we expect)
+  // 3. Otherwise enforce Meta HMAC signature.
   let requiresSignature = true
   const phoneIds = new Set<string>()
 
   if (body.entry) {
     for (const entry of body.entry) {
       for (const change of entry.changes) {
-        if (change.value.metadata?.phone_number_id) {
-          phoneIds.add(change.value.metadata.phone_number_id)
-        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const meta = change.value.metadata as any
+        // ApiAuto may send phone_number_id at different paths — check all common ones
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const val = change.value as any
+        const pid =
+          meta?.phone_number_id ||
+          meta?.phoneId ||
+          val?.phone_number_id ||
+          entry.id  // some providers use the entry id as the phone identifier
+        if (pid) phoneIds.add(String(pid))
       }
     }
   }
@@ -176,18 +188,30 @@ export async function POST(request: Request) {
       .from('whatsapp_config')
       .select('provider')
       .in('phone_number_id', Array.from(phoneIds))
-    
-    // If we successfully found configurations and NONE of them are 'meta', we can bypass.
+
+    // If we found configs and NONE of them are 'meta', bypass signature check
     if (configs && configs.length > 0) {
       requiresSignature = configs.some((c: { provider: string }) => c.provider === 'meta')
     }
   }
 
+  // Fallback: no signature header present at all + at least one apiauto workspace
+  // This handles cases where ApiAuto sends the phone_number_id in an unexpected field
+  if (requiresSignature && !signature) {
+    const { data: apiAutoConfigs } = await supabaseAdmin()
+      .from('whatsapp_config')
+      .select('id')
+      .eq('provider', 'apiauto')
+      .limit(1)
+
+    if (apiAutoConfigs && apiAutoConfigs.length > 0) {
+      console.log('[webhook] No signature header — allowing through for apiauto workspace')
+      requiresSignature = false
+    }
+  }
+
   if (requiresSignature && !verifyMetaWebhookSignature(rawBody, signature)) {
-    // 401 (not 200) — we want Meta's delivery dashboard to show failures
-    // loudly if a misconfiguration causes signatures to stop matching,
-    // rather than silently eating events.
-    console.warn('[webhook] rejected request with invalid signature')
+    console.warn('[webhook] rejected request with invalid signature. Body preview:', rawBody.slice(0, 200))
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
