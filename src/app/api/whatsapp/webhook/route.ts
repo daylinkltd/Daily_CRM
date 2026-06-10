@@ -19,6 +19,35 @@ function supabaseAdmin() {
   return _adminClient
 }
 
+/**
+ * Persist a webhook request to `webhook_debug_log`.
+ * `errorTag` is optional – when supplied it records why the request was rejected.
+ */
+async function logWebhook(
+  method: string,
+  rawBody: string,
+  parsedBody: unknown | null,
+  signature: string | null,
+  errorTag: string | null = null
+) {
+  const incomingHeaders: Record<string, string> = {}
+  // Only keep the signature header for brevity; other headers are rarely needed.
+  if (signature) incomingHeaders['x-hub-signature-256'] = signature
+  try {
+    await supabaseAdmin()
+      .from('webhook_debug_log')
+      .insert({
+        method,
+        headers: incomingHeaders,
+        body: parsedBody,
+        raw_body: rawBody.slice(0, 5000),
+        note: errorTag ? `error=${errorTag}` : `sig=${signature ? 'present' : 'none'}`,
+      })
+  } catch (e) {
+    console.warn('[webhook] debug log failed:', e)
+  }
+}
+
 interface WhatsAppMessage {
   id: string
   from: string
@@ -152,28 +181,13 @@ export async function POST(request: Request) {
   try {
     body = JSON.parse(rawBody)
   } catch {
+    await logWebhook('POST', rawBody, null, signature, 'invalid-json')
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // ── Debug capture ──────────────────────────────────────────────────────────
-  // Log EVERY incoming request so we can inspect the exact payload format
-  // coming from ApiAuto (or any provider). Remove after debugging is done.
-  const incomingHeaders: Record<string, string> = {}
-  request.headers.forEach((v, k) => { incomingHeaders[k] = v })
-  void (supabaseAdmin() as ReturnType<typeof supabaseAdmin> & { from: (t: string) => { insert: (d: unknown) => Promise<unknown> } })
-    .from('webhook_debug_log')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .insert({
-      method: 'POST',
-      headers: incomingHeaders,
-      body: body as unknown,
-      raw_body: rawBody.slice(0, 5000),
-      note: `sig=${signature ? 'present' : 'none'}`,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)
-    .then(() => { /* fire and forget */ })
-    .catch((e: unknown) => { console.warn('[webhook] debug log failed:', e) })
-  // ── End debug capture ──────────────────────────────────────────────────────
+  // Ensure the request is logged regardless of later validation outcome.
+  await logWebhook('POST', rawBody, body, signature)
+
 
 
   // Determine if signature verification can be safely bypassed.
@@ -233,6 +247,7 @@ export async function POST(request: Request) {
 
   if (requiresSignature && !verifyMetaWebhookSignature(rawBody, signature)) {
     console.warn('[webhook] rejected request with invalid signature. Body preview:', rawBody.slice(0, 200))
+    await logWebhook('POST', rawBody, body, signature, 'invalid-signature')
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
