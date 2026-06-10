@@ -57,7 +57,6 @@ const navItems: {
 const bottomNavItems = [
   { href: "/docs", label: "Documentation", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/settings/webhook-log", label: "Webhook Log", icon: LogOut },
 ];
 
 interface SidebarProps {
