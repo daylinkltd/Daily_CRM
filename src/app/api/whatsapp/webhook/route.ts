@@ -19,6 +19,8 @@ function supabaseAdmin() {
   return _adminClient
 }
 
+
+
 interface WhatsAppMessage {
   id: string
   from: string
@@ -155,25 +157,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // ── Debug capture ──────────────────────────────────────────────────────────
-  // Log EVERY incoming request so we can inspect the exact payload format
-  // coming from ApiAuto (or any provider). Remove after debugging is done.
-  const incomingHeaders: Record<string, string> = {}
-  request.headers.forEach((v, k) => { incomingHeaders[k] = v })
-  void (supabaseAdmin() as ReturnType<typeof supabaseAdmin> & { from: (t: string) => { insert: (d: unknown) => Promise<unknown> } })
-    .from('webhook_debug_log')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .insert({
-      method: 'POST',
-      headers: incomingHeaders,
-      body: body as unknown,
-      raw_body: rawBody.slice(0, 5000),
-      note: `sig=${signature ? 'present' : 'none'}`,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)
-    .then(() => { /* fire and forget */ })
-    .catch((e: unknown) => { console.warn('[webhook] debug log failed:', e) })
-  // ── End debug capture ──────────────────────────────────────────────────────
+  // Normalize flat ApiAuto payload to standard WhatsApp entry structure
+  if (!body.entry && (body as any).phoneid) {
+    const flat = body as any
+    body.entry = [
+      {
+        id: String(flat.phoneid),
+        changes: [
+          {
+            field: 'messages',
+            value: {
+              messaging_product: 'whatsapp',
+              metadata: {
+                display_phone_number: '',
+                phone_number_id: String(flat.phoneid),
+              },
+              contacts: [
+                {
+                  profile: { name: flat.name || flat.mobile || 'WhatsApp User' },
+                  wa_id: String(flat.mobile || ''),
+                },
+              ],
+              messages: [
+                {
+                  id: flat.msgId || `apiauto-${flat.mobile || 'unknown'}-${Date.now()}`,
+                  from: String(flat.mobile || ''),
+                  timestamp: String(Math.floor(Date.now() / 1000)),
+                  type: 'text',
+                  text: { body: flat.message || '' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ]
+  }
+
+
+
 
 
   // Determine if signature verification can be safely bypassed.
@@ -261,7 +283,15 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
       // Handle incoming messages
       if (!value.messages || !value.contacts) continue
 
-      const phoneNumberId = value.metadata.phone_number_id
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const meta = value.metadata as any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const val = value as any
+      const phoneNumberId =
+        meta?.phone_number_id ||
+        meta?.phoneId ||
+        val?.phone_number_id ||
+        entry.id
 
       // Find user's config by phone_number_id
       const { data: config, error: configError } = await supabaseAdmin()
@@ -285,7 +315,8 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
           message,
           contact,
           config.user_id,
-          decryptedAccessToken
+          decryptedAccessToken,
+          config.workspace_id
         )
       }
     }
@@ -428,7 +459,8 @@ async function processMessage(
   message: WhatsAppMessage,
   contact: { profile: { name: string }; wa_id: string },
   userId: string,
-  accessToken: string
+  accessToken: string,
+  workspaceId: string
 ) {
   const senderPhone = normalizePhone(message.from)
   const contactName = contact.profile.name
@@ -443,7 +475,8 @@ async function processMessage(
   const contactOutcome = await findOrCreateContact(
     userId,
     senderPhone,
-    contactName
+    contactName,
+    workspaceId
   )
   if (!contactOutcome) return
   const contactRecord = contactOutcome.contact
@@ -451,7 +484,8 @@ async function processMessage(
   // Find or create conversation
   const conversation = await findOrCreateConversation(
     userId,
-    contactRecord.id
+    contactRecord.id,
+    workspaceId
   )
   if (!conversation) return
 
@@ -689,7 +723,8 @@ interface ContactOutcome {
 async function findOrCreateContact(
   userId: string,
   phone: string,
-  name: string
+  name: string,
+  workspaceId: string
 ): Promise<ContactOutcome | null> {
   // Look up existing contacts for this user
   const { data: contacts, error: contactsError } = await supabaseAdmin()
@@ -723,6 +758,7 @@ async function findOrCreateContact(
       user_id: userId,
       phone,
       name: name || phone,
+      workspace_id: workspaceId,
     })
     .select()
     .single()
@@ -735,7 +771,7 @@ async function findOrCreateContact(
   return { contact: newContact, wasCreated: true }
 }
 
-async function findOrCreateConversation(userId: string, contactId: string) {
+async function findOrCreateConversation(userId: string, contactId: string, workspaceId: string) {
   // Look for existing conversation
   const { data: existing, error: findError } = await supabaseAdmin()
     .from('conversations')
@@ -754,6 +790,7 @@ async function findOrCreateConversation(userId: string, contactId: string) {
     .insert({
       user_id: userId,
       contact_id: contactId,
+      workspace_id: workspaceId,
     })
     .select()
     .single()
