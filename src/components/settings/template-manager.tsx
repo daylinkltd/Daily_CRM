@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useWorkspace } from '@/hooks/use-workspace';
 import {
   Dialog,
   DialogContent,
@@ -93,6 +94,7 @@ const COMMON_LANGUAGE_CODES = [
 export function TemplateManager() {
   const supabase = createClient();
   const { user, loading: authLoading } = useAuth();
+  const { activeWorkspace } = useWorkspace();
 
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
@@ -103,22 +105,22 @@ export function TemplateManager() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
+    if (!activeWorkspace?.id) {
       setLoading(false);
       return;
     }
-    fetchTemplates(user.id);
+    fetchTemplates(activeWorkspace.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user?.id]);
+  }, [authLoading, activeWorkspace?.id]);
 
-  async function fetchTemplates(userId: string) {
+  async function fetchTemplates(workspaceId: string) {
     try {
       setLoading(true);
 
       const { data, error } = await supabase
         .from('message_templates')
         .select('*')
-        .eq('user_id', userId)
+        .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -147,9 +149,14 @@ export function TemplateManager() {
         toast.error('Not authenticated');
         return;
       }
+      if (!activeWorkspace?.id) {
+        toast.error('No active workspace selected');
+        return;
+      }
 
       const payload = {
         user_id: user.id,
+        workspace_id: activeWorkspace.id,
         name: form.name.trim(),
         category: form.category,
         language: form.language.trim() || 'en_US',
@@ -168,7 +175,7 @@ export function TemplateManager() {
       toast.success('Template created successfully');
       setDialogOpen(false);
       setForm(emptyForm);
-      if (user) await fetchTemplates(user.id);
+      await fetchTemplates(activeWorkspace.id);
     } catch (err) {
       console.error('Save error:', err);
       toast.error('Failed to create template');
@@ -184,11 +191,13 @@ export function TemplateManager() {
    * stuck on error #132001 "Template name does not exist".
    */
   async function handleSyncFromMeta() {
-    if (!user) return;
+    if (!user || !activeWorkspace?.id) return;
     setSyncing(true);
     try {
       const res = await fetch('/api/whatsapp/templates/sync', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspace_id: activeWorkspace.id }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -216,7 +225,7 @@ export function TemplateManager() {
           'Hit Meta pagination cap — more templates may exist. Contact support if this persists.',
         );
       }
-      await fetchTemplates(user.id);
+      await fetchTemplates(activeWorkspace.id);
     } catch (err) {
       console.error('Template sync error:', err);
       toast.error(
