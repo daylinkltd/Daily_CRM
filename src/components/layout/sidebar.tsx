@@ -23,6 +23,7 @@ import {
   BookOpen,
   ShieldCheck,
   ImageIcon,
+  FileText,
 } from "lucide-react";
 import {
   Avatar,
@@ -52,6 +53,7 @@ const navItems: {
   { href: "/automations", label: "Automations", icon: Zap, permission: "automations" },
   { href: "/integrations", label: "Integrations", icon: Blocks, permission: "integrations" },
   { href: "/media", label: "Media", icon: ImageIcon },
+  { href: "/forms", label: "Forms", icon: FileText },
 ];
 
 const bottomNavItems = [

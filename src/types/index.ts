@@ -374,3 +374,49 @@ export interface AutomationLog {
   created_at: string;
   contact?: Contact;
 }
+
+// ============================================================
+// Custom Forms (migration 026)
+// ============================================================
+
+export interface CustomForm {
+  id: string;
+  workspace_id: string;
+  title: string;
+  description?: string;
+  is_active: boolean;
+  pipeline_id?: string;
+  stage_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type FormFieldType = 'text' | 'number' | 'email' | 'phone' | 'textarea' | 'select' | 'checkbox' | 'file';
+export type FormMappingType = 'contact_field' | 'contact_custom_field' | 'deal_field' | 'none';
+
+export interface CustomFormField {
+  id: string;
+  form_id: string;
+  label: string;
+  field_type: FormFieldType;
+  placeholder?: string;
+  is_required: boolean;
+  options?: string[]; // array of strings parsed from JSONB
+  mapping_type: FormMappingType;
+  mapping_key?: string; // name, phone, email, company, custom_field_id, or deal field
+  position: number;
+  created_at: string;
+}
+
+export interface CustomFormSubmission {
+  id: string;
+  form_id: string;
+  contact_id?: string;
+  deal_id?: string;
+  submitted_values: Record<string, any>;
+  created_at: string;
+  contact?: Contact;
+  deal?: Deal;
+  form?: CustomForm;
+}
+
