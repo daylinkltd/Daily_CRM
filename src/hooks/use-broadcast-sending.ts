@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useWorkspace } from '@/hooks/use-workspace';
 import { Contact, MessageTemplate } from '@/types';
 
 export type CustomFieldOperator = 'is' | 'is_not' | 'contains';
@@ -140,6 +141,7 @@ async function fetchCustomValueIndex(
 }
 
 export function useBroadcastSending(): UseBroadcastSendingReturn {
+  const { activeWorkspace } = useWorkspace();
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -148,8 +150,15 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
 
     let contacts: Contact[] = [];
 
+    if (!activeWorkspace?.id) {
+      throw new Error('No active workspace selected.');
+    }
+
     if (audience.type === 'all') {
-      const { data, error } = await supabase.from('contacts').select('*');
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('workspace_id', activeWorkspace.id);
       if (error) throw new Error(`Failed to fetch contacts: ${error.message}`);
       contacts = data ?? [];
     } else if (
@@ -159,7 +168,8 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
     ) {
       const { data: contactTags, error: tagError } = await supabase
         .from('contact_tags')
-        .select('contact_id')
+        .select('contact_id, contacts!inner(workspace_id)')
+        .eq('contacts.workspace_id', activeWorkspace.id)
         .in('tag_id', audience.tagIds);
 
       if (tagError)
@@ -172,6 +182,7 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
         const { data, error } = await supabase
           .from('contacts')
           .select('*')
+          .eq('workspace_id', activeWorkspace.id)
           .in('id', uniqueContactIds);
         if (error) throw new Error(`Failed to fetch contacts: ${error.message}`);
         contacts = data ?? [];
@@ -220,6 +231,9 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
     if (!user) {
       throw new Error('You are not signed in.');
     }
+    if (!activeWorkspace?.id) {
+      throw new Error('No active workspace selected.');
+    }
 
     // De-duplicate by phone within the CSV (users can paste duplicates).
     const uniqueByPhone = new Map<string, { phone: string; name?: string }>();
@@ -228,11 +242,11 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
     }
     const phones = [...uniqueByPhone.keys()];
 
-    // Single round-trip lookup of existing contacts by phone.
+    // Single round-trip lookup of existing contacts by phone inside active workspace.
     const { data: existing, error: lookupErr } = await supabase
       .from('contacts')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('workspace_id', activeWorkspace.id)
       .in('phone', phones);
     if (lookupErr) {
       throw new Error(`Failed to look up CSV contacts: ${lookupErr.message}`);
@@ -243,12 +257,12 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
       if (c.phone) byPhone.set(c.phone, c);
     }
 
-    // Insert only missing contacts, in one batch per 200 rows (PostgREST
-    // has a default payload cap — 200 keeps individual requests small).
+    // Insert only missing contacts, in one batch per 200 rows.
     const missing = phones
       .filter((p) => !byPhone.has(p))
       .map((phone) => ({
         user_id: user.id,
+        workspace_id: activeWorkspace.id,
         phone,
         name: uniqueByPhone.get(phone)?.name ?? null,
       }));
@@ -278,6 +292,9 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
     supabase: ReturnType<typeof createClient>,
     filter: CustomFieldFilter,
   ): Promise<Contact[]> {
+    if (!activeWorkspace?.id) {
+      throw new Error('No active workspace selected.');
+    }
     const { fieldId, operator, value } = filter;
 
     // Build the WHERE clause for the operator. PostgREST supports
@@ -285,7 +302,8 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
     // for "contains" so the match is case-insensitive.
     let query = supabase
       .from('contact_custom_values')
-      .select('contact_id')
+      .select('contact_id, contacts!inner(workspace_id)')
+      .eq('contacts.workspace_id', activeWorkspace.id)
       .eq('custom_field_id', fieldId);
 
     if (operator === 'is') query = query.eq('value', value);
@@ -302,6 +320,7 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
     const { data, error } = await supabase
       .from('contacts')
       .select('*')
+      .eq('workspace_id', activeWorkspace.id)
       .in('id', contactIds);
     if (error) throw new Error(`Failed to fetch contacts: ${error.message}`);
     return data ?? [];
@@ -337,10 +356,14 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
 
       // ── Step 2: Create broadcast row ──────────────────────────────
       setProgress(10);
+      if (!activeWorkspace?.id) {
+        throw new Error('No active workspace selected.');
+      }
       const { data: broadcast, error: broadcastError } = await supabase
         .from('broadcasts')
         .insert({
           user_id: user.id,
+          workspace_id: activeWorkspace.id,
           name: payload.name,
           template_name: payload.template.name,
           template_language: payload.template.language ?? 'en_US',
