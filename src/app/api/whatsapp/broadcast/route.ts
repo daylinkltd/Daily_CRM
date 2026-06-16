@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { sendTemplateMessage } from '@/lib/whatsapp/meta-api'
+import { getWhatsAppProvider } from '@/lib/whatsapp/providers/factory'
 import { decrypt } from '@/lib/whatsapp/encryption'
 import {
   sanitizePhoneForMeta,
@@ -107,11 +107,40 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data: config, error: configError } = await supabase
-      .from('whatsapp_config')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
+    const workspaceId = body?.workspace_id
+
+    let config
+    let configError
+
+    if (workspaceId) {
+      // Verify membership in workspace
+      const { data: membership, error: memberError } = await supabase
+        .from('workspace_members')
+        .select('role')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', user.id)
+        .single()
+
+      if (memberError || !membership) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+
+      const { data, error } = await supabase
+        .from('whatsapp_config')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .maybeSingle()
+      config = data
+      configError = error
+    } else {
+      const { data, error } = await supabase
+        .from('whatsapp_config')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+      config = data
+      configError = error
+    }
 
     if (configError || !config) {
       return NextResponse.json(
@@ -124,6 +153,7 @@ export async function POST(request: Request) {
     }
 
     const accessToken = decrypt(config.access_token)
+    const provider = getWhatsAppProvider(config.provider || 'meta')
 
     const results: BroadcastResult[] = []
     let sentCount = 0
@@ -150,12 +180,12 @@ export async function POST(request: Request) {
 
       for (const variant of variants) {
         try {
-          const result = await sendTemplateMessage({
-            phoneNumberId: config.phone_number_id,
-            accessToken,
+          const result = await provider.sendTemplate({
+            phoneId: config.phone_number_id,
+            wabaId: config.waba_id,
+            token: accessToken,
             to: variant,
             templateName: template_name,
-            language: template_language || 'en_US',
             params: recipient.params ?? [],
           })
           sentMessageId = result.messageId

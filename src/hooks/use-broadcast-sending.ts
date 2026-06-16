@@ -473,6 +473,7 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
               recipients: apiRecipients,
               template_name: payload.template.name,
               template_language: payload.template.language ?? 'en_US',
+              workspace_id: activeWorkspace.id,
             }),
           });
 
