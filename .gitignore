@@ -46,6 +46,5 @@ next-env.d.ts
 # WhatsApp import folders
 /WhatsApp Chat with */
 
-# User uploads and media
-/public/uploads/
+
 
