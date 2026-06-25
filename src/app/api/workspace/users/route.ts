@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-/** Helper: verify caller is workspace owner */
-async function verifyOwner(workspaceId: string) {
+/** Helper: verify caller is workspace owner or admin */
+async function verifyWorkspaceAdmin(workspaceId: string) {
   const supabase = await createServerClient();
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { user: null, error: 'Unauthorized', status: 401 };
+  if (error || !user) return { user: null, role: null, error: 'Unauthorized', status: 401 };
 
   const { data: member } = await supabase
     .from('workspace_members')
@@ -15,10 +15,10 @@ async function verifyOwner(workspaceId: string) {
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (member?.role !== 'owner') {
-    return { user: null, error: 'Forbidden: owner role required', status: 403 };
+  if (member?.role !== 'owner' && member?.role !== 'admin') {
+    return { user: null, role: null, error: 'Forbidden: owner or admin role required', status: 403 };
   }
-  return { user, supabase, error: null, status: 200 };
+  return { user, supabase, role: member.role, error: null, status: 200 };
 }
 
 /**
@@ -47,10 +47,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'workspace_id is required' }, { status: 400 });
     }
 
-    const auth = await verifyOwner(workspace_id);
+    const auth = await verifyWorkspaceAdmin(workspace_id);
     if (auth.error) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const callerRole = auth.role;
 
     if (!email?.trim()) {
       return NextResponse.json({ error: 'email is required' }, { status: 400 });
@@ -110,6 +111,13 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // New user — create auth account
+      if (callerRole === 'admin') {
+        return NextResponse.json(
+          { error: 'Only the workspace owner can create new user accounts.' },
+          { status: 403 }
+        );
+      }
+
       if (!password || password.length < 8) {
         return NextResponse.json(
           { error: 'Password (min 8 chars) is required for new users' },
@@ -185,7 +193,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const auth = await verifyOwner(workspace_id);
+    const auth = await verifyWorkspaceAdmin(workspace_id);
     if (auth.error) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -238,7 +246,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const auth = await verifyOwner(workspace_id);
+    const auth = await verifyWorkspaceAdmin(workspace_id);
     if (auth.error) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }

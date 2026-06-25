@@ -110,7 +110,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-full w-64 flex-col border-r border-slate-800 bg-slate-900",
+          "fixed inset-y-0 left-0 z-40 flex h-full w-64 flex-col border-r border-border bg-background",
           "transition-transform duration-200 ease-out will-change-transform",
           open ? "translate-x-0" : "-translate-x-full",
           "lg:static lg:z-0 lg:w-60 lg:translate-x-0 lg:transition-none",
@@ -118,7 +118,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         aria-label="Primary"
       >
         {/* Logo row */}
-        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-800 px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
           <Link href="/dashboard" className="flex items-center min-w-0">
             <Image
               src="/logolight.png"
@@ -133,7 +133,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex h-9 w-9 items-center justify-center rounded-md text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
@@ -161,8 +161,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
                       isActive
-                        ? "bg-[#00aef0]/15 text-[#00aef0]"
-                        : "text-slate-400 hover:bg-slate-800 hover:text-white",
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     <item.icon className="h-4 w-4" />
@@ -172,8 +172,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                         aria-label={`${totalUnread} unread conversation${totalUnread === 1 ? "" : "s"}`}
                         className="relative flex h-2 w-2"
                       >
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00aef0] opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#00aef0]" />
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
                       </span>
                     )}
                   </Link>
@@ -182,7 +182,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             })}
           </ul>
 
-          <div className="my-4 border-t border-slate-800" />
+          <div className="my-4 border-t border-border" />
 
           <ul className="flex flex-col gap-1">
             {bottomNavItems.map((item) => {
@@ -194,8 +194,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
                       isActive
-                        ? "bg-[#00aef0]/15 text-[#00aef0]"
-                        : "text-slate-400 hover:bg-slate-800 hover:text-white",
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     <item.icon className="h-4 w-4" />
@@ -208,12 +208,12 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </nav>
 
         {/* User section */}
-        <div className="shrink-0 border-t border-slate-800 p-3 flex flex-col gap-2">
+        <div className="shrink-0 border-t border-border p-3 flex flex-col gap-2">
           <div className="px-2 pb-1 pt-2 flex items-center justify-center">
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">by Daylink</span>
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">by Daylink</span>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-slate-800/60 focus:bg-slate-800/60 focus:outline-none data-popup-open:bg-slate-800/60">
+            <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/60 focus:bg-muted/60 focus:outline-none data-popup-open:bg-muted/60">
               <Avatar className="size-8 shrink-0">
                 {profile?.avatar_url ? (
                   <AvatarImage
@@ -221,17 +221,17 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     alt={profile.full_name ?? "Avatar"}
                   />
                 ) : null}
-                <AvatarFallback className="bg-[#00aef0]/10 text-sm font-medium text-[#00aef0]">
+                <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
                   {profile?.full_name?.charAt(0)?.toUpperCase() ??
                     profile?.email?.charAt(0)?.toUpperCase() ??
                     "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-white">
+                <p className="truncate text-sm font-medium text-foreground">
                   {profile?.full_name ?? "User"}
                 </p>
-                <p className="truncate text-xs text-slate-400">
+                <p className="truncate text-xs text-muted-foreground">
                   {profile?.email ?? ""}
                 </p>
               </div>
@@ -240,14 +240,14 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               align="end"
               side="top"
               sideOffset={6}
-              className="min-w-56 bg-slate-900 text-slate-100 ring-slate-700"
+              className="min-w-56 bg-popover text-popover-foreground ring-border"
             >
               <DropdownMenuItem
                 render={
                   <Link
                     href="/settings?tab=profile"
                     onClick={onClose}
-                    className="text-slate-200 focus:bg-slate-800 focus:text-white"
+                    className="text-popover-foreground focus:bg-muted focus:text-foreground"
                   />
                 }
               >
@@ -257,19 +257,19 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               <DropdownMenuItem
                 render={
                   <Link
-                    href="/settings?tab=workspace"
+                    href="/settings?tab=overview"
                     onClick={onClose}
-                    className="text-slate-200 focus:bg-slate-800 focus:text-white"
+                    className="text-popover-foreground focus:bg-muted focus:text-foreground"
                   />
                 }
               >
                 <Settings className="size-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-slate-800" />
+              <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
                 onClick={signOut}
-                className="text-slate-200 focus:bg-slate-800 focus:text-white"
+                className="text-popover-foreground focus:bg-muted focus:text-foreground"
               >
                 <LogOut className="size-4" />
                 Sign out

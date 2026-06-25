@@ -13,7 +13,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -25,7 +25,18 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Auth pages - redirect to dashboard if already logged in
+  // getUser() transparently refreshes an expired access token, which
+  // ROTATES the refresh token and writes new cookies onto `supabaseResponse`
+  // via setAll() above. Any response we return in place of `supabaseResponse`
+  // does NOT carry those Set-Cookie headers, so we must copy them explicitly.
+  const withRefreshedCookies = <T extends NextResponse>(response: T): T => {
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      response.cookies.set(cookie)
+    })
+    return response
+  }
+
+  // Auth pages — redirect to dashboard if already logged in.
   if (user && (
     request.nextUrl.pathname === '/login' ||
     request.nextUrl.pathname === '/signup' ||
@@ -33,21 +44,24 @@ export async function proxy(request: NextRequest) {
   )) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    url.search = ''
+    return withRefreshedCookies(NextResponse.redirect(url))
   }
 
-  // Protected pages - redirect to login if not authenticated
-  const protectedPaths = ['/dashboard', '/inbox', '/contacts', '/pipelines', '/broadcasts', '/automations', '/settings']
+  // Protected pages — redirect to login if not authenticated.
+  const protectedPaths = ['/dashboard', '/inbox', '/contacts', '/pipelines', '/broadcasts', '/automations', '/settings', '/media', '/docs', '/integrations']
   if (!user && protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
+    return withRefreshedCookies(NextResponse.redirect(url))
   }
 
   // API routes that need auth (not webhooks)
   if (!user && request.nextUrl.pathname.startsWith('/api/whatsapp/') &&
       !request.nextUrl.pathname.includes('/webhook')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return withRefreshedCookies(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    )
   }
 
   return supabaseResponse

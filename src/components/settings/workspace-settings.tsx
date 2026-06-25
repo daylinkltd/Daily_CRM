@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
@@ -77,7 +77,7 @@ export function WorkspaceSettings() {
   const [saveNameSuccess, setSaveNameSuccess] = useState(false);
 
   // ── Members ────────────────────────────────────────────────────────────────
-  const [members, setMembers] = useState<MemberWithProfile[]>([]);
+  const [rawMembers, setRawMembers] = useState<any[]>([]);
   const [roles, setRoles] = useState<WorkspaceRole[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
 
@@ -129,7 +129,7 @@ export function WorkspaceSettings() {
         .select("id, user_id, role, role_id, created_at")
         .eq("workspace_id", activeWorkspace.id);
 
-      if (!memberData?.length) { setMembers([]); return; }
+      if (!memberData?.length) { setRawMembers([]); return; }
 
       const userIds = memberData.map((m) => m.user_id);
       const { data: profileData } = await supabase
@@ -137,26 +137,43 @@ export function WorkspaceSettings() {
         .select("user_id, full_name, email, avatar_url")
         .in("user_id", userIds);
 
-      const mapped: MemberWithProfile[] = memberData.map((m) => {
+      const joined = memberData.map((m) => {
         const profile = profileData?.find((p) => p.user_id === m.user_id);
-        const custom_role = roles.find((r) => r.id === m.role_id);
-        return { ...m, role: m.role as "owner" | "admin" | "member", profile, custom_role };
+        return { ...m, profile };
       });
 
-      const order = { owner: 0, admin: 1, member: 2 };
-      mapped.sort((a, b) => order[a.role] - order[b.role]);
-      setMembers(mapped);
+      setRawMembers(joined);
     } finally {
       setLoadingMembers(false);
     }
-  }, [activeWorkspace?.id, supabase, roles]);
+  }, [activeWorkspace?.id, supabase]);
 
+  // Compute mapped members with their custom roles in-memory
+  const members = useMemo(() => {
+    const mapped: MemberWithProfile[] = rawMembers.map((m) => {
+      const custom_role = roles.find((r) => r.id === m.role_id);
+      return { ...m, role: m.role as "owner" | "admin" | "member", profile: m.profile, custom_role };
+    });
+
+    const order = { owner: 0, admin: 1, member: 2 };
+    const sorted = [...mapped].sort((a, b) => order[a.role] - order[b.role]);
+    return sorted;
+  }, [rawMembers, roles]);
+
+  // Fetch roles on workspace change
   useEffect(() => {
     if (activeWorkspace) {
       setWorkspaceName(activeWorkspace.name);
-      fetchRoles().then(() => fetchMembers());
+      fetchRoles();
     }
-  }, [activeWorkspace, fetchRoles, fetchMembers]);
+  }, [activeWorkspace?.id, fetchRoles]);
+
+  // Fetch members when workspace changes
+  useEffect(() => {
+    if (activeWorkspace) {
+      fetchMembers();
+    }
+  }, [activeWorkspace?.id, fetchMembers]);
 
   // ── Workspace name update ──────────────────────────────────────────────────
   const handleUpdateName = async (e: React.FormEvent) => {
@@ -174,7 +191,7 @@ export function WorkspaceSettings() {
   // ── Create/invite user ─────────────────────────────────────────────────────
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isOwner || !activeWorkspace?.id) return;
+    if (!canManageUsers || !activeWorkspace?.id) return;
     setCreateLoading(true);
     setCreateError("");
     setCreateSuccess("");

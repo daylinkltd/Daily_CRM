@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useWorkspace } from "@/hooks/use-workspace"
 import { toast } from "sonner"
@@ -412,6 +412,38 @@ function KeywordMatchConfig({
   onChange: (c: Record<string, unknown>) => void
 }) {
   const keywords = config?.keywords ?? []
+
+  // Keep a draft string so typing "SEO, search engine optimization" is
+  // possible without each comma immediately splitting the input and
+  // making a long phrase like "search engine optimization" impossible
+  // to type. We only parse into the keywords array on blur, then
+  // re-display the cleaned, rejoined form. Seeded once on mount; this
+  // component remounts when the trigger type changes, so the seed stays
+  // in sync.
+  const [draft, setDraft] = useState(keywords.join(", "))
+
+  // Persist the default the <select> displays. The dropdown falls back
+  // to "contains" for display, but leaving it untouched would otherwise
+  // omit match_type from the saved config — and activation validation
+  // then rejected it (trigger.match_type). Seed once on mount; the
+  // component remounts when the trigger type changes, matching the
+  // keywords draft.
+  useEffect(() => {
+    if (config?.match_type == null) {
+      onChange({ ...config, match_type: "contains" })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function commit() {
+    const parsed = draft
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+    setDraft(parsed.join(", "))
+    onChange({ ...config, keywords: parsed })
+  }
+
   return (
     <div className="space-y-2">
       <div>
@@ -419,16 +451,9 @@ function KeywordMatchConfig({
           Keywords (comma-separated)
         </label>
         <Input
-          value={keywords.join(", ")}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              keywords: e.target.value
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean),
-            })
-          }
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
           className="bg-slate-800 text-white"
         />
       </div>

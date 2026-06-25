@@ -5,6 +5,11 @@ import { getMediaUrl, downloadMedia } from '@/lib/whatsapp/meta-api'
 import { normalizePhone, phonesMatch } from '@/lib/whatsapp/phone-utils'
 import { verifyMetaWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { runAutomationsForTrigger } from '@/lib/automations/engine'
+import { dispatchInboundToFlows } from '@/lib/flows/engine'
+import {
+  handleTemplateWebhookChange,
+  isTemplateWebhookField,
+} from '@/lib/whatsapp/template-webhook'
 
 // Lazy-initialized to avoid build-time crash when env vars are missing
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,6 +37,17 @@ interface WhatsAppMessage {
   sticker?: { id: string; mime_type: string }
   location?: { latitude: number; longitude: number; name?: string; address?: string }
   reaction?: { message_id: string; emoji: string }
+  /**
+   * Set when the customer taps a button or list row on an interactive
+   * message we sent. `button_reply.id` / `list_reply.id` is whatever id
+   * we put on the button/row when sending — the Flows engine uses this
+   * to advance the per-contact run.
+   */
+  interactive?: {
+    type: 'button_reply' | 'list_reply'
+    button_reply?: { id: string; title: string }
+    list_reply?: { id: string; title: string; description?: string }
+  }
 }
 
 interface WhatsAppWebhookEntry {
@@ -249,6 +265,19 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
 
   for (const entry of body.entry) {
     for (const change of entry.changes) {
+      // Template-lifecycle events (status / quality / components
+      // updates from Meta) come in on a different change.field and
+      // have a different value shape — route them through the
+      // dedicated handler. Skip the messaging branches below so we
+      // don't try to read message-shaped fields off a template event.
+      if (isTemplateWebhookField(change.field)) {
+        await handleTemplateWebhookChange(
+          { field: change.field, value: change.value as unknown },
+          supabaseAdmin(),
+        )
+        continue
+      }
+
       const value = change.value
 
       // Handle status updates
@@ -469,7 +498,7 @@ async function processMessage(
   // Map incoming WhatsApp types that aren't in that list to the closest
   // allowed value so the INSERT doesn't fail with a constraint error.
   const ALLOWED_CONTENT_TYPES = new Set([
-    'text', 'image', 'document', 'audio', 'video', 'location', 'template',
+    'text', 'image', 'document', 'audio', 'video', 'location', 'template', 'interactive',
   ])
   const contentType = ALLOWED_CONTENT_TYPES.has(message.type)
     ? message.type
@@ -524,6 +553,39 @@ async function processMessage(
   // trigger installed in migration 003).
   await flagBroadcastReplyIfAny(userId, contactRecord.id)
 
+  // ============================================================
+  // Flow runner dispatch.
+  //
+  // If the runner consumes the message (it either advanced an active
+  // run or started a new one), we suppress the `new_message_received`
+  // + `keyword_match` automation triggers for this inbound. Customer
+  // is navigating the bot menu, not sending a fresh trigger word
+  // that should fork into automations.
+  //
+  // The relationship-level triggers (`new_contact_created`,
+  // `first_inbound_message`) still fire even when consumed — those
+  // are about WHO is messaging, not what they said.
+  //
+  // Awaited (not fire-and-forget) because we need the `consumed`
+  // result before deciding whether to dispatch automations. The
+  // runner has its own try/catch and never throws. Accounts with
+  // no active flows take the runner's early-exit "no_match" path
+  // basically for free (one indexed SELECT for the active run).
+  // ============================================================
+  const flowResult = await dispatchInboundToFlows({
+    accountId: userId,
+    userId,
+    contactId: contactRecord.id,
+    conversationId: conversation.id,
+    message: {
+      kind: 'text',
+      text: contentText ?? message.text?.body ?? '',
+      meta_message_id: message.id,
+    },
+    isFirstInboundMessage,
+  })
+  const flowConsumed = flowResult.consumed
+
   // Fire any automations that react to this webhook event. All dispatches
   // run here (not earlier) so the contact, conversation, and inbound
   // message all exist before any step — including send_message — runs.
@@ -535,7 +597,12 @@ async function processMessage(
     | 'first_inbound_message'
     | 'new_message_received'
     | 'keyword_match'
-  )[] = ['new_message_received', 'keyword_match']
+  )[] = []
+  // Content-level triggers are suppressed when a flow consumed the
+  // message — see the comment block above.
+  if (!flowConsumed) {
+    automationTriggers.push('new_message_received', 'keyword_match')
+  }
   // new_contact_created fires only when the webhook just auto-created the
   // contact row. first_inbound_message fires whenever this is the contact's
   // first-ever customer-sent message — a superset that also catches
@@ -666,6 +733,28 @@ async function parseMessageContent(
         mediaUrl: null,
         mediaType: null,
       }
+
+    case 'interactive': {
+      // The customer tapped a reply button or a list row on a message
+      // we previously sent. Meta delivers `interactive.button_reply` for
+      // 3-button messages and `interactive.list_reply` for list messages.
+      // Use the human-readable title as contentText so the inbox bubble
+      // renders the tap legibly, and return null for media fields.
+      const reply =
+        message.interactive?.button_reply ?? message.interactive?.list_reply
+      if (reply?.id) {
+        return {
+          contentText: reply.title || reply.id,
+          mediaUrl: null,
+          mediaType: null,
+        }
+      }
+      return {
+        contentText: '[Interactive reply]',
+        mediaUrl: null,
+        mediaType: null,
+      }
+    }
 
     default:
       return {
