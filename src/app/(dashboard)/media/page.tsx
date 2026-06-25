@@ -144,10 +144,10 @@ export default function MediaPage() {
   };
 
   return (
-    <div className="flex h-full flex-col p-8 bg-slate-950">
+    <div className="flex h-full flex-col p-8 bg-background">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
             {currentFolder && (
               <Button variant="ghost" size="icon" onClick={navigateUp} className="rounded-full">
                 <ArrowLeft className="w-5 h-5 text-slate-400" />

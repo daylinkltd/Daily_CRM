@@ -50,17 +50,31 @@ export default function SettingsPage() {
     [mode, defaultCurrency],
   );
 
-  const panel: Record<SettingsSection, ReactNode> = {
-    overview: <SettingsOverview onSelect={go} />,
-    profile: <ProfileForm />,
-    security: <SecurityPanel />,
-    appearance: <AppearancePanel />,
-    whatsapp: <WhatsAppConfig />,
-    templates: <TemplateManager />,
-    fields: <FieldsAndTagsPanel />,
-    deals: <DealsSettings />,
-    members: <MembersTab />,
-    api: <ApiKeysSettings />,
+  const renderPanel = () => {
+    switch (section) {
+      case 'overview':
+        return <SettingsOverview onSelect={go} />;
+      case 'profile':
+        return <ProfileForm />;
+      case 'security':
+        return <SecurityPanel />;
+      case 'appearance':
+        return <AppearancePanel />;
+      case 'whatsapp':
+        return <WhatsAppConfig />;
+      case 'templates':
+        return <TemplateManager />;
+      case 'fields':
+        return <FieldsAndTagsPanel />;
+      case 'deals':
+        return <DealsSettings />;
+      case 'members':
+        return <MembersTab />;
+      case 'api':
+        return <ApiKeysSettings />;
+      default:
+        return <SettingsOverview onSelect={go} />;
+    }
   };
 
   return (
@@ -77,7 +91,7 @@ export default function SettingsPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[236px_minmax(0,1fr)] lg:items-start">
         <SettingsRail active={section} onSelect={go} hints={hints} />
-        <div className="min-w-0">{panel[section]}</div>
+        <div className="min-w-0">{renderPanel()}</div>
       </div>
     </div>
   );

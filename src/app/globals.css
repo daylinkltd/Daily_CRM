@@ -50,6 +50,17 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --color-slate-50: var(--slate-50);
+  --color-slate-100: var(--slate-100);
+  --color-slate-200: var(--slate-200);
+  --color-slate-300: var(--slate-300);
+  --color-slate-400: var(--slate-400);
+  --color-slate-500: var(--slate-500);
+  --color-slate-600: var(--slate-600);
+  --color-slate-700: var(--slate-700);
+  --color-slate-800: var(--slate-800);
+  --color-slate-900: var(--slate-900);
+  --color-slate-950: var(--slate-950);
 }
 
 /* ============================================================
@@ -98,6 +109,17 @@ html[data-mode="dark"] {
   --sidebar-accent: oklch(0.22 0.01 260);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.28 0.01 260);
+  --slate-50: oklch(0.97 0.01 260);
+  --slate-100: oklch(0.95 0.01 260);
+  --slate-200: oklch(0.90 0.01 260);
+  --slate-300: oklch(0.78 0.01 260);
+  --slate-400: oklch(0.65 0.01 260);
+  --slate-500: oklch(0.55 0.01 260);
+  --slate-600: oklch(0.40 0.01 260);
+  --slate-700: oklch(0.28 0.01 260);
+  --slate-800: oklch(0.18 0.01 260);
+  --slate-900: oklch(0.13 0.01 260);
+  --slate-950: oklch(0.07 0.01 260);
 }
 
 html[data-mode="light"] {
@@ -127,6 +149,17 @@ html[data-mode="light"] {
   --sidebar-accent: oklch(0.96 0.004 260);
   --sidebar-accent-foreground: oklch(0.25 0.01 260);
   --sidebar-border: oklch(0.922 0.004 260);
+  --slate-50: oklch(0.12 0.01 260);
+  --slate-100: oklch(0.18 0.01 260);
+  --slate-200: oklch(0.25 0.01 260);
+  --slate-300: oklch(0.35 0.01 260);
+  --slate-400: oklch(0.45 0.015 260);
+  --slate-500: oklch(0.55 0.01 260);
+  --slate-600: oklch(0.80 0.01 260);
+  --slate-700: oklch(0.922 0.004 260);
+  --slate-800: oklch(0.985 0.002 260);
+  --slate-900: oklch(1 0 0);
+  --slate-950: oklch(0.99 0.002 260);
 }
 
 /* ---- ACCENT: primary color ---- */
@@ -231,4 +264,9 @@ html[data-theme="rose"] {
     background-size: 24px 24px;
     color: #0f172a;
   }
+}
+
+/* Ensure hardcoded text-white elements in settings and pages are readable in light mode */
+html[data-mode="light"] :is(h1, h2, h3, h4, h5, h6, p, label, span, select, input, textarea).text-white:not(button *, .bg-primary *, .bg-blue-600 *, .bg-emerald-600 *, .bg-red-600 *, .bg-green-600 *, [class*="bg-blue"] *, [class*="bg-emerald"] *, [class*="bg-red"] *, [class*="bg-primary"] *) {
+  color: var(--foreground) !important;
 }
