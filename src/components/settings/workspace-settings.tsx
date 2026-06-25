@@ -16,7 +16,6 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface ProfileDetail {
@@ -77,7 +76,7 @@ export function WorkspaceSettings() {
   const [saveNameSuccess, setSaveNameSuccess] = useState(false);
 
   // ── Members ────────────────────────────────────────────────────────────────
-  const [rawMembers, setRawMembers] = useState<any[]>([]);
+  const [rawMembers, setRawMembers] = useState<MemberWithProfile[]>([]);
   const [roles, setRoles] = useState<WorkspaceRole[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
 
@@ -166,14 +165,14 @@ export function WorkspaceSettings() {
       setWorkspaceName(activeWorkspace.name);
       fetchRoles();
     }
-  }, [activeWorkspace?.id, fetchRoles]);
+  }, [activeWorkspace, fetchRoles]);
 
   // Fetch members when workspace changes
   useEffect(() => {
     if (activeWorkspace) {
       fetchMembers();
     }
-  }, [activeWorkspace?.id, fetchMembers]);
+  }, [activeWorkspace, fetchMembers]);
 
   // ── Workspace name update ──────────────────────────────────────────────────
   const handleUpdateName = async (e: React.FormEvent) => {

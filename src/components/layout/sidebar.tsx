@@ -21,7 +21,6 @@ import {
   X,
   Blocks,
   BookOpen,
-  ShieldCheck,
   ImageIcon,
   FileText,
 } from "lucide-react";
