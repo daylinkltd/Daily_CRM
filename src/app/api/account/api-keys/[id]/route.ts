@@ -44,7 +44,7 @@ export async function DELETE(
       .from('api_keys')
       .update({ revoked_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('account_id', ctx.accountId)
+      .eq('workspace_id', ctx.accountId)
       .is('revoked_at', null)
       .select('id')
       .maybeSingle();

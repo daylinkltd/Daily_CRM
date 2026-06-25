@@ -51,7 +51,7 @@ export async function GET() {
     const { data, error } = await ctx.supabase
       .from('api_keys')
       .select(SAFE_COLUMNS)
-      .eq('account_id', ctx.accountId)
+      .eq('workspace_id', ctx.accountId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
     const { data, error } = await ctx.supabase
       .from('api_keys')
       .insert({
-        account_id: ctx.accountId,
+        workspace_id: ctx.accountId,
         created_by: ctx.userId,
         name: rawName,
         key_prefix: prefix,
