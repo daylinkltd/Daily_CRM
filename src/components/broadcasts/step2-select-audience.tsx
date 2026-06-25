@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { CustomField, Tag } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -78,6 +79,57 @@ const OPERATOR_OPTIONS: { value: CustomFieldOperator; label: string }[] = [
   { value: 'contains', label: 'contains' },
 ];
 
+function parseCSV(text: string): { phone: string; name?: string }[] {
+  const cleanText = text.replace(/^\uFEFF/, '');
+  const lines = cleanText.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+
+  const headerLine = lines[0];
+  let delimiter = ',';
+  if (!headerLine.includes(',') && headerLine.includes(';')) {
+    delimiter = ';';
+  } else if (!headerLine.includes(',') && headerLine.includes('\t')) {
+    delimiter = '\t';
+  }
+
+  const headers = headerLine.split(delimiter).map((h) => h.trim().toLowerCase().replace(/["']/g, ''));
+  const phoneIdx = headers.indexOf('phone');
+  if (phoneIdx === -1) return [];
+
+  const nameIdx = headers.indexOf('name');
+
+  const rows: { phone: string; name?: string }[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const values: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (const char of line) {
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === delimiter && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim());
+
+    const phone = values[phoneIdx]?.replace(/["']/g, '').trim();
+    if (!phone) continue;
+
+    rows.push({
+      phone,
+      name: nameIdx >= 0 ? values[nameIdx]?.replace(/["']/g, '').trim() || undefined : undefined,
+    });
+  }
+
+  return rows;
+}
+
 export function Step2SelectAudience({
   audience,
   onUpdate,
@@ -86,12 +138,39 @@ export function Step2SelectAudience({
 }: Step2Props) {
   const { activeWorkspace } = useWorkspace();
   const workspaceId = activeWorkspace?.id;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [csvFileName, setCsvFileName] = useState<string>('');
+  
   const [tags, setTags] = useState<Tag[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [loadingTags, setLoadingTags] = useState(false);
   const [loadingFields, setLoadingFields] = useState(false);
   const [estimatedCount, setEstimatedCount] = useState<number | null>(null);
   const [loadingCount, setLoadingCount] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+
+    setCsvFileName(selected.name);
+
+    try {
+      const text = await selected.text();
+      const rows = parseCSV(text);
+
+      if (rows.length === 0) {
+        toast.error('No valid rows found. Ensure CSV has a "phone" column header.');
+        onUpdate({ ...audience, csvContacts: [] });
+        return;
+      }
+
+      onUpdate({ ...audience, csvContacts: rows });
+      toast.success(`${rows.length} contacts loaded from CSV`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to parse CSV file');
+    }
+  };
 
   // Tags are used both by the primary "Filter by Tags" audience type
   // AND by the exclude-list below — so always load once on mount.
@@ -402,6 +481,87 @@ export function Step2SelectAudience({
                 placeholder="Value"
                 className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-[#00aef0] focus:ring-1 focus:ring-violet-500"
               />
+            </div>
+          )}
+        </div>
+      )}
+
+      {audience.type === 'csv' && (
+        <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+          <p className="text-sm font-medium text-white">Upload CSV File</p>
+          
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-700 p-6 cursor-pointer hover:border-[#00aef0]/50 transition-colors bg-slate-950/20"
+          >
+            {audience.csvContacts && audience.csvContacts.length > 0 ? (
+              <>
+                <Upload className="size-8 text-[#00aef0]" />
+                <p className="text-sm text-slate-300">
+                  {csvFileName || 'Contacts Loaded Successfully'}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {audience.csvContacts.length} recipient{audience.csvContacts.length !== 1 ? 's' : ''} detected
+                </p>
+              </>
+            ) : (
+              <>
+                <Upload className="size-8 text-slate-500" />
+                <p className="text-sm text-slate-400">Click to upload CSV file</p>
+                <p className="text-xs text-slate-500">CSV with a &quot;phone&quot; column is required</p>
+              </>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          {audience.csvContacts && audience.csvContacts.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                Preview (first 5 rows)
+              </p>
+              <div className="rounded-lg border border-slate-800 bg-slate-950/30 overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-slate-800/80">
+                      <th className="px-3 py-1.5 text-left text-slate-400 font-medium">Phone</th>
+                      <th className="px-3 py-1.5 text-left text-slate-400 font-medium">Name</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {audience.csvContacts.slice(0, 5).map((row, i) => (
+                      <tr key={i} className="border-t border-slate-800">
+                        <td className="px-3 py-1.5 text-slate-300">{row.phone}</td>
+                        <td className="px-3 py-1.5 text-slate-300">{row.name || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {audience.csvContacts.length > 5 && (
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-slate-500">
+                    ...and {audience.csvContacts.length - 5} more rows
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdate({ ...audience, csvContacts: undefined });
+                      setCsvFileName('');
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
+                  >
+                    Clear File
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

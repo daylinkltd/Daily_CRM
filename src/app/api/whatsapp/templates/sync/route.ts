@@ -122,7 +122,7 @@ function extractSampleValues(
   return sv
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const supabase = await createClient()
 
@@ -133,6 +133,28 @@ export async function POST() {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json().catch(() => ({}))
+    const workspaceId = body?.workspace_id
+
+    if (!workspaceId) {
+      return NextResponse.json({ error: 'workspace_id is required' }, { status: 400 })
+    }
+
+    // Security Gate: Enforce workspace membership
+    const { data: member, error: memberErr } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (memberErr || !member) {
+      return NextResponse.json(
+        { error: 'Forbidden: You are not authorized to access this workspace' },
+        { status: 403 }
+      )
     }
 
     // Resolve the caller's account_id — both whatsapp_config and
@@ -150,10 +172,11 @@ export async function POST() {
       )
     }
 
+    // whatsapp_config holds waba_id + encrypted access_token.
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
       .select('*')
-      .eq('account_id', accountId)
+      .eq('workspace_id', workspaceId)
       .single()
 
     if (configError || !config) {
@@ -238,6 +261,7 @@ export async function POST() {
         // post-017, so an INSERT without it errors.
         account_id: accountId,
         user_id: user.id,
+        workspace_id: workspaceId,
         name: t.name,
         category: normalizeCategory(t.category),
         language: t.language,
@@ -257,6 +281,7 @@ export async function POST() {
       const { data: existing, error: lookupErr } = await supabase
         .from('message_templates')
         .select('id')
+        .eq('workspace_id', workspaceId)
         .eq('account_id', accountId)
         .eq('name', t.name)
         .eq('language', t.language)

@@ -28,6 +28,7 @@ export function WorkspaceSwitcher() {
     workspaces,
     activeWorkspace,
     activeRole,
+    loading,
     switchWorkspace,
     createWorkspace,
   } = useWorkspace();
@@ -56,7 +57,7 @@ export function WorkspaceSwitcher() {
     }
   };
 
-  if (!activeWorkspace) {
+  if (loading) {
     return (
       <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-slate-400">
         <div className="flex items-center gap-2">
@@ -64,6 +65,70 @@ export function WorkspaceSwitcher() {
           <div className="h-4 w-24 animate-pulse rounded bg-slate-800" />
         </div>
       </div>
+    );
+  }
+
+  if (!activeWorkspace) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setIsDialogOpen(true)}
+          className="flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-slate-800 bg-slate-950/30 px-3 py-2.5 text-left text-sm font-medium text-slate-400 transition-all hover:bg-slate-900 hover:text-white hover:border-slate-700 focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-slate-800 text-slate-400">
+              <Plus className="h-4 w-4" />
+            </div>
+            <span className="truncate text-xs font-semibold">Create Workspace</span>
+          </div>
+        </button>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800 text-slate-100">
+            <form onSubmit={handleCreateWorkspace}>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold text-white">
+                  Create New Workspace
+                </DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name-empty" className="text-sm font-medium text-slate-300">
+                    Workspace Name
+                  </Label>
+                  <Input
+                    id="name-empty"
+                    placeholder="e.g. Sales Team, Marketing Dept"
+                    value={newWorkspaceName}
+                    onChange={(e) => setNewWorkspaceName(e.target.value)}
+                    className="bg-slate-950 border-slate-800 focus:border-[#00aef0] focus:ring-[#00aef0] text-[#000000] dark:text-white"
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsDialogOpen(false)}
+                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isCreating || !newWorkspaceName.trim()}
+                  className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10"
+                >
+                  {isCreating ? "Creating..." : "Create Workspace"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 

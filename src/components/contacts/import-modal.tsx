@@ -29,11 +29,22 @@ interface ParsedRow {
 }
 
 function parseCSV(text: string): ParsedRow[] {
-  const lines = text.trim().split(/\r?\n/);
+  // Strip UTF-8 BOM if present
+  const cleanText = text.replace(/^\uFEFF/, '');
+  const lines = cleanText.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
 
   const headerLine = lines[0];
-  const headers = headerLine.split(',').map((h) => h.trim().toLowerCase().replace(/["']/g, ''));
+
+  // Auto-detect delimiter: comma, semicolon, or tab
+  let delimiter = ',';
+  if (!headerLine.includes(',') && headerLine.includes(';')) {
+    delimiter = ';';
+  } else if (!headerLine.includes(',') && headerLine.includes('\t')) {
+    delimiter = '\t';
+  }
+
+  const headers = headerLine.split(delimiter).map((h) => h.trim().toLowerCase().replace(/["']/g, ''));
 
   const phoneIdx = headers.indexOf('phone');
   if (phoneIdx === -1) return [];
@@ -54,7 +65,7 @@ function parseCSV(text: string): ParsedRow[] {
     for (const char of line) {
       if (char === '"') {
         inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
+      } else if (char === delimiter && !inQuotes) {
         values.push(current.trim());
         current = '';
       } else {

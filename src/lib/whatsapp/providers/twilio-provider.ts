@@ -114,7 +114,7 @@ export class TwilioProvider implements WhatsAppProvider {
     // Fetch the correct template row
     const { data: template, error: templateError } = await supabaseAdmin()
       .from("message_templates")
-      .select("body")
+      .select("body_text")
       .eq("name", args.templateName)
       .eq("workspace_id", config.workspace_id)
       .maybeSingle();
@@ -124,7 +124,7 @@ export class TwilioProvider implements WhatsAppProvider {
     }
 
     // Substitute template parameters {{1}}, {{2}} with dynamic args values
-    let compiledBody = template.body || "";
+    let compiledBody = template.body_text || "";
     if (args.params && args.params.length > 0) {
       args.params.forEach((param, index) => {
         compiledBody = compiledBody.replace(new RegExp(`\\{\\{${index + 1}\\}\\}`, "g"), param);

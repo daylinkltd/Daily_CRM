@@ -24,8 +24,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { SettingsPanelHead } from './settings-panel-head';
+import { useWorkspace } from '@/hooks/use-workspace';
 import {
   Dialog,
   DialogContent,
@@ -126,6 +127,7 @@ function emptyButton(type: TemplateButton['type']): TemplateButton {
 export function TemplateManager() {
   const supabase = createClient();
   const { user, loading: authLoading } = useAuth();
+  const { activeWorkspace } = useWorkspace();
 
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
@@ -177,21 +179,21 @@ export function TemplateManager() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
+    if (!activeWorkspace?.id) {
       setLoading(false);
       return;
     }
-    fetchTemplates(user.id);
+    fetchTemplates(activeWorkspace.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user?.id]);
+  }, [authLoading, activeWorkspace?.id]);
 
-  async function fetchTemplates(userId: string) {
+  async function fetchTemplates(workspaceId: string) {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('message_templates')
         .select('*')
-        .eq('user_id', userId)
+        .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       setTemplates(data || []);
@@ -261,6 +263,11 @@ export function TemplateManager() {
     if (form.category === 'Authentication') return;
     try {
       setSubmitting(true);
+      if (!activeWorkspace?.id) {
+        toast.error('No active workspace selected');
+        return;
+      }
+
       const isEdit = editingId !== null;
       const url = isEdit
         ? `/api/whatsapp/templates/${editingId}`
@@ -268,7 +275,10 @@ export function TemplateManager() {
       const res = await fetch(url, {
         method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildSubmitPayload()),
+        body: JSON.stringify({
+          ...buildSubmitPayload(),
+          workspace_id: activeWorkspace.id,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -278,7 +288,7 @@ export function TemplateManager() {
       }
       // Refresh first, then close — re-opening the dialog
       // immediately should not show a stale list.
-      if (user) await fetchTemplates(user.id);
+      await fetchTemplates(activeWorkspace.id);
       toast.success(
         data.dry_run
           ? isEdit
@@ -300,10 +310,14 @@ export function TemplateManager() {
   }
 
   async function handleSyncFromMeta() {
-    if (!user) return;
+    if (!user || !activeWorkspace?.id) return;
     setSyncing(true);
     try {
-      const res = await fetch('/api/whatsapp/templates/sync', { method: 'POST' });
+      const res = await fetch('/api/whatsapp/templates/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspace_id: activeWorkspace.id }),
+      });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data?.error || `Sync failed (HTTP ${res.status})`);
@@ -332,7 +346,7 @@ export function TemplateManager() {
           { duration: 10000 },
         );
       }
-      await fetchTemplates(user.id);
+      await fetchTemplates(activeWorkspace.id);
     } catch (err) {
       console.error('Template sync error:', err);
       toast.error(err instanceof Error ? err.message : 'Failed to sync templates');
