@@ -122,74 +122,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = createClient();
     setProfileLoading(true);
     try {
-      const { data, error } = await supabase
+      // 1. Fetch user profile
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select(
-          // `account:accounts!inner(id, name)` — explicit join on the
-          // single FK profiles.account_id → accounts.id. `!inner` so a
-          // missing account collapses to null rather than a half-
-          // populated row (shouldn't happen post-017 NOT NULL, but
-          // belt-and-braces against forks running older schemas).\
-          "id, full_name, email, avatar_url, role, system_role, beta_features, account_id, account_role, account:accounts!inner(id, name, default_currency)",
-        )
+        .select("id, full_name, email, avatar_url, role, system_role, status")
         .eq("user_id", userId)
         .maybeSingle();
 
-      if (error) {
-        console.error("[AuthProvider] fetchProfile error:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
+      if (profileError) {
+        console.error("[AuthProvider] fetchProfile error:", profileError.message);
         return;
       }
 
-      if (data) {
-        // Supabase's typed client surfaces an embedded `!inner` row
-        // as either an object or a single-element array depending on
-        // the schema's inferred cardinality — normalise to the object
-        // form before reading.
-        const accountRaw = Array.isArray(data.account)
-          ? data.account[0] ?? null
-          : (data.account as {
-              id: string;
-              name: string;
-              default_currency: string | null;
-            } | null);
-        // Narrow default_currency defensively: forks running pre-021
-        // schemas won't have the column, so a missing/null value reads
-        // as the safe USD fallback rather than crashing the picker.
-        const accountRow: AccountSummary | null = accountRaw
+      if (profileData) {
+        // 2. Fetch workspace memberships for this user
+        const { data: memberships, error: memError } = await supabase
+          .from("workspace_members")
+          .select(`
+            workspace_id,
+            role,
+            workspaces (
+              id,
+              name,
+              default_currency
+            )
+          `)
+          .eq("user_id", userId);
+
+        if (memError) {
+          console.error("[AuthProvider] error fetching workspace memberships:", memError.message);
+        }
+
+        let activeMem: any = null;
+        if (memberships && memberships.length > 0) {
+          const savedActiveId =
+            typeof window !== "undefined"
+              ? localStorage.getItem("crm_active_workspace_id")
+              : null;
+          activeMem =
+            memberships.find((m) => m.workspace_id === savedActiveId) ??
+            memberships[0];
+        }
+
+        const workspaceRaw = activeMem?.workspaces
+          ? Array.isArray(activeMem.workspaces)
+            ? activeMem.workspaces[0]
+            : activeMem.workspaces
+          : null;
+
+        const accountRow: AccountSummary | null = workspaceRaw
           ? {
-              id: accountRaw.id,
-              name: accountRaw.name,
-              default_currency: accountRaw.default_currency ?? DEFAULT_CURRENCY,
+              id: workspaceRaw.id,
+              name: workspaceRaw.name,
+              default_currency: workspaceRaw.default_currency ?? DEFAULT_CURRENCY,
             }
           : null;
 
-        // Narrow the DB enum into our AccountRole union. The DB
-        // constraint should make this unconditional, but a future
-        // migration that broadens the enum without updating TS would
-        // otherwise crash here — fall back to null and let UI gates
-        // treat the caller as least-privileged.
-        const accountRole = isAccountRole(data.account_role)
-          ? data.account_role
-          : null;
+        // Map workspace role to AccountRole ('owner', 'admin', 'agent', 'viewer')
+        let accountRole: AccountRole | null = null;
+        if (activeMem) {
+          if (activeMem.role === "owner") accountRole = "owner";
+          else if (activeMem.role === "admin") accountRole = "admin";
+          else if (activeMem.role === "member") accountRole = "agent";
+        }
 
         setProfile({
-          id: data.id,
-          full_name: data.full_name,
-          email: data.email,
-          avatar_url: data.avatar_url,
-          role: data.role,
-          system_role: (data as Record<string, unknown>).system_role as string | null ?? null,
-          // `beta_features` is `NOT NULL DEFAULT ARRAY[]` in the DB, but
-          // narrow defensively in case the column hasn't been migrated yet
-          // (older deployments running 011 lazily) — `null` reads as no
-          // opt-ins, which is the safe default for any future beta gate.
-          beta_features: (data.beta_features as string[] | null) ?? [],
-          account_id: data.account_id ?? null,
+          id: profileData.id,
+          full_name: profileData.full_name,
+          email: profileData.email,
+          avatar_url: profileData.avatar_url,
+          role: profileData.role,
+          system_role: profileData.system_role,
+          beta_features: [],
+          account_id: activeMem?.workspace_id ?? null,
           account_role: accountRole,
         });
         setAccount(accountRow);

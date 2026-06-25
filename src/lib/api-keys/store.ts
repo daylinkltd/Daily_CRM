@@ -65,7 +65,7 @@ export async function getAccountName(
   accountId: string
 ): Promise<string | null> {
   const { data, error } = await supabaseAdmin()
-    .from('accounts')
+    .from('workspaces')
     .select('name')
     .eq('id', accountId)
     .maybeSingle();

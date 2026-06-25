@@ -47,7 +47,9 @@ export async function PATCH(
   { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
-    const ctx = await requireRole("admin");
+    const { searchParams } = new URL(request.url);
+    const workspaceId = searchParams.get("workspace_id") || undefined;
+    const ctx = await requireRole("admin", workspaceId);
 
     const limit = checkRateLimit(
       `admin:memberRole:${ctx.userId}`,
@@ -69,8 +71,6 @@ export async function PATCH(
       );
     }
 
-    // The RPC blocks promotion to / demotion from owner, but
-    // surface the friendlier 400 before crossing the wire too.
     if (role === "owner") {
       return NextResponse.json(
         {
@@ -81,12 +81,35 @@ export async function PATCH(
       );
     }
 
-    const { error } = await ctx.supabase.rpc("set_member_role", {
-      p_user_id: userId,
-      p_new_role: role,
-    });
+    // Map AccountRole ('admin' | 'agent' | 'viewer') back to workspace_role ('admin' | 'member')
+    let dbRole: 'owner' | 'admin' | 'member' = 'member';
+    if (role === 'admin') dbRole = 'admin';
 
-    if (error) return rpcErrorToResponse(error);
+    // Prevent demoting the owner
+    const { data: targetMember } = await ctx.supabase
+      .from("workspace_members")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("workspace_id", ctx.accountId)
+      .maybeSingle();
+
+    if (targetMember?.role === "owner") {
+      return NextResponse.json(
+        { error: "Cannot demote the workspace owner" },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await ctx.supabase
+      .from("workspace_members")
+      .update({ role: dbRole })
+      .eq("user_id", userId)
+      .eq("workspace_id", ctx.accountId);
+
+    if (error) {
+      console.error("[members route PATCH] update error:", error);
+      return NextResponse.json({ error: "Failed to update member role" }, { status: 500 });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
@@ -95,11 +118,13 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
-    const ctx = await requireRole("admin");
+    const { searchParams } = new URL(request.url);
+    const workspaceId = searchParams.get("workspace_id") || undefined;
+    const ctx = await requireRole("admin", workspaceId);
 
     const limit = checkRateLimit(
       `admin:memberRemove:${ctx.userId}`,
@@ -109,13 +134,33 @@ export async function DELETE(
 
     const { userId } = await params;
 
-    const { data, error } = await ctx.supabase.rpc("remove_account_member", {
-      p_user_id: userId,
-    });
+    // Prevent deleting the owner
+    const { data: targetMember } = await ctx.supabase
+      .from("workspace_members")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("workspace_id", ctx.accountId)
+      .maybeSingle();
 
-    if (error) return rpcErrorToResponse(error);
+    if (targetMember?.role === "owner") {
+      return NextResponse.json(
+        { error: "Cannot remove the workspace owner" },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json({ ok: true, newPersonalAccountId: data });
+    const { error } = await ctx.supabase
+      .from("workspace_members")
+      .delete()
+      .eq("user_id", userId)
+      .eq("workspace_id", ctx.accountId);
+
+    if (error) {
+      console.error("[members route DELETE] delete error:", error);
+      return NextResponse.json({ error: "Failed to remove member" }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
   } catch (err) {
     return toErrorResponse(err);
   }

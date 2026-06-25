@@ -82,11 +82,11 @@ export async function PATCH(request: Request) {
     // `is_account_member(id, 'admin')`, and requireRole already
     // guaranteed the caller is admin+.
     const { data, error } = await ctx.supabase
-      .from("accounts")
-      .update({ name })
-      .eq("id", ctx.accountId)
-      .select("id, name")
-      .single();
+       .from("workspaces")
+       .update({ name })
+       .eq("id", ctx.accountId)
+       .select("id, name")
+       .single();
 
     if (error) {
       console.error("[PATCH /api/account] update error:", error);

@@ -52,7 +52,7 @@ export function DealsSettings() {
     if (!accountId || !dirty) return;
     setSaving(true);
     const { error } = await supabase
-      .from("accounts")
+      .from("workspaces")
       .update({ default_currency: selected })
       .eq("id", accountId);
     if (error) {

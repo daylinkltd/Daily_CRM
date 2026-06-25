@@ -42,7 +42,7 @@ export interface AccountContext {
   account: { id: string; name: string };
 }
 
-export async function getCurrentAccount(): Promise<AccountContext> {
+export async function getCurrentAccount(workspaceId?: string): Promise<AccountContext> {
   const supabase = await createClient();
 
   const {
@@ -53,36 +53,55 @@ export async function getCurrentAccount(): Promise<AccountContext> {
     throw new UnauthorizedError();
   }
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("account_id, account_role, account:accounts!inner(id, name)")
+  let targetWorkspaceId = workspaceId;
+
+  if (!targetWorkspaceId) {
+    // Fallback: get the first workspace the user belongs to
+    const { data: firstMember } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    targetWorkspaceId = firstMember?.workspace_id;
+  }
+
+  if (!targetWorkspaceId) {
+    throw new ForbiddenError("User is not linked to any workspace");
+  }
+
+  // Get the member's role and the workspace details
+  const { data: member, error } = await supabase
+    .from("workspace_members")
+    .select("role, workspaces!inner(id, name)")
+    .eq("workspace_id", targetWorkspaceId)
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (error) {
-    console.error("[getCurrentAccount] profile fetch error:", error);
-    throw new ForbiddenError("Could not load account context");
-  }
-  if (!data || !data.account_id || !data.account_role || !data.account) {
-    throw new ForbiddenError("Profile is not linked to an account");
-  }
-  if (!isAccountRole(data.account_role)) {
-    throw new ForbiddenError(`Unknown account role: ${data.account_role}`);
+  if (error || !member || !member.workspaces) {
+    console.error("[getCurrentAccount] member fetch error:", error);
+    throw new ForbiddenError("Could not load workspace context");
   }
 
-  const accountRow = Array.isArray(data.account) ? data.account[0] : data.account;
+  const workspaceRow = Array.isArray(member.workspaces) ? member.workspaces[0] : member.workspaces;
+
+  // Map workspace roles ('owner', 'admin', 'member') to AccountRole ('owner', 'admin', 'agent', 'viewer')
+  let role: AccountRole = 'agent';
+  if (member.role === 'owner') role = 'owner';
+  else if (member.role === 'admin') role = 'admin';
+  else if (member.role === 'member') role = 'agent';
 
   return {
     supabase,
     userId: user.id,
-    accountId: data.account_id,
-    role: data.account_role,
-    account: { id: accountRow.id, name: accountRow.name },
+    accountId: workspaceRow.id,
+    role,
+    account: { id: workspaceRow.id, name: workspaceRow.name },
   };
 }
 
-export async function requireRole(min: AccountRole): Promise<AccountContext> {
-  const ctx = await getCurrentAccount();
+export async function requireRole(min: AccountRole, workspaceId?: string): Promise<AccountContext> {
+  const ctx = await getCurrentAccount(workspaceId);
   if (!hasMinRole(ctx.role, min)) {
     throw new ForbiddenError(
       `This action requires the '${min}' role or higher`,
