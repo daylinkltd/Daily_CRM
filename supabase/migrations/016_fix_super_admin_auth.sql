@@ -19,19 +19,19 @@ BEGIN
 
   IF v_user_id IS NOT NULL THEN
     -- Remove from auth.identities first (FK constraint)
-    DELETE FROM auth.identities WHERE user_id = v_user_id;
+    DELETE FROM auth.identities WHERE user_id::text = v_user_id::text;
     
     -- Remove from auth.sessions
-    DELETE FROM auth.sessions WHERE user_id = v_user_id;
+    DELETE FROM auth.sessions WHERE user_id::text = v_user_id::text;
     
     -- Remove from auth.refresh_tokens  
-    DELETE FROM auth.refresh_tokens WHERE user_id = v_user_id;
+    DELETE FROM auth.refresh_tokens WHERE user_id::text = v_user_id::text;
     
     -- Remove the auth.users row
-    DELETE FROM auth.users WHERE id = v_user_id;
+    DELETE FROM auth.users WHERE id::text = v_user_id::text;
     
     -- Also delete the profile so the trigger can recreate it cleanly
-    DELETE FROM public.profiles WHERE user_id = v_user_id;
+    DELETE FROM public.profiles WHERE user_id::text = v_user_id::text;
     
     RAISE NOTICE 'Cleaned up broken super_admin auth records for user_id: %', v_user_id;
   ELSE
