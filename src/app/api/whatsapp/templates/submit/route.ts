@@ -19,6 +19,7 @@ import { normalizeStatus } from '@/lib/whatsapp/template-status-normalize'
 function buildUpsertRow(
   accountId: string,
   userId: string,
+  workspaceId: string,
   payload: TemplatePayload,
   extras: {
     status: 'DRAFT' | string
@@ -35,6 +36,7 @@ function buildUpsertRow(
     // still on (user_id, name, language) — see the upsert helper
     // for the cross-teammate dedup follow-up.
     user_id: userId,
+    workspace_id: workspaceId,
     name: payload.name,
     category: payload.category,
     language: payload.language,
@@ -112,11 +114,32 @@ export async function POST(request: Request) {
       )
     }
 
-    let payload: TemplatePayload
+    let rawBody: any
     try {
-      payload = (await request.json()) as TemplatePayload
+      rawBody = await request.json()
     } catch {
       return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 })
+    }
+
+    const { workspace_id, ...payload } = rawBody as any
+
+    if (!workspace_id) {
+      return NextResponse.json({ error: 'workspace_id is required.' }, { status: 400 })
+    }
+
+    // Security Gate: Enforce workspace membership
+    const { data: member, error: memberErr } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', workspace_id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (memberErr || !member) {
+      return NextResponse.json(
+        { error: 'Forbidden: You are not authorized to access this workspace.' },
+        { status: 403 },
+      )
     }
 
     if (payload.category === 'Authentication') {
@@ -152,7 +175,7 @@ export async function POST(request: Request) {
       const { data: config, error: configError } = await supabase
         .from('whatsapp_config')
         .select('*')
-        .eq('account_id', accountId)
+        .eq('workspace_id', workspace_id)
         .single()
       if (configError || !config) {
         return NextResponse.json(
@@ -203,7 +226,7 @@ export async function POST(request: Request) {
         // until they fix and re-submit.
         await upsertTemplateRow(
           supabase,
-          buildUpsertRow(accountId, user.id, payload, {
+          buildUpsertRow(accountId, user.id, workspace_id, payload, {
             status: 'DRAFT',
             metaTemplateId: null,
             submissionError: message,
@@ -223,7 +246,7 @@ export async function POST(request: Request) {
 
     const { data: row, error: upsertErr } = await upsertTemplateRow(
       supabase,
-      buildUpsertRow(accountId, user.id, payload, {
+      buildUpsertRow(accountId, user.id, workspace_id, payload, {
         status: normalizeStatus(metaStatus),
         metaTemplateId,
         submissionError: null,

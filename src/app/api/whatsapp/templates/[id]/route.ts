@@ -91,12 +91,31 @@ export async function PATCH(
     // meta_template_id and status — fetch explicitly.
     const { data: existing, error: lookupErr } = await supabase
       .from('message_templates')
-      .select('id, name, status, meta_template_id, language')
+      .select('id, name, status, meta_template_id, language, workspace_id')
       .eq('id', id)
       .eq('account_id', accountId)
       .maybeSingle()
     if (lookupErr || !existing) {
       return NextResponse.json({ error: 'Template not found.' }, { status: 404 })
+    }
+
+    if (!existing.workspace_id) {
+      return NextResponse.json({ error: 'Template workspace not found.' }, { status: 400 })
+    }
+
+    // Security Gate: Enforce workspace membership
+    const { data: member, error: memberErr } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', existing.workspace_id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (memberErr || !member) {
+      return NextResponse.json(
+        { error: 'Forbidden: You are not authorized to access this workspace.' },
+        { status: 403 },
+      )
     }
 
     if (!existing.meta_template_id) {
@@ -141,7 +160,7 @@ export async function PATCH(
       const { data: config, error: configError } = await supabase
         .from('whatsapp_config')
         .select('*')
-        .eq('account_id', accountId)
+        .eq('workspace_id', existing.workspace_id)
         .single()
       if (configError || !config) {
         return NextResponse.json(
@@ -269,7 +288,7 @@ export async function DELETE(
 
     const { data: existing, error: lookupErr } = await supabase
       .from('message_templates')
-      .select('id, name, meta_template_id')
+      .select('id, name, meta_template_id, workspace_id')
       .eq('id', id)
       .eq('account_id', accountId)
       .maybeSingle()
@@ -277,11 +296,30 @@ export async function DELETE(
       return NextResponse.json({ error: 'Template not found.' }, { status: 404 })
     }
 
+    if (!existing.workspace_id) {
+      return NextResponse.json({ error: 'Template workspace not found.' }, { status: 400 })
+    }
+
+    // Security Gate: Enforce workspace membership
+    const { data: member, error: memberErr } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', existing.workspace_id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (memberErr || !member) {
+      return NextResponse.json(
+        { error: 'Forbidden: You are not authorized to access this workspace.' },
+        { status: 403 },
+      )
+    }
+
     if (existing.meta_template_id && !isDryRun()) {
       const { data: config, error: configError } = await supabase
         .from('whatsapp_config')
         .select('*')
-        .eq('account_id', accountId)
+        .eq('workspace_id', existing.workspace_id)
         .single()
       if (configError || !config || !config.waba_id) {
         return NextResponse.json(
