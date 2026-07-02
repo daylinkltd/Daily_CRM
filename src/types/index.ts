@@ -156,6 +156,8 @@ export interface Conversation {
   created_at: string;
   updated_at: string;
   contact?: Contact;
+  bot_status?: 'active' | 'paused';
+  bot_paused_until?: string | null;
 }
 
 export type SenderType = 'customer' | 'agent' | 'bot';

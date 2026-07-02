@@ -229,13 +229,31 @@ export async function POST(request: Request) {
       )
     }
 
-    // Update conversation last message
+    // Fetch chatbot configuration to see if we should auto-pause the chatbot
+    let botStatusUpdates: Record<string, any> = {}
+    const { data: chatbotConfig } = await supabase
+      .from('chatbot_config')
+      .select('is_enabled, auto_pause_duration')
+      .eq('workspace_id', workspaceId)
+      .maybeSingle()
+
+    if (chatbotConfig && chatbotConfig.is_enabled && chatbotConfig.auto_pause_duration !== 0) {
+      botStatusUpdates = {
+        bot_status: 'paused',
+        bot_paused_until: chatbotConfig.auto_pause_duration > 0
+          ? new Date(Date.now() + chatbotConfig.auto_pause_duration * 60 * 1000).toISOString()
+          : null
+      }
+    }
+
+    // Update conversation last message & bot status
     await supabase
       .from('conversations')
       .update({
         last_message_text: content_text || `[${message_type}]`,
         last_message_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        ...botStatusUpdates
       })
       .eq('id', conversation_id)
 
