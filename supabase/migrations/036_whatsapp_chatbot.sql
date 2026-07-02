@@ -1,5 +1,6 @@
 -- ============================================================
 -- 036_whatsapp_chatbot.sql — WhatsApp AI Chatbot Configurations
+-- Updated: Trigger CI/CD database migration run.
 -- ============================================================
 
 -- Create chatbot_config table
