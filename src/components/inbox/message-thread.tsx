@@ -26,6 +26,7 @@ import {
   RefreshCw,
   PanelRightOpen,
   PanelRightClose,
+  Bot,
 } from "lucide-react";
 import { format, isToday, isYesterday, differenceInHours } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -195,6 +196,35 @@ export function MessageThread({
     }, 700);
   }, [isRefreshing, onRefresh]);
   const [replyTo, setReplyTo] = useState<ReplyDraft | null>(null);
+
+  const [updatingBot, setUpdatingBot] = useState(false);
+  const handleToggleBot = useCallback(async () => {
+    if (!conversation) return;
+    try {
+      setUpdatingBot(true);
+      const supabase = createClient();
+      const nextStatus = conversation.bot_status === 'paused' ? 'active' : 'paused';
+      
+      await supabase
+        .from('conversations')
+        .update({ 
+          bot_status: nextStatus,
+          bot_paused_until: null
+        })
+        .eq('id', conversation.id);
+        
+      toast.success(
+        nextStatus === 'active' 
+          ? 'Chatbot enabled for this conversation' 
+          : 'Chatbot paused for this conversation'
+      );
+    } catch (err) {
+      console.error("Failed to toggle bot status:", err);
+      toast.error("Failed to update chatbot status");
+    } finally {
+      setUpdatingBot(false);
+    }
+  }, [conversation]);
 
   // Profiles are bounded by RLS to rows the current user is allowed to
   // see — today that's just the current user, but the dropdown keeps the
@@ -856,6 +886,45 @@ export function MessageThread({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Chatbot Toggle Button */}
+          <button
+            type="button"
+            onClick={handleToggleBot}
+            disabled={updatingBot}
+            title={
+              conversation.bot_status === 'paused'
+                ? conversation.bot_paused_until
+                  ? `Bot is paused until ${new Date(conversation.bot_paused_until).toLocaleTimeString()}. Click to resume.`
+                  : 'Bot is paused. Click to resume.'
+                : 'Bot is active. Click to pause.'
+            }
+            className={cn(
+              "inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors disabled:opacity-60",
+              conversation.bot_status === 'paused'
+                ? "bg-slate-900 border border-slate-700 text-muted-foreground hover:bg-slate-800 hover:text-foreground"
+                : "bg-emerald-950/40 border border-emerald-600/30 text-emerald-400 hover:bg-emerald-950/60 hover:text-emerald-300"
+            )}
+          >
+            {conversation.bot_status !== 'paused' ? (
+              <>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                <Bot className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Bot Active</span>
+              </>
+            ) : (
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
+                <Bot className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">
+                  {conversation.bot_paused_until ? 'Bot Paused (Auto)' : 'Bot Paused'}
+                </span>
+              </>
+            )}
+          </button>
+
           {/* Contact-panel toggle — desktop only. The contact sidebar
               eats a chunk of horizontal width that crowds the thread on
               smaller laptops; this lets agents reclaim it when they just

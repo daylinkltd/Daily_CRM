@@ -10,6 +10,7 @@ import {
   handleTemplateWebhookChange,
   isTemplateWebhookField,
 } from '@/lib/whatsapp/template-webhook'
+import { processChatbotReply } from '@/lib/chatbot/processor'
 
 // Lazy-initialized to avoid build-time crash when env vars are missing
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -655,6 +656,18 @@ async function processMessage(
         conversation_id: conversation.id,
       },
     }).catch((err) => console.error('[automations] dispatch failed:', err))
+  }
+
+  // Trigger AI Chatbot response asynchronously
+  if (contentText) {
+    processChatbotReply({
+      workspaceId,
+      conversationId: conversation.id,
+      contactId: contactRecord.id,
+      messageText: contentText,
+    }).catch((err) => {
+      console.error('[chatbot] processor failed:', err)
+    })
   }
 }
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Conversation, ConversationStatus } from "@/types";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Bot } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Input } from "@/components/ui/input";
 import {
@@ -273,9 +273,20 @@ function ConversationItem({
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-sm font-medium text-foreground">
-            {displayName}
-          </span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="truncate text-sm font-medium text-foreground">
+              {displayName}
+            </span>
+            {conversation.bot_status !== 'paused' ? (
+              <span title="AI Bot Active" className="shrink-0">
+                <Bot className="h-3.5 w-3.5 text-emerald-500" />
+              </span>
+            ) : (
+              <span title="AI Bot Paused" className="shrink-0">
+                <Bot className="h-3.5 w-3.5 text-slate-500" />
+              </span>
+            )}
+          </div>
           <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo}</span>
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2">
