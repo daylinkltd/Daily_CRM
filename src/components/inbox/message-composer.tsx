@@ -18,6 +18,7 @@ import {
   Square,
   X,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GatedButton } from "@/components/ui/gated-button";
@@ -124,6 +125,36 @@ export function MessageComposer({
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const [suggestedDraft, setSuggestedDraft] = useState<string | null>(null);
+  const [loadingDraft, setLoadingDraft] = useState(false);
+
+  const fetchDraft = useCallback(async () => {
+    if (!conversationId) return;
+    setLoadingDraft(true);
+    setSuggestedDraft(null);
+    try {
+      const response = await fetch("/api/whatsapp/suggest-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.draft) {
+          setSuggestedDraft(data.draft);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch AI suggestion:", err);
+    } finally {
+      setLoadingDraft(false);
+    }
+  }, [conversationId]);
+
+  useEffect(() => {
+    fetchDraft();
+  }, [conversationId, fetchDraft]);
+
   // Media attachment state. `draft` holds an uploaded-but-not-yet-sent
   // attachment; `busy` covers the upload/transcode window.
   const [draft, setDraft] = useState<MediaDraft | null>(null);
@@ -188,6 +219,16 @@ export function MessageComposer({
     // Max 4 lines (~96px)
     el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
   }, []);
+
+  const handleUseDraft = useCallback(() => {
+    if (!suggestedDraft) return;
+    setText(suggestedDraft);
+    setSuggestedDraft(null);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      setTimeout(() => adjustHeight(), 50);
+    }
+  }, [suggestedDraft, adjustHeight]);
 
   const handleSend = useCallback(async () => {
     const trimmed = text.trim();
@@ -388,6 +429,54 @@ export function MessageComposer({
           />
         </div>
       )}
+
+      {/* AI Smart Draft Card */}
+      {loadingDraft && (
+        <div className="mb-2 flex items-center gap-2 rounded-xl border border-border/50 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+          <span>Generating AI reply draft...</span>
+        </div>
+      )}
+
+      {suggestedDraft && !loadingDraft && (
+        <div className="mb-3 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-1.5 font-semibold text-primary text-xs tracking-wide">
+              <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+              <span>AI SUGGESTED DRAFT</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSuggestedDraft(null)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <p className="mt-1.5 text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+            {suggestedDraft}
+          </p>
+          <div className="mt-2.5 flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleUseDraft}
+              className="h-7 text-xs bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
+            >
+              Use Draft
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={fetchDraft}
+              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Regenerate
+            </Button>
+          </div>
+        </div>
+      )}
+
       {sessionExpired && (
         <div className="mb-2 flex items-center justify-between rounded-lg bg-amber-500/10 px-3 py-2">
           <p className="text-xs text-amber-400">
