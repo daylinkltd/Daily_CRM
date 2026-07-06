@@ -100,12 +100,12 @@ export function ChatbotConfig() {
       const data: ChatbotConfigPayload = await res.json();
 
       setIsEnabled(data.is_enabled);
-      setProvider(data.provider);
-      setModel(data.model);
-      setSystemPrompt(data.system_prompt);
+      setProvider(data.provider || "openai");
+      setModel(data.model || "gpt-4o-mini");
+      setSystemPrompt(data.system_prompt || "You are a helpful customer service assistant for our business.");
       setBusinessContext(data.business_context || "");
-      setAutoPauseDuration(String(data.auto_pause_duration));
-      setResponseDelay(String(data.response_delay));
+      setAutoPauseDuration(data.auto_pause_duration !== undefined && data.auto_pause_duration !== null ? String(data.auto_pause_duration) : "60");
+      setResponseDelay(data.response_delay !== undefined && data.response_delay !== null ? String(data.response_delay) : "0");
       setBotName(data.bot_name || "AI Assistant");
       setApiKeyConfigured(data.api_key_configured);
 
@@ -149,11 +149,11 @@ export function ChatbotConfig() {
         is_enabled: isEnabled,
         provider,
         model,
-        system_prompt: systemPrompt.trim(),
-        business_context: businessContext.trim(),
-        auto_pause_duration: Number(autoPauseDuration),
-        response_delay: Number(responseDelay),
-        bot_name: botName.trim(),
+        system_prompt: (systemPrompt || "").trim(),
+        business_context: (businessContext || "").trim(),
+        auto_pause_duration: isNaN(Number(autoPauseDuration)) ? 60 : Number(autoPauseDuration),
+        response_delay: isNaN(Number(responseDelay)) ? 0 : Number(responseDelay),
+        bot_name: (botName || "").trim() || "AI Assistant",
       };
 
       // Only send api_key if edited and not using the mask placeholder

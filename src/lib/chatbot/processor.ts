@@ -133,7 +133,20 @@ export async function processChatbotReply({
     }
 
     // 5. Generate reply via AI Service
-    const systemPrompt = `${config.system_prompt}\n\nBusiness Context / Info:\n${config.business_context || ""}`;
+    const formattingInstructions = `
+CRITICAL RESPONSE FORMATTING RULES:
+1. You are chatting with a user on WhatsApp.
+2. The Business Context contains script templates containing metadata indicators such as:
+   - "Typing... (X seconds)"
+   - "Buttons:"
+   - "IF YES", "IF NO", "COUNTRY FALLBACK", "CONTACT COLLECTION"
+3. DO NOT output any of these metadata instructions, indicators, or section headers literally.
+   - NEVER include the literal phrase "Typing..." or the duration in your response.
+   - NEVER include the word "Buttons:" or "Free text field".
+   - Simply output the final clean conversational text. If options are listed under "Buttons:", present them naturally in the conversation (e.g., "• Option 1\n• Option 2") so the user can easily select or type their choice.
+`;
+
+    const systemPrompt = `${config.system_prompt}\n${formattingInstructions}\n\nBusiness Context / Info:\n${config.business_context || ""}`;
 
     const reply = await generateChatbotResponse({
       provider: config.provider,
