@@ -87,9 +87,10 @@ export async function GET(request: Request) {
     const verifyToken = searchParams.get('hub.verify_token')
 
     if (mode !== 'subscribe' || !challenge || !verifyToken) {
+      // Return 200 for simple uptime pings or third-party provider test checks
       return NextResponse.json(
-        { error: 'Missing verification parameters' },
-        { status: 400 }
+        { status: 'active', message: 'Daily CRM Webhook is active' },
+        { status: 200 }
       )
     }
 
