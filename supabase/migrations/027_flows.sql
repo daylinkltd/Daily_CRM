@@ -39,7 +39,7 @@ ALTER TABLE messages
 -- 2. flows
 -- ============================================================
 CREATE TABLE IF NOT EXISTS flows (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
@@ -71,7 +71,7 @@ CREATE POLICY "Users can manage own flows" ON flows FOR ALL
 -- 3. flow_nodes
 -- ============================================================
 CREATE TABLE IF NOT EXISTS flow_nodes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   flow_id UUID NOT NULL REFERENCES flows(id) ON DELETE CASCADE,
   node_key TEXT NOT NULL,
   node_type TEXT NOT NULL CHECK (node_type IN (
@@ -103,7 +103,7 @@ CREATE POLICY "Users manage nodes on their flows" ON flow_nodes FOR ALL
 -- 4. flow_runs
 -- ============================================================
 CREATE TABLE IF NOT EXISTS flow_runs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   flow_id UUID NOT NULL REFERENCES flows(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   contact_id UUID REFERENCES contacts(id) ON DELETE SET NULL,
@@ -143,7 +143,7 @@ CREATE POLICY "Users see own flow runs" ON flow_runs FOR SELECT
 -- 5. flow_run_events
 -- ============================================================
 CREATE TABLE IF NOT EXISTS flow_run_events (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   flow_run_id UUID NOT NULL REFERENCES flow_runs(id) ON DELETE CASCADE,
   event_type TEXT NOT NULL CHECK (event_type IN (
     'started', 'node_entered', 'message_sent', 'reply_received',

@@ -36,7 +36,7 @@ export async function findActiveKeyByHash(
 ): Promise<ApiKeyRow | null> {
   const { data, error } = await supabaseAdmin()
     .from('api_keys')
-    .select('id, account_id, created_by, name, scopes, expires_at, revoked_at')
+    .select('id, account_id:workspace_id, created_by, name, scopes, expires_at, revoked_at')
     .eq('key_hash', hash)
     .maybeSingle();
 
