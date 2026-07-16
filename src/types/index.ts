@@ -592,3 +592,75 @@ export interface CustomFormSubmission {
   form?: CustomForm;
 }
 
+// ============================================================
+// Quotation Builder Module
+// ============================================================
+
+export interface ServiceCatalogItem {
+  id: string;
+  workspace_id: string;
+  name: string;
+  default_description?: string;
+  default_price: number;
+  default_pricing_type: 'one_time' | 'monthly' | 'yearly';
+  category?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type QuotationStatus = 'Draft' | 'Sent' | 'Viewed' | 'Accepted' | 'Rejected' | 'Expired';
+
+export interface Quotation {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  quotation_id: string;
+  deal_id?: string | null;
+  client_id?: string | null;
+  document_title: string;
+  document_subtitle?: string | null;
+  date_created: string;
+  valid_until: string;
+  status: QuotationStatus;
+  notes_terms?: string | null;
+  payment_terms?: string | null;
+  total_one_time: number;
+  total_recurring: number;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  client?: Contact | null;
+  deal?: Deal | null;
+}
+
+export interface QuotationSection {
+  id: string;
+  workspace_id: string;
+  quotation_id: string;
+  title: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+  line_items?: QuotationLineItem[];
+}
+
+export interface QuotationLineItem {
+  id: string;
+  workspace_id: string;
+  section_id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  pricing_type: 'one_time' | 'monthly' | 'yearly';
+  qty: number;
+  is_recommended: boolean;
+  is_free: boolean;
+  free_condition_note?: string | null;
+  source: 'catalog' | 'custom';
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+

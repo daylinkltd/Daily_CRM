@@ -23,6 +23,7 @@ import {
   BookOpen,
   ImageIcon,
   FileText,
+  Calculator,
 } from "lucide-react";
 import {
   Avatar,
@@ -48,6 +49,7 @@ const navItems: {
   { href: "/inbox", label: "Inbox", icon: MessageSquare, permission: "inbox" },
   { href: "/contacts", label: "Contacts", icon: Users, permission: "contacts" },
   { href: "/pipelines", label: "Pipelines", icon: GitBranch, permission: "pipelines" },
+  { href: "/quotations", label: "Quotations", icon: Calculator, permission: "pipelines" },
   { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts" },
   { href: "/automations", label: "Automations", icon: Zap, permission: "automations" },
   { href: "/integrations", label: "Integrations", icon: Blocks, permission: "integrations" },

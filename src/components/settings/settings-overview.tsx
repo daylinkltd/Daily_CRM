@@ -23,6 +23,7 @@ interface OverviewCounts {
   templatesPending: number | null;
   tags: number | null;
   customFields: number | null;
+  catalog: number | null;
 }
 
 interface WhatsAppStatus {
@@ -58,7 +59,7 @@ export function SettingsOverview({
     // Cheap counts — resolve fast, render immediately.
     (async () => {
       setCountsLoading(true);
-      const [membersRes, invitesRes, templatesTotal, templatesPending, tagsRes, fieldsRes] =
+      const [membersRes, invitesRes, templatesTotal, templatesPending, tagsRes, fieldsRes, catalogRes] =
         await Promise.allSettled([
           fetch('/api/account/members', { cache: 'no-store' }).then((r) => r.json()),
           canManageMembers
@@ -80,6 +81,10 @@ export function SettingsOverview({
             .select('id', { count: 'exact', head: true })
             .eq('user_id', userId),
           supabase.from('custom_fields').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('service_catalog')
+            .select('id', { count: 'exact', head: true })
+            .eq('workspace_id', acctId),
         ]);
 
       if (cancelled) return;
@@ -109,6 +114,8 @@ export function SettingsOverview({
         tags: tagsRes.status === 'fulfilled' ? tagsRes.value.count ?? null : null,
         customFields:
           fieldsRes.status === 'fulfilled' ? fieldsRes.value.count ?? null : null,
+        catalog:
+          catalogRes.status === 'fulfilled' ? catalogRes.value.count ?? null : null,
       });
       setCountsLoading(false);
     })();
@@ -209,6 +216,14 @@ export function SettingsOverview({
           : `${counts?.tags ?? 0} tag${counts?.tags === 1 ? '' : 's'} · ${
               counts?.customFields ?? 0
             } custom field${counts?.customFields === 1 ? '' : 's'}`,
+    },
+    {
+      section: 'catalog',
+      loading: countsLoading,
+      subtitle:
+        counts?.catalog == null
+          ? 'Manage catalog & default terms'
+          : `${counts.catalog} catalog item${counts.catalog === 1 ? '' : 's'}`,
     },
     {
       section: 'appearance',
