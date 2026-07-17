@@ -183,6 +183,8 @@ export function ProfileForm() {
           full_name: trimmedName,
           email: profile?.email || user.email,
           avatar_url: nextAvatarUrl,
+        }, {
+          onConflict: 'user_id'
         });
       if (updateError) {
         throw new Error(`Save failed: ${updateError.message}`);
