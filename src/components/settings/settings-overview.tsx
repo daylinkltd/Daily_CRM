@@ -127,7 +127,7 @@ export function SettingsOverview({
         supabase
           .from('whatsapp_config')
           .select('phone_number_id')
-          .eq('account_id', acctId)
+          .eq('workspace_id', acctId)
           .maybeSingle(),
         fetch('/api/whatsapp/config', { cache: 'no-store' }).then((r) => r.json()),
       ]);

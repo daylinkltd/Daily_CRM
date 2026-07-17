@@ -50,7 +50,7 @@ export default function QuotationsPage() {
         .select(`
           *,
           client:contacts(id, name, email, phone, company),
-          deal:deals(id, name, value)
+          deal:deals(id, title, value)
         `)
         .eq("workspace_id", workspaceId)
         .order("updated_at", { ascending: false });

@@ -190,10 +190,10 @@ export default function EditQuotationPage({ params }: PageProps) {
         // 4. Fetch Deals
         const { data: dbDeals } = await supabase
           .from("deals")
-          .select("id, name")
+          .select("id, title")
           .eq("workspace_id", workspaceId)
-          .order("name", { ascending: true });
-        setDeals(dbDeals || []);
+          .order("title", { ascending: true });
+        setDeals((dbDeals || []).map(d => ({ id: d.id, name: d.title })));
 
         // 5. Fetch Service Catalog
         const { data: dbCatalog } = await supabase
