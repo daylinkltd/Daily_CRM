@@ -18,6 +18,7 @@ import { DealsSettings } from '@/components/settings/deals-settings';
 import { MembersTab } from '@/components/settings/members-tab';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { CatalogSettings } from '@/components/settings/catalog-settings';
+import { BrandingSettings } from '@/components/settings/branding-settings';
 import {
   resolveSection,
   type SettingsSection,
@@ -78,6 +79,8 @@ export default function SettingsPage() {
         return <ApiKeysSettings />;
       case 'catalog':
         return <CatalogSettings />;
+      case 'branding':
+        return <BrandingSettings />;
       default:
         return <SettingsOverview onSelect={go} />;
     }

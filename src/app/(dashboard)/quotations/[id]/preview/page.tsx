@@ -47,6 +47,15 @@ export default function QuotationPreviewPage({ params }: PageProps) {
   const [quote, setQuote] = useState<Quotation | null>(null);
   const [sections, setSections] = useState<SectionWithItems[]>([]);
   const [client, setClient] = useState<Contact | null>(null);
+  const [workspace, setWorkspace] = useState<{
+    logo_url: string | null;
+    company_name: string | null;
+    company_tagline: string | null;
+    company_email: string | null;
+    company_phone: string | null;
+    company_website: string | null;
+    company_address: string | null;
+  } | null>(null);
 
   // Interactive View Toggles
   const [showRecommended, setShowRecommended] = useState(true);
@@ -95,6 +104,16 @@ export default function QuotationPreviewPage({ params }: PageProps) {
           .eq("id", qData.client_id)
           .single();
         setClient(clientData);
+      }
+
+      // 4. Fetch Workspace Branding
+      if (workspaceId) {
+        const { data: wsData } = await supabase
+          .from("workspaces")
+          .select("logo_url, company_name, company_tagline, company_email, company_phone, company_website, company_address")
+          .eq("id", workspaceId)
+          .single();
+        if (wsData) setWorkspace(wsData as any);
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to load quotation preview");
@@ -481,23 +500,47 @@ export default function QuotationPreviewPage({ params }: PageProps) {
 
       {/* The Printable Proposal Document */}
       <Card className="print-content border-border bg-card shadow-lg p-8 sm:p-12 text-foreground space-y-8 max-w-4xl mx-auto">
-        {/* Document Header Branding */}
-        <div className="flex flex-col sm:flex-row justify-between gap-6 border-b border-border/60 pb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="size-7 bg-primary rounded flex items-center justify-center">
-                <Sparkles className="size-4 text-primary-foreground" />
+        {/* Document Header Branding - Centered Style */}
+        <div className="flex flex-col items-center justify-center text-center pb-6 border-b-4 border-primary">
+          {workspace?.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={workspace.logo_url}
+              alt={workspace.company_name || "Company Logo"}
+              className="h-20 max-w-[300px] object-contain mb-4"
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-2 mb-4">
+              <div className="size-10 bg-primary rounded flex items-center justify-center">
+                <Sparkles className="size-6 text-primary-foreground" />
               </div>
-              <span className="font-bold text-lg tracking-wider text-foreground">
-                DAYLINK TECH LABS
-              </span>
             </div>
-            <p className="text-xs text-muted-foreground">Daylink Tech Labs — Custom Software & Systems</p>
-            <p className="text-xs text-muted-foreground">contact@daylink.tech</p>
-          </div>
+          )}
 
-          <div className="sm:text-right space-y-1">
-            <h2 className="text-3xl font-extrabold text-foreground tracking-tight leading-none uppercase">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-800 uppercase tracking-wide mb-1">
+            {workspace?.company_name || "DAYLINK TECH LABS PRIVATE LIMITED"}
+          </h1>
+          
+          {workspace?.company_tagline && (
+            <p className="text-lg text-primary font-medium mb-2">
+              {workspace.company_tagline}
+            </p>
+          )}
+
+          <div className="text-sm text-slate-600 space-y-1">
+            {workspace?.company_address && <p>{workspace.company_address}</p>}
+            <p className="flex items-center justify-center gap-2">
+              {workspace?.company_phone && <span>{workspace.company_phone}</span>}
+              {workspace?.company_phone && workspace?.company_email && <span>|</span>}
+              {workspace?.company_email && <span>{workspace.company_email}</span>}
+            </p>
+          </div>
+        </div>
+
+        {/* Proposal Title & Details */}
+        <div className="flex flex-col sm:flex-row justify-between gap-6 pt-4">
+          <div className="sm:text-left space-y-1">
+            <h2 className="text-2xl font-extrabold text-foreground tracking-tight uppercase">
               {quote.document_title}
             </h2>
             {quote.document_subtitle && (
@@ -695,7 +738,8 @@ export default function QuotationPreviewPage({ params }: PageProps) {
 
         {/* Footer info branding */}
         <div className="border-t border-border/60 pt-6 text-center text-[10px] text-muted-foreground">
-          This quotation is confidential and proprietary to Daylink Tech Labs. Unless stated otherwise,
+          This quotation is confidential and proprietary to{" "}
+          {workspace?.company_name || "our company"}. Unless stated otherwise,
           amounts are calculated in US Dollars ($). Thank you for your business!
         </div>
       </Card>
