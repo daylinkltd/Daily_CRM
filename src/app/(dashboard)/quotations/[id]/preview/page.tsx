@@ -202,7 +202,8 @@ export default function QuotationPreviewPage({ params }: PageProps) {
 
       // 2. Formulate message text
       const previewUrl = `${window.location.origin}/quotations/${quote.id}/preview`;
-      const msgText = `Hello ${client.name},\n\nHere is your quotation ${quote.quotation_id} for "${quote.document_title}" from Daylink Tech Labs:\n\n${previewUrl}\n\nPlease review and let us know if you have any questions!`;
+      const companyName = workspace?.company_name || "our company";
+      const msgText = `Hello ${client.name},\n\nHere is your quotation ${quote.quotation_id} for "${quote.document_title}" from ${companyName}:\n\n${previewUrl}\n\nPlease review and let us know if you have any questions!`;
 
       // 3. POST to WhatsApp Send API
       const res = await fetch("/api/whatsapp/send", {
@@ -507,19 +508,20 @@ export default function QuotationPreviewPage({ params }: PageProps) {
             <img
               src={workspace.logo_url}
               alt={workspace.company_name || "Company Logo"}
-              className="h-20 max-w-[300px] object-contain mb-4"
+              className="h-24 sm:h-32 max-w-[400px] object-contain mb-2"
             />
           ) : (
-            <div className="flex flex-col items-center gap-2 mb-4">
-              <div className="size-10 bg-primary rounded flex items-center justify-center">
-                <Sparkles className="size-6 text-primary-foreground" />
+            <>
+              <div className="flex flex-col items-center gap-2 mb-4">
+                <div className="size-10 bg-primary rounded flex items-center justify-center">
+                  <Sparkles className="size-6 text-primary-foreground" />
+                </div>
               </div>
-            </div>
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-800 uppercase tracking-wide mb-1">
+                {workspace?.company_name || "DAYLINK TECH LABS PRIVATE LIMITED"}
+              </h1>
+            </>
           )}
-
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-800 uppercase tracking-wide mb-1">
-            {workspace?.company_name || "DAYLINK TECH LABS PRIVATE LIMITED"}
-          </h1>
           
           {workspace?.company_tagline && (
             <p className="text-lg text-primary font-medium mb-2">
@@ -556,7 +558,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
         <div className="grid grid-cols-2 gap-6 text-sm">
           <div className="space-y-1">
             <h3 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-              Billed To:
+              Prepared For:
             </h3>
             {client ? (
               <div className="text-xs space-y-0.5">

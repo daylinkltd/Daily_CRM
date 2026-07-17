@@ -430,19 +430,20 @@ export function BrandingSettings() {
               <img
                 src={currentLogoUrl}
                 alt="Logo preview"
-                className="h-16 max-w-[240px] object-contain mb-3"
+                className="h-20 sm:h-28 max-w-[280px] object-contain mb-2"
               />
             ) : (
-              <div className="flex flex-col items-center gap-2 mb-3">
-                <div className="size-8 bg-primary rounded flex items-center justify-center">
-                  <Sparkles className="size-5 text-primary-foreground" />
+              <>
+                <div className="flex flex-col items-center gap-2 mb-3">
+                  <div className="size-8 bg-primary rounded flex items-center justify-center">
+                    <Sparkles className="size-5 text-primary-foreground" />
+                  </div>
                 </div>
-              </div>
+                <h1 className="text-xl sm:text-2xl font-serif font-bold text-slate-800 uppercase tracking-wide mb-1">
+                  {data.company_name?.toUpperCase() || "YOUR COMPANY"}
+                </h1>
+              </>
             )}
-
-            <h1 className="text-xl sm:text-2xl font-serif font-bold text-slate-800 uppercase tracking-wide mb-1">
-              {data.company_name?.toUpperCase() || "YOUR COMPANY"}
-            </h1>
 
             {data.company_tagline && (
               <p className="text-base text-primary font-medium mb-2">
