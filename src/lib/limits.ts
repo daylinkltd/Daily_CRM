@@ -101,6 +101,21 @@ export async function checkMessageLimit(workspaceId: string): Promise<{
     const limit = info.monthlyMessageAllowance;
     const count = info.messageCount;
 
+    // Check if free trial has expired (14 days)
+    if (info.planId === 'free') {
+      const trialDurationMs = 14 * 24 * 60 * 60 * 1000;
+      const trialExpired = (Date.now() - info.createdAt.getTime()) > trialDurationMs;
+      if (trialExpired) {
+        return {
+          allowed: false,
+          warn: false,
+          messageCount: count,
+          limit,
+          error: `Your 14-day Free Trial has expired. Please upgrade your plan to resume messaging.`,
+        };
+      }
+    }
+
     if (count >= limit) {
       return {
         allowed: false,
