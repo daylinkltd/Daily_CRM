@@ -120,6 +120,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchWorkspaces = useCallback(async () => {
+    setLoading(true);
     if (!user?.id) {
       setWorkspaces([]);
       setActiveWorkspace(null);
