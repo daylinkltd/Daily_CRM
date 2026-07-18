@@ -7,6 +7,7 @@ import {
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
 import { supabaseAdmin } from './admin-client'
+import { checkMessageLimit } from '@/lib/limits'
 
 // ------------------------------------------------------------
 // Automation-side WhatsApp sender (multi-provider aware).
@@ -80,6 +81,12 @@ async function sendViaProvider(input: SendInput): Promise<{ whatsapp_message_id:
   const db = supabaseAdmin()
 
   const workspaceId = await resolveWorkspaceId(input)
+
+  // Check message limits
+  const limitCheck = await checkMessageLimit(workspaceId);
+  if (!limitCheck.allowed) {
+    throw new Error(limitCheck.error || 'Message limit reached. Please upgrade your plan.');
+  }
 
   // Fetch contact — scope by workspace_id for security
   const { data: contact, error: contactErr } = await db

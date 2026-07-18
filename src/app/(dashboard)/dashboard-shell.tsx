@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
-import { WorkspaceProvider } from "@/hooks/use-workspace";
+import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 
@@ -13,6 +13,7 @@ import { Header } from "@/components/layout/header";
 
 function DashboardShellInner({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const { workspaces, loading: wsLoading } = useWorkspace();
   const router = useRouter();
 
   // Sidebar drawer state — only used on mobile. On lg+ the sidebar is
@@ -23,10 +24,12 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
+    } else if (!loading && user && !wsLoading && workspaces.length === 0) {
+      router.push("/onboarding");
     }
-  }, [user, loading, router]);
+  }, [user, loading, wsLoading, workspaces, router]);
 
-  if (loading) {
+  if (loading || wsLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">

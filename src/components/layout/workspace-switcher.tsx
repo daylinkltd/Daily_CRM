@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { ChevronsUpDown, Plus, Check, Briefcase } from "lucide-react";
+import { ChevronsUpDown, Plus, Check, Briefcase, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +37,9 @@ export function WorkspaceSwitcher() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+
+  const maxWorkspaces = activeWorkspace?.plan_limits?.max_workspaces;
+  const isLimitReached = maxWorkspaces !== null && maxWorkspaces !== undefined && workspaces.length >= maxWorkspaces;
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,46 +90,81 @@ export function WorkspaceSwitcher() {
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800 text-slate-100">
-            <form onSubmit={handleCreateWorkspace}>
-              <DialogHeader>
+            {isLimitReached ? (
+              <div className="py-6 text-center space-y-4">
+                <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
                 <DialogTitle className="text-lg font-semibold text-white">
-                  Create New Workspace
+                  Workspace limit reached
                 </DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name-empty" className="text-sm font-medium text-slate-300">
-                    Workspace Name
-                  </Label>
-                  <Input
-                    id="name-empty"
-                    placeholder="e.g. Sales Team, Marketing Dept"
-                    value={newWorkspaceName}
-                    onChange={(e) => setNewWorkspaceName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 focus:border-[#00aef0] focus:ring-[#00aef0] text-[#000000] dark:text-white"
-                    required
-                    autoFocus
-                  />
-                </div>
+                <p className="text-sm text-slate-300">
+                  You have reached the maximum of <strong>{maxWorkspaces}</strong> workspaces allowed by your current plan.
+                </p>
+                <p className="text-xs text-slate-400">
+                  Upgrade your plan to unlock more workspaces.
+                </p>
+                <DialogFooter className="mt-4 justify-center sm:justify-center flex-row gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="text-slate-400 hover:text-white hover:bg-slate-800"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      window.location.href = "/settings?tab=billing";
+                    }}
+                    className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium"
+                  >
+                    Upgrade Plan
+                  </Button>
+                </DialogFooter>
               </div>
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="text-slate-400 hover:text-white hover:bg-slate-800"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isCreating || !newWorkspaceName.trim()}
-                  className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10"
-                >
-                  {isCreating ? "Creating..." : "Create Workspace"}
-                </Button>
-              </DialogFooter>
-            </form>
+            ) : (
+              <form onSubmit={handleCreateWorkspace}>
+                <DialogHeader>
+                  <DialogTitle className="text-lg font-semibold text-white">
+                    Create New Workspace
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name-empty" className="text-sm font-medium text-slate-300">
+                      Workspace Name
+                    </Label>
+                    <Input
+                      id="name-empty"
+                      placeholder="e.g. Sales Team, Marketing Dept"
+                      value={newWorkspaceName}
+                      onChange={(e) => setNewWorkspaceName(e.target.value)}
+                      className="bg-slate-950 border-slate-800 focus:border-[#00aef0] focus:ring-[#00aef0] text-[#000000] dark:text-white"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="text-slate-400 hover:text-white hover:bg-slate-800"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isCreating || !newWorkspaceName.trim()}
+                    className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10"
+                  >
+                    {isCreating ? "Creating..." : "Create Workspace"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            )}
           </DialogContent>
         </Dialog>
       </>
@@ -137,9 +176,20 @@ export function WorkspaceSwitcher() {
       <DropdownMenu>
         <DropdownMenuTrigger className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2.5 text-left text-sm font-medium text-white transition-all hover:bg-slate-800/80 hover:border-slate-700 focus:outline-none focus:ring-1 focus:ring-[#00aef0]">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-[#00aef0]/10 text-[#00aef0]">
-              <Briefcase className="h-4 w-4" />
-            </div>
+            {activeWorkspace.logo_url ? (
+              <div className="h-7 w-7 shrink-0 rounded overflow-hidden relative border border-slate-800 bg-slate-950">
+                <Image
+                  src={activeWorkspace.logo_url}
+                  alt={activeWorkspace.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-[#00aef0]/10 text-[#00aef0]">
+                <Briefcase className="h-4 w-4" />
+              </div>
+            )}
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold text-white">
                 {activeWorkspace.name}
@@ -169,9 +219,25 @@ export function WorkspaceSwitcher() {
                   onClick={() => switchWorkspace(workspace.id)}
                   className="flex items-center justify-between px-2 py-2 text-slate-200 focus:bg-[#00aef0]/15 focus:text-white cursor-pointer"
                 >
-                  <span className="truncate text-sm font-medium">
-                    {workspace.name}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {workspace.logo_url ? (
+                      <div className="h-5 w-5 shrink-0 rounded overflow-hidden relative border border-slate-800 bg-slate-950">
+                        <Image
+                          src={workspace.logo_url}
+                          alt={workspace.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[#00aef0]/10 text-[#00aef0]">
+                        <Briefcase className="h-3.5 w-3.5" />
+                      </div>
+                    )}
+                    <span className="truncate text-sm font-medium">
+                      {workspace.name}
+                    </span>
+                  </div>
                   {isActive && <Check className="h-4 w-4 text-[#00aef0] shrink-0 ml-2" />}
                 </DropdownMenuItem>
               );
@@ -190,46 +256,81 @@ export function WorkspaceSwitcher() {
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800 text-slate-100">
-          <form onSubmit={handleCreateWorkspace}>
-            <DialogHeader>
+          {isLimitReached ? (
+            <div className="py-6 text-center space-y-4">
+              <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
               <DialogTitle className="text-lg font-semibold text-white">
-                Create New Workspace
+                Workspace limit reached
               </DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name" className="text-sm font-medium text-slate-300">
-                  Workspace Name
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="e.g. Sales Team, Marketing Dept"
-                  value={newWorkspaceName}
-                  onChange={(e) => setNewWorkspaceName(e.target.value)}
-                  className="bg-slate-950 border-slate-800 focus:border-[#00aef0] focus:ring-[#00aef0] text-white"
-                  required
-                  autoFocus
-                />
-              </div>
+              <p className="text-sm text-slate-300">
+                You have reached the maximum of <strong>{maxWorkspaces}</strong> workspaces allowed by your current plan.
+              </p>
+              <p className="text-xs text-slate-400">
+                Upgrade your plan to unlock more workspaces.
+              </p>
+              <DialogFooter className="mt-4 justify-center sm:justify-center flex-row gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsDialogOpen(false)}
+                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    window.location.href = "/settings?tab=billing";
+                  }}
+                  className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium"
+                >
+                  Upgrade Plan
+                </Button>
+              </DialogFooter>
             </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsDialogOpen(false)}
-                className="text-slate-400 hover:text-white hover:bg-slate-800"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isCreating || !newWorkspaceName.trim()}
-                className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10"
-              >
-                {isCreating ? "Creating..." : "Create Workspace"}
-              </Button>
-            </DialogFooter>
-          </form>
+          ) : (
+            <form onSubmit={handleCreateWorkspace}>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold text-white">
+                  Create New Workspace
+                </DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name" className="text-sm font-medium text-slate-300">
+                    Workspace Name
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g. Sales Team, Marketing Dept"
+                    value={newWorkspaceName}
+                    onChange={(e) => setNewWorkspaceName(e.target.value)}
+                    className="bg-slate-950 border-slate-800 focus:border-[#00aef0] focus:ring-[#00aef0] text-white"
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsDialogOpen(false)}
+                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isCreating || !newWorkspaceName.trim()}
+                  className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10"
+                >
+                  {isCreating ? "Creating..." : "Create Workspace"}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </>

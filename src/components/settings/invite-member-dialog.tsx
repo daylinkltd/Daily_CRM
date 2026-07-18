@@ -14,9 +14,10 @@
 // shouts this in copy.
 // ============================================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Copy, Loader2, MessageCircle, Sparkles } from 'lucide-react';
+import { Copy, Loader2, MessageCircle, Sparkles, AlertTriangle } from 'lucide-react';
+import { useWorkspace } from '@/hooks/use-workspace';
 
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -82,11 +83,28 @@ export function InviteMemberDialog({
   onCreated,
 }: InviteMemberDialogProps) {
   const { account } = useAuth();
+  const { activeWorkspace } = useWorkspace();
   const [role, setRole] = useState<InviteRole>('agent');
   const [expiry, setExpiry] = useState<string>('7');
   const [label, setLabel] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CreatedInvite | null>(null);
+
+  const [memberCount, setMemberCount] = useState<number | null>(null);
+  const [maxMembers, setMaxMembers] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!open || !activeWorkspace?.id) return;
+    fetch(`/api/workspace/usage?workspace_id=${activeWorkspace.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setMemberCount(data.memberCount);
+        setMaxMembers(data.maxUsers);
+      })
+      .catch((err) => console.error("Error loading usage:", err));
+  }, [open, activeWorkspace?.id]);
+
+  const isLimitReached = maxMembers !== null && memberCount !== null && memberCount >= maxMembers;
 
   function reset() {
     setRole('agent');
@@ -267,6 +285,39 @@ export function InviteMemberDialog({
               </Button>
             </DialogFooter>
           </>
+        ) : isLimitReached ? (
+          <div className="py-6 text-center space-y-4">
+            <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
+            <DialogTitle className="text-lg font-semibold text-white">
+              Teammate limit reached
+            </DialogTitle>
+            <p className="text-sm text-slate-300">
+              You have reached the maximum of <strong>{maxMembers}</strong> team members allowed by your current plan.
+            </p>
+            <p className="text-xs text-slate-400">
+              Upgrade your plan to unlock more member seats.
+            </p>
+            <DialogFooter className="mt-4 justify-center sm:justify-center flex-row gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+                className="text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  onOpenChange(false);
+                  window.location.href = "/settings?tab=billing";
+                }}
+                className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium"
+              >
+                Upgrade Plan
+              </Button>
+            </DialogFooter>
+          </div>
         ) : (
           <>
             <DialogHeader>

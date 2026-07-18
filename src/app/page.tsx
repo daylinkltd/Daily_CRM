@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Script from "next/script";
+import { PLANS } from "@/config/plans";
+import { toast } from "sonner";
 import {
   ArrowRight, MessageSquare, Zap, BarChart3, Users,
   Bot, Globe, Shield, CheckCircle2, ChevronRight, Sparkles,
@@ -94,43 +97,7 @@ const testimonials = [
   },
 ];
 
-// ── Pricing ───────────────────────────────────────────────────────────────────
-const pricingPlans = [
-  {
-    name: "Growth",
-    price: "$20",
-    period: "/month",
-    desc: "Perfect for growing teams ready to scale conversations.",
-    highlight: false,
-    planKey: "growth",
-    features: [
-      "Up to 20 team members",
-      "2 workspaces",
-      "All channels: WhatsApp, Instagram, Messenger & Email",
-      "Unlimited automations & integrations",
-      "Shared media storage (Supabase-backed)",
-      "Community support",
-    ],
-  },
-  {
-    name: "Custom Solution",
-    price: "Custom",
-    period: "",
-    desc: "Enterprise-grade setup on your domain with full control.",
-    highlight: true,
-    planKey: "custom",
-    features: [
-      "Unlimited team members",
-      "Multiple workspaces",
-      "All channels (WA, IG, FB, Email)",
-      "Advanced automations (unlimited)",
-      "Custom storage quota",
-      "Dedicated onboarding & SLA",
-      "Custom domain deployment",
-      "Priority support",
-    ],
-  },
-];
+
 
 // ── Sales Modal ───────────────────────────────────────────────────────────────
 function SalesModal({
@@ -366,6 +333,7 @@ function SalesModal({
 export default function LandingPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalPlan, setModalPlan] = useState<"growth" | "custom">("growth");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
 
   const openModal = (plan: "growth" | "custom" = "growth") => {
     setModalPlan(plan);
@@ -731,69 +699,144 @@ export default function LandingPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[#00aef0]/5 blur-[140px]" />
         </div>
 
-        <div className="mx-auto max-w-5xl relative z-10">
+        <div className="mx-auto max-w-7xl relative z-10">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#00aef0]/20 bg-[#00aef0]/8 px-4 py-1.5 text-xs font-semibold text-[#00aef0] mb-4">
-              <Lock className="h-3 w-3" /> Simple, transparent pricing
+              <Lock className="h-3 w-3" /> Flat-Fee CRM Plans
             </div>
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3">Choose your plan</h2>
-            <p className="text-slate-400 text-lg">No hidden fees. Scale as you grow.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {pricingPlans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative flex flex-col rounded-2xl p-8 transition-all hover:-translate-y-1 hover:shadow-2xl ${
-                  plan.highlight
-                    ? "border-2 border-[#00aef0]/50 bg-gradient-to-b from-[#00aef0]/10 to-slate-900/80 shadow-xl shadow-[#00aef0]/10"
-                    : "border border-slate-800/60 bg-slate-900/40"
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3">Simple, transparent pricing</h2>
+            <p className="text-slate-400 text-lg">Flat rate per team. No seat pricing. Prices exclude GST.</p>
+            
+            {/* Monthly/Annual Toggle */}
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <button
+                type="button"
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${
+                  billingCycle === 'monthly'
+                    ? 'bg-[#00aef0] text-white shadow-md'
+                    : 'text-slate-400 hover:text-white bg-slate-950/40 border border-slate-800'
                 }`}
               >
-                {plan.highlight && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#00aef0] text-white text-xs font-bold rounded-full shadow-lg shadow-[#00aef0]/30 whitespace-nowrap">
-                    RECOMMENDED
-                  </div>
-                )}
-
-                <div className="mb-6">
-                  <h3 className="text-xl font-extrabold text-white mb-1">{plan.name}</h3>
-                  <p className="text-slate-400 text-sm mb-4">{plan.desc}</p>
-                  <div className="flex items-end gap-1">
-                    <span className="text-4xl font-extrabold text-white">{plan.price}</span>
-                    {plan.period && <span className="text-slate-400 text-sm pb-1">{plan.period}</span>}
-                  </div>
-                </div>
-
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-sm text-slate-300">
-                      <CheckCircle2 className={`h-4 w-4 shrink-0 mt-0.5 ${plan.highlight ? "text-[#00aef0]" : "text-emerald-400"}`} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  onClick={() => openModal(plan.planKey as "growth" | "custom")}
-                  className={`flex items-center justify-center gap-2 rounded-xl py-3 px-6 text-sm font-bold transition-all ${
-                    plan.highlight
-                      ? "bg-[#00aef0] text-white hover:bg-[#008ec4] shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/30 hover:scale-105"
-                      : "border border-slate-700 text-slate-200 hover:border-slate-600 hover:text-white hover:bg-slate-800/60"
-                  }`}
-                >
-                  Contact Sales <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+                Monthly
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle('annual')}
+                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors relative ${
+                  billingCycle === 'annual'
+                    ? 'bg-[#00aef0] text-white shadow-md'
+                    : 'text-slate-400 hover:text-white bg-slate-950/40 border border-slate-800'
+                }`}
+              >
+                Annual
+                <span className="absolute -top-3 -right-6 px-1.5 py-0.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full uppercase tracking-wider">
+                  2 Months Free
+                </span>
+              </button>
+            </div>
           </div>
 
-          <p className="text-center text-slate-500 text-sm mt-8">
-            All plans include a dedicated onboarding call. Questions?{" "}
-            <button onClick={() => openModal("growth")} className="text-[#00aef0] hover:text-[#44c8ff] transition-colors">
-              Talk to us
-            </button>
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto justify-center">
+            {PLANS.map((plan) => {
+              const isFree = plan.priceMonthly === 0;
+              const isCustom = plan.priceMonthly === -1;
+              const displayPrice = isFree
+                ? "₹0"
+                : isCustom
+                ? "Custom"
+                : billingCycle === "annual"
+                ? `₹${plan.priceYearly.toLocaleString()}`
+                : `₹${plan.priceMonthly.toLocaleString()}`;
+              const periodLabel = isFree
+                ? "/14 days"
+                : isCustom
+                ? ""
+                : billingCycle === "annual"
+                ? "/year"
+                : "/month";
+
+              const handleAction = () => {
+                if (plan.ctaType === 'trial') {
+                  window.location.href = `/signup?plan=free`;
+                } else if (plan.ctaType === 'contact') {
+                  openModal('custom');
+                } else {
+                  // Redirect to signup with plan details to prompt upgrade after onboarding
+                  window.location.href = `/signup?plan=${plan.id}&cycle=${billingCycle}`;
+                }
+              };
+
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative flex flex-col rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-2xl ${
+                    plan.isRecommended
+                      ? "border-2 border-[#00aef0]/50 bg-gradient-to-b from-[#00aef0]/10 to-slate-900/80 shadow-xl shadow-[#00aef0]/10 lg:scale-105"
+                      : "border border-slate-800/60 bg-slate-900/40"
+                  }`}
+                >
+                  {plan.isRecommended && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#00aef0] text-white text-xs font-bold rounded-full shadow-lg shadow-[#00aef0]/30 whitespace-nowrap">
+                      RECOMMENDED
+                    </div>
+                  )}
+
+                  <div className="mb-6">
+                    <h3 className="text-lg font-extrabold text-white mb-1">{plan.name}</h3>
+                    <div className="flex items-end gap-1 mb-2">
+                      <span className="text-3xl font-extrabold text-white">{displayPrice}</span>
+                      <span className="text-slate-400 text-xs pb-1">{periodLabel}</span>
+                    </div>
+                    {!isFree && !isCustom && (
+                      <p className="text-[11px] text-slate-500 mb-2">
+                        {billingCycle === "annual" 
+                          ? `Equivalent to ₹${Math.round(plan.priceYearly / 12).toLocaleString()}/mo`
+                          : `Equivalent to ₹${(plan.priceMonthly * 12).toLocaleString()}/yr`}
+                        {" (excl. GST)"}
+                      </p>
+                    )}
+                    {isFree && <p className="text-[11px] text-[#00aef0] mb-2">14-day free trial</p>}
+                    {isCustom && <p className="text-[11px] text-slate-500 mb-2">Tailored for large operations</p>}
+                  </div>
+
+                  <ul className="space-y-2.5 mb-6 flex-1">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-xs text-slate-300">
+                        <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${plan.isRecommended ? "text-[#00aef0]" : "text-emerald-400"}`} />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    onClick={handleAction}
+                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition-all ${
+                      plan.isRecommended
+                        ? "bg-[#00aef0] text-white hover:bg-[#008ec4] shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/35 hover:scale-105"
+                        : "border border-slate-700 text-slate-200 hover:border-slate-600 hover:text-white hover:bg-slate-800/60"
+                    }`}
+                  >
+                    {plan.ctaType === 'trial' ? 'Start Free Trial' : plan.ctaType === 'contact' ? 'Contact Sales' : 'Subscribe Now'}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="text-center text-slate-500 text-xs mt-12 space-y-2">
+            <p>
+              * WhatsApp message allowance covers outbound system messages. Meta Cloud API per-message templates charges are billed separately.
+            </p>
+            <p>
+              All plans include an onboarding setup call. Questions?{" "}
+              <button onClick={() => openModal("growth")} className="text-[#00aef0] hover:text-[#44c8ff] transition-colors">
+                Talk to us
+              </button>
+            </p>
+          </div>
         </div>
       </section>
 

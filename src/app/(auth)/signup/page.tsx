@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -76,73 +76,17 @@ function SignupPageInner() {
     setLoading(false);
   };
 
-  // If there is NO invite token, show the static Invite-Only page to maintain security.
-  if (!inviteToken) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 text-center relative overflow-hidden">
-        {/* Ambient glow */}
-        <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[#00aef0]/5 blur-[140px]" />
+  const plan = searchParams.get("plan");
+  const cycle = searchParams.get("cycle");
 
-        {/* Card */}
-        <div className="relative z-10 max-w-md w-full rounded-3xl border border-slate-800 bg-slate-900/70 backdrop-blur-2xl shadow-2xl p-10">
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <Image src="/logolight.png" alt="Daily CRM by Daylink" width={160} height={40} className="h-10 w-auto object-contain" />
-          </div>
-
-          {/* Lock icon */}
-          <div className="flex justify-center mb-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#00aef0]/10 border border-[#00aef0]/20">
-              <Shield className="h-8 w-8 text-[#00aef0]" />
-            </div>
-          </div>
-
-          <h1 className="text-2xl font-extrabold text-white mb-3 tracking-tight">Invite-Only Access</h1>
-          <p className="text-slate-400 text-sm leading-relaxed mb-8">
-            Daily CRM accounts are created exclusively by your workspace administrator.
-            Public self-registration is disabled to maintain security.
-          </p>
-
-          <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 mb-8 text-left space-y-3">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">How to get access</p>
-            <ul className="space-y-2 text-sm text-slate-300">
-              <li className="flex gap-2.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#00aef0]/15 text-[#00aef0] text-xs font-bold shrink-0 mt-0.5">1</span>
-                Contact your company&apos;s Daily CRM workspace owner or administrator
-              </li>
-              <li className="flex gap-2.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#00aef0]/15 text-[#00aef0] text-xs font-bold shrink-0 mt-0.5">2</span>
-                They&apos;ll create your account from <span className="text-white font-semibold">Settings → Team</span>
-              </li>
-              <li className="flex gap-2.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#00aef0]/15 text-[#00aef0] text-xs font-bold shrink-0 mt-0.5">3</span>
-                You&apos;ll receive credentials to sign in directly
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <Link
-              href="mailto:info@daylink.in?subject=Daily CRM Access Request"
-              className="flex items-center justify-center gap-2 w-full rounded-xl bg-[#00aef0] hover:bg-[#008ec4] text-white font-semibold py-2.5 px-4 transition-colors text-sm shadow-lg shadow-[#00aef0]/15"
-            >
-              <Mail className="h-4 w-4" /> Contact Sales
-            </Link>
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 w-full rounded-xl border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white font-medium py-2.5 px-4 transition-colors text-sm bg-slate-950/30"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back to Sign In
-            </Link>
-          </div>
-        </div>
-
-        <p className="mt-6 text-xs text-slate-600">
-          © {new Date().getFullYear()} Daylink. All rights reserved.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (plan) {
+      localStorage.setItem("crm_onboarding_plan", plan);
+    }
+    if (cycle) {
+      localStorage.setItem("crm_onboarding_cycle", cycle);
+    }
+  }, [plan, cycle]);
 
   if (success) {
     return (
@@ -157,7 +101,7 @@ function SignupPageInner() {
           <p className="text-slate-400 text-sm mb-6">
             We&apos;ve sent a confirmation link to <span className="text-white font-medium">{email}</span>. Please check your inbox and click the link to verify your account.
           </p>
-          <Link href={`/login?invite=${encodeURIComponent(inviteToken)}`}>
+          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"}>
             <Button variant="outline" className="w-full border-slate-800 text-slate-300 hover:bg-slate-800">
               Back to sign in
             </Button>
@@ -179,10 +123,20 @@ function SignupPageInner() {
           </div>
         </div>
         
-        <h2 className="text-xl font-bold text-white text-center mb-1">Create account &amp; join</h2>
+        <h2 className="text-xl font-bold text-white text-center mb-1">
+          {inviteToken ? "Create account & join" : "Create your Daily CRM account"}
+        </h2>
         <p className="text-slate-400 text-xs text-center mb-6">
-          Verify your email, then accept the invitation to join your team.
+          {inviteToken 
+            ? "Verify your email, then accept the invitation to join your team."
+            : "Get started with your dedicated omni-channel workspace today."}
         </p>
+
+        {plan && (
+          <div className="mb-4 rounded-lg bg-[#00aef0]/10 border border-[#00aef0]/20 px-3 py-2 text-center text-xs text-[#00aef0] font-semibold capitalize">
+            Registering for {plan} plan ({cycle || "monthly"})
+          </div>
+        )}
 
         <form onSubmit={handleSignup} className="space-y-4">
           {error && (
@@ -254,7 +208,7 @@ function SignupPageInner() {
 
         <p className="mt-6 text-center text-xs text-slate-400">
           Already have an account?{" "}
-          <Link href={`/login?invite=${encodeURIComponent(inviteToken)}`} className="text-primary hover:underline font-medium">
+          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"} className="text-primary hover:underline font-medium">
             Sign in
           </Link>
         </p>

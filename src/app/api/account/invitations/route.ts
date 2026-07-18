@@ -12,6 +12,7 @@ import {
   inviteExpiresAt,
   inviteUrl,
 } from "@/lib/auth/invitations";
+import { getWorkspaceUsageAndLimits } from "@/lib/limits";
 import { isAccountRole } from "@/lib/auth/roles";
 import {
   checkRateLimit,
@@ -176,6 +177,15 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "'role' must be one of admin, agent, viewer" },
         { status: 400 },
+      );
+    }
+
+    // Check team members limit
+    const usage = await getWorkspaceUsageAndLimits(ctx.accountId);
+    if (usage.maxUsers !== null && usage.memberCount >= usage.maxUsers) {
+      return NextResponse.json(
+        { error: `You have reached the maximum number of team members (${usage.maxUsers}) allowed by your ${usage.planName} plan. Please upgrade to invite more.` },
+        { status: 403 }
       );
     }
 

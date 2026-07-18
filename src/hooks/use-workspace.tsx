@@ -11,10 +11,22 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "./use-auth";
 
+export interface WorkspacePlanLimits {
+  max_members: number | null;
+  max_workspaces: number | null;
+  max_storage_gb: number | null;
+  channels: string[];
+  max_automations: number | null;
+  max_messages?: number | null;
+}
+
 export interface Workspace {
   id: string;
   name: string;
+  plan: string;
+  plan_limits: WorkspacePlanLimits;
   created_at: string;
+  logo_url?: string | null;
 }
 
 export interface WorkspaceMember {
@@ -128,7 +140,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           workspaces (
             id,
             name,
-            created_at
+            plan,
+            plan_limits,
+            created_at,
+            logo_url
           )
         `)
         .eq("user_id", user.id);

@@ -15,6 +15,7 @@ import {
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
 import { supabaseAdmin } from './admin-client'
+import { checkMessageLimit } from '@/lib/limits'
 
 // ------------------------------------------------------------
 // Flows-side Meta sender (interactive variants).
@@ -60,6 +61,12 @@ interface SendTextEngineArgs {
 export async function engineSendText(
   args: SendTextEngineArgs,
 ): Promise<{ whatsapp_message_id: string }> {
+  // Check message limits
+  const limitCheck = await checkMessageLimit(args.accountId);
+  if (!limitCheck.allowed) {
+    throw new Error(limitCheck.error || 'Message limit reached. Please upgrade your plan.');
+  }
+
   const db = supabaseAdmin()
 
   const { data: contact, error: contactErr } = await db
@@ -169,6 +176,12 @@ interface SendMediaEngineArgs {
 export async function engineSendMedia(
   args: SendMediaEngineArgs,
 ): Promise<{ whatsapp_message_id: string }> {
+  // Check message limits
+  const limitCheck = await checkMessageLimit(args.accountId);
+  if (!limitCheck.allowed) {
+    throw new Error(limitCheck.error || 'Message limit reached. Please upgrade your plan.');
+  }
+
   const db = supabaseAdmin()
 
   const { data: contact, error: contactErr } = await db
@@ -318,6 +331,12 @@ type SendInput =
 async function sendInteractiveViaMeta(
   input: SendInput,
 ): Promise<{ whatsapp_message_id: string }> {
+  // Check message limits
+  const limitCheck = await checkMessageLimit(input.accountId);
+  if (!limitCheck.allowed) {
+    throw new Error(limitCheck.error || 'Message limit reached. Please upgrade your plan.');
+  }
+
   const db = supabaseAdmin()
 
   // Scope the contact + whatsapp_config lookups by account_id —

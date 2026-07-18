@@ -13,6 +13,7 @@ import {
   rateLimitResponse,
   RATE_LIMITS,
 } from '@/lib/rate-limit'
+import { checkMessageLimit } from '@/lib/limits'
 
 export async function POST(request: Request) {
   try {
@@ -101,6 +102,16 @@ export async function POST(request: Request) {
 
     // Fetch WhatsApp config scoped by workspace_id
     const workspaceId = conversation.workspace_id
+
+    // Check message quota limits
+    const limitCheck = await checkMessageLimit(workspaceId);
+    if (!limitCheck.allowed) {
+      return NextResponse.json(
+        { error: limitCheck.error || 'Message limit reached. Please upgrade your plan.' },
+        { status: 403 }
+      );
+    }
+
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
       .select('*')

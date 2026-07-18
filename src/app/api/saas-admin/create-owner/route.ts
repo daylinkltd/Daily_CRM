@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { PLANS } from '@/config/plans';
 
-const DEFAULT_GROWTH_LIMITS = {
-  max_members: 20,
-  max_workspaces: 2,
-  max_storage_gb: 5,
-  channels: ['whatsapp', 'instagram', 'messenger', 'email'],
-  max_automations: null,
-};
 
 /**
  * POST /api/saas-admin/create-owner
@@ -66,9 +60,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const selectedPlan = plan === 'custom' ? 'custom' : 'growth';
-    const effectiveLimits =
-      selectedPlan === 'custom' && plan_limits ? plan_limits : DEFAULT_GROWTH_LIMITS;
+        const selectedPlan = ['free', 'starter', 'growth', 'business', 'custom'].includes(plan || '')
+      ? (plan as string)
+      : 'free';
+
+    let effectiveLimits = plan_limits;
+    if (!effectiveLimits) {
+      const planConfig = PLANS.find((p) => p.id === selectedPlan) || PLANS.find((p) => p.id === 'free')!;
+      effectiveLimits = {
+        max_members: planConfig.maxUsers === 999999 ? null : planConfig.maxUsers,
+        max_workspaces: planConfig.maxWorkspaces === 999999 ? null : planConfig.maxWorkspaces,
+        max_storage_gb: selectedPlan === 'business' ? 20 : selectedPlan === 'growth' ? 10 : 5,
+        channels: ['whatsapp', 'instagram', 'messenger', 'email'],
+        max_automations: selectedPlan === 'free' ? 3 : null,
+        max_messages: planConfig.monthlyMessageAllowance === 999999 ? null : planConfig.monthlyMessageAllowance,
+      };
+    }
 
     // --- 4. Create auth user via admin API ---
     const adminClient = createAdminClient();

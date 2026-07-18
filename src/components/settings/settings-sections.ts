@@ -12,6 +12,7 @@ import {
   Bot,
   FileSpreadsheet,
   Building2,
+  CreditCard,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -34,6 +35,7 @@ export const SETTINGS_SECTIONS = [
   'fields',
   'deals',
   'members',
+  'billing',
   'api',
   'catalog',
   'branding',
@@ -62,6 +64,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   fields: { id: 'fields', label: 'Fields & tags', icon: Tags, group: 'workspace' },
   deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'workspace' },
   members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'workspace' },
+  billing: { id: 'billing', label: 'Billing & Plan', icon: CreditCard, group: 'workspace' },
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
   catalog: { id: 'catalog', label: 'Service Catalog', icon: FileSpreadsheet, group: 'workspace' },
   branding: { id: 'branding', label: 'Company Branding', icon: Building2, group: 'workspace' },

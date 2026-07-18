@@ -1,17 +1,17 @@
 {
-  "name": "wacrm",
+  "name": "daily-crm",
   "version": "0.1.0",
   "private": true,
-  "description": "Self-hostable CRM template for WhatsApp built on Next.js and Supabase — shared inbox, contacts, sales pipelines, broadcasts, and no-code automations.",
-  "license": "MIT",
-  "author": "Arnas Donauskas",
-  "homepage": "https://github.com/ArnasDon/wacrm",
+  "description": "Daylink Daily CRM — Unified Inbox, Contacts, Pipelines, Broadcasts and No-Code Automations.",
+  "license": "UNLICENSED",
+  "author": "Daylink Ltd",
+  "homepage": "https://dailycrm.daylink.co",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ArnasDon/wacrm.git"
+    "url": "git+https://github.com/daylinkltd/Daily_CRM.git"
   },
   "bugs": {
-    "url": "https://github.com/ArnasDon/wacrm/issues"
+    "url": "https://github.com/daylinkltd/Daily_CRM/issues"
   },
   "keywords": [
     "crm",
@@ -53,6 +53,7 @@
     "lucide-react": "^1.8.0",
     "next": "16.2.6",
     "opus-recorder": "^8.0.5",
+    "razorpay": "^2.9.8",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.9.0",

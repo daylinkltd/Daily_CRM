@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "src/app/(auth)/signup/page.tsx": {
-    "mtime": 1784376808.8297267,
-    "ast_hash": "c465bceac09b95af21395a6bec33a631",
+    "mtime": 1782374961.7309158,
+    "ast_hash": "e2dd6b1955e152df367b10f256d602d7",
     "semantic_hash": ""
   },
   "src/app/(dashboard)/automations/[id]/edit/page.tsx": {
@@ -115,8 +115,8 @@
     "semantic_hash": ""
   },
   "src/app/(dashboard)/dashboard-shell.tsx": {
-    "mtime": 1784376736.151568,
-    "ast_hash": "832813cc729c97b9c3c6861494e0e69a",
+    "mtime": 1782374929.8169131,
+    "ast_hash": "e6c3f2c2230ef0378ce87a50af0d20cf",
     "semantic_hash": ""
   },
   "src/app/(dashboard)/dashboard/page.tsx": {
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/workspace-switcher.tsx": {
-    "mtime": 1784376788.4151137,
-    "ast_hash": "08751eadedd43df31c7c783eedfe0919",
+    "mtime": 1784368657.2093966,
+    "ast_hash": "2b79c6e149f67112d363f8520236549d",
     "semantic_hash": ""
   },
   "src/components/pipelines/deal-card.tsx": {
@@ -1030,8 +1030,8 @@
     "semantic_hash": ""
   },
   "src/hooks/use-workspace.tsx": {
-    "mtime": 1784376766.227266,
-    "ast_hash": "2df020d365deb939ce36c2f001f06768",
+    "mtime": 1784368261.1861289,
+    "ast_hash": "f43ac46acef9371f3b3ac94c01e31772",
     "semantic_hash": ""
   },
   "src/lib/api-keys/keys.ts": {
@@ -2847,16 +2847,6 @@
   "public/uploads/Genesys Voyage/Zaheer Abba/VID-20260605-WA0002.mp4": {
     "mtime": 1782370458.0820384,
     "ast_hash": "b12580470ebf3d89dc7d87751695b874",
-    "semantic_hash": ""
-  },
-  "src/app/onboarding/page.tsx": {
-    "mtime": 1784376746.9410067,
-    "ast_hash": "ab4271a697dca09ee0410f257b426468",
-    "semantic_hash": ""
-  },
-  "supabase/migrations/037_workspace_logo.sql": {
-    "mtime": 1784376355.4139059,
-    "ast_hash": "a8e26dc9d3f2d1da70f1bbd7c874742c",
     "semantic_hash": ""
   }
 }
