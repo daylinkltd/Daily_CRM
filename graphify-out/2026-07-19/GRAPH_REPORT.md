@@ -1,16 +1,16 @@
-# Graph Report - Daily_CRM  (2026-07-19)
+# Graph Report - Daily_CRM  (2026-07-18)
 
 ## Corpus Check
-- 348 files · ~1,160,196 words
+- 348 files · ~1,160,188 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1882 nodes · 6044 edges · 97 communities (83 shown, 14 thin omitted)
+- 1882 nodes · 6044 edges · 96 communities (82 shown, 14 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 35 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8fa299d8`
+- Built from commit: `1b43b00b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -105,7 +105,6 @@
 - [[_COMMUNITY_Community 93|Community 93]]
 - [[_COMMUNITY_Community 94|Community 94]]
 - [[_COMMUNITY_Community 95|Community 95]]
-- [[_COMMUNITY_Community 96|Community 96]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 187 edges
@@ -134,7 +133,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (97 total, 14 thin omitted)
+## Communities (96 total, 14 thin omitted)
 
 ### Community 0 - "Automations UI & Config"
 Cohesion: 0.14
@@ -193,8 +192,8 @@ Cohesion: 0.24
 Nodes (12): CATEGORIES, categoryColors, COMMON_LANGUAGE_CODES, emptyForm, HEADER_FORMATS, HEADER_TYPES, HeaderFormat, TemplateFormData (+4 more)
 
 ### Community 14 - "Contacts & Deals Management"
-Cohesion: 0.17
-Nodes (20): ContactDetailView(), ContactDetailViewProps, CustomFieldDef, PipelineDef, PipelineStageDef, TAB_VALUES, TabValue, ContactCustomValue (+12 more)
+Cohesion: 0.14
+Nodes (22): ContactDetailView(), ContactDetailViewProps, CustomFieldDef, PipelineDef, PipelineStageDef, TAB_VALUES, TabValue, ContactCustomValue (+14 more)
 
 ### Community 15 - "DealCard / DealCardProps"
 Cohesion: 0.19
@@ -286,7 +285,7 @@ Nodes (35): channels, features, LandingPage(), stats, testimonials, Plan, PLANS,
 
 ### Community 43 - "config / postcss.config.mjs"
 Cohesion: 0.09
-Nodes (36): DeltaRow(), MetricCard(), MetricCardProps, MessageActions(), MessageActionsProps, QUICK_EMOJIS, ModeToggle(), cn() (+28 more)
+Nodes (37): DeltaRow(), MetricCard(), MetricCardProps, MessageActions(), MessageActionsProps, QUICK_EMOJIS, ModeToggle(), cn() (+29 more)
 
 ### Community 44 - "LandingPage / page"
 Cohesion: 0.17
@@ -313,8 +312,8 @@ Cohesion: 0.09
 Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
 ### Community 50 - "Community 50"
-Cohesion: 0.09
-Nodes (30): FlowBuilder(), NodeCard(), CanvasAddNodeButton(), FlowCanvas(), FlowCanvasInner(), FlowEditorShell(), Props, ToggleButton() (+22 more)
+Cohesion: 0.07
+Nodes (40): FlowBuilder(), NodeCard(), CanvasAddNodeButton(), FlowCanvas(), FlowCanvasInner(), NodeData, FlowEditorShell(), Props (+32 more)
 
 ### Community 51 - "Community 51"
 Cohesion: 0.14
@@ -325,8 +324,8 @@ Cohesion: 0.10
 Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
 
 ### Community 53 - "Community 53"
-Cohesion: 0.08
-Nodes (24): applyEdgeConnection(), CanvasEdge, deriveCanvasEdges(), OutgoingSlot, outgoingSlots(), unlinkNodeReferences(), ADD_NODE_TYPES, FlowNodeCard() (+16 more)
+Cohesion: 0.12
+Nodes (18): applyEdgeConnection(), CanvasEdge, deriveCanvasEdges(), OutgoingSlot, outgoingSlots(), unlinkNodeReferences(), ADD_NODE_TYPES, FlowNodeCard() (+10 more)
 
 ### Community 54 - "Community 54"
 Cohesion: 0.15
@@ -439,10 +438,6 @@ Nodes (7): CreatedInvite, EXPIRY_OPTIONS, InviteMemberDialog(), InviteMemberDial
 ### Community 95 - "Community 95"
 Cohesion: 0.67
 Nodes (3): getAdminClient(), PageProps, SharedFormPage()
-
-### Community 96 - "Community 96"
-Cohesion: 0.39
-Nodes (7): FlowInput, NodeInput, outgoingEdges(), reachableFromEntry(), validateFlowForActivation(), validateNode(), validateTrigger()
 
 ## Knowledge Gaps
 - **474 isolated node(s):** `{ createClient }`, `dotenv`, `path`, `supabase`, `{ createClient }` (+469 more)

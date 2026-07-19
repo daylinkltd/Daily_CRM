@@ -112,7 +112,7 @@ interface WorkspaceContextValue {
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
   const [activeRole, setActiveRole] = useState<"owner" | "admin" | "member" | null>(null);
@@ -120,6 +120,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchWorkspaces = useCallback(async () => {
+    if (authLoading) {
+      return;
+    }
     setLoading(true);
     if (!user?.id) {
       setWorkspaces([]);
@@ -198,7 +201,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, authLoading]);
 
   const loadPermissions = async (
     supabase: ReturnType<typeof createClient>,

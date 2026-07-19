@@ -1030,8 +1030,8 @@
     "semantic_hash": ""
   },
   "src/hooks/use-workspace.tsx": {
-    "mtime": 1784479455.5774019,
-    "ast_hash": "f05028b7ea4a0692866a339f03145f12",
+    "mtime": 1784396280.4552956,
+    "ast_hash": "8b5914074ddd172f3a6687a029c9f121",
     "semantic_hash": ""
   },
   "src/lib/api-keys/keys.ts": {
