@@ -1,6 +1,7 @@
 import { requireApiKey } from '@/lib/auth/api-context';
 import { ok, toApiErrorResponse, badRequest } from '@/lib/api/v1/respond';
 import { normalizePhone, phonesMatch } from '@/lib/whatsapp/phone-utils';
+import { resolveImportTagIds, assignImportedContactTags } from '@/lib/contacts/resolve-import-tags';
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
       throw badRequest('Invalid JSON body');
     }
 
-    const { phone, name, email, company } = body;
+    const { phone, name, email, company, tags = ['leadcrapper'] } = body;
 
     if (!phone || typeof phone !== 'string' || !phone.trim()) {
       throw badRequest('Phone number is required');
@@ -25,6 +26,21 @@ export async function POST(request: Request) {
     }
 
     const suffix = normalized.length >= 8 ? normalized.slice(-8) : normalized;
+
+    // Resolve a valid user_id to use for creating tags or contacts if needed
+    let userId = ctx.createdBy;
+    if (!userId) {
+      const { data: member } = await ctx.supabase
+        .from('workspace_members')
+        .select('user_id')
+        .eq('workspace_id', ctx.accountId)
+        .limit(1)
+        .maybeSingle();
+      userId = member?.user_id || null;
+    }
+    if (!userId) {
+      throw badRequest('Could not attribute contact creation to any user in the workspace');
+    }
 
     const { data: contacts, error: searchError } = await ctx.supabase
       .from('contacts')
@@ -55,22 +71,22 @@ export async function POST(request: Request) {
         throw updateError;
       }
 
-      return ok({ contact, isNew: false });
-    } else {
-      let userId = ctx.createdBy;
-      if (!userId) {
-        const { data: member } = await ctx.supabase
-          .from('workspace_members')
-          .select('user_id')
-          .eq('workspace_id', ctx.accountId)
-          .limit(1)
-          .maybeSingle();
-        userId = member?.user_id || null;
-      }
-      if (!userId) {
-        throw badRequest('Could not attribute contact creation to any user in the workspace');
+      if (tags && Array.isArray(tags) && tags.length > 0) {
+        const { tagIdByKey } = await resolveImportTagIds(ctx.supabase, {
+          accountId: ctx.accountId,
+          userId,
+          tagNames: tags,
+          canCreateTags: true,
+        });
+        await assignImportedContactTags(
+          ctx.supabase,
+          [{ contactId: contact.id, tagNames: tags }],
+          tagIdByKey
+        );
       }
 
+      return ok({ contact, isNew: false });
+    } else {
       const { data: contact, error: insertError } = await ctx.supabase
         .from('contacts')
         .insert({
@@ -86,6 +102,20 @@ export async function POST(request: Request) {
 
       if (insertError) {
         throw insertError;
+      }
+
+      if (tags && Array.isArray(tags) && tags.length > 0) {
+        const { tagIdByKey } = await resolveImportTagIds(ctx.supabase, {
+          accountId: ctx.accountId,
+          userId,
+          tagNames: tags,
+          canCreateTags: true,
+        });
+        await assignImportedContactTags(
+          ctx.supabase,
+          [{ contactId: contact.id, tagNames: tags }],
+          tagIdByKey
+        );
       }
 
       return ok({ contact, isNew: true });

@@ -49,7 +49,7 @@ export async function resolveImportTagIds(
   const { data: existing, error: fetchError } = await supabase
     .from('tags')
     .select('id, name')
-    .eq('account_id', accountId);
+    .eq('workspace_id', accountId);
 
   if (fetchError) throw fetchError;
 
@@ -75,7 +75,7 @@ export async function resolveImportTagIds(
       .insert(
         toCreate.map((name) => ({
           user_id: userId,
-          account_id: accountId,
+          workspace_id: accountId,
           name,
           color: defaultColor,
         }))
