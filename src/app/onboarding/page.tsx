@@ -578,9 +578,9 @@ function OnboardingInner() {
     </div>
   );
 }
-
-export default function OnboardingPage() {
+function OnboardingPageContent() {
   const { user, loading } = useAuth();
+  const { workspaces, loading: wsLoading } = useWorkspace();
   const router = useRouter();
 
   useEffect(() => {
@@ -589,7 +589,13 @@ export default function OnboardingPage() {
     }
   }, [user, loading, router]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && user && !wsLoading && workspaces.length > 0) {
+      router.push("/dashboard");
+    }
+  }, [user, loading, wsLoading, workspaces, router]);
+
+  if (loading || wsLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 text-sm">
         <Loader2 className="h-8 w-8 animate-spin text-[#00aef0] mb-3" />
@@ -599,11 +605,16 @@ export default function OnboardingPage() {
   }
 
   if (!user) return null;
+  if (workspaces.length > 0) return null;
 
+  return <OnboardingInner />;
+}
+
+export default function OnboardingPage() {
   return (
     <AuthProvider>
       <WorkspaceProvider>
-        <OnboardingInner />
+        <OnboardingPageContent />
       </WorkspaceProvider>
     </AuthProvider>
   );

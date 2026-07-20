@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
+import { createClient } from "@/lib/supabase/client";
 import { PLANS } from "@/config/plans";
 import { toast } from "sonner";
 import {
@@ -334,6 +335,18 @@ export default function LandingPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalPlan, setModalPlan] = useState<"growth" | "custom">("growth");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsLoggedIn(true);
+      }
+    };
+    checkUser();
+  }, []);
 
   const openModal = (plan: "growth" | "custom" = "growth") => {
     setModalPlan(plan);
@@ -366,18 +379,29 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-slate-300 hover:text-white transition-colors hidden sm:block"
-            >
-              Sign in
-            </Link>
-            <button
-              onClick={() => openModal("growth")}
-              className="flex items-center gap-1.5 rounded-full bg-[#00aef0] px-5 py-2 text-sm font-semibold text-white hover:bg-[#008ec4] transition-all shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/30 hover:scale-105"
-            >
-              Contact Sales <ChevronRight className="h-3.5 w-3.5" />
-            </button>
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1.5 rounded-full bg-[#00aef0] px-5 py-2 text-sm font-semibold text-white hover:bg-[#008ec4] transition-all shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/30 hover:scale-105"
+              >
+                Go to Dashboard <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-slate-300 hover:text-white transition-colors hidden sm:block"
+                >
+                  Sign in
+                </Link>
+                <button
+                  onClick={() => openModal("growth")}
+                  className="flex items-center gap-1.5 rounded-full bg-[#00aef0] px-5 py-2 text-sm font-semibold text-white hover:bg-[#008ec4] transition-all shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/30 hover:scale-105"
+                >
+                  Contact Sales <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -423,18 +447,29 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
-            <button
-              onClick={() => openModal("growth")}
-              className="flex items-center gap-2 rounded-full bg-[#00aef0] px-8 py-3.5 text-base font-bold text-white hover:bg-[#008ec4] transition-all shadow-xl shadow-[#00aef0]/20 hover:shadow-[#00aef0]/35 hover:scale-105"
-            >
-              Get Started Free <ArrowRight className="h-4 w-4" />
-            </button>
-            <Link
-              href="/login"
-              className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-8 py-3.5 text-base font-semibold text-slate-200 hover:border-slate-600 hover:text-white transition-all"
-            >
-              Sign In
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 rounded-full bg-[#00aef0] px-8 py-3.5 text-base font-bold text-white hover:bg-[#008ec4] transition-all shadow-xl shadow-[#00aef0]/20 hover:shadow-[#00aef0]/35 hover:scale-105"
+              >
+                Go to Dashboard <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <>
+                <button
+                  onClick={() => openModal("growth")}
+                  className="flex items-center gap-2 rounded-full bg-[#00aef0] px-8 py-3.5 text-base font-bold text-white hover:bg-[#008ec4] transition-all shadow-xl shadow-[#00aef0]/20 hover:shadow-[#00aef0]/35 hover:scale-105"
+                >
+                  Get Started Free <ArrowRight className="h-4 w-4" />
+                </button>
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-8 py-3.5 text-base font-semibold text-slate-200 hover:border-slate-600 hover:text-white transition-all"
+                >
+                  Sign In
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="flex flex-wrap justify-center gap-8 sm:gap-16">
@@ -757,13 +792,20 @@ export default function LandingPage() {
                 : "/month";
 
               const handleAction = () => {
-                if (plan.ctaType === 'trial') {
-                  window.location.href = `/signup?plan=free`;
-                } else if (plan.ctaType === 'contact') {
-                  openModal('custom');
+                if (isLoggedIn) {
+                  if (plan.ctaType === 'contact') {
+                    openModal('custom');
+                  } else {
+                    window.location.href = `/settings?tab=billing`;
+                  }
                 } else {
-                  // Redirect to signup with plan details to prompt upgrade after onboarding
-                  window.location.href = `/signup?plan=${plan.id}&cycle=${billingCycle}`;
+                  if (plan.ctaType === 'trial') {
+                    window.location.href = `/signup?plan=free`;
+                  } else if (plan.ctaType === 'contact') {
+                    openModal('custom');
+                  } else {
+                    window.location.href = `/signup?plan=${plan.id}&cycle=${billingCycle}`;
+                  }
                 }
               };
 
