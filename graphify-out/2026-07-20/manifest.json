@@ -460,8 +460,8 @@
     "semantic_hash": ""
   },
   "src/app/page.tsx": {
-    "mtime": 1784377515.3575356,
-    "ast_hash": "6aeaa0dd2b1b623620ad3538148fb9c6",
+    "mtime": 1784531512.7856681,
+    "ast_hash": "f7bce7f7d23caa766083b931f12fe903",
     "semantic_hash": ""
   },
   "src/app/saas-admin/dashboard/page.tsx": {
@@ -2845,8 +2845,8 @@
     "semantic_hash": ""
   },
   "src/app/onboarding/page.tsx": {
-    "mtime": 1784377515.3567026,
-    "ast_hash": "ab4271a697dca09ee0410f257b426468",
+    "mtime": 1784531458.2372522,
+    "ast_hash": "24001c0d72cc7dab532e923549161710",
     "semantic_hash": ""
   },
   "supabase/migrations/037_workspace_logo.sql": {

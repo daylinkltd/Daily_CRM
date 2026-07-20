@@ -26,7 +26,7 @@ import {
 import { toast } from "sonner";
 
 function OnboardingInner() {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { workspaces, createWorkspace, refreshWorkspaces } = useWorkspace();
   const router = useRouter();
   const supabase = createClient();
@@ -44,6 +44,13 @@ function OnboardingInner() {
 
   // Action states
   const [loading, setLoading] = useState(false);
+
+  // Load pre-filled name from profile
+  useEffect(() => {
+    if (profile?.full_name && !fullName) {
+      setFullName(profile.full_name);
+    }
+  }, [profile, fullName]);
   const [isUploading, setIsUploading] = useState(false);
 
   // Load pre-selected plan preference from signup step
@@ -96,11 +103,14 @@ function OnboardingInner() {
     setLoading(true);
     try {
       // Save name to profiles table
-      const { error } = await supabase.from("profiles").upsert({
-        user_id: user?.id,
-        full_name: fullName.trim(),
-        email: user?.email,
-      });
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          user_id: user?.id,
+          full_name: fullName.trim(),
+          email: user?.email,
+        },
+        { onConflict: "user_id" }
+      );
       if (error) throw error;
       setStep(2);
     } catch (err: any) {

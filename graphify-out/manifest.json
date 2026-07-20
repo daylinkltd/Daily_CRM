@@ -2845,8 +2845,8 @@
     "semantic_hash": ""
   },
   "src/app/onboarding/page.tsx": {
-    "mtime": 1784531458.2372522,
-    "ast_hash": "24001c0d72cc7dab532e923549161710",
+    "mtime": 1784532464.9624133,
+    "ast_hash": "80d8c98c26e569efd3ab613acd376a6c",
     "semantic_hash": ""
   },
   "supabase/migrations/037_workspace_logo.sql": {
