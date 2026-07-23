@@ -57,26 +57,40 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-900/50 backdrop-blur-2xl shadow-2xl shadow-black/50 p-8">
+        <div 
+          className="rounded-2xl border backdrop-blur-2xl shadow-2xl p-8"
+          style={{ 
+            backgroundColor: 'rgba(15, 23, 42, 0.75)', 
+            borderColor: '#1e293b',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)' 
+          }}
+        >
           <div className="mb-6">
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#ffffff' }}>
               Welcome back
             </h1>
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>
               Sign in to your Daily CRM workspace
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
             {error && (
-              <div className="rounded-xl border border-rose-500/20 bg-rose-500/8 px-4 py-3 text-sm text-rose-400 flex items-center gap-2.5">
+              <div 
+                className="rounded-xl border px-4 py-3 text-sm flex items-center gap-2.5"
+                style={{ 
+                  backgroundColor: 'rgba(244, 63, 94, 0.1)', 
+                  borderColor: 'rgba(244, 63, 94, 0.25)', 
+                  color: '#fb7185' 
+                }}
+              >
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>
             )}
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-300">
+              <Label htmlFor="email" className="text-sm font-medium" style={{ color: '#cbd5e1' }}>
                 Email address
               </Label>
               <Input
@@ -86,18 +100,24 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-[#00aef0] focus-visible:ring-[#00aef0]/10 h-11 rounded-xl"
+                className="h-11 rounded-xl placeholder:text-[#64748b] focus-visible:ring-[#00aef0]/20"
+                style={{ 
+                  backgroundColor: 'rgba(2, 8, 23, 0.85)', 
+                  borderColor: '#1e293b', 
+                  color: '#ffffff' 
+                }}
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-slate-300">
+                <Label htmlFor="password" className="text-sm font-medium" style={{ color: '#cbd5e1' }}>
                   Password
                 </Label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-[#00aef0] hover:text-[#44c8ff] transition-colors"
+                  className="text-xs transition-colors hover:underline"
+                  style={{ color: '#00aef0' }}
                 >
                   Forgot password?
                 </Link>
@@ -110,12 +130,18 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-[#00aef0] focus-visible:ring-[#00aef0]/10 h-11 rounded-xl pr-11"
+                  className="h-11 rounded-xl pr-11 placeholder:text-[#64748b] focus-visible:ring-[#00aef0]/20"
+                  style={{ 
+                    backgroundColor: 'rgba(2, 8, 23, 0.85)', 
+                    borderColor: '#1e293b', 
+                    color: '#ffffff' 
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: '#64748b' }}
                 >
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -125,7 +151,12 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="mt-1 h-12 w-full bg-[#00aef0] hover:bg-[#008ec4] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/15 hover:shadow-[#00aef0]/25 transition-all disabled:opacity-50"
+              className="mt-1 h-12 w-full font-bold rounded-xl transition-all disabled:opacity-50"
+              style={{ 
+                backgroundColor: '#00aef0', 
+                color: '#ffffff',
+                boxShadow: '0 10px 25px -5px rgba(0, 174, 240, 0.3)' 
+              }}
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -142,12 +173,13 @@ export default function LoginPage() {
           </form>
 
           {/* Invite-only note instead of signup link */}
-          <div className="mt-7 pt-6 border-t border-slate-800/60 text-center">
-            <p className="text-xs text-slate-500">
+          <div className="mt-7 pt-6 border-t text-center" style={{ borderColor: '#1e293b' }}>
+            <p className="text-xs" style={{ color: '#64748b' }}>
               Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
-                className="text-slate-400 hover:text-slate-300 underline underline-offset-4 transition-colors"
+                className="underline underline-offset-4 transition-colors hover:text-white"
+                style={{ color: '#94a3b8' }}
               >
                 Request access
               </Link>
@@ -155,7 +187,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-5 text-center text-xs text-slate-700">
+        <p className="mt-5 text-center text-xs" style={{ color: '#475569' }}>
           © {new Date().getFullYear()} Daylink. All rights reserved.
         </p>
       </div>
