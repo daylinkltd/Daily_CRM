@@ -112,41 +112,48 @@ function SignupPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 text-center relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center relative overflow-hidden" style={{ backgroundColor: '#020817' }}>
       {/* Ambient glow */}
-      <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[140px]" />
+      <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[#00aef0]/10 blur-[140px]" />
 
-      <div className="relative z-10 w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/70 backdrop-blur-2xl p-8 text-left">
+      <div 
+        className="relative z-10 w-full max-w-md rounded-3xl border backdrop-blur-2xl p-8 text-left shadow-2xl"
+        style={{ 
+          backgroundColor: 'rgba(15, 23, 42, 0.75)', 
+          borderColor: '#1e293b',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)' 
+        }}
+      >
         <div className="flex justify-center mb-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <UsersRound className="h-6 w-6 text-primary" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ backgroundColor: 'rgba(0, 174, 240, 0.12)' }}>
+            <UsersRound className="h-6 w-6" style={{ color: '#00aef0' }} />
           </div>
         </div>
         
-        <h2 className="text-xl font-bold text-white text-center mb-1">
+        <h2 className="text-xl font-bold text-center mb-1" style={{ color: '#ffffff' }}>
           {inviteToken ? "Create account & join" : "Create your Daily CRM account"}
         </h2>
-        <p className="text-slate-400 text-xs text-center mb-6">
+        <p className="text-xs text-center mb-6" style={{ color: '#94a3b8' }}>
           {inviteToken 
             ? "Verify your email, then accept the invitation to join your team."
             : "Get started with your dedicated omni-channel workspace today."}
         </p>
 
         {plan && (
-          <div className="mb-4 rounded-lg bg-[#00aef0]/10 border border-[#00aef0]/20 px-3 py-2 text-center text-xs text-[#00aef0] font-semibold capitalize">
+          <div className="mb-4 rounded-lg px-3 py-2 text-center text-xs font-semibold capitalize border" style={{ backgroundColor: 'rgba(0, 174, 240, 0.1)', borderColor: 'rgba(0, 174, 240, 0.25)', color: '#00aef0' }}>
             Registering for {plan} plan ({cycle || "monthly"})
           </div>
         )}
 
         <form onSubmit={handleSignup} className="space-y-4">
           {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs text-red-400">
+            <div className="rounded-lg border px-4 py-3 text-xs" style={{ backgroundColor: 'rgba(244, 63, 94, 0.1)', borderColor: 'rgba(244, 63, 94, 0.25)', color: '#fb7185' }}>
               {error}
             </div>
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="fullName" className="text-slate-300 text-xs font-medium">Full name</Label>
+            <Label htmlFor="fullName" className="text-xs font-medium" style={{ color: '#cbd5e1' }}>Full name</Label>
             <Input
               id="fullName"
               type="text"
@@ -154,12 +161,13 @@ function SignupPageInner() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 h-10 rounded-xl focus:border-primary"
+              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-[#00aef0]"
+              style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-slate-300 text-xs font-medium">Email</Label>
+            <Label htmlFor="email" className="text-xs font-medium" style={{ color: '#cbd5e1' }}>Email</Label>
             <Input
               id="email"
               type="email"
@@ -167,12 +175,13 @@ function SignupPageInner() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 h-10 rounded-xl focus:border-primary"
+              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-[#00aef0]"
+              style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-slate-300 text-xs font-medium">Password</Label>
+            <Label htmlFor="password" className="text-xs font-medium" style={{ color: '#cbd5e1' }}>Password</Label>
             <Input
               id="password"
               type="password"
@@ -180,12 +189,13 @@ function SignupPageInner() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 h-10 rounded-xl focus:border-primary"
+              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-[#00aef0]"
+              style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="confirmPassword" className="text-slate-300 text-xs font-medium">Confirm password</Label>
+            <Label htmlFor="confirmPassword" className="text-xs font-medium" style={{ color: '#cbd5e1' }}>Confirm password</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -193,22 +203,24 @@ function SignupPageInner() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 h-10 rounded-xl focus:border-primary"
+              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-[#00aef0]"
+              style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
             />
           </div>
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-xl mt-2 font-semibold"
+            className="w-full h-10 rounded-xl mt-2 font-semibold transition-all disabled:opacity-50"
+            style={{ backgroundColor: '#00aef0', color: '#ffffff', boxShadow: '0 10px 25px -5px rgba(0, 174, 240, 0.3)' }}
           >
             {loading ? "Creating account..." : "Create account"}
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-xs" style={{ color: '#64748b' }}>
           Already have an account?{" "}
-          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"} className="text-primary hover:underline font-medium">
+          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"} className="hover:underline font-medium" style={{ color: '#00aef0' }}>
             Sign in
           </Link>
         </p>

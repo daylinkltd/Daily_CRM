@@ -1,0 +1,41 @@
+/* src/styles/layout.css */
+/* ===========================================================================
+ * Enterprise Layout System Standards
+ * =========================================================================== */
+
+.app-container {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.sidebar-expanded {
+  width: 280px;
+  min-width: 280px;
+}
+
+.sidebar-collapsed {
+  width: 72px;
+  min-width: 72px;
+}
+
+.top-navbar {
+  height: 64px;
+}
+
+.page-content-padding {
+  padding: 32px;
+}
+
+@media (max-width: 1024px) {
+  .page-content-padding {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-content-padding {
+    padding: 16px;
+  }
+}

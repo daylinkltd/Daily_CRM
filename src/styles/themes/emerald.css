@@ -1,0 +1,14 @@
+/* src/styles/themes/emerald.css */
+
+html[data-theme="emerald"] {
+  --primary: oklch(0.62 0.16 162);
+  --primary-foreground: oklch(0.16 0.02 162);
+  --primary-hover: oklch(0.68 0.15 162);
+  --primary-soft: oklch(0.62 0.16 162 / 0.12);
+  --primary-soft-2: oklch(0.62 0.16 162 / 0.22);
+  --ring: oklch(0.62 0.16 162);
+  --chart-1: oklch(0.62 0.16 162);
+  --sidebar-primary: oklch(0.62 0.16 162);
+  --sidebar-primary-foreground: oklch(0.16 0.02 162);
+  --sidebar-ring: oklch(0.62 0.16 162);
+}

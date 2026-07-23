@@ -25,6 +25,9 @@ import {
   Loader2,
   ArrowDown,
   ArrowUp,
+  FolderKanban,
+  CheckSquare,
+  UserPlus,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -89,6 +92,9 @@ const STEP_META: Record<AutomationStepType, StepMeta> = {
   condition: { label: "Condition (If/Else)", icon: GitBranch, border: "border-l-amber-500" },
   send_webhook: { label: "Send Webhook", icon: Webhook, border: "border-l-violet-500" },
   close_conversation: { label: "Close Conversation", icon: CircleSlash, border: "border-l-violet-500" },
+  create_project: { label: "Create Project", icon: FolderKanban, border: "border-l-violet-500" },
+  create_task: { label: "Create Task", icon: CheckSquare, border: "border-l-violet-500" },
+  create_employee: { label: "Create Employee", icon: UserPlus, border: "border-l-violet-500" },
 }
 
 const ADDABLE_STEPS: AutomationStepType[] = [
@@ -103,6 +109,9 @@ const ADDABLE_STEPS: AutomationStepType[] = [
   "condition",
   "send_webhook",
   "close_conversation",
+  "create_project",
+  "create_task",
+  "create_employee",
 ]
 
 const TRIGGER_OPTIONS: { value: AutomationTriggerType; label: string; hint: string }[] = [
@@ -151,6 +160,12 @@ function blankConfig(type: AutomationStepType): Record<string, unknown> {
       return { url: "", headers: {}, body_template: "" }
     case "close_conversation":
       return {}
+    case "create_project":
+      return { name: "" }
+    case "create_task":
+      return { title: "" }
+    case "create_employee":
+      return { full_name: "" }
     default:
       return {}
   }

@@ -1,0 +1,242 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Search, Loader2, FolderKanban, MoreHorizontal, Plus, Briefcase, ExternalLink } from 'lucide-react';
+import { PageHeader } from '@/components/shared/page-header';
+import { useWorkspace } from '@/hooks/use-workspace';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useRouter } from 'next/navigation';
+import { ProjectForm } from '@/components/projects/project-form';
+
+export default function ProjectsListPage() {
+  const supabase = createClient();
+  const router = useRouter();
+  const { activeWorkspace, can } = useWorkspace();
+  const canManageProjects = can('projects_manage' as any); 
+
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editProject, setEditProject] = useState<any | null>(null);
+
+  const fetchProjects = useCallback(async () => {
+    if (!activeWorkspace?.id) return;
+    setLoading(true);
+
+    let query = supabase
+      .from('projects')
+      .select(`
+        *,
+        manager:workspace_members!projects_manager_workspace_member_id_fkey (
+          profiles:user_id ( full_name, avatar_url )
+        ),
+        client:contacts!projects_client_id_fkey ( name, company )
+      `)
+      .eq('workspace_id', activeWorkspace.id)
+      .order('created_at', { ascending: false });
+
+    if (search.trim()) {
+      query = query.ilike('name', `%${search.trim()}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      toast.error('Failed to load projects');
+    } else {
+      setProjects(data || []);
+    }
+    setLoading(false);
+  }, [supabase, activeWorkspace?.id, search]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-emerald-500/15 text-emerald-700 border-emerald-200';
+      case 'completed': return 'bg-blue-500/15 text-blue-700 border-blue-200';
+      case 'on_hold': return 'bg-orange-500/15 text-orange-700 border-orange-200';
+      case 'cancelled': return 'bg-red-500/15 text-red-700 border-red-200';
+      default: return 'bg-slate-500/15 text-slate-700 border-slate-200';
+    }
+  };
+
+  const getSourceBadge = (source: string) => {
+    if (source === 'CRM') return <Badge variant="secondary" className="text-[10px] uppercase">CRM Deal</Badge>;
+    if (source === 'AUTOMATION') return <Badge variant="secondary" className="text-[10px] uppercase bg-purple-500/15 text-purple-700">Automation</Badge>;
+    return <Badge variant="secondary" className="text-[10px] uppercase bg-slate-100 text-slate-500">Manual</Badge>;
+  };
+
+  return (
+    <div className="space-y-6">
+      <PageHeader 
+        title="All Projects" 
+        description="View and manage all active, completed, and on-hold projects."
+        action={
+          canManageProjects && (
+            <Button onClick={() => { setEditProject(null); setFormOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
+              <Plus className="size-4 mr-2" />
+              New Project
+            </Button>
+          )
+        }
+      />
+
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search projects..."
+            className="pl-8 bg-card border-border text-foreground placeholder:text-muted-foreground"
+          />
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border overflow-hidden bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground">Project Name</TableHead>
+              <TableHead className="text-muted-foreground hidden md:table-cell">Client</TableHead>
+              <TableHead className="text-muted-foreground hidden lg:table-cell">Manager</TableHead>
+              <TableHead className="text-muted-foreground hidden sm:table-cell">Source</TableHead>
+              <TableHead className="text-muted-foreground">Status</TableHead>
+              <TableHead className="text-muted-foreground w-12" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow className="border-border">
+                <TableCell colSpan={6} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="size-6 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Loading projects...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : projects.length === 0 ? (
+              <TableRow className="border-border">
+                <TableCell colSpan={6} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2">
+                    <FolderKanban className="size-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {search ? 'No projects match your search.' : 'No projects found.'}
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              projects.map((project) => {
+                const managerProfile = Array.isArray(project.manager?.profiles) 
+                  ? project.manager?.profiles[0] 
+                  : project.manager?.profiles;
+
+                return (
+                  <TableRow 
+                    key={project.id} 
+                    className="border-border hover:bg-muted/50 cursor-pointer"
+                    onClick={() => router.push(`/projects/${project.id}`)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center size-9 rounded-md bg-primary/10 border border-primary/20 text-primary">
+                          <Briefcase className="size-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground">{project.name}</span>
+                          {project.deadline && (
+                            <span className="text-xs text-muted-foreground">
+                              Due: {new Date(project.deadline).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
+                      {project.client ? (project.client.company || project.client.name) : '-'}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {managerProfile ? (
+                        <div className="flex items-center gap-2">
+                          <Avatar className="size-6 border border-border">
+                            {managerProfile.avatar_url && <AvatarImage src={managerProfile.avatar_url} />}
+                            <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-medium">
+                              {managerProfile.full_name?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm text-foreground">{managerProfile.full_name}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Unassigned</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {getSourceBadge(project.project_source)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={getStatusColor(project.status)}>
+                        {project.status.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger onClick={(e) => e.stopPropagation()} className="inline-flex items-center justify-center rounded-md h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                          <MoreHorizontal className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover border-border">
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/projects/${project.id}`); }} className="cursor-pointer">
+                            <ExternalLink className="size-4 mr-2" /> Open Project
+                          </DropdownMenuItem>
+                          {canManageProjects && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditProject(project); setFormOpen(true); }} className="cursor-pointer">
+                                Edit Settings
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <ProjectForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        project={editProject}
+        onSaved={fetchProjects}
+      />
+    </div>
+  );
+}

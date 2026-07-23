@@ -389,6 +389,9 @@ export type AutomationStepType =
   | 'assign_conversation'
   | 'update_contact_field'
   | 'create_deal'
+  | 'create_project'
+  | 'create_task'
+  | 'create_employee'
   | 'wait'
   | 'condition'
   | 'send_webhook'
@@ -458,6 +461,27 @@ export interface CreateDealStepConfig {
   value?: number;
 }
 
+export interface CreateProjectStepConfig {
+  name: string;
+  manager_id?: string;
+  budget?: number;
+}
+
+export interface CreateTaskStepConfig {
+  title: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  project_id?: string;
+  assignee_id?: string;
+}
+
+export interface CreateEmployeeStepConfig {
+  first_name: string;
+  last_name: string;
+  email: string;
+  department_id?: string;
+  designation_id?: string;
+}
+
 export interface WaitStepConfig {
   amount: number;
   unit: 'minutes' | 'hours' | 'days';
@@ -490,6 +514,9 @@ export type AutomationStepConfig =
   | AssignConversationStepConfig
   | UpdateContactFieldStepConfig
   | CreateDealStepConfig
+  | CreateProjectStepConfig
+  | CreateTaskStepConfig
+  | CreateEmployeeStepConfig
   | WaitStepConfig
   | ConditionStepConfig
   | SendWebhookStepConfig
@@ -663,4 +690,179 @@ export interface QuotationLineItem {
   updated_at: string;
 }
 
+// ============================================================
+// People Module
+// ============================================================
 
+export interface Department {
+  id: string;
+  workspace_id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface Designation {
+  id: string;
+  workspace_id: string;
+  title: string;
+  level: number;
+  description?: string;
+  created_at: string;
+}
+
+export interface EmployeeProfile {
+  workspace_member_id: string;
+  workspace_id: string;
+  employee_code?: string;
+  department_id?: string;
+  designation_id?: string;
+  manager_workspace_member_id?: string;
+  joining_date?: string;
+  employment_type?: string;
+  salary_grade?: string;
+  emergency_contact?: Record<string, any>;
+  address?: string;
+  notes?: string;
+  status?: 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE' | 'TERMINATED' | 'PROBATION';
+  created_at: string;
+}
+
+export interface Attendance {
+  id: string;
+  workspace_id: string;
+  workspace_member_id: string;
+  attendance_date: string;
+  punch_in_time?: string;
+  punch_out_time?: string;
+  punch_in_location?: Record<string, any>;
+  punch_out_location?: Record<string, any>;
+  working_hours?: number;
+  status?: 'Present' | 'Absent' | 'Late' | 'Remote' | 'Half-Day';
+  remarks?: string;
+}
+
+export interface LeaveRequest {
+  id: string;
+  workspace_id: string;
+  workspace_member_id: string;
+  leave_type: string;
+  from_date: string;
+  to_date: string;
+  reason?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  approved_by?: string;
+  created_at: string;
+}
+
+export interface EmployeeAsset {
+  id: string;
+  workspace_id: string;
+  workspace_member_id?: string;
+  asset_name: string;
+  serial_number?: string;
+  assigned_date?: string;
+  returned_date?: string;
+  created_at: string;
+}
+
+export interface EmployeeDocument {
+  id: string;
+  workspace_id: string;
+  workspace_member_id: string;
+  document_type: string;
+  storage_path: string;
+  created_at: string;
+}
+
+// ============================================================
+// Projects Module
+// ============================================================
+
+export interface Project {
+  id: string;
+  workspace_id: string;
+  name: string;
+  client_id?: string;
+  manager_workspace_member_id?: string;
+  deal_id?: string;
+  status: 'active' | 'completed' | 'on_hold' | 'cancelled';
+  project_source: 'MANUAL' | 'CRM' | 'AUTOMATION' | 'IMPORT' | 'API';
+  budget?: number;
+  deadline?: string;
+  created_at: string;
+}
+
+export interface ProjectMember {
+  id: string;
+  project_id: string;
+  workspace_member_id: string;
+  role?: string;
+  joined_at: string;
+}
+
+export interface ProjectColumn {
+  id: string;
+  project_id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ProjectActivity {
+  id: string;
+  project_id: string;
+  workspace_member_id?: string;
+  action: string;
+  details?: Record<string, any>;
+  created_at: string;
+}
+
+export interface Task {
+  id: string;
+  workspace_id: string;
+  project_id?: string;
+  column_id?: string;
+  assigned_workspace_member_id?: string;
+  created_by_workspace_member_id?: string;
+  title: string;
+  description?: string;
+  task_type: 'PROJECT' | 'GENERAL' | 'SUPPORT' | 'MEETING' | 'TRAINING' | 'ADMIN';
+  status: 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' | 'BLOCKED';
+  priority: string;
+  estimated_hours?: number;
+  sort_order: number;
+  due_date?: string;
+  completed_at?: string;
+  created_at: string;
+}
+
+export interface TaskComment {
+  id: string;
+  task_id: string;
+  workspace_member_id: string;
+  comment: string;
+  created_at: string;
+}
+
+export interface TaskFile {
+  id: string;
+  task_id: string;
+  storage_path: string;
+  uploaded_by?: string;
+  created_at: string;
+}
+
+export interface TimeLog {
+  id: string;
+  workspace_id: string;
+  task_id: string;
+  workspace_member_id: string;
+  log_date: string;
+  started_at?: string;
+  ended_at?: string;
+  duration: number;
+  billable: boolean;
+  description?: string;
+  created_at: string;
+}

@@ -1,0 +1,27 @@
+/* src/styles/themes/daylink.css */
+/* Daylink Theme with Custom Requested Color Palette */
+
+html[data-theme="daylink"],
+:root {
+  /* Core brand colors from user specifications */
+  --primary: #0284C7;                       /* Sky Blue */
+  --primary-foreground: #ffffff;
+  --primary-hover: #0270a9;
+  --primary-soft: rgba(2, 132, 199, 0.12);
+  --primary-soft-2: rgba(2, 132, 199, 0.22);
+  
+  --secondary: #64748B;                     /* Slate Gray */
+  --secondary-foreground: #ffffff;
+  
+  --tertiary: #B96A01;                      /* Bronze/Orange Accent */
+  --neutral-dark: #1E293B;                  /* Dark slate */
+
+  --ring: #0284C7;
+  --chart-1: #0284C7;                       /* Primary Blue Chart */
+  --chart-2: #64748B;                       /* Secondary Slate Chart */
+  --chart-3: #B96A01;                       /* Tertiary Bronze Chart */
+  
+  --sidebar-primary: #0284C7;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-ring: #0284C7;
+}

@@ -44,7 +44,7 @@ export const MODES = ["light", "dark"] as const;
 
 export type Mode = (typeof MODES)[number];
 
-export const DEFAULT_MODE: Mode = "dark";
+export const DEFAULT_MODE: Mode = "light";
 
 export const MODE_STORAGE_KEY = "wacrm.mode";
 
@@ -71,8 +71,8 @@ export const THEMES: ReadonlyArray<ThemeMeta> = [
   {
     id: "dailycrm",
     name: "Daily CRM",
-    tagline: "The default brand theme — professional cyan-blue.",
-    swatch: "oklch(0.68 0.16 235)",
+    tagline: "The default brand theme — professional sky-blue.",
+    swatch: "#0284C7",
   },
   {
     id: "violet",

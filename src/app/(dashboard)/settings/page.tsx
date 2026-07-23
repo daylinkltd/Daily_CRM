@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, useEffect, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useAuth } from '@/hooks/use-auth';
@@ -20,6 +20,7 @@ import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { CatalogSettings } from '@/components/settings/catalog-settings';
 import { BrandingSettings } from '@/components/settings/branding-settings';
 import { BillingPanel } from '@/components/settings/billing-panel';
+import { HRSettingsPanel } from '@/components/settings/hr-settings-panel';
 import {
   resolveSection,
   type SettingsSection,
@@ -31,13 +32,17 @@ export default function SettingsPage() {
   const { defaultCurrency } = useAuth();
   const { mode } = useTheme();
 
-  // The URL (`?tab=`) is the single source of truth for the active
-  // section — deep-linkable, and it keeps the existing links in the
-  // app sidebar/header working. Legacy tab values (tags, custom-fields)
-  // resolve onto their new home; unknown/empty → the Overview landing.
-  const section = resolveSection(searchParams.get('tab'));
+  const [section, setSection] = useState<SettingsSection>(() =>
+    resolveSection(searchParams.get('tab'))
+  );
+
+  useEffect(() => {
+    const nextSection = resolveSection(searchParams.get('tab'));
+    setSection(nextSection);
+  }, [searchParams]);
 
   const go = (next: SettingsSection) => {
+    setSection(next);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', next);
     router.replace(`/settings?${params.toString()}`, { scroll: false });
@@ -84,6 +89,8 @@ export default function SettingsPage() {
         return <CatalogSettings />;
       case 'branding':
         return <BrandingSettings />;
+      case 'hr':
+        return <HRSettingsPanel />;
       default:
         return <SettingsOverview onSelect={go} />;
     }

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace, type WorkspacePermissions } from "@/hooks/use-workspace";
 import { useTotalUnread } from "@/hooks/use-total-unread";
+import { useTheme } from "@/hooks/use-theme";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -24,6 +25,25 @@ import {
   ImageIcon,
   FileText,
   Calculator,
+  Briefcase,
+  CheckSquare,
+  Clock,
+  CalendarClock,
+  Umbrella,
+  Building,
+  BadgeCheck,
+  Laptop,
+  Target,
+  BarChart3,
+  ShieldCheck,
+  Banknote,
+  Receipt,
+  ChevronDown,
+  ChevronRight,
+  Activity,
+  Calendar,
+  TrendingUp,
+  FileCheck
 } from "lucide-react";
 import {
   Avatar,
@@ -39,27 +59,72 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 
-const navItems: {
-  href: string;
+type NavGroup = {
   label: string;
-  icon: React.ElementType;
-  permission?: keyof WorkspacePermissions;
-}[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/inbox", label: "Inbox", icon: MessageSquare, permission: "inbox" },
-  { href: "/contacts", label: "Contacts", icon: Users, permission: "contacts" },
-  { href: "/pipelines", label: "Pipelines", icon: GitBranch, permission: "pipelines" },
-  { href: "/quotations", label: "Quotations", icon: Calculator, permission: "pipelines" },
-  { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts" },
-  { href: "/automations", label: "Automations", icon: Zap, permission: "automations" },
-  { href: "/integrations", label: "Integrations", icon: Blocks, permission: "integrations" },
-  { href: "/media", label: "Media", icon: ImageIcon },
-  { href: "/forms", label: "Forms", icon: FileText },
+  items: {
+    href: string;
+    label: string;
+    icon: React.ElementType;
+    permission?: keyof WorkspacePermissions;
+    badge?: boolean;
+  }[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    label: "CRM",
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: null },
+      { href: "/inbox", label: "Inbox", icon: MessageSquare, permission: "inbox" as any, badge: true },
+      { href: "/contacts", label: "Contacts", icon: Users, permission: "contacts" as any },
+      { href: "/pipelines", label: "Pipelines", icon: GitBranch, permission: "pipelines" as any },
+      { href: "/quotations", label: "Quotations", icon: Calculator, permission: null },
+      { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts" as any },
+      { href: "/media", label: "Media", icon: ImageIcon, permission: null },
+      { href: "/forms", label: "Forms", icon: FileText, permission: null },
+    ]
+  },
+  {
+    label: "Project Management",
+    items: [
+      { href: "/projects/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "projects_view" as any },
+      { href: "/projects", label: "Projects", icon: Briefcase, permission: "projects_view" as any },
+      { href: "/planning", label: "Planning", icon: CalendarClock, permission: "projects_view" as any },
+      { href: "/tasks", label: "Tasks", icon: CheckSquare, permission: "projects_view" as any },
+      { href: "/workloads", label: "Workload", icon: Activity, permission: "projects_view" as any },
+      { href: "/timesheets", label: "Timesheets", icon: Clock, permission: "projects_view" as any },
+      { href: "/invoices", label: "Invoices", icon: Receipt, permission: "projects_view" as any },
+    ]
+  },
+  {
+    label: "HR Management",
+    items: [
+      { href: "/hr-dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "people_view" as any },
+      { href: "/employees", label: "Employees", icon: Users, permission: "people_view" as any },
+      { href: "/recruitment", label: "Recruitment", icon: Briefcase, permission: "people_manage" as any },
+      { href: "/policies", label: "Policies & Compliance", icon: ShieldCheck, permission: "people_view" as any },
+      { href: "/attendance", label: "Attendance", icon: CalendarClock, permission: "people_view" as any },
+      { href: "/shifts", label: "Shifts", icon: Clock, permission: "people_manage" as any },
+      { href: "/holidays", label: "Holidays", icon: Calendar, permission: "people_view" as any },
+      { href: "/leave", label: "Leave", icon: Umbrella, permission: "people_view" as any },
+      { href: "/payroll", label: "Payroll", icon: Banknote, permission: "people_manage" as any },
+      { href: "/expenses", label: "Expenses", icon: Receipt, permission: "people_view" as any },
+      { href: "/performance", label: "Performance", icon: TrendingUp, permission: "people_manage" as any },
+      { href: "/requests", label: "Requests", icon: FileCheck, permission: "people_view" as any },
+      { href: "/assets", label: "Assets", icon: Laptop, permission: "people_manage" as any },
+      { href: "/documents", label: "Documents", icon: ShieldCheck, permission: "people_manage" as any },
+      { href: "/departments", label: "Departments", icon: Building, permission: "people_manage" as any },
+      { href: "/designations", label: "Designations", icon: BadgeCheck, permission: "people_manage" as any },
+      { href: "/reports", label: "Analytics & Reports", icon: BarChart3, permission: "people_manage" as any },
+    ]
+  }
 ];
 
 const bottomNavItems = [
-  { href: "/docs", label: "Documentation", icon: BookOpen },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/automations", label: "Automations", icon: Zap },
+  { href: "/integrations", label: "Integrations", icon: Blocks },
+  { href: "/documentation", label: "Documentation", icon: BookOpen },
+  { href: "/settings?tab=workspace", label: "Workspace Settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -72,6 +137,61 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const { profile, signOut } = useAuth();
   const { can } = useWorkspace();
   const totalUnread = useTotalUnread();
+  const { mode } = useTheme();
+  const isDark = mode === "dark";
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
+  // Dynamic Theme Styling Variables
+  const sidebarBgClass = isDark
+    ? "border-r border-border bg-background text-foreground"
+    : "border-r border-slate-800 bg-[#1E293B] text-slate-200";
+
+  const logoRowStyle = isDark
+    ? {}
+    : { backgroundColor: "#1E293B" };
+
+  const logoRowBorder = isDark ? "border-b border-border" : "border-b border-slate-800";
+
+  const closeButtonClass = isDark
+    ? "text-muted-foreground hover:bg-muted hover:text-foreground"
+    : "text-slate-400 hover:bg-slate-800 hover:text-white";
+
+  const groupHeaderClass = "text-white hover:text-white";
+
+  const linkClass = (isActive: boolean) => {
+    if (isActive) {
+      return isDark ? "bg-white/10 text-white" : "bg-primary/20 text-white";
+    }
+    return "text-white hover:bg-white/10";
+  };
+
+  const dividerClass = isDark ? "border-t border-border" : "border-t border-slate-800";
+
+  const settingsHeaderClass = "text-white";
+
+  const userSectionBorder = isDark ? "border-t border-border" : "border-t border-slate-800";
+
+  const footerBrandTextClass = isDark ? "text-muted-foreground" : "text-slate-500";
+
+  const userTriggerClass = isDark
+    ? "hover:bg-muted/60 focus:bg-muted/60 data-popup-open:bg-muted/60 text-foreground"
+    : "hover:bg-slate-800/80 focus:bg-slate-800/80 data-popup-open:bg-slate-800/80 text-white";
+
+  const userSubtextClass = isDark ? "text-muted-foreground" : "text-slate-400";
+
+  const userNameClass = isDark ? "text-foreground" : "text-white";
+
+  // Sync expanded group with current pathname (accordion-style auto-collapse)
+  useEffect(() => {
+    const currentGroup = navGroups.find(group => 
+      group.items.some(item => 
+        pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
+      )
+    );
+    if (currentGroup) {
+      setExpandedGroups({ [currentGroup.label]: true });
+    }
+  }, [pathname]);
 
   useEffect(() => {
     onClose?.();
@@ -92,10 +212,6 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     };
   }, [open, onClose]);
 
-  // Filter nav items by ABAC permissions
-  const visibleNavItems = navItems.filter(
-    (item) => !item.permission || can(item.permission)
-  );
 
   return (
     <>
@@ -113,7 +229,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex h-full w-64 flex-col border-r border-border bg-background",
+          "fixed inset-y-0 left-0 z-40 flex h-full w-64 flex-col",
+          sidebarBgClass,
           "transition-transform duration-200 ease-out will-change-transform",
           open ? "translate-x-0" : "-translate-x-full",
           "lg:static lg:z-0 lg:w-60 lg:translate-x-0 lg:transition-none",
@@ -121,22 +238,23 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         aria-label="Primary"
       >
         {/* Logo row */}
-        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
-          <Link href="/dashboard" className="flex items-center min-w-0">
+        <div className={cn("flex h-14 shrink-0 items-center justify-between gap-2 px-4", logoRowBorder)} style={logoRowStyle}>
+          <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
             <Image
               src="/logolight.png"
               alt="Daily CRM"
-              width={130}
-              height={32}
-              className="h-7 w-auto object-contain"
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain shrink-0"
               priority
             />
+            <span className="font-semibold text-base tracking-tight truncate" style={{ color: '#ffffff' }}>Daily CRM</span>
           </Link>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
+            className={cn("flex h-9 w-9 items-center justify-center rounded-md lg:hidden", closeButtonClass)}
           >
             <X className="h-5 w-5" />
           </button>
@@ -149,74 +267,99 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
         {/* Main navigation — filtered by ABAC permissions */}
         <nav className="flex-1 overflow-y-auto px-3 py-3">
-          <ul className="flex flex-col gap-1">
-            {visibleNavItems.map((item) => {
-              const isActive =
-                pathname === item.href ||
-                (item.href !== "/dashboard" && pathname.startsWith(item.href));
-              const showUnreadDot =
-                item.href === "/inbox" && totalUnread > 0 && !isActive;
+          {navGroups.map((group, groupIdx) => {
+            const visibleItems = group.items.filter(
+              (item) => !item.permission || can(item.permission)
+            );
 
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span className="flex-1">{item.label}</span>
-                    {showUnreadDot && (
-                      <span
-                        aria-label={`${totalUnread} unread conversation${totalUnread === 1 ? "" : "s"}`}
-                        className="relative flex h-2 w-2"
-                      >
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+            if (visibleItems.length === 0) return null;
 
-          <div className="my-4 border-t border-border" />
+            const isExpanded = expandedGroups[group.label];
 
-          <ul className="flex flex-col gap-1">
-            {bottomNavItems.map((item) => {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+            return (
+              <div key={group.label} className={cn("flex flex-col", groupIdx > 0 && "mt-2")}>
+                <button 
+                  onClick={() => setExpandedGroups(prev => ({ ...prev, [group.label]: !prev[group.label] }))}
+                  className={cn("flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-colors rounded-md", groupHeaderClass)}
+                >
+                  <span>{group.label}</span>
+                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                </button>
+                
+                {isExpanded && (
+                  <ul className="flex flex-col gap-1 mt-1">
+                    {visibleItems.map((item) => {
+                      const isActive =
+                        pathname === item.href ||
+                        (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                      const showUnreadDot =
+                        item.href === "/inbox" && totalUnread > 0 && !isActive;
+
+                      return (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
+                              linkClass(isActive)
+                            )}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            <span className="flex-1">{item.label}</span>
+                            {showUnreadDot && (
+                              <span
+                                aria-label={`${totalUnread} unread conversation${totalUnread === 1 ? "" : "s"}`}
+                                className="relative flex h-2 w-2"
+                              >
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                              </span>
+                            )}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+
+          <div className={cn("my-6", dividerClass)} />
+
+          <div className="flex flex-col">
+            <h4 className={cn("mb-2 px-3 text-xs font-semibold uppercase tracking-wider", settingsHeaderClass)} style={{ color: '#ffffff' }}>
+              Settings
+            </h4>
+            <ul className="flex flex-col gap-1">
+              {bottomNavItems.map((item) => {
+                const isActive = pathname.startsWith(item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
+                        linkClass(isActive)
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </nav>
 
         {/* User section */}
-        <div className="shrink-0 border-t border-border p-3 flex flex-col gap-2">
+        <div className={cn("shrink-0 p-3 flex flex-col gap-2", userSectionBorder)}>
           <div className="px-2 pb-1 pt-2 flex items-center justify-center">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">by Daylink</span>
+            <span className={cn("text-[10px] uppercase tracking-widest font-semibold", footerBrandTextClass)}>by Daylink</span>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/60 focus:bg-muted/60 focus:outline-none data-popup-open:bg-muted/60">
+            <DropdownMenuTrigger className={cn("flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors focus:outline-none", userTriggerClass)}>
               <Avatar className="size-8 shrink-0">
                 {profile?.avatar_url ? (
                   <AvatarImage
@@ -231,10 +374,10 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">
+                <p className={cn("truncate text-sm font-medium", userNameClass)}>
                   {profile?.full_name ?? "User"}
                 </p>
-                <p className="truncate text-xs text-muted-foreground">
+                <p className={cn("truncate text-xs", userSubtextClass)}>
                   {profile?.email ?? ""}
                 </p>
               </div>

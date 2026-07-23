@@ -130,6 +130,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (profileError) {
+        if (profileError.message?.includes("JWT issued at future")) {
+          console.warn("[AuthProvider] System clock skew detected (JWT issued at future). Refreshing session...");
+          const { data: refreshData } = await supabase.auth.refreshSession();
+          if (refreshData?.session) {
+            // Retry profile fetch after token refresh
+            const { data: retryProfile } = await supabase
+              .from("profiles")
+              .select("id, full_name, email, avatar_url, role, system_role, status")
+              .eq("user_id", userId)
+              .maybeSingle();
+            if (retryProfile) {
+              // Proceed with retryProfile
+              fetchProfile(userId);
+              return;
+            }
+          }
+        }
         console.error("[AuthProvider] fetchProfile error:", profileError.message);
         return;
       }

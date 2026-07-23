@@ -230,6 +230,11 @@ export function SettingsOverview({
       loading: false,
       subtitle: `${cap(mode)} mode · ${themeName} accent`,
     },
+    {
+      section: 'hr',
+      loading: false,
+      subtitle: 'Shift timings, Leave rules & Payroll cycles',
+    },
   ];
 
   return (

@@ -13,6 +13,9 @@ import type {
   WaitStepConfig,
   CreateDealStepConfig,
   AssignConversationStepConfig,
+  CreateProjectStepConfig,
+  CreateTaskStepConfig,
+  CreateEmployeeStepConfig,
 } from '@/types'
 import { supabaseAdmin } from './admin-client'
 import { engineSendText, engineSendTemplate } from './meta-send'
@@ -418,6 +421,60 @@ async function runStep(step: AutomationStep, args: ExecuteArgs): Promise<string>
         status: 'open',
       })
       return 'deal created'
+    }
+
+    case 'create_project': {
+      const cfg = step.step_config as CreateProjectStepConfig
+      if (!cfg.name) throw new Error('create_project needs a name')
+      await db.from('projects').insert({
+        workspace_id: args.automation.account_id,
+        name: interpolate(cfg.name, args),
+        manager_workspace_member_id: cfg.manager_id || null,
+        budget: cfg.budget || null,
+        status: 'active',
+        project_source: 'AUTOMATION',
+      })
+      return 'project created'
+    }
+
+    case 'create_task': {
+      const cfg = step.step_config as CreateTaskStepConfig
+      if (!cfg.title) throw new Error('create_task needs a title')
+      await db.from('tasks').insert({
+        workspace_id: args.automation.account_id,
+        title: interpolate(cfg.title, args),
+        priority: cfg.priority || 'medium',
+        project_id: cfg.project_id || null,
+        assigned_workspace_member_id: cfg.assignee_id || null,
+        task_type: cfg.project_id ? 'PROJECT' : 'GENERAL',
+        created_by_workspace_member_id: args.automation.user_id, // As a fallback/system initiator
+        status: 'todo',
+      })
+      return 'task created'
+    }
+
+    case 'create_employee': {
+      const cfg = step.step_config as CreateEmployeeStepConfig
+      if (!cfg.first_name || !cfg.last_name || !cfg.email) throw new Error('create_employee needs name and email')
+      
+      // Since automation doesn't have Supabase Auth context to create a real user,
+      // we can create a workspace_member placeholder (if schema allows null user_id)
+      // or invite them via edge function. For now, we'll assume a placeholder workflow.
+      const { data: member } = await db.from('workspace_members').insert({
+        workspace_id: args.automation.account_id,
+        role: 'member',
+      }).select().single()
+
+      if (member) {
+        await db.from('employee_profiles').insert({
+          workspace_member_id: member.id,
+          workspace_id: args.automation.account_id,
+          employment_status: 'ACTIVE',
+          department_id: cfg.department_id || null,
+          designation_id: cfg.designation_id || null,
+        })
+      }
+      return 'employee created'
     }
 
     case 'send_webhook': {

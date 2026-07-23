@@ -4,6 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ChevronsUpDown, Plus, Check, Briefcase, AlertTriangle } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +36,19 @@ export function WorkspaceSwitcher() {
     createWorkspace,
   } = useWorkspace();
 
+  const { mode } = useTheme();
+  const isDark = mode === "dark";
+
+  // Dynamic switcher styling depending on light vs dark sidebar look
+  const switcherBg = isDark
+    ? "border-border bg-card hover:bg-muted/80 text-foreground"
+    : "border-slate-700 bg-slate-950/40 hover:bg-slate-800/80 text-white";
+
+  const switcherTextClass = isDark ? "text-foreground" : "text-white";
+  const switcherRoleClass = isDark ? "text-primary" : "text-primary-foreground/80";
+  const switcherArrowClass = isDark ? "text-muted-foreground" : "text-slate-300";
+  const switcherLogoBorder = isDark ? "border-border bg-muted" : "border-slate-800 bg-slate-950";
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -63,10 +78,10 @@ export function WorkspaceSwitcher() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-slate-400">
+      <div className="flex items-center justify-between rounded-[10px] border border-border bg-card px-3 py-2 text-muted-foreground">
         <div className="flex items-center gap-2">
-          <div className="h-5 w-5 animate-pulse rounded bg-slate-800" />
-          <div className="h-4 w-24 animate-pulse rounded bg-slate-800" />
+          <div className="h-5 w-5 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
         </div>
       </div>
     );
@@ -78,10 +93,10 @@ export function WorkspaceSwitcher() {
         <button
           type="button"
           onClick={() => setIsDialogOpen(true)}
-          className="flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-slate-800 bg-slate-950/30 px-3 py-2.5 text-left text-sm font-medium text-slate-400 transition-all hover:bg-slate-900 hover:text-white hover:border-slate-700 focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
+          className="flex w-full items-center justify-between gap-2 rounded-[10px] border border-dashed border-border bg-card px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-slate-800 text-slate-400">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
               <Plus className="h-4 w-4" />
             </div>
             <span className="truncate text-xs font-semibold">Create Workspace</span>
@@ -117,7 +132,7 @@ export function WorkspaceSwitcher() {
                       setIsDialogOpen(false);
                       window.location.href = "/settings?tab=billing";
                     }}
-                    className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium"
+                    className="bg-primary hover:bg-primary-hover text-white font-medium"
                   >
                     Upgrade Plan
                   </Button>
@@ -140,7 +155,7 @@ export function WorkspaceSwitcher() {
                       placeholder="e.g. Sales Team, Marketing Dept"
                       value={newWorkspaceName}
                       onChange={(e) => setNewWorkspaceName(e.target.value)}
-                      className="bg-slate-950 border-slate-800 focus:border-[#00aef0] focus:ring-[#00aef0] text-[#000000] dark:text-white"
+                      className="bg-slate-950 border-slate-800 focus:border-primary focus:ring-primary text-white"
                       required
                       autoFocus
                     />
@@ -158,7 +173,7 @@ export function WorkspaceSwitcher() {
                   <Button
                     type="submit"
                     disabled={isCreating || !newWorkspaceName.trim()}
-                    className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10"
+                    className="bg-primary hover:bg-primary-hover text-white font-medium"
                   >
                     {isCreating ? "Creating..." : "Create Workspace"}
                   </Button>
@@ -174,10 +189,10 @@ export function WorkspaceSwitcher() {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2.5 text-left text-sm font-medium text-white transition-all hover:bg-slate-800/80 hover:border-slate-700 focus:outline-none focus:ring-1 focus:ring-[#00aef0]">
+        <DropdownMenuTrigger className={cn("flex w-full items-center justify-between gap-2 rounded-[10px] transition-all focus:outline-none focus:ring-1 focus:ring-primary px-3 py-2.5 text-left text-sm font-medium", switcherBg)}>
           <div className="flex items-center gap-2.5 min-w-0">
             {activeWorkspace.logo_url ? (
-              <div className="h-7 w-7 shrink-0 rounded overflow-hidden relative border border-slate-800 bg-slate-950">
+              <div className={cn("h-7 w-7 shrink-0 rounded overflow-hidden relative border", switcherLogoBorder)}>
                 <Image
                   src={activeWorkspace.logo_url}
                   alt={activeWorkspace.name}
@@ -186,30 +201,30 @@ export function WorkspaceSwitcher() {
                 />
               </div>
             ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-[#00aef0]/10 text-[#00aef0]">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
                 <Briefcase className="h-4 w-4" />
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-xs font-semibold text-white">
+              <p className={cn("truncate text-xs font-semibold", switcherTextClass)}>
                 {activeWorkspace.name}
               </p>
-              <p className="text-[10px] capitalize text-[#00aef0] font-medium">
+              <p className={cn("text-[10px] capitalize font-medium", switcherRoleClass)}>
                 {activeRole || "Member"}
               </p>
             </div>
           </div>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-400" />
+          <ChevronsUpDown className={cn("h-4 w-4 shrink-0", switcherArrowClass)} />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
           sideOffset={6}
-          className="w-56 bg-slate-900 border-slate-800 text-slate-100 ring-slate-700"
+          className="w-56 bg-popover border-border text-popover-foreground rounded-[10px] shadow-md"
         >
-          <DropdownMenuLabel className="text-xs text-slate-400 font-medium px-2 py-1.5">
+          <DropdownMenuLabel className="text-xs text-muted-foreground font-medium px-2 py-1.5">
             Workspaces
           </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-slate-800" />
+          <DropdownMenuSeparator className="bg-border" />
           <div className="max-h-60 overflow-y-auto">
             {workspaces.map((workspace) => {
               const isActive = workspace.id === activeWorkspace.id;
@@ -217,11 +232,11 @@ export function WorkspaceSwitcher() {
                 <DropdownMenuItem
                   key={workspace.id}
                   onClick={() => switchWorkspace(workspace.id)}
-                  className="flex items-center justify-between px-2 py-2 text-slate-200 focus:bg-[#00aef0]/15 focus:text-white cursor-pointer"
+                  className="flex items-center justify-between px-2 py-2 text-foreground focus:bg-primary/10 focus:text-primary cursor-pointer rounded-[8px]"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     {workspace.logo_url ? (
-                      <div className="h-5 w-5 shrink-0 rounded overflow-hidden relative border border-slate-800 bg-slate-950">
+                      <div className="h-5 w-5 shrink-0 rounded overflow-hidden relative border border-border bg-muted">
                         <Image
                           src={workspace.logo_url}
                           alt={workspace.name}
@@ -230,7 +245,7 @@ export function WorkspaceSwitcher() {
                         />
                       </div>
                     ) : (
-                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[#00aef0]/10 text-[#00aef0]">
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
                         <Briefcase className="h-3.5 w-3.5" />
                       </div>
                     )}
@@ -238,15 +253,15 @@ export function WorkspaceSwitcher() {
                       {workspace.name}
                     </span>
                   </div>
-                  {isActive && <Check className="h-4 w-4 text-[#00aef0] shrink-0 ml-2" />}
+                  {isActive && <Check className="h-4 w-4 text-primary shrink-0 ml-2" />}
                 </DropdownMenuItem>
               );
             })}
           </div>
-          <DropdownMenuSeparator className="bg-slate-800" />
+          <DropdownMenuSeparator className="bg-border" />
           <DropdownMenuItem
             onClick={() => setIsDialogOpen(true)}
-            className="flex items-center gap-2 px-2 py-2 text-[#00aef0] focus:bg-[#00aef0]/10 focus:text-[#00aef0] font-medium cursor-pointer"
+            className="flex items-center gap-2 px-2 py-2 text-primary focus:bg-primary/10 focus:text-primary font-medium cursor-pointer rounded-[8px]"
           >
             <Plus className="h-4 w-4 shrink-0" />
             Create Workspace
