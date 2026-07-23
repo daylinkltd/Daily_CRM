@@ -1,6 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
+@import "../styles/tokens.css";
+@import "../styles/layout.css";
+@import "../styles/components.css";
+@import "../styles/themes/daylink.css";
+@import "../styles/themes/emerald.css";
+@import "../styles/themes/violet.css";
+@import "../styles/themes/amber.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -80,6 +90,10 @@
  * ============================================================ */
 
 /* ---- MODE: neutral surfaces ---- */
+
+:root {
+  --font-sans: 'Hanken Grotesk', sans-serif;
+}
 
 :root,
 html[data-mode="dark"] {
@@ -166,16 +180,26 @@ html[data-mode="light"] {
 
 :root,
 html[data-theme="dailycrm"] {
-  --primary: oklch(0.68 0.16 235);
-  --primary-foreground: oklch(0.985 0 0);
-  --primary-hover: oklch(0.74 0.14 235);
-  --primary-soft: oklch(0.68 0.16 235 / 0.12);
-  --primary-soft-2: oklch(0.68 0.16 235 / 0.2);
-  --ring: oklch(0.68 0.16 235);
-  --chart-1: oklch(0.68 0.16 235);
-  --sidebar-primary: oklch(0.68 0.16 235);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-ring: oklch(0.68 0.16 235);
+  --primary: #0284C7;                       /* Sky Blue */
+  --primary-foreground: #ffffff;
+  --primary-hover: #0270a9;
+  --primary-soft: rgba(2, 132, 199, 0.12);
+  --primary-soft-2: rgba(2, 132, 199, 0.22);
+  
+  --secondary: #64748B;                     /* Slate Gray */
+  --secondary-foreground: #ffffff;
+  
+  --tertiary: #B96A01;                      /* Bronze/Orange Accent */
+  --neutral-dark: #1E293B;                  /* Dark slate */
+
+  --ring: #0284C7;
+  --chart-1: #0284C7;                       /* Primary Sky Blue */
+  --chart-2: #64748B;                       /* Secondary Slate */
+  --chart-3: #B96A01;                       /* Tertiary Bronze */
+  
+  --sidebar-primary: #0284C7;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-ring: #0284C7;
 }
 
 html[data-theme="violet"] {
@@ -249,14 +273,18 @@ html[data-theme="rose"] {
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
   }
+
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
+
   html {
-    @apply font-sans;
+    font-family: var(--font-sans);
   }
+
   .bg-grid-pattern {
     background-color: #f8fafc;
     background-image: linear-gradient(#e2e8f0 1px, transparent 1px),

@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
   Building2,
   CreditCard,
+  Briefcase,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -39,6 +40,7 @@ export const SETTINGS_SECTIONS = [
   'api',
   'catalog',
   'branding',
+  'hr',
 ] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
@@ -68,6 +70,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
   catalog: { id: 'catalog', label: 'Service Catalog', icon: FileSpreadsheet, group: 'workspace' },
   branding: { id: 'branding', label: 'Company Branding', icon: Building2, group: 'workspace' },
+  hr: { id: 'hr', label: 'HR Operations', icon: Briefcase, group: 'workspace' },
 };
 
 export const RAIL_GROUPS: { label: string | null; group: SectionMeta['group'] }[] = [
@@ -88,6 +91,7 @@ function isSection(value: string | null): value is SettingsSection {
  */
 export function resolveSection(raw: string | null): SettingsSection {
   if (raw === 'tags' || raw === 'custom-fields') return 'fields';
+  if (raw === 'hr-operations' || raw === 'hr_operations' || raw === 'operations') return 'hr';
   if (isSection(raw)) return raw;
   return DEFAULT_SECTION;
 }
