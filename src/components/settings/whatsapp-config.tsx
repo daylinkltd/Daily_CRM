@@ -349,6 +349,26 @@ export function WhatsAppConfig() {
     }
   }
 
+  function generateVerifyToken() {
+    const rand = Array.from(crypto.getRandomValues(new Uint8Array(12)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    return `whvt_${rand}`;
+  }
+
+  function handleCopyVerifyToken() {
+    if (!verifyToken) return;
+    navigator.clipboard.writeText(verifyToken);
+    toast.success('Webhook Verify Token copied to clipboard');
+  }
+
+  function handleGenerateVerifyToken() {
+    const newToken = generateVerifyToken();
+    setVerifyToken(newToken);
+    saveDraft({ verifyToken: newToken });
+    toast.success('Generated new Webhook Verify Token');
+  }
+
   function handleCopyWebhookUrl() {
     navigator.clipboard.writeText(webhookUrl);
     toast.success('Webhook URL copied to clipboard');
@@ -556,38 +576,19 @@ export function WhatsAppConfig() {
                 </p>
               </div>
             )}
-
-            {/* Webhook Verify Token — Meta only */}
-            {selectedProvider === 'meta' && (
-              <div className="space-y-2">
-                <Label className="text-slate-300">Webhook Verify Token</Label>
-                <Input
-                  placeholder="Create a custom verify token"
-                  value={verifyToken}
-                  onChange={(e) => {
-                    setVerifyToken(e.target.value);
-                    saveDraft({ verifyToken: e.target.value });
-                  }}
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-                />
-                <p className="text-xs text-slate-500">
-                  A custom string you create. Must match the token you set in Meta webhook settings.
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Webhook URL — shown for Meta and ApiAuto */}
+        {/* Webhook URL & Verify Token — shown for Meta and ApiAuto */}
         {(selectedProvider === 'meta' || selectedProvider === 'apiauto') && (
           <Card className="bg-slate-900 border-slate-700">
             <CardHeader>
               <CardTitle className="text-white">Webhook Configuration</CardTitle>
               <CardDescription className="text-slate-400">
-                Use this URL as your webhook callback in the {selectedProvider === 'meta' ? 'Meta App Dashboard' : 'ApiAuto platform'}.
+                Copy these parameters into your {selectedProvider === 'meta' ? 'Meta App Dashboard (WhatsApp > Configuration)' : 'ApiAuto platform'} to establish two-way messaging.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-slate-300">Webhook Callback URL</Label>
                 <div className="flex gap-2">
@@ -601,11 +602,50 @@ export function WhatsAppConfig() {
                     size="icon"
                     onClick={handleCopyWebhookUrl}
                     className="shrink-0 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+                    title="Copy Callback URL"
                   >
                     <Copy className="size-4" />
                   </Button>
                 </div>
               </div>
+
+              {selectedProvider === 'meta' && (
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Webhook Verify Token</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={verifyToken}
+                      onChange={(e) => {
+                        setVerifyToken(e.target.value);
+                        saveDraft({ verifyToken: e.target.value });
+                      }}
+                      placeholder="e.g. whvt_8a7f9b2c4e1d6a03"
+                      className="bg-slate-800 border-slate-700 text-slate-300 font-mono text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleCopyVerifyToken}
+                      className="shrink-0 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+                      title="Copy Verify Token"
+                    >
+                      <Copy className="size-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleGenerateVerifyToken}
+                      className="shrink-0 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+                      title="Generate New Verify Token"
+                    >
+                      <RotateCcw className="size-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    System-generated verification token. Copy &amp; paste this token into Meta Webhook setup.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
