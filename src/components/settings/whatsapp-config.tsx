@@ -109,6 +109,43 @@ export function WhatsAppConfig() {
       ? `${window.location.origin}/api/whatsapp/webhook`
       : '';
 
+  function saveDraft(partial: Partial<{
+    selectedProvider: Provider;
+    phoneNumberId: string;
+    wabaId: string;
+    accessToken: string;
+    verifyToken: string;
+    tokenEdited: boolean;
+  }>) {
+    if (!activeWorkspace?.id || typeof window === 'undefined') return;
+    try {
+      const key = `crm_draft_whatsapp_${activeWorkspace.id}`;
+      const currentRaw = sessionStorage.getItem(key);
+      const current = currentRaw ? JSON.parse(currentRaw) : {};
+      const updated = { ...current, ...partial };
+      sessionStorage.setItem(key, JSON.stringify(updated));
+    } catch (err) {
+      console.error('Error saving draft:', err);
+    }
+  }
+
+  function clearDraft() {
+    if (!activeWorkspace?.id || typeof window === 'undefined') return;
+    try {
+      sessionStorage.removeItem(`crm_draft_whatsapp_${activeWorkspace.id}`);
+    } catch {}
+  }
+
+  const loadDraft = useCallback(() => {
+    if (!activeWorkspace?.id || typeof window === 'undefined') return null;
+    try {
+      const raw = sessionStorage.getItem(`crm_draft_whatsapp_${activeWorkspace.id}`);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, [activeWorkspace?.id]);
+
   const fetchConfig = useCallback(async () => {
     if (!activeWorkspace?.id) return;
     setLoading(true);
@@ -116,24 +153,18 @@ export function WhatsAppConfig() {
       const res = await fetch(`/api/whatsapp/config?workspace_id=${activeWorkspace.id}`);
       const payload = await res.json();
 
+      const draft = loadDraft();
+
       if (payload.connected) {
         setConnectionStatus('connected');
         setHasConfig(true);
         setShowResetBanner(false);
         setStatusMessage('');
-        if (payload.provider) setSelectedProvider(payload.provider as Provider);
-        // Only set masking if config exists
-        setPhoneNumberId('');
-        setAccessToken(MASKED_TOKEN);
-        setTokenEdited(false);
-        setWabaId('');
-        setVerifyToken('');
       } else if (payload.reason === 'no_config') {
         setConnectionStatus('disconnected');
         setHasConfig(false);
         setShowResetBanner(false);
         setStatusMessage(payload.message || '');
-        resetFormFields();
       } else if (payload.reason === 'token_corrupted') {
         setConnectionStatus('disconnected');
         setHasConfig(true);
@@ -141,9 +172,30 @@ export function WhatsAppConfig() {
         setStatusMessage(payload.message || '');
       } else {
         setConnectionStatus('disconnected');
-        setHasConfig(payload.reason !== 'no_config');
+        setHasConfig(payload.has_token || payload.reason !== 'no_config');
         setShowResetBanner(false);
         setStatusMessage(payload.message || '');
+      }
+
+      if (draft) {
+        if (draft.selectedProvider) setSelectedProvider(draft.selectedProvider);
+        if (draft.phoneNumberId !== undefined) setPhoneNumberId(draft.phoneNumberId);
+        if (draft.wabaId !== undefined) setWabaId(draft.wabaId);
+        if (draft.verifyToken !== undefined) setVerifyToken(draft.verifyToken);
+        if (draft.accessToken !== undefined) setAccessToken(draft.accessToken);
+        if (draft.tokenEdited !== undefined) setTokenEdited(draft.tokenEdited);
+      } else {
+        if (payload.provider) setSelectedProvider(payload.provider as Provider);
+        setPhoneNumberId(payload.phone_number_id || '');
+        setWabaId(payload.waba_id || '');
+        setVerifyToken(payload.verify_token || '');
+        if (payload.has_token || payload.connected) {
+          setAccessToken(MASKED_TOKEN);
+          setTokenEdited(false);
+        } else {
+          setAccessToken('');
+          setTokenEdited(false);
+        }
       }
     } catch (err) {
       console.error('fetchConfig error:', err);
@@ -151,7 +203,7 @@ export function WhatsAppConfig() {
     } finally {
       setLoading(false);
     }
-  }, [activeWorkspace?.id]);
+  }, [activeWorkspace?.id, loadDraft]);
 
   function resetFormFields() {
     setPhoneNumberId('');
@@ -159,6 +211,7 @@ export function WhatsAppConfig() {
     setAccessToken('');
     setVerifyToken('');
     setTokenEdited(false);
+    clearDraft();
   }
 
   useEffect(() => {
@@ -179,7 +232,7 @@ export function WhatsAppConfig() {
       toast.error(selectedProvider === 'twilio' ? 'Twilio Phone Number is required' : 'Phone Number ID is required');
       return;
     }
-    if (!hasConfig && (!accessToken.trim() || !tokenEdited)) {
+    if (!hasConfig && (!accessToken.trim() || accessToken === MASKED_TOKEN)) {
       toast.error(selectedProvider === 'twilio' ? 'Auth Token is required for initial setup' : 'Access Token is required for initial setup');
       return;
     }
@@ -198,16 +251,11 @@ export function WhatsAppConfig() {
       if (tokenEdited && accessToken !== MASKED_TOKEN && accessToken.trim()) {
         payload.access_token = accessToken.trim();
       } else if (hasConfig && !tokenEdited) {
-        // For mock provider, send a placeholder — no real token needed
-        if (selectedProvider === 'mock') {
-          payload.access_token = 'mock-token';
-        } else {
-          toast.error('Please re-enter the token/credentials to save changes');
-          setSaving(false);
-          return;
-        }
+        payload.access_token = MASKED_TOKEN;
       } else if (!hasConfig && selectedProvider === 'mock') {
         payload.access_token = 'mock-token';
+      } else if (accessToken && accessToken !== MASKED_TOKEN) {
+        payload.access_token = accessToken.trim();
       }
 
       const res = await fetch('/api/whatsapp/config', {
@@ -222,6 +270,8 @@ export function WhatsAppConfig() {
         toast.error(data.error || 'Failed to save configuration');
         return;
       }
+
+      clearDraft();
 
       const providerName = PROVIDER_TABS.find(p => p.id === selectedProvider)?.label || selectedProvider;
       toast.success(
@@ -284,6 +334,7 @@ export function WhatsAppConfig() {
         return;
       }
 
+      clearDraft();
       toast.success('Configuration cleared. You can now re-enter your credentials.');
       setHasConfig(false);
       setConnectionStatus('disconnected');
@@ -369,7 +420,10 @@ export function WhatsAppConfig() {
               {PROVIDER_TABS.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setSelectedProvider(tab.id)}
+                  onClick={() => {
+                    setSelectedProvider(tab.id);
+                    saveDraft({ selectedProvider: tab.id });
+                  }}
                   className={`relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all duration-200 ${
                     selectedProvider === tab.id
                       ? 'border-[#00aef0]/50 bg-[#00aef0]/5 ring-1 ring-[#00aef0]/30'
@@ -424,7 +478,10 @@ export function WhatsAppConfig() {
                     : 'e.g. 100234567890123'
                 }
                 value={phoneNumberId}
-                onChange={(e) => setPhoneNumberId(e.target.value)}
+                onChange={(e) => {
+                  setPhoneNumberId(e.target.value);
+                  saveDraft({ phoneNumberId: e.target.value });
+                }}
                 className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
               />
             </div>
@@ -442,7 +499,10 @@ export function WhatsAppConfig() {
                       : 'e.g. 100234567890456'
                   }
                   value={wabaId}
-                  onChange={(e) => setWabaId(e.target.value)}
+                  onChange={(e) => {
+                    setWabaId(e.target.value);
+                    saveDraft({ wabaId: e.target.value });
+                  }}
                   className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
                 />
               </div>
@@ -459,11 +519,16 @@ export function WhatsAppConfig() {
                     type={showToken ? 'text' : 'password'}
                     placeholder={selectedProvider === 'twilio' ? 'Enter your Twilio Auth Token' : selectedProvider === 'apiauto' ? 'Enter your ApiAuto token' : 'Enter your Meta access token'}
                     value={accessToken}
-                    onChange={(e) => { setAccessToken(e.target.value); setTokenEdited(true); }}
+                    onChange={(e) => {
+                      setAccessToken(e.target.value);
+                      setTokenEdited(true);
+                      saveDraft({ accessToken: e.target.value, tokenEdited: true });
+                    }}
                     onFocus={() => {
                       if (accessToken === MASKED_TOKEN) {
                         setAccessToken('');
                         setTokenEdited(true);
+                        saveDraft({ accessToken: '', tokenEdited: true });
                       }
                     }}
                     className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 pr-10"
@@ -499,7 +564,10 @@ export function WhatsAppConfig() {
                 <Input
                   placeholder="Create a custom verify token"
                   value={verifyToken}
-                  onChange={(e) => setVerifyToken(e.target.value)}
+                  onChange={(e) => {
+                    setVerifyToken(e.target.value);
+                    saveDraft({ verifyToken: e.target.value });
+                  }}
                   className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
                 />
                 <p className="text-xs text-slate-500">
