@@ -115,12 +115,16 @@ export async function GET(request: Request) {
     for (const config of configs) {
       if (!config.verify_token) continue
       try {
-        if (decrypt(config.verify_token) === verifyToken) {
+        const decrypted = decrypt(config.verify_token)
+        if (decrypted === verifyToken || config.verify_token === verifyToken) {
           matchedConfig = config
           break
         }
       } catch {
-        // Malformed / wrong-key token row — skip it and keep checking.
+        if (config.verify_token === verifyToken) {
+          matchedConfig = config
+          break
+        }
       }
     }
 

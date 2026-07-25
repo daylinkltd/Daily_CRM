@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  ExternalLink,
   Zap,
   AlertTriangle,
   RotateCcw,
@@ -30,6 +29,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from '@/components/ui/accordion';
+import { cn } from '@/lib/utils';
 
 const MASKED_TOKEN = '••••••••••••••••';
 
@@ -41,37 +41,32 @@ interface ProviderTab {
   label: string;
   icon: React.ReactNode;
   description: string;
-  color: string;
 }
 
 const PROVIDER_TABS: ProviderTab[] = [
   {
     id: 'meta',
     label: 'Meta Cloud API',
-    icon: <MessageSquare className="h-4 w-4" />,
+    icon: <MessageSquare className="h-4 w-4 shrink-0" />,
     description: 'Official Meta WhatsApp Cloud API. Best for production use.',
-    color: 'text-blue-400',
   },
   {
     id: 'twilio',
     label: 'Twilio',
-    icon: <PhoneCall className="h-4 w-4" />,
+    icon: <PhoneCall className="h-4 w-4 shrink-0" />,
     description: 'Twilio WhatsApp Sandbox & Business messaging.',
-    color: 'text-rose-400',
   },
   {
     id: 'mock',
     label: 'Sandbox Simulator',
-    icon: <Bot className="h-4 w-4" />,
+    icon: <Bot className="h-4 w-4 shrink-0" />,
     description: 'Free local simulator. No real messages sent.',
-    color: 'text-emerald-400',
   },
   {
     id: 'apiauto',
     label: 'ApiAuto.in',
-    icon: <Zap className="h-4 w-4" />,
+    icon: <Zap className="h-4 w-4 shrink-0" />,
     description: 'Connect via official.apiauto.in API.',
-    color: 'text-violet-400',
   },
 ];
 
@@ -89,62 +84,40 @@ export function WhatsAppConfig() {
   const [statusMessage, setStatusMessage] = useState('');
   const [showResetBanner, setShowResetBanner] = useState(false);
 
-  // Provider selection
+  // Active provider selection tab
   const [selectedProvider, setSelectedProvider] = useState<Provider>('meta');
 
-  // Shared fields
-  const [phoneNumberId, setPhoneNumberId] = useState('');
-  const [accessToken, setAccessToken] = useState('');
+  // Provider-specific credential states (prevents data loss when clicking between tabs)
+  const [metaPhoneId, setMetaPhoneId] = useState('');
+  const [metaWabaId, setMetaWabaId] = useState('');
+  const [metaToken, setMetaToken] = useState('');
+  const [metaTokenEdited, setMetaTokenEdited] = useState(false);
+
+  const [twilioSender, setTwilioSender] = useState('');
+  const [twilioAccountSid, setTwilioAccountSid] = useState('');
+  const [twilioAuthToken, setTwilioAuthToken] = useState('');
+  const [twilioTokenEdited, setTwilioTokenEdited] = useState(false);
+
+  const [apiautoPhoneId, setApiautoPhoneId] = useState('');
+  const [apiautoApiKey, setApiautoApiKey] = useState('');
+  const [apiautoTokenEdited, setApiautoTokenEdited] = useState(false);
+
+  const [mockPhoneId, setMockPhoneId] = useState('sim-phone-001');
+
+  // Shared Webhook Verify Token
   const [verifyToken, setVerifyToken] = useState('');
-  const [tokenEdited, setTokenEdited] = useState(false);
-
-  // Meta-specific
-  const [wabaId, setWabaId] = useState('');
-
-  // Twilio-specific (accountSid reuses wabaId field, authToken reuses accessToken)
-  // Phone number uses phoneNumberId — shared field
 
   const webhookUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/api/whatsapp/webhook`
       : '';
 
-  function saveDraft(partial: Partial<{
-    selectedProvider: Provider;
-    phoneNumberId: string;
-    wabaId: string;
-    accessToken: string;
-    verifyToken: string;
-    tokenEdited: boolean;
-  }>) {
-    if (!activeWorkspace?.id || typeof window === 'undefined') return;
-    try {
-      const key = `crm_draft_whatsapp_${activeWorkspace.id}`;
-      const currentRaw = sessionStorage.getItem(key);
-      const current = currentRaw ? JSON.parse(currentRaw) : {};
-      const updated = { ...current, ...partial };
-      sessionStorage.setItem(key, JSON.stringify(updated));
-    } catch (err) {
-      console.error('Error saving draft:', err);
-    }
+  function generateVerifyToken() {
+    const rand = Array.from(crypto.getRandomValues(new Uint8Array(12)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    return `whvt_${rand}`;
   }
-
-  function clearDraft() {
-    if (!activeWorkspace?.id || typeof window === 'undefined') return;
-    try {
-      sessionStorage.removeItem(`crm_draft_whatsapp_${activeWorkspace.id}`);
-    } catch {}
-  }
-
-  const loadDraft = useCallback(() => {
-    if (!activeWorkspace?.id || typeof window === 'undefined') return null;
-    try {
-      const raw = sessionStorage.getItem(`crm_draft_whatsapp_${activeWorkspace.id}`);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  }, [activeWorkspace?.id]);
 
   const fetchConfig = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -152,8 +125,6 @@ export function WhatsAppConfig() {
     try {
       const res = await fetch(`/api/whatsapp/config?workspace_id=${activeWorkspace.id}`);
       const payload = await res.json();
-
-      const draft = loadDraft();
 
       if (payload.connected) {
         setConnectionStatus('connected');
@@ -177,25 +148,39 @@ export function WhatsAppConfig() {
         setStatusMessage(payload.message || '');
       }
 
-      if (draft) {
-        if (draft.selectedProvider) setSelectedProvider(draft.selectedProvider);
-        if (draft.phoneNumberId !== undefined) setPhoneNumberId(draft.phoneNumberId);
-        if (draft.wabaId !== undefined) setWabaId(draft.wabaId);
-        if (draft.verifyToken !== undefined) setVerifyToken(draft.verifyToken);
-        if (draft.accessToken !== undefined) setAccessToken(draft.accessToken);
-        if (draft.tokenEdited !== undefined) setTokenEdited(draft.tokenEdited);
+      const activeProv = (payload.provider as Provider) || 'meta';
+      setSelectedProvider(activeProv);
+
+      // Populate verify token
+      if (payload.verify_token) {
+        setVerifyToken(payload.verify_token);
       } else {
-        if (payload.provider) setSelectedProvider(payload.provider as Provider);
-        setPhoneNumberId(payload.phone_number_id || '');
-        setWabaId(payload.waba_id || '');
-        setVerifyToken(payload.verify_token || '');
+        setVerifyToken(generateVerifyToken());
+      }
+
+      // Populate provider-specific fields from DB
+      if (activeProv === 'meta') {
+        setMetaPhoneId(payload.phone_number_id || '');
+        setMetaWabaId(payload.waba_id || '');
         if (payload.has_token || payload.connected) {
-          setAccessToken(MASKED_TOKEN);
-          setTokenEdited(false);
-        } else {
-          setAccessToken('');
-          setTokenEdited(false);
+          setMetaToken(MASKED_TOKEN);
+          setMetaTokenEdited(false);
         }
+      } else if (activeProv === 'twilio') {
+        setTwilioSender(payload.phone_number_id || '');
+        setTwilioAccountSid(payload.waba_id || '');
+        if (payload.has_token || payload.connected) {
+          setTwilioAuthToken(MASKED_TOKEN);
+          setTwilioTokenEdited(false);
+        }
+      } else if (activeProv === 'apiauto') {
+        setApiautoPhoneId(payload.phone_number_id || '');
+        if (payload.has_token || payload.connected) {
+          setApiautoApiKey(MASKED_TOKEN);
+          setApiautoTokenEdited(false);
+        }
+      } else if (activeProv === 'mock') {
+        setMockPhoneId(payload.phone_number_id || 'sim-phone-001');
       }
     } catch (err) {
       console.error('fetchConfig error:', err);
@@ -203,16 +188,7 @@ export function WhatsAppConfig() {
     } finally {
       setLoading(false);
     }
-  }, [activeWorkspace?.id, loadDraft]);
-
-  function resetFormFields() {
-    setPhoneNumberId('');
-    setWabaId('');
-    setAccessToken('');
-    setVerifyToken('');
-    setTokenEdited(false);
-    clearDraft();
-  }
+  }, [activeWorkspace?.id]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -228,14 +204,50 @@ export function WhatsAppConfig() {
       toast.error('No active workspace selected');
       return;
     }
-    if (!phoneNumberId.trim()) {
-      toast.error(selectedProvider === 'twilio' ? 'Twilio Phone Number is required' : 'Phone Number ID is required');
+
+    let phone_number_id = '';
+    let waba_id: string | null = null;
+    let rawToken = '';
+    let isTokenEdited = false;
+
+    if (selectedProvider === 'meta') {
+      phone_number_id = metaPhoneId.trim();
+      waba_id = metaWabaId.trim() || null;
+      rawToken = metaToken.trim();
+      isTokenEdited = metaTokenEdited;
+      if (!phone_number_id) {
+        toast.error('Phone Number ID is required for Meta Cloud API');
+        return;
+      }
+    } else if (selectedProvider === 'twilio') {
+      phone_number_id = twilioSender.trim();
+      waba_id = twilioAccountSid.trim() || null;
+      rawToken = twilioAuthToken.trim();
+      isTokenEdited = twilioTokenEdited;
+      if (!phone_number_id) {
+        toast.error('Twilio Sender Number is required');
+        return;
+      }
+    } else if (selectedProvider === 'apiauto') {
+      phone_number_id = apiautoPhoneId.trim();
+      rawToken = apiautoApiKey.trim();
+      isTokenEdited = apiautoTokenEdited;
+      if (!phone_number_id) {
+        toast.error('Phone Number ID is required for ApiAuto.in');
+        return;
+      }
+    } else if (selectedProvider === 'mock') {
+      phone_number_id = mockPhoneId.trim() || 'sim-phone-001';
+      rawToken = 'mock-token';
+    }
+
+    if (!hasConfig && selectedProvider !== 'mock' && (!rawToken || rawToken === MASKED_TOKEN)) {
+      toast.error('API Access / Auth Token is required for initial setup');
       return;
     }
-    if (!hasConfig && (!accessToken.trim() || accessToken === MASKED_TOKEN)) {
-      toast.error(selectedProvider === 'twilio' ? 'Auth Token is required for initial setup' : 'Access Token is required for initial setup');
-      return;
-    }
+
+    const currentVerifyToken = verifyToken.trim() || generateVerifyToken();
+    if (!verifyToken) setVerifyToken(currentVerifyToken);
 
     try {
       setSaving(true);
@@ -243,19 +255,19 @@ export function WhatsAppConfig() {
       const payload: Record<string, unknown> = {
         workspace_id: activeWorkspace.id,
         provider: selectedProvider,
-        phone_number_id: phoneNumberId.trim(),
-        waba_id: wabaId.trim() || null,
-        verify_token: verifyToken.trim() || null,
+        phone_number_id,
+        waba_id,
+        verify_token: currentVerifyToken,
       };
 
-      if (tokenEdited && accessToken !== MASKED_TOKEN && accessToken.trim()) {
-        payload.access_token = accessToken.trim();
-      } else if (hasConfig && !tokenEdited) {
-        payload.access_token = MASKED_TOKEN;
-      } else if (!hasConfig && selectedProvider === 'mock') {
+      if (selectedProvider === 'mock') {
         payload.access_token = 'mock-token';
-      } else if (accessToken && accessToken !== MASKED_TOKEN) {
-        payload.access_token = accessToken.trim();
+      } else if (isTokenEdited && rawToken && rawToken !== MASKED_TOKEN) {
+        payload.access_token = rawToken;
+      } else if (hasConfig && !isTokenEdited) {
+        payload.access_token = MASKED_TOKEN;
+      } else {
+        payload.access_token = rawToken;
       }
 
       const res = await fetch('/api/whatsapp/config', {
@@ -270,8 +282,6 @@ export function WhatsAppConfig() {
         toast.error(data.error || 'Failed to save configuration');
         return;
       }
-
-      clearDraft();
 
       const providerName = PROVIDER_TABS.find(p => p.id === selectedProvider)?.label || selectedProvider;
       toast.success(
@@ -322,7 +332,7 @@ export function WhatsAppConfig() {
 
   async function handleReset() {
     if (!activeWorkspace?.id) return;
-    if (!confirm('This will delete the current WhatsApp config so you can re-enter it. Continue?')) return;
+    if (!confirm('This will clear the active WhatsApp config so you can re-enter your credentials. Continue?')) return;
 
     try {
       setResetting(true);
@@ -334,26 +344,28 @@ export function WhatsAppConfig() {
         return;
       }
 
-      clearDraft();
       toast.success('Configuration cleared. You can now re-enter your credentials.');
       setHasConfig(false);
       setConnectionStatus('disconnected');
       setShowResetBanner(false);
       setStatusMessage('');
-      resetFormFields();
+      setMetaPhoneId('');
+      setMetaWabaId('');
+      setMetaToken('');
+      setMetaTokenEdited(false);
+      setTwilioSender('');
+      setTwilioAccountSid('');
+      setTwilioAuthToken('');
+      setTwilioTokenEdited(false);
+      setApiautoPhoneId('');
+      setApiautoApiKey('');
+      setApiautoTokenEdited(false);
     } catch (err) {
       console.error('Reset error:', err);
       toast.error('Failed to reset configuration');
     } finally {
       setResetting(false);
     }
-  }
-
-  function generateVerifyToken() {
-    const rand = Array.from(crypto.getRandomValues(new Uint8Array(12)))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-    return `whvt_${rand}`;
   }
 
   function handleCopyVerifyToken() {
@@ -365,7 +377,6 @@ export function WhatsAppConfig() {
   function handleGenerateVerifyToken() {
     const newToken = generateVerifyToken();
     setVerifyToken(newToken);
-    saveDraft({ verifyToken: newToken });
     toast.success('Generated new Webhook Verify Token');
   }
 
@@ -377,7 +388,7 @@ export function WhatsAppConfig() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="size-6 animate-spin text-[#00aef0]" />
+        <Loader2 className="size-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -385,97 +396,114 @@ export function WhatsAppConfig() {
   const currentTab = PROVIDER_TABS.find(p => p.id === selectedProvider)!;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_380px] mt-4">
+    <div className="grid gap-6 lg:grid-cols-[1fr_360px] mt-4">
       {/* ── Main config form ── */}
       <div className="space-y-6">
 
         {/* Token-corrupted reset banner */}
         {showResetBanner && (
-          <Alert className="bg-amber-950/40 border-amber-600/40">
+          <Alert className="bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="size-5 text-amber-400 mt-0.5 shrink-0" />
+              <AlertTriangle className="size-5 text-amber-500 mt-0.5 shrink-0" />
               <div className="flex-1">
-                <AlertTitle className="text-amber-200 mb-1">Stored token can&apos;t be decrypted</AlertTitle>
-                <AlertDescription className="text-amber-100/80 text-sm">{statusMessage}</AlertDescription>
+                <AlertTitle className="text-amber-900 dark:text-amber-100 font-semibold mb-1">Stored token can&apos;t be decrypted</AlertTitle>
+                <AlertDescription className="text-amber-800 dark:text-amber-200 text-xs sm:text-sm">{statusMessage}</AlertDescription>
                 <Button
                   onClick={handleReset}
                   disabled={resetting}
                   size="sm"
-                  className="mt-3 bg-amber-600 hover:bg-amber-700 text-white"
+                  className="mt-3 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs"
                 >
-                  {resetting ? <><Loader2 className="size-4 animate-spin" /> Resetting...</> : <><RotateCcw className="size-4" /> Reset Configuration</>}
+                  {resetting ? <><Loader2 className="size-3.5 animate-spin mr-1.5" /> Resetting...</> : <><RotateCcw className="size-3.5 mr-1.5" /> Reset Configuration</>}
                 </Button>
               </div>
             </div>
           </Alert>
         )}
 
-        {/* Connection status */}
-        <Alert className="bg-slate-900 border-slate-700">
-          <div className="flex items-center gap-2">
-            {connectionStatus === 'connected'
-              ? <CheckCircle2 className="size-4 text-[#00aef0]" />
-              : <XCircle className="size-4 text-red-500" />}
-            <AlertTitle className="text-white mb-0">
-              {connectionStatus === 'connected' ? 'Connected' : 'Not Connected'}
-            </AlertTitle>
-          </div>
-          <AlertDescription className="text-slate-400 mt-1">
-            {connectionStatus === 'connected'
-              ? `Your WhatsApp Business API is connected via ${currentTab.label} and ready to send/receive messages.`
-              : statusMessage || 'Select a provider below, fill in your credentials, and save.'}
-          </AlertDescription>
-        </Alert>
+        {/* Connection status card */}
+        <Card className="bg-card text-card-foreground border-border shadow-sm">
+          <CardContent className="p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              {connectionStatus === 'connected' ? (
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <CheckCircle2 className="size-5" />
+                </div>
+              ) : (
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                  <XCircle className="size-5" />
+                </div>
+              )}
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  {connectionStatus === 'connected' ? 'WhatsApp Connected' : 'WhatsApp Disconnected'}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {connectionStatus === 'connected'
+                    ? `Active via ${currentTab.label}. Messages are ready to send and receive.`
+                    : statusMessage || 'Select your provider below, enter credentials, and save.'}
+                </p>
+              </div>
+            </div>
+            {connectionStatus === 'connected' && (
+              <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                Active
+              </span>
+            )}
+          </CardContent>
+        </Card>
 
         {/* ── Provider selector ── */}
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-card text-card-foreground border-border shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-white text-base">WhatsApp Provider</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-foreground text-base">WhatsApp Provider</CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">
               Choose the API provider to send and receive WhatsApp messages.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {PROVIDER_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setSelectedProvider(tab.id);
-                    saveDraft({ selectedProvider: tab.id });
-                  }}
-                  className={`relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all duration-200 ${
-                    selectedProvider === tab.id
-                      ? 'border-[#00aef0]/50 bg-[#00aef0]/5 ring-1 ring-[#00aef0]/30'
-                      : 'border-slate-800 bg-slate-950/40 hover:border-slate-700 hover:bg-slate-900/60'
-                  }`}
-                >
-                  <div className={`${tab.color} ${selectedProvider === tab.id ? '' : 'text-slate-500'} transition-colors`}>
-                    {tab.icon}
-                  </div>
-                  <div>
-                    <p className={`text-sm font-semibold ${selectedProvider === tab.id ? 'text-white' : 'text-slate-400'}`}>
-                      {tab.label}
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{tab.description}</p>
-                  </div>
-                  {selectedProvider === tab.id && (
-                    <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#00aef0] shadow-sm shadow-[#00aef0]/50" />
-                  )}
-                </button>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PROVIDER_TABS.map((tab) => {
+                const isSelected = selectedProvider === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setSelectedProvider(tab.id)}
+                    className={cn(
+                      "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all duration-200",
+                      isSelected
+                        ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
+                        : "border-border bg-card hover:border-border/80 hover:bg-muted/50"
+                    )}
+                  >
+                    <div className={cn("p-2 rounded-lg transition-colors", isSelected ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
+                      {tab.icon}
+                    </div>
+                    <div>
+                      <p className={cn("text-xs font-bold transition-colors", isSelected ? "text-primary" : "text-foreground")}>
+                        {tab.label}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{tab.description}</p>
+                    </div>
+                    {isSelected && (
+                      <span className="absolute top-3 right-3 h-2 w-2 rounded-full bg-primary shadow-sm" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
 
         {/* ── Provider-specific credential fields ── */}
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-card text-card-foreground border-border shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <span className={currentTab.color}>{currentTab.icon}</span>
+            <CardTitle className="text-foreground text-base flex items-center gap-2">
+              <span className="text-primary">{currentTab.icon}</span>
               {currentTab.label} Credentials
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-muted-foreground text-xs">
               {selectedProvider === 'meta' && 'Enter your Meta WhatsApp Business API credentials from the Meta Developer Dashboard.'}
               {selectedProvider === 'twilio' && 'Enter your Twilio Account SID, Auth Token, and WhatsApp sender number.'}
               {selectedProvider === 'mock' && 'No real credentials needed — the simulator accepts any values and returns instant successes.'}
@@ -484,95 +512,167 @@ export function WhatsAppConfig() {
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* Phone Number ID / Sender Number */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">
-                {selectedProvider === 'twilio' ? 'Twilio Sender Number' : 'Phone Number ID'}
-              </Label>
-              <Input
-                placeholder={
-                  selectedProvider === 'twilio'
-                    ? 'e.g. +14155238886'
-                    : selectedProvider === 'mock'
-                    ? 'e.g. sim-phone-001'
-                    : 'e.g. 100234567890123'
-                }
-                value={phoneNumberId}
-                onChange={(e) => {
-                  setPhoneNumberId(e.target.value);
-                  saveDraft({ phoneNumberId: e.target.value });
-                }}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-              />
-            </div>
-
-            {/* WABA ID / Account SID — not shown for mock or apiauto */}
-            {!['mock', 'apiauto'].includes(selectedProvider) && (
-              <div className="space-y-2">
-                <Label className="text-slate-300">
-                  {selectedProvider === 'twilio' ? 'Twilio Account SID' : 'WhatsApp Business Account ID'}
-                </Label>
-                <Input
-                  placeholder={
-                    selectedProvider === 'twilio'
-                      ? 'e.g. ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-                      : 'e.g. 100234567890456'
-                  }
-                  value={wabaId}
-                  onChange={(e) => {
-                    setWabaId(e.target.value);
-                    saveDraft({ wabaId: e.target.value });
-                  }}
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-                />
-              </div>
-            )}
-
-            {/* Access Token / Auth Token — not shown for mock */}
-            {selectedProvider !== 'mock' && (
-              <div className="space-y-2">
-                <Label className="text-slate-300">
-                  {selectedProvider === 'twilio' ? 'Auth Token' : selectedProvider === 'apiauto' ? 'ApiAuto API Key' : 'Permanent Access Token'}
-                </Label>
-                <div className="relative">
+            {/* Meta Cloud API Fields */}
+            {selectedProvider === 'meta' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Phone Number ID</Label>
                   <Input
-                    type={showToken ? 'text' : 'password'}
-                    placeholder={selectedProvider === 'twilio' ? 'Enter your Twilio Auth Token' : selectedProvider === 'apiauto' ? 'Enter your ApiAuto token' : 'Enter your Meta access token'}
-                    value={accessToken}
-                    onChange={(e) => {
-                      setAccessToken(e.target.value);
-                      setTokenEdited(true);
-                      saveDraft({ accessToken: e.target.value, tokenEdited: true });
-                    }}
-                    onFocus={() => {
-                      if (accessToken === MASKED_TOKEN) {
-                        setAccessToken('');
-                        setTokenEdited(true);
-                        saveDraft({ accessToken: '', tokenEdited: true });
-                      }
-                    }}
-                    className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 pr-10"
+                    placeholder="e.g. 1293266613862937"
+                    value={metaPhoneId}
+                    onChange={(e) => setMetaPhoneId(e.target.value)}
+                    className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowToken(!showToken)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
-                  >
-                    {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
                 </div>
-                {hasConfig && !tokenEdited && (
-                  <p className="text-xs text-slate-500">Token is hidden for security. Re-enter it to update.</p>
-                )}
-              </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">WhatsApp Business Account ID</Label>
+                  <Input
+                    placeholder="e.g. 1027027283504128"
+                    value={metaWabaId}
+                    onChange={(e) => setMetaWabaId(e.target.value)}
+                    className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Permanent Access Token</Label>
+                  <div className="relative">
+                    <Input
+                      type={showToken ? 'text' : 'password'}
+                      placeholder="Enter your Meta access token"
+                      value={metaToken}
+                      onChange={(e) => {
+                        setMetaToken(e.target.value);
+                        setMetaTokenEdited(true);
+                      }}
+                      onFocus={() => {
+                        if (metaToken === MASKED_TOKEN) {
+                          setMetaToken('');
+                          setMetaTokenEdited(true);
+                        }
+                      }}
+                      className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowToken(!showToken)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                  {hasConfig && !metaTokenEdited && (
+                    <p className="text-[11px] text-muted-foreground">Token is hidden for security. Click to re-enter if updating.</p>
+                  )}
+                </div>
+              </>
             )}
 
-            {/* Mock simulator notice */}
+            {/* Twilio Fields */}
+            {selectedProvider === 'twilio' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Twilio Sender Number</Label>
+                  <Input
+                    placeholder="e.g. +14155238886"
+                    value={twilioSender}
+                    onChange={(e) => setTwilioSender(e.target.value)}
+                    className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Twilio Account SID</Label>
+                  <Input
+                    placeholder="e.g. ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    value={twilioAccountSid}
+                    onChange={(e) => setTwilioAccountSid(e.target.value)}
+                    className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Auth Token</Label>
+                  <div className="relative">
+                    <Input
+                      type={showToken ? 'text' : 'password'}
+                      placeholder="Enter your Twilio Auth Token"
+                      value={twilioAuthToken}
+                      onChange={(e) => {
+                        setTwilioAuthToken(e.target.value);
+                        setTwilioTokenEdited(true);
+                      }}
+                      onFocus={() => {
+                        if (twilioAuthToken === MASKED_TOKEN) {
+                          setTwilioAuthToken('');
+                          setTwilioTokenEdited(true);
+                        }
+                      }}
+                      className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowToken(!showToken)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ApiAuto Fields */}
+            {selectedProvider === 'apiauto' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Phone Number ID</Label>
+                  <Input
+                    placeholder="e.g. 100234567890123"
+                    value={apiautoPhoneId}
+                    onChange={(e) => setApiautoPhoneId(e.target.value)}
+                    className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">ApiAuto API Key</Label>
+                  <div className="relative">
+                    <Input
+                      type={showToken ? 'text' : 'password'}
+                      placeholder="Enter your ApiAuto token"
+                      value={apiautoApiKey}
+                      onChange={(e) => {
+                        setApiautoApiKey(e.target.value);
+                        setApiautoTokenEdited(true);
+                      }}
+                      onFocus={() => {
+                        if (apiautoApiKey === MASKED_TOKEN) {
+                          setApiautoApiKey('');
+                          setApiautoTokenEdited(true);
+                        }
+                      }}
+                      className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowToken(!showToken)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Sandbox Simulator notice */}
             {selectedProvider === 'mock' && (
-              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                <p className="text-sm text-emerald-400 font-medium mb-1">Sandbox mode active</p>
-                <p className="text-xs text-slate-400">
-                  All messages will be logged to the console and stored in the database as sent — no real WhatsApp messages will be delivered. Perfect for testing automations and broadcasts locally.
+              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4">
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">Sandbox mode active</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  All messages will be logged to the console and stored in the database as sent — no real WhatsApp messages will be delivered. Ideal for testing automations locally.
                 </p>
               </div>
             )}
@@ -581,27 +681,27 @@ export function WhatsAppConfig() {
 
         {/* Webhook URL & Verify Token — shown for Meta and ApiAuto */}
         {(selectedProvider === 'meta' || selectedProvider === 'apiauto') && (
-          <Card className="bg-slate-900 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white">Webhook Configuration</CardTitle>
-              <CardDescription className="text-slate-400">
+          <Card className="bg-card text-card-foreground border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-foreground text-base">Webhook Configuration</CardTitle>
+              <CardDescription className="text-muted-foreground text-xs">
                 Copy these parameters into your {selectedProvider === 'meta' ? 'Meta App Dashboard (WhatsApp > Configuration)' : 'ApiAuto platform'} to establish two-way messaging.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-slate-300">Webhook Callback URL</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-foreground">Webhook Callback URL</Label>
                 <div className="flex gap-2">
                   <Input
                     readOnly
                     value={webhookUrl}
-                    className="bg-slate-800 border-slate-700 text-slate-300 font-mono text-sm"
+                    className="bg-muted/50 border-input text-foreground font-mono text-xs sm:text-sm h-9"
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={handleCopyWebhookUrl}
-                    className="shrink-0 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+                    className="shrink-0 border-border text-foreground hover:bg-muted h-9 w-9"
                     title="Copy Callback URL"
                   >
                     <Copy className="size-4" />
@@ -610,23 +710,20 @@ export function WhatsAppConfig() {
               </div>
 
               {selectedProvider === 'meta' && (
-                <div className="space-y-2">
-                  <Label className="text-slate-300">Webhook Verify Token</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Webhook Verify Token</Label>
                   <div className="flex gap-2">
                     <Input
                       value={verifyToken}
-                      onChange={(e) => {
-                        setVerifyToken(e.target.value);
-                        saveDraft({ verifyToken: e.target.value });
-                      }}
+                      onChange={(e) => setVerifyToken(e.target.value)}
                       placeholder="e.g. whvt_8a7f9b2c4e1d6a03"
-                      className="bg-slate-800 border-slate-700 text-slate-300 font-mono text-sm"
+                      className="bg-muted/50 border-input text-foreground font-mono text-xs sm:text-sm h-9"
                     />
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={handleCopyVerifyToken}
-                      className="shrink-0 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+                      className="shrink-0 border-border text-foreground hover:bg-muted h-9 w-9"
                       title="Copy Verify Token"
                     >
                       <Copy className="size-4" />
@@ -635,13 +732,13 @@ export function WhatsAppConfig() {
                       variant="outline"
                       size="icon"
                       onClick={handleGenerateVerifyToken}
-                      className="shrink-0 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+                      className="shrink-0 border-border text-foreground hover:bg-muted h-9 w-9"
                       title="Generate New Verify Token"
                     >
                       <RotateCcw className="size-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-[11px] text-muted-foreground">
                     System-generated verification token. Copy &amp; paste this token into Meta Webhook setup.
                   </p>
                 </div>
@@ -655,26 +752,26 @@ export function WhatsAppConfig() {
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-[#00aef0] hover:bg-[#00aef0]/90 text-white shadow-lg shadow-[#00aef0]/10"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs h-9 px-4 shadow-sm"
           >
-            {saving ? <><Loader2 className="size-4 animate-spin" /> Saving...</> : 'Save Configuration'}
+            {saving ? <><Loader2 className="size-4 animate-spin mr-1.5" /> Saving...</> : 'Save Configuration'}
           </Button>
           <Button
             variant="outline"
             onClick={handleTestConnection}
             disabled={testing || !hasConfig}
-            className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+            className="border-border text-foreground hover:bg-muted font-medium text-xs h-9 px-4"
           >
-            {testing ? <><Loader2 className="size-4 animate-spin" /> Testing...</> : <><Zap className="size-4" /> Test Connection</>}
+            {testing ? <><Loader2 className="size-4 animate-spin mr-1.5" /> Testing...</> : <><Zap className="size-4 mr-1.5" /> Test Connection</>}
           </Button>
           {hasConfig && (
             <Button
               variant="outline"
               onClick={handleReset}
               disabled={resetting}
-              className="border-red-900 text-red-400 hover:text-red-300 hover:bg-red-950/40"
+              className="border-destructive/40 text-destructive hover:bg-destructive/10 font-medium text-xs h-9 px-4"
             >
-              {resetting ? <><Loader2 className="size-4 animate-spin" /> Resetting...</> : <><RotateCcw className="size-4" /> Reset Configuration</>}
+              {resetting ? <><Loader2 className="size-4 animate-spin mr-1.5" /> Resetting...</> : <><RotateCcw className="size-4 mr-1.5" /> Reset Configuration</>}
             </Button>
           )}
         </div>
@@ -682,78 +779,79 @@ export function WhatsAppConfig() {
 
       {/* ── Setup Instructions Sidebar ── */}
       <div>
-        <Card className="bg-slate-900 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white text-base">Setup Instructions</CardTitle>
-            <CardDescription className="text-slate-400">
+        <Card className="bg-card text-card-foreground border-border shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-foreground text-base">Setup Instructions</CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">
               {selectedProvider === 'meta' && 'Connect your Meta WhatsApp Cloud API account.'}
               {selectedProvider === 'twilio' && 'Connect your Twilio WhatsApp messaging account.'}
               {selectedProvider === 'mock' && 'No setup required — just save and start testing.'}
+              {selectedProvider === 'apiauto' && 'Connect your ApiAuto.in platform.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {selectedProvider === 'meta' && (
-              <Accordion>
-                <AccordionItem className="border-slate-700">
-                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+              <Accordion defaultValue={["item-4"]}>
+                <AccordionItem value="item-1" className="border-border">
+                  <AccordionTrigger className="text-foreground text-xs font-semibold hover:no-underline">
                     <span className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-[#00aef0] text-xs font-bold text-white">1</span>
+                      <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">1</span>
                       Create a Meta App
                     </span>
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-400">
-                    <ol className="list-decimal list-inside space-y-1 text-sm">
-                      <li>Go to <span className="text-[#00aef0]">developers.facebook.com</span></li>
+                  <AccordionContent className="text-muted-foreground text-xs">
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>Go to <span className="text-primary font-medium">developers.facebook.com</span></li>
                       <li>Click &quot;My Apps&quot; → &quot;Create App&quot;</li>
                       <li>Select &quot;Business&quot; as the app type</li>
                     </ol>
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem className="border-slate-700">
-                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+                <AccordionItem value="item-2" className="border-border">
+                  <AccordionTrigger className="text-foreground text-xs font-semibold hover:no-underline">
                     <span className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-[#00aef0] text-xs font-bold text-white">2</span>
+                      <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">2</span>
                       Add WhatsApp Product
                     </span>
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-400">
-                    <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <AccordionContent className="text-muted-foreground text-xs">
+                    <ol className="list-decimal list-inside space-y-1">
                       <li>In your app dashboard, click &quot;Add Product&quot;</li>
                       <li>Find &quot;WhatsApp&quot; and click &quot;Set Up&quot;</li>
                       <li>Follow the setup wizard to link your business</li>
                     </ol>
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem className="border-slate-700">
-                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+                <AccordionItem value="item-3" className="border-border">
+                  <AccordionTrigger className="text-foreground text-xs font-semibold hover:no-underline">
                     <span className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-[#00aef0] text-xs font-bold text-white">3</span>
+                      <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">3</span>
                       Get API Credentials
                     </span>
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-400">
-                    <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <AccordionContent className="text-muted-foreground text-xs">
+                    <ol className="list-decimal list-inside space-y-1">
                       <li>Go to WhatsApp &gt; API Setup</li>
-                      <li>Copy your <strong className="text-slate-200">Phone Number ID</strong></li>
-                      <li>Copy your <strong className="text-slate-200">WhatsApp Business Account ID</strong></li>
-                      <li>Generate a <strong className="text-slate-200">Permanent Access Token</strong> from Business Settings &gt; System Users</li>
+                      <li>Copy your <strong className="text-foreground">Phone Number ID</strong></li>
+                      <li>Copy your <strong className="text-foreground">WhatsApp Business Account ID</strong></li>
+                      <li>Generate a <strong className="text-foreground">Permanent Access Token</strong> from System Users</li>
                     </ol>
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem className="border-slate-700">
-                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+                <AccordionItem value="item-4" className="border-border">
+                  <AccordionTrigger className="text-foreground text-xs font-semibold hover:no-underline">
                     <span className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-[#00aef0] text-xs font-bold text-white">4</span>
-                      Configure Webhooks
+                      <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">4</span>
+                      Configure Webhooks (Required)
                     </span>
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-400">
-                    <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <AccordionContent className="text-muted-foreground text-xs">
+                    <ol className="list-decimal list-inside space-y-1">
                       <li>Go to WhatsApp &gt; Configuration</li>
                       <li>Click &quot;Edit&quot; on the Webhook section</li>
-                      <li>Paste the <strong className="text-slate-200">Webhook Callback URL</strong></li>
-                      <li>Enter the same <strong className="text-slate-200">Verify Token</strong> you set here</li>
-                      <li>Subscribe to &quot;messages&quot; webhook field</li>
+                      <li>Paste the <strong className="text-foreground">Webhook Callback URL</strong></li>
+                      <li>Enter the <strong className="text-foreground">Webhook Verify Token</strong> shown here</li>
+                      <li><strong className="text-primary">MANDATORY:</strong> Click &quot;Subscribe&quot; on the <span className="text-foreground font-semibold">&quot;messages&quot;</span> field!</li>
                     </ol>
                   </AccordionContent>
                 </AccordionItem>
@@ -761,108 +859,24 @@ export function WhatsAppConfig() {
             )}
 
             {selectedProvider === 'twilio' && (
-              <Accordion>
-                <AccordionItem className="border-slate-700">
-                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+              <Accordion defaultValue={["item-1"]}>
+                <AccordionItem value="item-1" className="border-border">
+                  <AccordionTrigger className="text-foreground text-xs font-semibold hover:no-underline">
                     <span className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">1</span>
+                      <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">1</span>
                       Get Twilio Credentials
                     </span>
                   </AccordionTrigger>
-                  <AccordionContent className="text-slate-400">
-                    <ol className="list-decimal list-inside space-y-1 text-sm">
-                      <li>Go to <span className="text-rose-400">console.twilio.com</span></li>
-                      <li>Copy your <strong className="text-slate-200">Account SID</strong> (WABA ID field)</li>
-                      <li>Copy your <strong className="text-slate-200">Auth Token</strong> (Access Token field)</li>
-                    </ol>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem className="border-slate-700">
-                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
-                    <span className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">2</span>
-                      Set Up WhatsApp Sender
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-slate-400">
-                    <ol className="list-decimal list-inside space-y-1 text-sm">
-                      <li>In Twilio Console, go to Messaging &gt; Try it out &gt; Send a WhatsApp message</li>
-                      <li>Note your <strong className="text-slate-200">Twilio WhatsApp Number</strong> (e.g. +14155238886)</li>
-                      <li>For production, request a dedicated sender in Messaging &gt; Senders</li>
+                  <AccordionContent className="text-muted-foreground text-xs">
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>Go to <span className="text-primary font-medium">console.twilio.com</span></li>
+                      <li>Copy your <strong className="text-foreground">Account SID</strong></li>
+                      <li>Copy your <strong className="text-foreground">Auth Token</strong></li>
                     </ol>
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
             )}
-
-            {selectedProvider === 'mock' && (
-              <div className="space-y-3 text-sm text-slate-400">
-                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                  <p className="text-emerald-400 font-medium mb-2">✓ No configuration needed</p>
-                  <p>The Sandbox Simulator works immediately after saving. Use any placeholder values in the Phone Number field.</p>
-                </div>
-                <p>All sends will appear in the inbox as delivered, and the message IDs will start with <code className="text-emerald-400 bg-slate-800 px-1 rounded">mock-msg-</code>.</p>
-                <p>Perfect for testing automations, broadcasts, and CRM workflows without incurring API costs.</p>
-              </div>
-            )}
-
-            {selectedProvider === 'apiauto' && (
-              <Accordion>
-                <AccordionItem className="border-slate-700">
-                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
-                    <span className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-violet-500 text-xs font-bold text-white">1</span>
-                      Get ApiAuto Credentials
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-slate-400">
-                    <ol className="list-decimal list-inside space-y-1 text-sm">
-                      <li>Go to <span className="text-violet-400">official.apiauto.in</span></li>
-                      <li>Copy your <strong className="text-slate-200">Business Phone Number ID</strong></li>
-                      <li>Copy your <strong className="text-slate-200">API Key</strong> (Access Token)</li>
-                    </ol>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem className="border-slate-700">
-                  <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
-                    <span className="flex items-center gap-2">
-                      <span className="flex size-5 items-center justify-center rounded-full bg-violet-500 text-xs font-bold text-white">2</span>
-                      Important Inbound Webhook Note
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-slate-400">
-                    <p className="text-sm">
-                      The ApiAuto platform currently limits incoming webhook configuration. Outbound messaging will work perfectly, but inbound replies from customers may not be forwarded to this CRM unless ApiAuto provides webhook forwarding.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            )}
-
-            <div className="mt-4 pt-4 border-t border-slate-700 space-y-2">
-              {selectedProvider === 'meta' && (
-                <a
-                  href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-[#00aef0] hover:text-[#00aef0]/80 transition-colors"
-                >
-                  <ExternalLink className="size-3.5" />
-                  Meta WhatsApp API Documentation
-                </a>
-              )}
-              {selectedProvider === 'twilio' && (
-                <a
-                  href="https://www.twilio.com/docs/whatsapp/api"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-rose-400 hover:text-rose-300 transition-colors"
-                >
-                  <ExternalLink className="size-3.5" />
-                  Twilio WhatsApp API Documentation
-                </a>
-              )}
-            </div>
           </CardContent>
         </Card>
       </div>

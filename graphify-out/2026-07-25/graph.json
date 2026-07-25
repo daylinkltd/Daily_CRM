@@ -5867,7 +5867,7 @@
       "label": "findOrCreateConversation()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L877",
+      "source_location": "L881",
       "_origin": "ast",
       "id": "webhook_route_findorcreateconversation",
       "community": 9,
@@ -31228,9 +31228,9 @@
       "source_file": "src/app/(dashboard)/inbox/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_page",
-      "target": "hooks_use_workspace",
-      "confidence_score": 1.0
+      "target": "hooks_use_workspace"
     },
     {
       "relation": "imports",
@@ -31239,9 +31239,9 @@
       "source_file": "src/app/(dashboard)/inbox/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_page",
-      "target": "hooks_use_workspace_useworkspace",
-      "confidence_score": 1.0
+      "target": "hooks_use_workspace_useworkspace"
     },
     {
       "relation": "imports_from",
@@ -31316,9 +31316,9 @@
       "source_file": "src/app/(dashboard)/inbox/page.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_page",
-      "target": "inbox_new_chat_modal",
-      "confidence_score": 1.0
+      "target": "inbox_new_chat_modal"
     },
     {
       "relation": "imports",
@@ -31327,9 +31327,9 @@
       "source_file": "src/app/(dashboard)/inbox/page.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_page",
-      "target": "inbox_new_chat_modal_newchatmodal",
-      "confidence_score": 1.0
+      "target": "inbox_new_chat_modal_newchatmodal"
     },
     {
       "relation": "contains",
@@ -42193,9 +42193,9 @@
       "source_file": "src/app/api/conversations/create/route.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "create_route",
-      "target": "create_route_post",
-      "confidence_score": 1.0
+      "target": "create_route_post"
     },
     {
       "relation": "imports_from",
@@ -42204,9 +42204,9 @@
       "source_file": "src/app/api/conversations/create/route.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "create_route",
-      "target": "supabase_server",
-      "confidence_score": 1.0
+      "target": "supabase_server"
     },
     {
       "relation": "imports",
@@ -42215,9 +42215,9 @@
       "source_file": "src/app/api/conversations/create/route.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "create_route",
-      "target": "supabase_server_createclient",
-      "confidence_score": 1.0
+      "target": "supabase_server_createclient"
     },
     {
       "relation": "imports_from",
@@ -42226,9 +42226,9 @@
       "source_file": "src/app/api/conversations/create/route.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "create_route",
-      "target": "whatsapp_phone_utils",
-      "confidence_score": 1.0
+      "target": "whatsapp_phone_utils"
     },
     {
       "relation": "imports",
@@ -42237,9 +42237,9 @@
       "source_file": "src/app/api/conversations/create/route.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "create_route",
-      "target": "whatsapp_phone_utils_isvalide164",
-      "confidence_score": 1.0
+      "target": "whatsapp_phone_utils_isvalide164"
     },
     {
       "relation": "imports",
@@ -42248,9 +42248,9 @@
       "source_file": "src/app/api/conversations/create/route.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "create_route",
-      "target": "whatsapp_phone_utils_sanitizephoneformeta",
-      "confidence_score": 1.0
+      "target": "whatsapp_phone_utils_sanitizephoneformeta"
     },
     {
       "relation": "calls",
@@ -63790,9 +63790,9 @@
       "source_file": "src/components/inbox/message-thread.tsx",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_message_thread",
-      "target": "ui_button",
-      "confidence_score": 1.0
+      "target": "ui_button"
     },
     {
       "relation": "imports",
@@ -63801,9 +63801,9 @@
       "source_file": "src/components/inbox/message-thread.tsx",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_message_thread",
-      "target": "ui_button_button",
-      "confidence_score": 1.0
+      "target": "ui_button_button"
     },
     {
       "relation": "imports_from",
@@ -64258,9 +64258,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "inbox_new_chat_modal_newchatmodal",
-      "confidence_score": 1.0
+      "target": "inbox_new_chat_modal_newchatmodal"
     },
     {
       "relation": "contains",
@@ -64268,9 +64268,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "inbox_new_chat_modal_newchatmodalprops",
-      "confidence_score": 1.0
+      "target": "inbox_new_chat_modal_newchatmodalprops"
     },
     {
       "relation": "imports_from",
@@ -64279,9 +64279,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "lib_utils",
-      "confidence_score": 1.0
+      "target": "lib_utils"
     },
     {
       "relation": "imports",
@@ -64290,9 +64290,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "lib_utils_cn",
-      "confidence_score": 1.0
+      "target": "lib_utils_cn"
     },
     {
       "relation": "imports_from",
@@ -64301,9 +64301,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "supabase_client",
-      "confidence_score": 1.0
+      "target": "supabase_client"
     },
     {
       "relation": "imports",
@@ -64312,9 +64312,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "supabase_client_createclient",
-      "confidence_score": 1.0
+      "target": "supabase_client_createclient"
     },
     {
       "relation": "imports_from",
@@ -64323,9 +64323,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "types_index",
-      "confidence_score": 1.0
+      "target": "types_index"
     },
     {
       "relation": "imports",
@@ -64334,9 +64334,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "types_index_contact",
-      "confidence_score": 1.0
+      "target": "types_index_contact"
     },
     {
       "relation": "imports",
@@ -64345,9 +64345,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "types_index_conversation",
-      "confidence_score": 1.0
+      "target": "types_index_conversation"
     },
     {
       "relation": "imports_from",
@@ -64356,9 +64356,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_button",
-      "confidence_score": 1.0
+      "target": "ui_button"
     },
     {
       "relation": "imports",
@@ -64367,9 +64367,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_button_button",
-      "confidence_score": 1.0
+      "target": "ui_button_button"
     },
     {
       "relation": "imports_from",
@@ -64378,9 +64378,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_dialog",
-      "confidence_score": 1.0
+      "target": "ui_dialog"
     },
     {
       "relation": "imports",
@@ -64389,9 +64389,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_dialog_dialog",
-      "confidence_score": 1.0
+      "target": "ui_dialog_dialog"
     },
     {
       "relation": "imports",
@@ -64400,9 +64400,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_dialog_dialogcontent",
-      "confidence_score": 1.0
+      "target": "ui_dialog_dialogcontent"
     },
     {
       "relation": "imports",
@@ -64411,9 +64411,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_dialog_dialogdescription",
-      "confidence_score": 1.0
+      "target": "ui_dialog_dialogdescription"
     },
     {
       "relation": "imports",
@@ -64422,9 +64422,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_dialog_dialogheader",
-      "confidence_score": 1.0
+      "target": "ui_dialog_dialogheader"
     },
     {
       "relation": "imports",
@@ -64433,9 +64433,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_dialog_dialogtitle",
-      "confidence_score": 1.0
+      "target": "ui_dialog_dialogtitle"
     },
     {
       "relation": "imports_from",
@@ -64444,9 +64444,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_input",
-      "confidence_score": 1.0
+      "target": "ui_input"
     },
     {
       "relation": "imports",
@@ -64455,9 +64455,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_input_input",
-      "confidence_score": 1.0
+      "target": "ui_input_input"
     },
     {
       "relation": "imports_from",
@@ -64466,9 +64466,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_label",
-      "confidence_score": 1.0
+      "target": "ui_label"
     },
     {
       "relation": "imports",
@@ -64477,9 +64477,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal",
-      "target": "ui_label_label",
-      "confidence_score": 1.0
+      "target": "ui_label_label"
     },
     {
       "relation": "references",
@@ -64488,9 +64488,9 @@
       "source_file": "src/components/inbox/new-chat-modal.tsx",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "inbox_new_chat_modal_newchatmodalprops",
-      "target": "types_index_conversation",
-      "confidence_score": 1.0
+      "target": "types_index_conversation"
     },
     {
       "relation": "calls",
@@ -103940,5 +103940,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "48f45f82e98c1f1175dddc34be2ea321967f5961"
+  "built_at_commit": "0cb0425c55f29095b9086d7c4b52f8f75aabfcb7"
 }

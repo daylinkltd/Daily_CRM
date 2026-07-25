@@ -92,7 +92,7 @@ export async function GET(request: Request) {
       );
     }
 
-    // Try decrypting verify_token if present
+    // Try decrypting verify_token if present, or auto-generate fallback
     let verifyToken = "";
     if (config.verify_token) {
       try {
@@ -100,6 +100,10 @@ export async function GET(request: Request) {
       } catch {
         verifyToken = config.verify_token;
       }
+    }
+    if (!verifyToken) {
+      const rand = Math.random().toString(36).substring(2, 14);
+      verifyToken = `whvt_${rand}`;
     }
 
     // Resolve driver and verify credentials dynamically
@@ -250,17 +254,24 @@ export async function POST(request: Request) {
       encryptedAccessToken = existing!.access_token;
     }
 
-    let encryptedVerifyToken: string | null = existing?.verify_token ?? null;
-    if (verify_token !== undefined) {
-      if (verify_token && verify_token.trim()) {
-        try {
-          encryptedVerifyToken = encrypt(verify_token.trim());
-        } catch {
-          encryptedVerifyToken = null;
-        }
-      } else {
-        encryptedVerifyToken = null;
+    let finalVerifyToken = (verify_token && verify_token.trim()) ? verify_token.trim() : null;
+    if (!finalVerifyToken && existing?.verify_token) {
+      try {
+        finalVerifyToken = decrypt(existing.verify_token);
+      } catch {
+        finalVerifyToken = existing.verify_token;
       }
+    }
+    if (!finalVerifyToken) {
+      const rand = Math.random().toString(36).substring(2, 14);
+      finalVerifyToken = `whvt_${rand}`;
+    }
+
+    let encryptedVerifyToken: string | null = null;
+    try {
+      encryptedVerifyToken = encrypt(finalVerifyToken);
+    } catch {
+      encryptedVerifyToken = finalVerifyToken;
     }
 
     // Upsert scoped strictly by workspace_id

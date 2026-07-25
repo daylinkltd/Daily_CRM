@@ -370,8 +370,8 @@
     "semantic_hash": ""
   },
   "src/app/api/whatsapp/config/route.ts": {
-    "mtime": 1784918813.680503,
-    "ast_hash": "fedac0681c69930a2bdfb1f705a2e1e9",
+    "mtime": 1784971651.3746462,
+    "ast_hash": "66aa41d485a47902acccac38564cc71c",
     "semantic_hash": ""
   },
   "src/app/api/whatsapp/config/verify-registration/route.ts": {
@@ -410,8 +410,8 @@
     "semantic_hash": ""
   },
   "src/app/api/whatsapp/webhook/route.ts": {
-    "mtime": 1784970715.7662835,
-    "ast_hash": "396ff9c8323169e5e8becb4d2ac0ba69",
+    "mtime": 1784971633.6084592,
+    "ast_hash": "cfe46633dd922378a89b683be37519b8",
     "semantic_hash": ""
   },
   "src/app/api/workspace/roles/route.ts": {
@@ -840,8 +840,8 @@
     "semantic_hash": ""
   },
   "src/components/settings/whatsapp-config.tsx": {
-    "mtime": 1784918924.3018541,
-    "ast_hash": "8c910648c1c8309ac574c2ae3b8ab3ef",
+    "mtime": 1784971704.5741045,
+    "ast_hash": "b3b1fdb8f41ac7a8ddf313399f35ac43",
     "semantic_hash": ""
   },
   "src/components/settings/workspace-settings.tsx": {
