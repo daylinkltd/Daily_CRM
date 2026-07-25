@@ -38,6 +38,14 @@ import {
   ShieldCheck,
   Banknote,
   Receipt,
+  ShoppingCart,
+  Package,
+  Layers,
+  Truck,
+  Building2,
+  RefreshCw,
+  Store,
+  Wallet,
   ChevronDown,
   ChevronRight,
   Activity,
@@ -82,6 +90,22 @@ const navGroups: NavGroup[] = [
       { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts" as any },
       { href: "/media", label: "Media", icon: ImageIcon, permission: null },
       { href: "/forms", label: "Forms", icon: FileText, permission: null },
+    ]
+  },
+  {
+    label: "Retail",
+    items: [
+      { href: "/pos", label: "POS Terminal", icon: ShoppingCart, permission: null },
+      { href: "/commerce/products", label: "Products", icon: Package, permission: null },
+      { href: "/commerce/inventory", label: "Inventory", icon: Layers, permission: null },
+      { href: "/commerce/ledger", label: "Customer Ledger / Khata", icon: Wallet, permission: null },
+      { href: "/commerce/accounting", label: "Accounting & GL Ledgers", icon: BookOpen, permission: null },
+      { href: "/commerce/gst", label: "GST Reports & Filing", icon: FileText, permission: null },
+      { href: "/commerce/sales", label: "Sales & Invoices", icon: Receipt, permission: null },
+      { href: "/commerce/purchases", label: "Purchases & POs", icon: Truck, permission: null },
+      { href: "/commerce/suppliers", label: "Suppliers", icon: Building2, permission: null },
+      { href: "/commerce/returns", label: "Returns", icon: RefreshCw, permission: null },
+      { href: "/settings?tab=retail", label: "Retail Settings & Presets", icon: Settings, permission: null },
     ]
   },
   {

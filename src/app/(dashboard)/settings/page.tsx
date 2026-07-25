@@ -21,6 +21,7 @@ import { CatalogSettings } from '@/components/settings/catalog-settings';
 import { BrandingSettings } from '@/components/settings/branding-settings';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { HRSettingsPanel } from '@/components/settings/hr-settings-panel';
+import RetailSettingsPage from '@/app/(dashboard)/settings/retail/page';
 import {
   resolveSection,
   type SettingsSection,
@@ -91,6 +92,8 @@ export default function SettingsPage() {
         return <BrandingSettings />;
       case 'hr':
         return <HRSettingsPanel />;
+      case 'retail':
+        return <RetailSettingsPage />;
       default:
         return <SettingsOverview onSelect={go} />;
     }
