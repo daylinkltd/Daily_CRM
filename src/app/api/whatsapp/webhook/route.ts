@@ -829,11 +829,15 @@ async function findOrCreateContact(
   name: string,
   workspaceId: string
 ): Promise<ContactOutcome | null> {
-  // Look up existing contacts for this user
-  const { data: contacts, error: contactsError } = await supabaseAdmin()
-    .from('contacts')
-    .select('*')
-    .eq('user_id', userId)
+  // Look up existing contacts in this workspace first, falling back to user_id
+  let query = supabaseAdmin().from('contacts').select('*')
+  if (workspaceId) {
+    query = query.eq('workspace_id', workspaceId)
+  } else {
+    query = query.eq('user_id', userId)
+  }
+
+  const { data: contacts, error: contactsError } = await query
 
   if (contactsError) {
     console.error('Error fetching contacts:', contactsError)
@@ -875,15 +879,17 @@ async function findOrCreateContact(
 }
 
 async function findOrCreateConversation(userId: string, contactId: string, workspaceId: string) {
-  // Look for existing conversation
-  const { data: existing, error: findError } = await supabaseAdmin()
-    .from('conversations')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('contact_id', contactId)
-    .single()
+  // Look for existing conversation by workspace_id & contact_id first
+  let query = supabaseAdmin().from('conversations').select('*').eq('contact_id', contactId)
+  if (workspaceId) {
+    query = query.eq('workspace_id', workspaceId)
+  } else {
+    query = query.eq('user_id', userId)
+  }
 
-  if (!findError && existing) {
+  const { data: existing } = await query.maybeSingle()
+
+  if (existing) {
     return existing
   }
 
@@ -894,6 +900,9 @@ async function findOrCreateConversation(userId: string, contactId: string, works
       user_id: userId,
       contact_id: contactId,
       workspace_id: workspaceId,
+      status: 'open',
+      bot_status: 'active',
+      last_message_at: new Date().toISOString(),
     })
     .select()
     .single()

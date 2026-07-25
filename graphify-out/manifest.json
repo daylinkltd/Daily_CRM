@@ -410,8 +410,8 @@
     "semantic_hash": ""
   },
   "src/app/api/whatsapp/webhook/route.ts": {
-    "mtime": 1784377515.27432,
-    "ast_hash": "84853d3bf215292ff5e8517c7bc311f9",
+    "mtime": 1784970715.7662835,
+    "ast_hash": "396ff9c8323169e5e8becb4d2ac0ba69",
     "semantic_hash": ""
   },
   "src/app/api/workspace/roles/route.ts": {
@@ -3455,8 +3455,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/new-chat-modal.tsx": {
-    "mtime": 1784970142.8377988,
-    "ast_hash": "14e91cd6ba00e5375d4b8f0f774fe869",
+    "mtime": 1784970708.9943655,
+    "ast_hash": "86366bddbbadcfe4d9a45fd73e814a7a",
     "semantic_hash": ""
   }
 }
