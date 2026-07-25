@@ -5,9 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Conversation, Message, Contact, ConversationStatus } from "@/types";
 import { useRealtime } from "@/hooks/use-realtime";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { ConversationList } from "@/components/inbox/conversation-list";
 import { MessageThread } from "@/components/inbox/message-thread";
 import { ContactSidebar } from "@/components/inbox/contact-sidebar";
+import { NewChatModal } from "@/components/inbox/new-chat-modal";
 import { toast } from "sonner";
 import { WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +17,7 @@ import { cn } from "@/lib/utils";
 export default function InboxPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { activeWorkspace } = useWorkspace();
   /**
    * `?c=<id>` deep-link support. Used when landing here from the
    * dashboard's recent-conversations list so the right thread opens
@@ -30,6 +33,7 @@ export default function InboxPage() {
   const [whatsappConnected, setWhatsappConnected] = useState<boolean | null>(
     null
   );
+  const [newChatModalOpen, setNewChatModalOpen] = useState(false);
 
   // Fire the deep-link auto-select exactly once per URL — subsequent
   // list refreshes (realtime, manual refetch) must not snap the user
@@ -276,6 +280,17 @@ export default function InboxPage() {
     [activeConversation]
   );
 
+  const handleConversationCreated = useCallback(
+    (conv: Conversation) => {
+      setConversations((prev) => {
+        if (prev.some((c) => c.id === conv.id)) return prev;
+        return [conv, ...prev];
+      });
+      handleSelectConversation(conv);
+    },
+    [handleSelectConversation]
+  );
+
   // On mobile (<lg) we show a SINGLE pane — either the list or the
   // thread — rather than cramming both side-by-side. Selecting a
   // conversation slides the thread in; the thread's back button pops
@@ -311,6 +326,8 @@ export default function InboxPage() {
             onSelect={handleSelectConversation}
             conversations={conversations}
             onConversationsLoaded={handleConversationsLoaded}
+            workspaceId={activeWorkspace?.id}
+            onOpenNewChat={() => setNewChatModalOpen(true)}
           />
         </div>
 
@@ -334,6 +351,7 @@ export default function InboxPage() {
             onStatusChange={handleStatusChange}
             onAssignChange={handleAssignChange}
             onBack={handleCloseConversation}
+            onOpenNewChat={() => setNewChatModalOpen(true)}
           />
         </div>
 
@@ -342,6 +360,13 @@ export default function InboxPage() {
           <ContactSidebar contact={activeContact} />
         </div>
       </div>
+
+      <NewChatModal
+        open={newChatModalOpen}
+        onOpenChange={setNewChatModalOpen}
+        workspaceId={activeWorkspace?.id}
+        onConversationCreated={handleConversationCreated}
+      />
     </div>
   );
 }

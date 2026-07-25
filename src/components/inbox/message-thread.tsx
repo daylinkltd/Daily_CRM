@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { format, isToday, isYesterday, differenceInHours } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,15 +99,12 @@ interface MessageThreadProps {
    * working; the button is only rendered when this is provided.
    */
   onRefresh?: () => void;
-  /**
-   * Desktop-only contact-panel toggle. The page owns the open/closed
-   * state (it's the one that renders the sidebar), so the thread just
-   * reflects it and asks the page to flip it. Both optional so existing
-   * callers keep working; the toggle button only renders when
-   * `onToggleContactPanel` is wired up.
-   */
   contactPanelOpen?: boolean;
   onToggleContactPanel?: () => void;
+  /**
+   * Optional callback to open the New Chat modal from the empty state.
+   */
+  onOpenNewChat?: () => void;
 }
 
 function formatDateSeparator(dateStr: string): string {
@@ -165,6 +163,7 @@ export function MessageThread({
   onRefresh,
   contactPanelOpen,
   onToggleContactPanel,
+  onOpenNewChat,
 }: MessageThreadProps) {
   const { user } = useAuth();
   const { getPresence, getRow, now } = usePresence();
@@ -813,16 +812,24 @@ export function MessageThread({
   // pattern under the user's eye.
   if (!conversation || !contact) {
     return (
-      <div className={cn("flex flex-1 flex-col items-center justify-center", DOODLE_BG_CLASSES)}>
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+      <div className={cn("flex flex-1 flex-col items-center justify-center p-6 text-center", DOODLE_BG_CLASSES)}>
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted shadow-sm">
           <MessageSquare className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="mt-4 text-sm font-medium text-muted-foreground">
-          Select a conversation
+        <h3 className="mt-4 text-base font-semibold text-foreground">
+          No Conversation Selected
         </h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Choose a conversation from the left to start messaging
+        <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+          Select a chat from the left sidebar or start a new conversation to begin messaging on WhatsApp.
         </p>
+        {onOpenNewChat && (
+          <Button
+            onClick={onOpenNewChat}
+            className="mt-4 bg-[#00aef0] hover:bg-[#00aef0]/90 text-white font-medium text-xs shadow-md shadow-[#00aef0]/10"
+          >
+            + Start New Conversation
+          </Button>
+        )}
       </div>
     );
   }
