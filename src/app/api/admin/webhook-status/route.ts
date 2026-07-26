@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { recentWebhookLogs } from '@/app/api/whatsapp/webhook/route';
 
 function supabaseAdmin() {
   return createClient(
@@ -54,6 +55,7 @@ export async function GET() {
       },
       recentConversations: recentConversations ?? [],
       recentMessages: recentMessages ?? [],
+      webhookLogs: recentWebhookLogs ?? [],
       configError: configError ? configError.message : null,
     });
   } catch (error) {

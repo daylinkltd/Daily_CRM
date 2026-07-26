@@ -165,17 +165,51 @@ export async function GET(request: Request) {
   }
 }
 
+export interface WebhookLogEntry {
+  id: string
+  timestamp: string
+  method: string
+  signature: string | null
+  userAgent: string | null
+  rawBody: string
+  status: number
+  error?: string | null
+}
+
+export const recentWebhookLogs: WebhookLogEntry[] = []
+
+export function recordWebhookLog(entry: Omit<WebhookLogEntry, 'id' | 'timestamp'>) {
+  const logItem: WebhookLogEntry = {
+    id: Math.random().toString(36).substring(2, 9),
+    timestamp: new Date().toISOString(),
+    ...entry,
+  }
+  recentWebhookLogs.unshift(logItem)
+  if (recentWebhookLogs.length > 50) {
+    recentWebhookLogs.pop()
+  }
+}
+
 // POST - Receive messages
 export async function POST(request: Request) {
   // Read raw body first so we can HMAC-verify the exact bytes Meta
   // signed. request.json() would re-encode and break the signature.
   const rawBody = await request.text()
   const signature = request.headers.get('x-hub-signature-256')
+  const userAgent = request.headers.get('user-agent')
 
   let body: { entry?: WhatsAppWebhookEntry[] }
   try {
     body = JSON.parse(rawBody)
   } catch {
+    recordWebhookLog({
+      method: 'POST',
+      signature,
+      userAgent,
+      rawBody: rawBody.slice(0, 500),
+      status: 400,
+      error: 'Invalid JSON',
+    })
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
@@ -288,6 +322,14 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error processing webhook:', error)
   }
+
+  recordWebhookLog({
+    method: 'POST',
+    signature,
+    userAgent,
+    rawBody: rawBody.slice(0, 1000),
+    status: 200,
+  })
 
   return NextResponse.json({ status: 'received' }, { status: 200 })
 }
