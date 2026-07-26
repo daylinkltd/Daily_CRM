@@ -331,16 +331,27 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let config: any = null
       if (configs && configs.length > 0) {
-        // 1. Exact or trimmed phone_number_id match
+        const pId = String(phoneNumberId).trim()
+        const eId = String(entry.id).trim()
+
+        // 1. Match by phone_number_id or waba_id against phoneNumberId or entry.id
         config = configs.find(
-          (c: { phone_number_id?: string }) =>
-            c.phone_number_id &&
-            (c.phone_number_id === String(phoneNumberId) ||
-              c.phone_number_id.trim() === String(phoneNumberId).trim() ||
-              String(phoneNumberId).includes(c.phone_number_id.trim()))
+          (c: { phone_number_id?: string; waba_id?: string }) => {
+            const cPhone = c.phone_number_id?.trim()
+            const cWaba = c.waba_id?.trim()
+            return (
+              (cPhone && (cPhone === pId || cPhone === eId || pId.includes(cPhone))) ||
+              (cWaba && (cWaba === pId || cWaba === eId || pId.includes(cWaba)))
+            )
+          }
         )
 
-        // 2. Fallback to first available config if only 1 config exists or if no direct phone_number_id matched
+        // 2. If Meta webhook payload (has metadata), prefer provider === 'meta'
+        if (!config && meta?.phone_number_id) {
+          config = configs.find((c: { provider?: string }) => c.provider === "meta")
+        }
+
+        // 3. Fallback to first available config
         if (!config) {
           config = configs[0]
           console.warn(
