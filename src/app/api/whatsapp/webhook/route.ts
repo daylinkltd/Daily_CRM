@@ -253,17 +253,23 @@ export async function POST(request: Request) {
     .select('*')
 
   if (phoneIds.size > 0 && dbConfigs) {
-    const matchingConfigs = dbConfigs.filter((c: { phone_number_id?: string }) =>
-      c.phone_number_id && Array.from(phoneIds).includes(c.phone_number_id)
-    )
+    const matchingConfigs = dbConfigs.filter((c: { phone_number_id?: string; waba_id?: string }) => {
+      const cPhone = c.phone_number_id?.trim()
+      const cWaba = c.waba_id?.trim()
+      return Array.from(phoneIds).some(
+        (pid) =>
+          (cPhone && (cPhone === pid || pid.includes(cPhone))) ||
+          (cWaba && (cWaba === pid || pid.includes(cWaba)))
+      )
+    })
     if (matchingConfigs.length > 0) {
-      requiresSignature = matchingConfigs.some((c: { provider: string }) => c.provider === 'meta')
+      requiresSignature = matchingConfigs.some((c: { provider?: string }) => c.provider === 'meta')
     }
   }
 
   // Fallback: no signature header present at all + at least one apiauto workspace
   if (requiresSignature && !signature && dbConfigs) {
-    const hasApiAuto = dbConfigs.some((c: { provider: string }) => c.provider === 'apiauto')
+    const hasApiAuto = dbConfigs.some((c: { provider?: string }) => c.provider === 'apiauto')
     if (hasApiAuto) {
       console.log('[webhook] No signature header — allowing through for apiauto workspace')
       requiresSignature = false

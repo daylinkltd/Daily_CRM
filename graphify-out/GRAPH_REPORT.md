@@ -1,7 +1,7 @@
 # Graph Report - Daily_CRM  (2026-07-26)
 
 ## Corpus Check
-- 450 files · ~1,218,262 words
+- 450 files · ~1,218,290 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e4623ed8`
+- Built from commit: `52f9197a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -106,9 +106,9 @@
 - [[_COMMUNITY_Community 94|Community 94]]
 - [[_COMMUNITY_Community 95|Community 95]]
 - [[_COMMUNITY_Community 96|Community 96]]
+- [[_COMMUNITY_Community 97|Community 97]]
 - [[_COMMUNITY_Community 98|Community 98]]
 - [[_COMMUNITY_Community 99|Community 99]]
-- [[_COMMUNITY_Community 100|Community 100]]
 - [[_COMMUNITY_Community 101|Community 101]]
 - [[_COMMUNITY_Community 103|Community 103]]
 - [[_COMMUNITY_Community 105|Community 105]]
@@ -128,14 +128,14 @@
 ## Surprising Connections (you probably didn't know these)
 - `EmployeeProfilePage()` --calls--> `useWorkspace()`  [INFERRED]
   src/app/(dashboard)/employees/[id]/page.tsx → src/hooks/use-workspace.tsx
+- `SignupPageInner()` --calls--> `createClient()`  [EXTRACTED]
+  src/app/(auth)/signup/page.tsx → src/lib/supabase/client.ts
 - `DashboardPage()` --calls--> `useAuth()`  [INFERRED]
   src/app/(dashboard)/dashboard/page.tsx → src/hooks/use-auth.tsx
 - `DashboardPage()` --calls--> `useWorkspace()`  [INFERRED]
   src/app/(dashboard)/dashboard/page.tsx → src/hooks/use-workspace.tsx
 - `DashboardPage()` --calls--> `formatCurrency()`  [INFERRED]
   src/app/(dashboard)/dashboard/page.tsx → src/lib/currency.ts
-- `ProjectDetailsPage()` --calls--> `useWorkspace()`  [INFERRED]
-  src/app/(dashboard)/projects/[id]/page.tsx → src/hooks/use-workspace.tsx
 
 ## Import Cycles
 - None detected.
@@ -143,8 +143,8 @@
 ## Communities (105 total, 12 thin omitted)
 
 ### Community 0 - "Automations UI & Config"
-Cohesion: 0.11
-Nodes (55): AudienceConfig, Step4Props, Step4ScheduleSend(), ContactForm(), ContactFormProps, CustomFieldsManager(), CustomFieldsManagerProps, ImportModal() (+47 more)
+Cohesion: 0.12
+Nodes (49): AudienceConfig, Step4Props, Step4ScheduleSend(), ContactForm(), ContactFormProps, CustomFieldsManager(), CustomFieldsManagerProps, ImportModal() (+41 more)
 
 ### Community 1 - "Dashboard Charts & Activity Feed"
 Cohesion: 0.08
@@ -191,8 +191,8 @@ Cohesion: 0.09
 Nodes (22): Dev-loop reference, Fork and run, If you maintain a public fork, Keeping your fork up to date, Licensing, Reporting bugs in the upstream template, Reporting security issues, Upstream pull requests (+14 more)
 
 ### Community 12 - "TypeScript & Build Configs"
-Cohesion: 0.08
-Nodes (45): AssignAssetFormProps, DepartmentFormProps, DesignationFormProps, DOCUMENT_TYPES, UploadDocumentFormProps, EmployeeProfileOverviewProps, OnboardEmployeeFormProps, ForgotPasswordPage() (+37 more)
+Cohesion: 0.09
+Nodes (43): AssignAssetFormProps, DOCUMENT_TYPES, UploadDocumentFormProps, EmployeeProfileOverviewProps, OnboardEmployeeFormProps, CustomFieldDef, PipelineDef, PipelineStageDef (+35 more)
 
 ### Community 13 - "Real-time Chat UI Components"
 Cohesion: 0.06
@@ -220,15 +220,15 @@ Nodes (9): NodeCard(), NODE_META, slugify(), summarizeNode(), truncate(), NextNo
 
 ### Community 19 - "AuthContext / AuthContextValue"
 Cohesion: 0.04
-Nodes (78): AssignAssetForm(), AssetsPage(), AttendancePage(), PunchAction(), PolicyAuditPage(), CustomFieldsPanel(), ContactsPage(), ProjectDashboardPage() (+70 more)
+Nodes (87): AssignAssetForm(), AssetsPage(), AttendancePage(), PunchAction(), PolicyAuditPage(), CustomFieldsPanel(), ContactsPage(), ProjectDashboardPage() (+79 more)
 
 ### Community 20 - "engineSendTemplate / engineSendText"
 Cohesion: 0.07
 Nodes (40): GET(), GET(), DeleteMessageTemplateArgs, downloadMedia(), DownloadMediaArgs, EditMessageTemplateArgs, EditMessageTemplateResult, getMediaUrl() (+32 more)
 
 ### Community 21 - "buckets / Entry"
-Cohesion: 0.12
-Nodes (28): API_SCOPES, ApiScope, hasScope(), isApiScope(), normalizeScopes(), SCOPE_DESCRIPTIONS, ApiKeyRow, findActiveKeyByHash() (+20 more)
+Cohesion: 0.14
+Nodes (19): generateApiKey(), GeneratedApiKey, hashApiKey(), looksLikeApiKey(), API_SCOPES, ApiScope, hasScope(), isApiScope() (+11 more)
 
 ### Community 22 - "BuilderStep / AUTOMATION TEMPLATES"
 Cohesion: 0.18
@@ -247,8 +247,8 @@ Cohesion: 0.17
 Nodes (10): a, b, bogusTag, ct, [, ctHex, tagHex], [ivHex, ctHex], legacy, modern (+2 more)
 
 ### Community 26 - "isTabValue / SettingsPage"
-Cohesion: 0.23
-Nodes (9): SettingsPanelHead(), CATEGORIES, categoryColors, COMMON_LANGUAGE_CODES, emptyForm, HEADER_FORMATS, HEADER_TYPES, HeaderFormat (+1 more)
+Cohesion: 0.18
+Nodes (11): ALLOWED_MIME, BrandingData, SettingsPanelHead(), CATEGORIES, categoryColors, COMMON_LANGUAGE_CODES, emptyForm, HEADER_FORMATS (+3 more)
 
 ### Community 27 - "AutomationCard / formatRelative"
 Cohesion: 0.07
@@ -352,7 +352,7 @@ Nodes (8): FlowEditorShell(), Props, ToggleButton(), useMatchMedia(), View, Prov
 
 ### Community 58 - "Community 58"
 Cohesion: 0.13
-Nodes (45): IntegrationsPage(), PageProps, SectionWithItems, ProjectInvoicesProps, ProjectTimesheetProps, ProjectVelocityProps, SprintBurndownProps, TeamWorkloadProps (+37 more)
+Nodes (42): IntegrationsPage(), PageProps, SectionWithItems, ProjectInvoicesProps, ProjectTimesheetProps, ProjectVelocityProps, SprintBurndownProps, TeamWorkloadProps (+34 more)
 
 ### Community 59 - "Community 59"
 Cohesion: 0.20
@@ -458,6 +458,10 @@ Nodes (20): AdminDashboard(), ALL_CHANNELS, DealLostReason, DealSource, GROWTH_L
 Cohesion: 0.39
 Nodes (7): FlowInput, NodeInput, outgoingEdges(), reachableFromEntry(), validateFlowForActivation(), validateNode(), validateTrigger()
 
+### Community 97 - "Community 97"
+Cohesion: 0.21
+Nodes (13): getAccountName(), assignImportedContactTags(), ContactTagAssignment, resolveImportTagIds(), ResolveImportTagsResult, POST(), RateLimitResult, GET() (+5 more)
+
 ### Community 98 - "Community 98"
 Cohesion: 0.29
 Nodes (7): CreatedInvite, EXPIRY_OPTIONS, InviteMemberDialog(), InviteMemberDialogProps, InviteRole, ROLE_DESCRIPTIONS, buttonVariants
@@ -465,10 +469,6 @@ Nodes (7): CreatedInvite, EXPIRY_OPTIONS, InviteMemberDialog(), InviteMemberDial
 ### Community 99 - "Community 99"
 Cohesion: 0.34
 Nodes (13): BroadcastsPage(), percent(), RateCell(), EmployeeDocumentsTabProps, EmployeeStats, PageHeader(), PageHeaderProps, Table() (+5 more)
-
-### Community 100 - "Community 100"
-Cohesion: 0.40
-Nodes (4): generateApiKey(), GeneratedApiKey, hashApiKey(), looksLikeApiKey()
 
 ### Community 101 - "Community 101"
 Cohesion: 0.40
@@ -501,6 +501,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `{ createClient }`, `dotenv`, `path` to the rest of the system?**
   _533 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Automations UI & Config` be split into smaller, more focused modules?**
-  _Cohesion score 0.10762800417972831 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1169753086419753 - nodes in this community are weakly interconnected._
 - **Should `Dashboard Charts & Activity Feed` be split into smaller, more focused modules?**
   _Cohesion score 0.08364389233954451 - nodes in this community are weakly interconnected._
