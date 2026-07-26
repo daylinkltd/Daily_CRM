@@ -645,8 +645,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/message-thread.tsx": {
-    "mtime": 1784970202.185939,
-    "ast_hash": "caa7233b20809bbce752c7752f1f0d94",
+    "mtime": 1785073526.8258457,
+    "ast_hash": "c4a16afb2ade71e8b012ec90ec73e734",
     "semantic_hash": ""
   },
   "src/components/inbox/reply-quote.tsx": {
@@ -1010,8 +1010,8 @@
     "semantic_hash": ""
   },
   "src/hooks/use-presence.ts": {
-    "mtime": 1785072914.327558,
-    "ast_hash": "617d5ddaee290623066e38f34d3ba256",
+    "mtime": 1785073534.159758,
+    "ast_hash": "93e30c326cc68e6bccf199307dfca689",
     "semantic_hash": ""
   },
   "src/hooks/use-realtime.ts": {
@@ -3457,6 +3457,11 @@
   "src/components/inbox/new-chat-modal.tsx": {
     "mtime": 1784970708.9943655,
     "ast_hash": "86366bddbbadcfe4d9a45fd73e814a7a",
+    "semantic_hash": ""
+  },
+  "src/app/api/admin/setup-db/route.ts": {
+    "mtime": 1785073539.1633906,
+    "ast_hash": "8068649011228bcdfc73f6e5434ec52b",
     "semantic_hash": ""
   }
 }

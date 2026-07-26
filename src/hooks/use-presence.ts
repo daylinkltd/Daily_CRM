@@ -22,7 +22,7 @@ interface UsePresenceResult {
   now: number;
 }
 
-export function usePresence(enabled = true): UsePresenceResult {
+export function usePresence(enabled = false): UsePresenceResult {
   const { activeWorkspace } = useWorkspace();
   const workspaceId = activeWorkspace?.id;
   const [rows, setRows] = useState<PresenceMap>(() => new Map());

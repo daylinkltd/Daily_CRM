@@ -342,16 +342,21 @@ export function MessageThread({
     let cancelled = false;
 
     (async () => {
-      const { data, error } = await supabase
-        .from("message_reactions")
-        .select("*")
-        .eq("conversation_id", conversationId);
-      if (cancelled) return;
-      if (error) {
-        console.error("Failed to fetch reactions:", error);
-        return;
+      try {
+        const { data, error } = await supabase
+          .from("message_reactions")
+          .select("*")
+          .eq("conversation_id", conversationId);
+        if (cancelled) return;
+        if (error) {
+          // Table may be absent on remote database — swallow silently
+          setReactions([]);
+          return;
+        }
+        setReactions((data as MessageReaction[]) ?? []);
+      } catch {
+        if (!cancelled) setReactions([]);
       }
-      setReactions((data as MessageReaction[]) ?? []);
     })();
 
     return () => {

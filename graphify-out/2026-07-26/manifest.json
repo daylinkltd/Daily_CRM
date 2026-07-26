@@ -620,8 +620,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/conversation-list.tsx": {
-    "mtime": 1784970150.574784,
-    "ast_hash": "d7465a26243a64ab9e318c561be9f698",
+    "mtime": 1785072903.3060882,
+    "ast_hash": "438eb717798d1bc76c92fe5992c2888c",
     "semantic_hash": ""
   },
   "src/components/inbox/message-actions.tsx": {
@@ -1010,8 +1010,8 @@
     "semantic_hash": ""
   },
   "src/hooks/use-presence.ts": {
-    "mtime": 1782368762.8710175,
-    "ast_hash": "0988bac511e48936469544daf7a0b48e",
+    "mtime": 1785072914.327558,
+    "ast_hash": "617d5ddaee290623066e38f34d3ba256",
     "semantic_hash": ""
   },
   "src/hooks/use-realtime.ts": {
