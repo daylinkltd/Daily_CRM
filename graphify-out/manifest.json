@@ -670,8 +670,8 @@
     "semantic_hash": ""
   },
   "src/components/layout/sidebar.tsx": {
-    "mtime": 1784918764.4711847,
-    "ast_hash": "5e32d0d48f7a2b12122e88c631e817a6",
+    "mtime": 1785075725.6353762,
+    "ast_hash": "1bb2936c29c1c41d136e566115c5e252",
     "semantic_hash": ""
   },
   "src/components/layout/workspace-switcher.tsx": {
@@ -3477,6 +3477,11 @@
   "src/app/api/conversations/route.ts": {
     "mtime": 1785075178.2486,
     "ast_hash": "a033ecfe4743fa899a67536f48154562",
+    "semantic_hash": ""
+  },
+  "src/app/(dashboard)/documentation/route.ts": {
+    "mtime": 1785075722.10892,
+    "ast_hash": "1d51d5522bd269d829f7084f170847ab",
     "semantic_hash": ""
   }
 }

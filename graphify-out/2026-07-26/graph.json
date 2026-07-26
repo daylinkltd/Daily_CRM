@@ -2310,7 +2310,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "logs_page",
-      "community": 3,
+      "community": 78,
       "norm_label": "page.tsx"
     },
     {
@@ -2320,7 +2320,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "logs_page_automationlogspage",
-      "community": 3,
+      "community": 78,
       "norm_label": "automationlogspage()"
     },
     {
@@ -2330,7 +2330,7 @@
       "source_location": "L167",
       "_origin": "ast",
       "id": "logs_page_statusbadge",
-      "community": 3,
+      "community": 78,
       "norm_label": "statusbadge()"
     },
     {
@@ -2340,7 +2340,7 @@
       "source_location": "L186",
       "_origin": "ast",
       "id": "logs_page_steprow",
-      "community": 3,
+      "community": 78,
       "norm_label": "steprow()"
     },
     {
@@ -5847,7 +5847,7 @@
       "label": "RECIPIENT_STATUS_LADDER",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L384",
+      "source_location": "L403",
       "_origin": "ast",
       "id": "webhook_route_recipient_status_ladder",
       "community": 9,
@@ -5857,7 +5857,7 @@
       "label": "ladderLevel()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L392",
+      "source_location": "L411",
       "_origin": "ast",
       "id": "webhook_route_ladderlevel",
       "community": 9,
@@ -5867,7 +5867,7 @@
       "label": "isValidStatusTransition()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L403",
+      "source_location": "L422",
       "_origin": "ast",
       "id": "webhook_route_isvalidstatustransition",
       "community": 9,
@@ -5877,7 +5877,7 @@
       "label": "handleStatusUpdate()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L417",
+      "source_location": "L436",
       "_origin": "ast",
       "id": "webhook_route_handlestatusupdate",
       "community": 9,
@@ -5887,7 +5887,7 @@
       "label": "flagBroadcastReplyIfAny()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L479",
+      "source_location": "L498",
       "_origin": "ast",
       "id": "webhook_route_flagbroadcastreplyifany",
       "community": 9,
@@ -5897,7 +5897,7 @@
       "label": "processMessage()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L507",
+      "source_location": "L526",
       "_origin": "ast",
       "id": "webhook_route_processmessage",
       "community": 9,
@@ -5907,7 +5907,7 @@
       "label": "parseMessageContent()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L693",
+      "source_location": "L712",
       "_origin": "ast",
       "id": "webhook_route_parsemessagecontent",
       "community": 9,
@@ -5917,7 +5917,7 @@
       "label": "ContactRow",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L835",
+      "source_location": "L854",
       "_origin": "ast",
       "id": "webhook_route_contactrow",
       "community": 9,
@@ -5927,7 +5927,7 @@
       "label": "ContactOutcome",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L837",
+      "source_location": "L856",
       "_origin": "ast",
       "id": "webhook_route_contactoutcome",
       "community": 9,
@@ -5937,7 +5937,7 @@
       "label": "findOrCreateContact()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L844",
+      "source_location": "L863",
       "_origin": "ast",
       "id": "webhook_route_findorcreatecontact",
       "community": 9,
@@ -5947,7 +5947,7 @@
       "label": "findOrCreateConversation()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L899",
+      "source_location": "L929",
       "_origin": "ast",
       "id": "webhook_route_findorcreateconversation",
       "community": 9,
@@ -14590,7 +14590,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "automations_admin_client",
-      "community": 4,
+      "community": 3,
       "norm_label": "admin-client.ts"
     },
     {
@@ -14670,7 +14670,7 @@
       "source_location": "L177",
       "_origin": "ast",
       "id": "automations_engine_executeargs",
-      "community": 3,
+      "community": 78,
       "norm_label": "executeargs"
     },
     {
@@ -18140,7 +18140,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "providers_twilio_provider",
-      "community": 3,
+      "community": 93,
       "norm_label": "twilio-provider.ts"
     },
     {
@@ -18150,7 +18150,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "providers_twilio_provider_formattwilionumber",
-      "community": 3,
+      "community": 93,
       "norm_label": "formattwilionumber()"
     },
     {
@@ -18160,7 +18160,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider",
-      "community": 3,
+      "community": 93,
       "norm_label": "twilioprovider"
     },
     {
@@ -18170,7 +18170,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_verifyconfig",
-      "community": 3,
+      "community": 93,
       "norm_label": ".verifyconfig()"
     },
     {
@@ -18180,7 +18180,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_sendmessage",
-      "community": 3,
+      "community": 93,
       "norm_label": ".sendmessage()"
     },
     {
@@ -18190,7 +18190,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_sendtemplate",
-      "community": 3,
+      "community": 93,
       "norm_label": ".sendtemplate()"
     },
     {
@@ -19340,7 +19340,7 @@
       "source_location": "L526",
       "_origin": "ast",
       "id": "types_index_automation",
-      "community": 3,
+      "community": 78,
       "norm_label": "automation"
     },
     {
@@ -19360,7 +19360,7 @@
       "source_location": "L557",
       "_origin": "ast",
       "id": "types_index_automationlogstepresult",
-      "community": 3,
+      "community": 78,
       "norm_label": "automationlogstepresult"
     },
     {
@@ -19370,7 +19370,7 @@
       "source_location": "L564",
       "_origin": "ast",
       "id": "types_index_automationlog",
-      "community": 3,
+      "community": 78,
       "norm_label": "automationlog"
     },
     {
@@ -20649,7 +20649,7 @@
       "file_type": "code",
       "source_file": "src/app/(dashboard)/automations/[id]/logs/page.tsx",
       "source_location": "L1",
-      "community": 3,
+      "community": 78,
       "norm_label": "page.tsx",
       "id": "src_app_dashboard_automations_id_logs_page_tsx"
     },
@@ -20820,7 +20820,7 @@
       "file_type": "code",
       "source_file": "src/lib/automations/admin-client.ts",
       "source_location": "L1",
-      "community": 4,
+      "community": 3,
       "norm_label": "admin-client.ts",
       "id": "src_lib_automations_admin_client_ts"
     },
@@ -98582,9 +98582,9 @@
       "source_file": "src/lib/whatsapp/webhook-signature.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "whatsapp_webhook_signature",
-      "target": "whatsapp_encryption",
-      "confidence_score": 1.0
+      "target": "whatsapp_encryption"
     },
     {
       "relation": "imports",
@@ -98703,9 +98703,9 @@
       "source_file": "src/lib/whatsapp/webhook-signature.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "whatsapp_webhook_signature",
-      "target": "whatsapp_encryption_decrypt",
-      "confidence_score": 1.0
+      "target": "whatsapp_encryption_decrypt"
     },
     {
       "relation": "calls",
@@ -104236,5 +104236,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "500923c91e881826daa4c1111f341e7384086dd8"
+  "built_at_commit": "842446eaecc9ec8df4b2b9643e3d58a7bd1e7374"
 }
