@@ -206,8 +206,20 @@ export function ConversationList({
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <p className="text-sm text-muted-foreground">No conversations found</p>
+          <div className="flex flex-col items-center justify-center px-4 py-12 text-center space-y-3">
+            <p className="text-xs font-semibold text-foreground">No conversations found</p>
+            <p className="text-[11px] text-muted-foreground max-w-[200px] leading-relaxed">
+              Start messaging a contact or enter a phone number to test your WhatsApp setup.
+            </p>
+            {onOpenNewChat && (
+              <Button
+                onClick={onOpenNewChat}
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs h-8 px-3 mt-1"
+              >
+                + Start New Chat
+              </Button>
+            )}
           </div>
         ) : (
           <div className="flex flex-col">
