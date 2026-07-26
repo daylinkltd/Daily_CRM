@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "src/app/(dashboard)/inbox/page.tsx": {
-    "mtime": 1784970178.2992043,
-    "ast_hash": "7610ee6537eed454cfbc447162d318c8",
+    "mtime": 1785073642.9183948,
+    "ast_hash": "3598f312f0dc698ef546ffd224d6c916",
     "semantic_hash": ""
   },
   "src/app/(dashboard)/integrations/page.tsx": {
@@ -620,8 +620,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/conversation-list.tsx": {
-    "mtime": 1785072903.3060882,
-    "ast_hash": "438eb717798d1bc76c92fe5992c2888c",
+    "mtime": 1785073654.174138,
+    "ast_hash": "b3a1759479ef580c0290ba1f02f15f52",
     "semantic_hash": ""
   },
   "src/components/inbox/message-actions.tsx": {
@@ -645,8 +645,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/message-thread.tsx": {
-    "mtime": 1785073526.8258457,
-    "ast_hash": "c4a16afb2ade71e8b012ec90ec73e734",
+    "mtime": 1785073633.614644,
+    "ast_hash": "fb1e4b7fa90d583244e371fe221f581a",
     "semantic_hash": ""
   },
   "src/components/inbox/reply-quote.tsx": {
@@ -3462,6 +3462,11 @@
   "src/app/api/admin/setup-db/route.ts": {
     "mtime": 1785073539.1633906,
     "ast_hash": "8068649011228bcdfc73f6e5434ec52b",
+    "semantic_hash": ""
+  },
+  "src/app/api/conversations/[id]/route.ts": {
+    "mtime": 1785073578.7833343,
+    "ast_hash": "7bd24375f1a5dda56178d28359228375",
     "semantic_hash": ""
   }
 }

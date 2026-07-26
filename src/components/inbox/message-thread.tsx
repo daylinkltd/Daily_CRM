@@ -309,6 +309,22 @@ export function MessageThread({
     (async () => {
       setLoading(true);
 
+      try {
+        const res = await fetch(`/api/conversations/${conversationId}/messages`);
+        const payload = await res.json();
+
+        if (cancelled) return;
+
+        if (res.ok && Array.isArray(payload.messages)) {
+          onMessagesLoadedRef.current(payload.messages);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn("[MessageThread] API messages fetch failed, trying direct query:", err);
+      }
+
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("messages")
         .select("*")

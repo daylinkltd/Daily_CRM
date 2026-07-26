@@ -69,29 +69,40 @@ export function ConversationList({
   });
 
   useEffect(() => {
-    const supabase = createClient();
     let cancelled = false;
 
     (async () => {
-      let query = supabase
-        .from("conversations")
-        .select("*, contact:contacts(*)");
-
-      if (workspaceId) {
-        query = query.eq("workspace_id", workspaceId);
+      if (!workspaceId) {
+        setLoading(false);
+        return;
       }
 
-      const { data, error } = await query.order("last_message_at", { ascending: false });
+      try {
+        const res = await fetch(`/api/conversations?workspace_id=${workspaceId}`);
+        const payload = await res.json();
+
+        if (cancelled) return;
+
+        if (res.ok && Array.isArray(payload.conversations)) {
+          onConversationsLoadedRef.current(payload.conversations);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn("[ConversationList] API fetch failed, trying direct query:", err);
+      }
+
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("conversations")
+        .select("*, contact:contacts(*)")
+        .eq("workspace_id", workspaceId)
+        .order("last_message_at", { ascending: false });
 
       if (cancelled) return;
 
       if (error) {
-        console.error("Failed to fetch conversations:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
+        console.error("Failed to fetch conversations:", error);
         setLoading(false);
         return;
       }
