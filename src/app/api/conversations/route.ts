@@ -36,12 +36,23 @@ export async function GET(request: Request) {
       );
     }
 
-    // Try fetching conversations with embedded contacts
+    // Query conversations matching workspace_id OR user_id (if workspace_id was null)
     const { data: conversations, error: convError } = await supabase
       .from('conversations')
       .select('*, contact:contacts(*)')
-      .eq('workspace_id', workspaceId)
+      .or(`workspace_id.eq.${workspaceId},and(workspace_id.is.null,user_id.eq.${user.id})`)
       .order('last_message_at', { ascending: false });
+
+    // Auto-repair any null workspace_id rows in background
+    if (conversations && conversations.length > 0) {
+      const nullWsIds = conversations.filter((c) => !c.workspace_id).map((c) => c.id);
+      if (nullWsIds.length > 0) {
+        void supabase
+          .from('conversations')
+          .update({ workspace_id: workspaceId })
+          .in('id', nullWsIds);
+      }
+    }
 
     if (!convError && conversations) {
       return NextResponse.json({ conversations });
@@ -53,7 +64,7 @@ export async function GET(request: Request) {
     const { data: rawConvs, error: rawErr } = await supabase
       .from('conversations')
       .select('*')
-      .eq('workspace_id', workspaceId)
+      .or(`workspace_id.eq.${workspaceId},and(workspace_id.is.null,user_id.eq.${user.id})`)
       .order('last_message_at', { ascending: false });
 
     if (rawErr || !rawConvs) {

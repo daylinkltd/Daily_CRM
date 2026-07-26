@@ -1,16 +1,16 @@
 # Graph Report - Daily_CRM  (2026-07-26)
 
 ## Corpus Check
-- 448 files · ~1,217,695 words
+- 448 files · ~1,217,820 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2126 nodes · 7728 edges · 97 communities (83 shown, 14 thin omitted)
+- 2126 nodes · 7728 edges · 99 communities (84 shown, 15 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 38 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `500923c9`
+- Built from commit: `842446ea`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -93,6 +93,7 @@
 - [[_COMMUNITY_Community 75|Community 75]]
 - [[_COMMUNITY_Community 76|Community 76]]
 - [[_COMMUNITY_Community 77|Community 77]]
+- [[_COMMUNITY_Community 78|Community 78]]
 - [[_COMMUNITY_Community 79|Community 79]]
 - [[_COMMUNITY_Community 81|Community 81]]
 - [[_COMMUNITY_Community 82|Community 82]]
@@ -101,6 +102,7 @@
 - [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
 - [[_COMMUNITY_Community 89|Community 89]]
+- [[_COMMUNITY_Community 93|Community 93]]
 - [[_COMMUNITY_Community 95|Community 95]]
 - [[_COMMUNITY_Community 96|Community 96]]
 - [[_COMMUNITY_Community 99|Community 99]]
@@ -133,7 +135,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (97 total, 14 thin omitted)
+## Communities (99 total, 15 thin omitted)
 
 ### Community 0 - "Automations UI & Config"
 Cohesion: 0.11
@@ -148,8 +150,8 @@ Cohesion: 0.33
 Nodes (6): url, bugs, url, repository, type, url
 
 ### Community 3 - "API Routes & Step Trees"
-Cohesion: 0.08
-Nodes (43): supabaseAdmin(), appendResults(), AutomationContext, DispatchInput, evaluateCondition(), ExecuteArgs, executeAutomation(), executeStepsFrom() (+35 more)
+Cohesion: 0.12
+Nodes (34): supabaseAdmin(), appendResults(), AutomationContext, DispatchInput, evaluateCondition(), executeAutomation(), executeStepsFrom(), finalizeLog() (+26 more)
 
 ### Community 4 - "Automation Execution Engine"
 Cohesion: 0.12
@@ -399,6 +401,10 @@ Nodes (16): clampExpiryDays(), GeneratedToken, generateInviteToken(), hashInvite
 Cohesion: 0.40
 Nodes (5): overrides, fast-uri, hono, ip-address, postcss
 
+### Community 78 - "Community 78"
+Cohesion: 0.33
+Nodes (7): ExecuteArgs, AutomationLogsPage(), StatusBadge(), StepRow(), Automation, AutomationLog, AutomationLogStepResult
+
 ### Community 79 - "Community 79"
 Cohesion: 0.33
 Nodes (4): { createClient }, dotenv, path, supabase
@@ -442,14 +448,14 @@ Nodes (6): getAdminClient(), PageProps, SharedFormPage(), SharedFormClientProps,
 ## Knowledge Gaps
 - **533 isolated node(s):** `{ createClient }`, `dotenv`, `path`, `supabase`, `{ createClient }` (+528 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **15 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `config / postcss.config.mjs` to `Automations UI & Config`, `API Routes & Step Trees`, `Automation Visual Builder UI`, `Shared Design System Components`, `Broadcast Campaigns & Analytics`, `TypeScript & Build Configs`, `DealCard / DealCardProps`, `AdminDashboard / UserProfile`, `BuilderStep / AUTOMATION TEMPLATES`, `RealtimeEvent / UseRealtimeOptions`, `isTabValue / SettingsPage`, `POST / route`, `inter / metadata`, `DashboardLayout / metadata`, `next-env.d`, `Community 57`, `Community 58`, `Community 66`, `Community 99`?**
+- **Why does `cn()` connect `config / postcss.config.mjs` to `Automations UI & Config`, `Automation Visual Builder UI`, `Shared Design System Components`, `Broadcast Campaigns & Analytics`, `TypeScript & Build Configs`, `DealCard / DealCardProps`, `AdminDashboard / UserProfile`, `BuilderStep / AUTOMATION TEMPLATES`, `RealtimeEvent / UseRealtimeOptions`, `isTabValue / SettingsPage`, `POST / route`, `inter / metadata`, `DashboardLayout / metadata`, `next-env.d`, `Community 57`, `Community 58`, `Community 66`, `Community 78`, `Community 99`?**
   _High betweenness centrality (0.107) - this node is a cross-community bridge._
-- **Why does `createClient()` connect `AuthContext / AuthContextValue` to `Automations UI & Config`, `API Routes & Step Trees`, `Shared Design System Components`, `TypeScript & Build Configs`, `Real-time Chat UI Components`, `DealCard / DealCardProps`, `contactFields / SAMPLE CONTACT`, `AudienceConfig / BroadcastApiResult`, `RealtimeEvent / UseRealtimeOptions`, `isTabValue / SettingsPage`, `AGENTS.md / This is NOT the Next.js y...`, `SECURITY HEADERS / next.config`, `config / postcss.config.mjs`, `next-env.d`, `vitest.config`, `CLAUDE.md`, `Community 57`, `Community 58`, `Community 66`, `Community 68`, `Community 95`, `Community 99`?**
+- **Why does `createClient()` connect `AuthContext / AuthContextValue` to `Automations UI & Config`, `Shared Design System Components`, `TypeScript & Build Configs`, `Real-time Chat UI Components`, `DealCard / DealCardProps`, `contactFields / SAMPLE CONTACT`, `AudienceConfig / BroadcastApiResult`, `RealtimeEvent / UseRealtimeOptions`, `isTabValue / SettingsPage`, `AGENTS.md / This is NOT the Next.js y...`, `SECURITY HEADERS / next.config`, `config / postcss.config.mjs`, `next-env.d`, `vitest.config`, `CLAUDE.md`, `Community 57`, `Community 58`, `Community 66`, `Community 68`, `Community 78`, `Community 95`, `Community 99`?**
   _High betweenness centrality (0.066) - this node is a cross-community bridge._
 - **Why does `createClient()` connect `AutomationCard / formatRelative` to `Dashboard Charts & Activity Feed`, `Community 66`, `API Routes & Step Trees`, `Automation Execution Engine`, `Community 71`, `Community 72`, `SECURITY HEADERS / next.config`, `Workspace Tooling Configurations`, `Contacts & Deals Management`, `BroadcastResult / NewRecipient`, `engineSendTemplate / engineSendText`, `Community 55`, `AudienceConfig / audienceOptions`, `Community 62`, `Community 63`?**
   _High betweenness centrality (0.055) - this node is a cross-community bridge._
@@ -460,4 +466,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Automations UI & Config` be split into smaller, more focused modules?**
   _Cohesion score 0.1061624649859944 - nodes in this community are weakly interconnected._
 - **Should `API Routes & Step Trees` be split into smaller, more focused modules?**
-  _Cohesion score 0.08270676691729323 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11733615221987315 - nodes in this community are weakly interconnected._

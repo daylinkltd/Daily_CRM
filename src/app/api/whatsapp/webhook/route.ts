@@ -356,6 +356,25 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
 
       const decryptedAccessToken = decrypt(config.access_token)
 
+      // Ensure config has a valid workspace_id
+      let resolvedWorkspaceId = config.workspace_id
+      if (!resolvedWorkspaceId && config.user_id) {
+        const { data: member } = await supabaseAdmin()
+          .from('workspace_members')
+          .select('workspace_id')
+          .eq('user_id', config.user_id)
+          .limit(1)
+          .maybeSingle()
+
+        if (member?.workspace_id) {
+          resolvedWorkspaceId = member.workspace_id
+          void supabaseAdmin()
+            .from('whatsapp_config')
+            .update({ workspace_id: resolvedWorkspaceId })
+            .eq('id', config.id)
+        }
+      }
+
       for (let i = 0; i < value.messages.length; i++) {
         const message = value.messages[i]
         const contact = value.contacts[i] || value.contacts[0]
@@ -365,7 +384,7 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
           contact,
           config.user_id,
           decryptedAccessToken,
-          config.workspace_id
+          resolvedWorkspaceId
         )
       }
     }
@@ -847,9 +866,11 @@ async function findOrCreateContact(
   name: string,
   workspaceId: string
 ): Promise<ContactOutcome | null> {
-  // Look up existing contacts in this workspace first, falling back to user_id
+  // Query all contacts matching user_id or workspace_id
   let query = supabaseAdmin().from('contacts').select('*')
-  if (workspaceId) {
+  if (workspaceId && userId) {
+    query = query.or(`workspace_id.eq.${workspaceId},user_id.eq.${userId}`)
+  } else if (workspaceId) {
     query = query.eq('workspace_id', workspaceId)
   } else {
     query = query.eq('user_id', userId)
@@ -866,11 +887,20 @@ async function findOrCreateContact(
   const existingContact = contacts?.find((c: ContactRow) => phonesMatch(c.phone, phone))
 
   if (existingContact) {
-    // Update name if it changed
+    // Update name or workspace_id if missing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatePayload: Record<string, any> = {}
     if (name && name !== existingContact.name) {
+      updatePayload.name = name
+    }
+    if (workspaceId && !existingContact.workspace_id) {
+      updatePayload.workspace_id = workspaceId
+    }
+    if (Object.keys(updatePayload).length > 0) {
+      updatePayload.updated_at = new Date().toISOString()
       await supabaseAdmin()
         .from('contacts')
-        .update({ name, updated_at: new Date().toISOString() })
+        .update(updatePayload)
         .eq('id', existingContact.id)
     }
     return { contact: existingContact, wasCreated: false }
@@ -883,7 +913,7 @@ async function findOrCreateContact(
       user_id: userId,
       phone,
       name: name || phone,
-      workspace_id: workspaceId,
+      workspace_id: workspaceId || null,
     })
     .select()
     .single()
@@ -897,17 +927,21 @@ async function findOrCreateContact(
 }
 
 async function findOrCreateConversation(userId: string, contactId: string, workspaceId: string) {
-  // Look for existing conversation by workspace_id & contact_id first
-  let query = supabaseAdmin().from('conversations').select('*').eq('contact_id', contactId)
-  if (workspaceId) {
-    query = query.eq('workspace_id', workspaceId)
-  } else {
-    query = query.eq('user_id', userId)
-  }
-
-  const { data: existing } = await query.maybeSingle()
+  // Look for existing conversation by contact_id first
+  const { data: existing } = await supabaseAdmin()
+    .from('conversations')
+    .select('*')
+    .eq('contact_id', contactId)
+    .maybeSingle()
 
   if (existing) {
+    if (workspaceId && !existing.workspace_id) {
+      await supabaseAdmin()
+        .from('conversations')
+        .update({ workspace_id: workspaceId })
+        .eq('id', existing.id)
+      existing.workspace_id = workspaceId
+    }
     return existing
   }
 
@@ -917,7 +951,7 @@ async function findOrCreateConversation(userId: string, contactId: string, works
     .insert({
       user_id: userId,
       contact_id: contactId,
-      workspace_id: workspaceId,
+      workspace_id: workspaceId || null,
       status: 'open',
       bot_status: 'active',
       last_message_at: new Date().toISOString(),
