@@ -620,8 +620,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/conversation-list.tsx": {
-    "mtime": 1785073654.174138,
-    "ast_hash": "b3a1759479ef580c0290ba1f02f15f52",
+    "mtime": 1785073872.828091,
+    "ast_hash": "a3db92a8c54bd17c3b42cc3a82cade5f",
     "semantic_hash": ""
   },
   "src/components/inbox/message-actions.tsx": {
@@ -645,8 +645,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/message-thread.tsx": {
-    "mtime": 1785073633.614644,
-    "ast_hash": "fb1e4b7fa90d583244e371fe221f581a",
+    "mtime": 1785073889.7522986,
+    "ast_hash": "d0fc3aa28defdac7a8d89731b35af7b3",
     "semantic_hash": ""
   },
   "src/components/inbox/reply-quote.tsx": {
@@ -3467,6 +3467,16 @@
   "src/app/api/conversations/[id]/route.ts": {
     "mtime": 1785073578.7833343,
     "ast_hash": "7bd24375f1a5dda56178d28359228375",
+    "semantic_hash": ""
+  },
+  "src/app/api/conversations/[id]/messages/route.ts": {
+    "mtime": 1785073864.3913467,
+    "ast_hash": "83ad557407a901895d858a7f270d9ee0",
+    "semantic_hash": ""
+  },
+  "src/app/api/conversations/route.ts": {
+    "mtime": 1785073859.690556,
+    "ast_hash": "8b5e12aa3c3011b254fe41b92fc58ccd",
     "semantic_hash": ""
   }
 }

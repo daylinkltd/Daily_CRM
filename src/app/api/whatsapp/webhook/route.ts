@@ -248,34 +248,29 @@ export async function POST(request: Request) {
     }
   }
 
-  if (phoneIds.size > 0) {
-    const { data: configs } = await supabaseAdmin()
-      .from('whatsapp_config')
-      .select('provider')
-      .in('phone_number_id', Array.from(phoneIds))
+  const { data: dbConfigs } = await supabaseAdmin()
+    .from('whatsapp_config')
+    .select('*')
 
-    // If we found configs and NONE of them are 'meta', bypass signature check
-    if (configs && configs.length > 0) {
-      requiresSignature = configs.some((c: { provider: string }) => c.provider === 'meta')
+  if (phoneIds.size > 0 && dbConfigs) {
+    const matchingConfigs = dbConfigs.filter((c: { phone_number_id?: string }) =>
+      c.phone_number_id && Array.from(phoneIds).includes(c.phone_number_id)
+    )
+    if (matchingConfigs.length > 0) {
+      requiresSignature = matchingConfigs.some((c: { provider: string }) => c.provider === 'meta')
     }
   }
 
   // Fallback: no signature header present at all + at least one apiauto workspace
-  // This handles cases where ApiAuto sends the phone_number_id in an unexpected field
-  if (requiresSignature && !signature) {
-    const { data: apiAutoConfigs } = await supabaseAdmin()
-      .from('whatsapp_config')
-      .select('id')
-      .eq('provider', 'apiauto')
-      .limit(1)
-
-    if (apiAutoConfigs && apiAutoConfigs.length > 0) {
+  if (requiresSignature && !signature && dbConfigs) {
+    const hasApiAuto = dbConfigs.some((c: { provider: string }) => c.provider === 'apiauto')
+    if (hasApiAuto) {
       console.log('[webhook] No signature header — allowing through for apiauto workspace')
       requiresSignature = false
     }
   }
 
-  if (requiresSignature && !verifyMetaWebhookSignature(rawBody, signature)) {
+  if (requiresSignature && !verifyMetaWebhookSignature(rawBody, signature, dbConfigs ?? [])) {
     console.warn('[webhook] rejected request with invalid signature. Body preview:', rawBody.slice(0, 200))
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
@@ -328,15 +323,34 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
         val?.phone_number_id ||
         entry.id
 
-      // Find user's config by phone_number_id
-      const { data: config, error: configError } = await supabaseAdmin()
+      // Find user's config by phone_number_id with smart fallbacks
+      const { data: configs } = await supabaseAdmin()
         .from('whatsapp_config')
         .select('*')
-        .eq('phone_number_id', phoneNumberId)
-        .single()
 
-      if (configError || !config) {
-        console.error('No config found for phone_number_id:', phoneNumberId)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let config: any = null
+      if (configs && configs.length > 0) {
+        // 1. Exact or trimmed phone_number_id match
+        config = configs.find(
+          (c: { phone_number_id?: string }) =>
+            c.phone_number_id &&
+            (c.phone_number_id === String(phoneNumberId) ||
+              c.phone_number_id.trim() === String(phoneNumberId).trim() ||
+              String(phoneNumberId).includes(c.phone_number_id.trim()))
+        )
+
+        // 2. Fallback to first available config if only 1 config exists or if no direct phone_number_id matched
+        if (!config) {
+          config = configs[0]
+          console.warn(
+            `[webhook] No direct match for phone_number_id ${phoneNumberId}. Falling back to workspace ${config.workspace_id}`
+          )
+        }
+      }
+
+      if (!config) {
+        console.error('No config found in whatsapp_config for incoming message')
         continue
       }
 
