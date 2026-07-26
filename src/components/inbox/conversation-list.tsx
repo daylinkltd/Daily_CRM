@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Conversation, ConversationStatus } from "@/types";
-import { Search, ChevronDown, Bot } from "lucide-react";
+import { Search, ChevronDown, Bot, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,6 +23,7 @@ interface ConversationListProps {
   onConversationsLoaded: (conversations: Conversation[]) => void;
   workspaceId?: string;
   onOpenNewChat?: () => void;
+  onDeleteConversation?: (conversationId: string) => void;
   /**
    * Increment to force the fetch effect below to refire. The parent
    * bumps this on realtime reconnect / tab visibility → visible so the
@@ -55,6 +56,7 @@ export function ConversationList({
   onConversationsLoaded,
   workspaceId,
   onOpenNewChat,
+  onDeleteConversation,
   resyncToken = 0,
 }: ConversationListProps) {
   const [search, setSearch] = useState("");
@@ -229,6 +231,7 @@ export function ConversationList({
                 conversation={conv}
                 isActive={conv.id === activeConversationId}
                 onSelect={handleSelect}
+                onDelete={onDeleteConversation}
               />
             ))}
           </div>
@@ -242,12 +245,14 @@ interface ConversationItemProps {
   conversation: Conversation;
   isActive: boolean;
   onSelect: (conversation: Conversation) => void;
+  onDelete?: (conversationId: string) => void;
 }
 
 function ConversationItem({
   conversation,
   isActive,
   onSelect,
+  onDelete,
 }: ConversationItemProps) {
   const contact = conversation.contact;
   const displayName = contact?.name || contact?.phone || "Unknown";
@@ -257,6 +262,16 @@ function ConversationItem({
     onSelect(conversation);
   }, [onSelect, conversation]);
 
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onDelete) {
+        onDelete(conversation.id);
+      }
+    },
+    [onDelete, conversation.id]
+  );
+
   const timeAgo = conversation.last_message_at
     ? formatDistanceToNow(new Date(conversation.last_message_at), {
         addSuffix: false,
@@ -264,10 +279,10 @@ function ConversationItem({
     : "";
 
   return (
-    <button
+    <div
       onClick={handleClick}
       className={cn(
-        "flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50",
+        "group relative flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50 cursor-pointer border-b border-border/40",
         isActive && "border-l-2 border-primary bg-muted/70"
       )}
     >
@@ -320,9 +335,19 @@ function ConversationItem({
               )}
               title={conversation.status}
             />
+            {onDelete && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Delete Chat"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
-    </button>
+    </div>
   );
 }

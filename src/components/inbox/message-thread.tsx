@@ -27,6 +27,7 @@ import {
   PanelRightOpen,
   PanelRightClose,
   Bot,
+  Trash2,
 } from "lucide-react";
 import { format, isToday, isYesterday, differenceInHours } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -105,6 +106,10 @@ interface MessageThreadProps {
    * Optional callback to open the New Chat modal from the empty state.
    */
   onOpenNewChat?: () => void;
+  /**
+   * Optional callback to delete the current conversation.
+   */
+  onDeleteConversation?: (conversationId: string) => void;
 }
 
 function formatDateSeparator(dateStr: string): string {
@@ -164,6 +169,7 @@ export function MessageThread({
   contactPanelOpen,
   onToggleContactPanel,
   onOpenNewChat,
+  onDeleteConversation,
 }: MessageThreadProps) {
   const { user } = useAuth();
   const { getPresence, getRow, now } = usePresence();
@@ -983,6 +989,18 @@ export function MessageThread({
               <RefreshCw
                 className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")}
               />
+            </button>
+          )}
+
+          {onDeleteConversation && conversation && (
+            <button
+              type="button"
+              onClick={() => onDeleteConversation(conversation.id)}
+              aria-label="Delete conversation"
+              title="Delete Chat"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
 

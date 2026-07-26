@@ -291,6 +291,38 @@ export default function InboxPage() {
     [handleSelectConversation]
   );
 
+  const handleDeleteConversation = useCallback(
+    async (conversationId: string) => {
+      if (!confirm("Are you sure you want to delete this conversation? All messages in this chat will be permanently removed.")) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/conversations/${conversationId}`, {
+          method: "DELETE",
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          toast.error(data.error || "Failed to delete conversation");
+          return;
+        }
+
+        toast.success("Conversation deleted");
+        setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+        if (activeConversation?.id === conversationId) {
+          setActiveConversation(null);
+          setActiveContact(null);
+          setMessages([]);
+        }
+      } catch (err) {
+        console.error("Error deleting conversation:", err);
+        toast.error("Failed to delete conversation");
+      }
+    },
+    [activeConversation?.id]
+  );
+
   // On mobile (<lg) we show a SINGLE pane — either the list or the
   // thread — rather than cramming both side-by-side. Selecting a
   // conversation slides the thread in; the thread's back button pops
@@ -328,6 +360,7 @@ export default function InboxPage() {
             onConversationsLoaded={handleConversationsLoaded}
             workspaceId={activeWorkspace?.id}
             onOpenNewChat={() => setNewChatModalOpen(true)}
+            onDeleteConversation={handleDeleteConversation}
           />
         </div>
 
@@ -352,6 +385,7 @@ export default function InboxPage() {
             onAssignChange={handleAssignChange}
             onBack={handleCloseConversation}
             onOpenNewChat={() => setNewChatModalOpen(true)}
+            onDeleteConversation={handleDeleteConversation}
           />
         </div>
 
