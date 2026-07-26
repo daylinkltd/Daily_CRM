@@ -12,35 +12,18 @@ export function verifyMetaWebhookSignature(
   signatureHeader: string | null,
   configs?: Array<{ app_secret?: string | null }>
 ): boolean {
+  // Collect candidate secrets from environment and DB configurations
+  const candidateSecrets: string[] = []
   const envSecret = process.env.META_APP_SECRET
+  if (envSecret) candidateSecrets.push(envSecret)
 
-  // Strict verification if META_APP_SECRET is set in environment
-  if (envSecret) {
-    if (!signatureHeader || !signatureHeader.startsWith('sha256=')) return false
-    const expected =
-      'sha256=' +
-      crypto.createHmac('sha256', envSecret).update(rawBody).digest('hex')
-    const a = Buffer.from(signatureHeader)
-    const b = Buffer.from(expected)
-    if (a.length !== b.length) return false
-    return crypto.timingSafeEqual(a, b)
-  }
-
-  // If process.env.META_APP_SECRET is not configured, check DB configs
   if (configs && configs.length > 0) {
     for (const c of configs) {
       if (c.app_secret) {
         try {
           const secret = decrypt(c.app_secret)
-          if (secret && signatureHeader && signatureHeader.startsWith('sha256=')) {
-            const expected =
-              'sha256=' +
-              crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
-            const a = Buffer.from(signatureHeader)
-            const b = Buffer.from(expected)
-            if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
-              return true
-            }
+          if (secret && !candidateSecrets.includes(secret)) {
+            candidateSecrets.push(secret)
           }
         } catch {
           // ignore decrypt failure
@@ -49,9 +32,34 @@ export function verifyMetaWebhookSignature(
     }
   }
 
-  // Fall-through: META_APP_SECRET unconfigured in env — log warning and allow request to prevent message loss
-  console.warn(
-    '[webhook] META_APP_SECRET unconfigured or soft-failed — allowing request through to prevent inbound message loss.'
-  )
-  return true
+  // If no secrets are configured at all -> soft-fail (allow request to prevent message loss)
+  if (candidateSecrets.length === 0) {
+    console.warn(
+      '[webhook] META_APP_SECRET unconfigured — allowing request through to prevent inbound message loss.'
+    )
+    return true
+  }
+
+  // Header is missing or malformed when secrets ARE configured
+  if (!signatureHeader || !signatureHeader.startsWith('sha256=')) {
+    return false
+  }
+
+  // Verify signature against available secrets
+  for (const secret of candidateSecrets) {
+    try {
+      const expected =
+        'sha256=' +
+        crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+      const a = Buffer.from(signatureHeader)
+      const b = Buffer.from(expected)
+      if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
+        return true
+      }
+    } catch {
+      // ignore calculation error
+    }
+  }
+
+  return false
 }
