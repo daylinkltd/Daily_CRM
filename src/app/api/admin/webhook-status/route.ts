@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { recentWebhookLogs } from '@/app/api/whatsapp/webhook/route';
-import { subscribeWabaToApp } from '@/lib/whatsapp/meta-api';
+import { registerPhoneNumber, subscribeWabaToApp } from '@/lib/whatsapp/meta-api';
 import { decrypt } from '@/lib/whatsapp/encryption';
 
 function supabaseAdmin() {
@@ -11,7 +11,7 @@ function supabaseAdmin() {
   );
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = supabaseAdmin();
 
@@ -20,21 +20,49 @@ export async function GET() {
       .from('whatsapp_config')
       .select('*');
 
-    // Auto-subscribe Meta WABAs to this App's Webhooks
+    // Auto-subscribe Meta WABAs to this App's Webhooks & register phone numbers to claim inbound stream
     const subscriptionResults: Array<{ waba_id: string; status: string; error?: string }> = [];
+    const registrationResults: Array<{ phone_number_id: string; status: string; error?: string }> = [];
     if (configs && configs.length > 0) {
       for (const config of configs) {
-        if (config.provider === 'meta' && config.waba_id && config.access_token) {
+        if (config.provider === 'meta' && config.access_token) {
           try {
             const token = decrypt(config.access_token);
-            await subscribeWabaToApp({ wabaId: config.waba_id, accessToken: token });
-            subscriptionResults.push({ waba_id: config.waba_id, status: 'subscribed' });
-          } catch (err) {
-            subscriptionResults.push({
-              waba_id: config.waba_id,
-              status: 'error',
-              error: err instanceof Error ? err.message : String(err),
-            });
+            if (config.waba_id) {
+              try {
+                await subscribeWabaToApp({ wabaId: config.waba_id, accessToken: token });
+                subscriptionResults.push({ waba_id: config.waba_id, status: 'subscribed' });
+              } catch (err) {
+                subscriptionResults.push({
+                  waba_id: config.waba_id,
+                  status: 'error',
+                  error: err instanceof Error ? err.message : String(err),
+                });
+              }
+            }
+            if (config.phone_number_id) {
+              try {
+                const url = new URL(request.url);
+                const pin = url.searchParams.get('pin') || '792725';
+                const res = await registerPhoneNumber({
+                  phoneNumberId: config.phone_number_id,
+                  accessToken: token,
+                  pin,
+                });
+                registrationResults.push({
+                  phone_number_id: config.phone_number_id,
+                  status: res.alreadyRegistered ? 'already_registered' : 'registered',
+                });
+              } catch (err) {
+                registrationResults.push({
+                  phone_number_id: config.phone_number_id,
+                  status: 'error',
+                  error: err instanceof Error ? err.message : String(err),
+                });
+              }
+            }
+          } catch (tokenErr) {
+            console.error('Failed to decrypt token:', tokenErr);
           }
         }
       }
@@ -87,6 +115,7 @@ export async function GET() {
         messages: messagesCount ?? 0,
       },
       wabaSubscriptions: subscriptionResults,
+      phoneRegistrations: registrationResults,
       recentConversations: recentConversations ?? [],
       recentMessages: recentMessages ?? [],
       webhookLogs: recentWebhookLogs ?? [],

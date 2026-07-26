@@ -1,16 +1,16 @@
 # Graph Report - Daily_CRM  (2026-07-26)
 
 ## Corpus Check
-- 450 files · ~1,218,505 words
+- 451 files · ~1,218,715 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2137 nodes · 7754 edges · 106 communities (93 shown, 13 thin omitted)
+- 2140 nodes · 7763 edges · 107 communities (93 shown, 14 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 38 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a5f28c1f`
+- Built from commit: `b0688bd2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -112,6 +112,7 @@
 - [[_COMMUNITY_Community 100|Community 100]]
 - [[_COMMUNITY_Community 101|Community 101]]
 - [[_COMMUNITY_Community 103|Community 103]]
+- [[_COMMUNITY_Community 104|Community 104]]
 - [[_COMMUNITY_Community 105|Community 105]]
 
 ## God Nodes (most connected - your core abstractions)
@@ -129,63 +130,63 @@
 ## Surprising Connections (you probably didn't know these)
 - `EmployeeProfilePage()` --calls--> `useWorkspace()`  [INFERRED]
   src/app/(dashboard)/employees/[id]/page.tsx → src/hooks/use-workspace.tsx
-- `SignupPageInner()` --calls--> `createClient()`  [EXTRACTED]
-  src/app/(auth)/signup/page.tsx → src/lib/supabase/client.ts
 - `DashboardPage()` --calls--> `useAuth()`  [INFERRED]
   src/app/(dashboard)/dashboard/page.tsx → src/hooks/use-auth.tsx
 - `DashboardPage()` --calls--> `useWorkspace()`  [INFERRED]
   src/app/(dashboard)/dashboard/page.tsx → src/hooks/use-workspace.tsx
 - `DashboardPage()` --calls--> `formatCurrency()`  [INFERRED]
   src/app/(dashboard)/dashboard/page.tsx → src/lib/currency.ts
+- `RunCard()` --calls--> `cn()`  [EXTRACTED]
+  src/app/(dashboard)/flows/[id]/runs/page.tsx → src/lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (106 total, 13 thin omitted)
+## Communities (107 total, 14 thin omitted)
 
 ### Community 0 - "Automations UI & Config"
 Cohesion: 0.11
-Nodes (55): AudienceConfig, Step4ScheduleSend(), ContactForm(), CustomFieldsManager(), CustomFieldsManagerProps, ImportModal(), ImportModalProps, parseCSV() (+47 more)
+Nodes (51): AudienceConfig, Step4Props, Step4ScheduleSend(), ContactForm(), ContactFormProps, CustomFieldsManager(), CustomFieldsManagerProps, ImportModal() (+43 more)
 
 ### Community 1 - "Dashboard Charts & Activity Feed"
-Cohesion: 0.08
-Nodes (52): GET(), PATCH(), GET(), POST(), ForbiddenError, getCurrentAccount(), requireRole(), toErrorResponse() (+44 more)
+Cohesion: 0.09
+Nodes (51): GET(), PATCH(), GET(), POST(), ForbiddenError, getCurrentAccount(), requireRole(), toErrorResponse() (+43 more)
 
 ### Community 2 - "Project Package Dependencies"
 Cohesion: 0.33
 Nodes (6): url, bugs, url, repository, type, url
 
 ### Community 3 - "API Routes & Step Trees"
-Cohesion: 0.12
-Nodes (30): appendResults(), AutomationContext, evaluateCondition(), ExecuteArgs, executeAutomation(), executeStepsFrom(), finalizeLog(), interpolate() (+22 more)
+Cohesion: 0.11
+Nodes (36): supabaseAdmin(), appendResults(), AutomationContext, DispatchInput, evaluateCondition(), ExecuteArgs, executeAutomation(), executeStepsFrom() (+28 more)
 
 ### Community 4 - "Automation Execution Engine"
 Cohesion: 0.12
 Nodes (32): GET(), POST(), BuilderStepInput, BuilderStepNode, DbStep, InsertRow, insertSteps(), loadStepsTree() (+24 more)
 
 ### Community 5 - "Automation Visual Builder UI"
-Cohesion: 0.13
-Nodes (30): ADDABLE_STEPS, AddButton(), ApiStep, AutomationBuilder(), blankConfig(), BranchColumn(), cid(), ConditionBranches() (+22 more)
+Cohesion: 0.12
+Nodes (33): ADDABLE_STEPS, AddButton(), ApiStep, AutomationBuilder(), blankConfig(), BranchColumn(), cid(), ConditionBranches() (+25 more)
 
 ### Community 6 - "Shared Design System Components"
-Cohesion: 0.16
-Nodes (22): collectVariableSlots(), TemplateFormData, TemplateButton, buildBodyComponent(), buildButtonComponent(), buildHeaderComponent(), buildSendComponents(), buttonNeedsSendParam() (+14 more)
+Cohesion: 0.13
+Nodes (19): CustomFieldDef, PipelineDef, PipelineStageDef, ProjectTimeline(), STAGES, TAB_VALUES, TabValue, KanbanColumn() (+11 more)
 
 ### Community 7 - "Broadcast Campaigns & Analytics"
-Cohesion: 0.16
-Nodes (24): AdminClient, advanceCurrentNodeKey(), advanceFromNodeKey(), dispatchInboundToFlows(), endRun(), evaluateConditionNode(), evaluateConditionPredicate(), executeHandoff() (+16 more)
+Cohesion: 0.17
+Nodes (23): AdminClient, advanceCurrentNodeKey(), advanceFromNodeKey(), dispatchInboundToFlows(), endRun(), evaluateConditionNode(), evaluateConditionPredicate(), executeHandoff() (+15 more)
 
 ### Community 8 - "WhatsApp Integration Providers"
-Cohesion: 0.13
-Nodes (12): supabaseAdmin(), resolveConversationId(), runStep(), POST(), ApiAutoProvider, MetaProvider, MockProvider, formatTwilioNumber() (+4 more)
+Cohesion: 0.22
+Nodes (6): ApiAutoProvider, MetaProvider, MockProvider, sendTemplateMessage(), sendTextMessage(), WhatsAppProvider
 
 ### Community 9 - "Webhook Processing & Security"
-Cohesion: 0.11
-Nodes (36): dedupeByPhone(), ExistingContact, findExistingContact(), isExactMatch(), normalizeKey(), POST(), corsHeaders(), OPTIONS() (+28 more)
+Cohesion: 0.12
+Nodes (33): dedupeByPhone(), ExistingContact, findExistingContact(), isExactMatch(), normalizeKey(), ContactOutcome, ContactRow, findExistingContactByPhone() (+25 more)
 
 ### Community 10 - "Workspace Tooling Configurations"
-Cohesion: 0.09
-Nodes (30): FAQ_BOT, FlowTemplate, FlowTemplateNode, FlowTemplateNodeType, LEAD_CAPTURE, listFlowTemplates(), TEMPLATES, WELCOME_MENU (+22 more)
+Cohesion: 0.10
+Nodes (28): FAQ_BOT, FlowTemplate, FlowTemplateNode, FlowTemplateNodeType, LEAD_CAPTURE, TEMPLATES, WELCOME_MENU, CollectInputNodeConfig (+20 more)
 
 ### Community 11 - "Contribution Documentation"
 Cohesion: 0.09
@@ -193,43 +194,43 @@ Nodes (22): Dev-loop reference, Fork and run, If you maintain a public fork, Kee
 
 ### Community 12 - "TypeScript & Build Configs"
 Cohesion: 0.10
-Nodes (35): AssignAssetFormProps, DOCUMENT_TYPES, UploadDocumentFormProps, EmployeeProfileOverviewProps, OnboardEmployeeFormProps, CustomFieldDef, PipelineDef, PipelineStageDef (+27 more)
+Nodes (43): AssignAssetFormProps, DOCUMENT_TYPES, UploadDocumentFormProps, EmployeeProfileOverviewProps, OnboardEmployeeFormProps, LeaveRequestFormProps, CATEGORIES, PolicyEditorModalProps (+35 more)
 
 ### Community 13 - "Real-time Chat UI Components"
-Cohesion: 0.06
-Nodes (32): templateStatusConfig, TemplateStatusDisplay, Account, Attendance, AutomationLogStatus, ConditionSubject, ContentType, CustomFormSubmission (+24 more)
+Cohesion: 0.05
+Nodes (40): SharedFormClientProps, templateStatusConfig, TemplateStatusDisplay, AutomationLogsPage(), StatusBadge(), StepRow(), Account, Attendance (+32 more)
 
 ### Community 14 - "Contacts & Deals Management"
-Cohesion: 0.13
-Nodes (23): EDITABLE_STATUSES, isDryRun(), DELETE(), PATCH(), POST(), buildUpsertRow(), upsertTemplateRow(), TemplateSampleValues (+15 more)
+Cohesion: 0.07
+Nodes (47): EDITABLE_STATUSES, isDryRun(), collectVariableSlots(), TemplateFormData, DELETE(), PATCH(), POST(), buildUpsertRow() (+39 more)
 
 ### Community 15 - "DealCard / DealCardProps"
-Cohesion: 0.17
-Nodes (10): CanvasEdge, OutgoingSlot, unlinkNodeReferences(), NodeData, BuilderState, FlowEditorContextValue, FlowEditorCtx, BuilderNode (+2 more)
+Cohesion: 0.23
+Nodes (8): NodeData, BuilderState, FlowEditorContextValue, FlowEditorCtx, BuilderNode, NodeType, ValidationIssue, NodeConfigFormProps
 
 ### Community 16 - "contactFields / SAMPLE CONTACT"
-Cohesion: 0.09
-Nodes (21): categoryColors, Step1ChooseTemplate(), Step1Props, AudienceConfig, audienceOptions, AudienceType, CustomFieldFilter, CustomFieldOperator (+13 more)
+Cohesion: 0.08
+Nodes (32): categoryColors, Step1ChooseTemplate(), Step1Props, AudienceConfig, audienceOptions, AudienceType, CustomFieldFilter, CustomFieldOperator (+24 more)
 
 ### Community 17 - "BroadcastResult / NewRecipient"
-Cohesion: 0.10
-Nodes (47): engineSendTemplate(), resolveWorkspaceId(), SendInput, SendTemplateArgs, SendTextArgs, sendViaProvider(), BroadcastResult, NewRecipient (+39 more)
+Cohesion: 0.14
+Nodes (32): resolveWorkspaceId(), SendInput, SendTemplateArgs, SendTextArgs, sendViaProvider(), BroadcastResult, NewRecipient, POST() (+24 more)
 
 ### Community 18 - "AdminDashboard / UserProfile"
-Cohesion: 0.23
-Nodes (6): NodeCard(), NODE_META, NodeType, slugify(), summarizeNode(), truncate()
+Cohesion: 0.20
+Nodes (7): NodeCard(), NODE_META, slugify(), summarizeNode(), truncate(), NodeKeySelect(), NodeConfigForm()
 
 ### Community 19 - "AuthContext / AuthContextValue"
-Cohesion: 0.04
-Nodes (83): AssignAssetForm(), AssetsPage(), AttendancePage(), PunchAction(), PolicyAuditPage(), CustomFieldsPanel(), ContactsPage(), ProjectDashboardPage() (+75 more)
+Cohesion: 0.06
+Nodes (62): AssignAssetForm(), AssetsPage(), AttendancePage(), PunchAction(), PolicyAuditPage(), CustomFieldsPanel(), ContactsPage(), ProjectDashboardPage() (+54 more)
 
 ### Community 20 - "engineSendTemplate / engineSendText"
-Cohesion: 0.07
-Nodes (40): GET(), recentWebhookLogs, GET(), POST(), supabaseAdmin(), DeleteMessageTemplateArgs, DownloadMediaArgs, EditMessageTemplateArgs (+32 more)
+Cohesion: 0.06
+Nodes (43): POST(), GET(), recentWebhookLogs, GET(), POST(), supabaseAdmin(), DeleteMessageTemplateArgs, DownloadMediaArgs (+35 more)
 
 ### Community 21 - "buckets / Entry"
-Cohesion: 0.21
-Nodes (15): generateApiKey(), GeneratedApiKey, hashApiKey(), looksLikeApiKey(), hasScope(), ApiKeyRow, findActiveKeyByHash(), touchLastUsed() (+7 more)
+Cohesion: 0.28
+Nodes (9): POST(), ApiKeyRow, findActiveKeyByHash(), touchLastUsed(), supabaseAdmin(), GET(), POST(), requireUser() (+1 more)
 
 ### Community 22 - "BuilderStep / AUTOMATION TEMPLATES"
 Cohesion: 0.28
@@ -237,27 +238,27 @@ Nodes (7): CanvasAddNodeButton(), FlowCanvasInner(), useFlowEditor(), EditorHead
 
 ### Community 23 - "AudienceConfig / BroadcastApiResult"
 Cohesion: 0.07
-Nodes (62): ActivityFeed(), ActivityFeedProps, KIND_THEME, KindTheme, PAGE_SIZES, PageSize, relativeTime(), ConversationsChart() (+54 more)
+Nodes (59): ActivityFeed(), ActivityFeedProps, KIND_THEME, KindTheme, PAGE_SIZES, PageSize, relativeTime(), ConversationsChart() (+51 more)
 
 ### Community 24 - "RealtimeEvent / UseRealtimeOptions"
-Cohesion: 0.15
-Nodes (16): ComposerMediaKind, formatDuration(), MediaDraft, MediaDraftPreview(), MessageComposer(), MessageComposerProps, PICKER_ACCEPT, ReplyDraft (+8 more)
+Cohesion: 0.17
+Nodes (14): ComposerMediaKind, formatDuration(), MediaDraft, MediaDraftPreview(), MessageComposer(), MessageComposerProps, PICKER_ACCEPT, ReplyDraft (+6 more)
 
 ### Community 25 - "encryption.test / a"
-Cohesion: 0.14
-Nodes (40): IntegrationsPage(), AdminLoginPage(), LoginPage(), PageProps, SectionWithItems, ProjectInvoicesProps, ProjectTimesheetProps, ProjectVelocityProps (+32 more)
+Cohesion: 0.21
+Nodes (24): IntegrationsPage(), EmailConfig(), FormsConfig(), ConnectionStatus, InstagramConfig(), MessengerConfig(), SheetsConfig(), SmsConfig() (+16 more)
 
 ### Community 26 - "isTabValue / SettingsPage"
-Cohesion: 0.22
-Nodes (8): describeTrigger(), FlowCard(), FlowRow, FlowsPage(), STATUS_COLORS, STATUS_LABELS, TEMPLATE_ICONS, TemplateSummary
+Cohesion: 0.13
+Nodes (21): BrandingSettings(), CatalogSettings(), ChatbotConfig(), isTabValue(), SettingsPage(), ROLE_META, ChipVariant, SettingsChip() (+13 more)
 
 ### Community 27 - "AutomationCard / formatRelative"
-Cohesion: 0.07
-Nodes (34): POST(), computeSHA256(), POST(), DELETE(), GET(), POST(), GET(), GET() (+26 more)
+Cohesion: 0.08
+Nodes (30): POST(), DELETE(), GET(), POST(), GET(), GET(), POST(), GET() (+22 more)
 
 ### Community 28 - "POST / route"
-Cohesion: 0.23
-Nodes (15): ACCOUNT_ROLES, canDeleteAccount(), canEditSettings(), canManageMembers(), canSendMessages(), canTransferOwnership(), canViewOnly(), hasMinRole() (+7 more)
+Cohesion: 0.14
+Nodes (25): AccountContext, RequireRole(), RequireRoleProps, ACCOUNT_ROLES, AccountRole, canDeleteAccount(), canEditSettings(), canManageMembers() (+17 more)
 
 ### Community 29 - "AudienceConfig / audienceOptions"
 Cohesion: 0.53
@@ -269,11 +270,11 @@ Nodes (32): dependencies, bcryptjs, jspdf, jspdf-autotable, mongoose, next, next
 
 ### Community 31 - "ContactSidebar / ContactSidebarProps"
 Cohesion: 0.14
-Nodes (13): NextNodeRow(), NodeKeySelect(), TextRow(), ConditionCfg, ConditionForm(), MEDIA_ACCEPT, SendButtonsCfg, SendListCfg (+5 more)
+Nodes (12): NextNodeRow(), TextRow(), ConditionCfg, ConditionForm(), MEDIA_ACCEPT, SendButtonsCfg, SendListCfg, SendMediaCfg (+4 more)
 
 ### Community 32 - "inter / metadata"
-Cohesion: 0.06
-Nodes (48): inter, metadata, RootLayout(), viewport, ThemedToaster(), useIsClient(), readInitialMode(), readInitialTheme() (+40 more)
+Cohesion: 0.12
+Nodes (24): inter, metadata, RootLayout(), viewport, ThemedToaster(), useIsClient(), readInitialMode(), readInitialTheme() (+16 more)
 
 ### Community 33 - "linked-project.json / name"
 Cohesion: 0.40
@@ -284,32 +285,32 @@ Cohesion: 0.09
 Nodes (23): BarChart, BarChartEventProps, BarChartProps, BaseEventProps, ChartLegend(), ChartTooltipProps, deepEqual(), HasScrollProps (+15 more)
 
 ### Community 38 - "AGENTS.md / This is NOT the Next.js y..."
-Cohesion: 0.25
-Nodes (11): DashboardShellInner(), AuthProvider(), useAuth(), usePresence(), WorkspaceProvider(), OnboardingInner(), OnboardingPage(), OnboardingPageContent() (+3 more)
+Cohesion: 0.11
+Nodes (20): DashboardShellInner(), EditQuotationPage(), LocalLineItem, LocalSection, PageProps, AuthProvider(), useAuth(), usePresence() (+12 more)
 
 ### Community 41 - "SECURITY HEADERS / next.config"
-Cohesion: 0.07
-Nodes (35): channels, features, LandingPage(), stats, testimonials, Plan, PLANS, POST() (+27 more)
+Cohesion: 0.11
+Nodes (23): Plan, PLANS, POST(), GET(), DELETE(), GET(), isSuperAdmin(), PATCH() (+15 more)
 
 ### Community 43 - "config / postcss.config.mjs"
-Cohesion: 0.06
-Nodes (36): MessageActions(), MessageActionsProps, QUICK_EMOJIS, cn(), EVENT_COLOR, EventLine(), EventRow, RunCard() (+28 more)
+Cohesion: 0.08
+Nodes (32): DeltaRow(), MetricCard(), MetricCardProps, describeTrigger(), FlowCard(), MessageActions(), MessageActionsProps, QUICK_EMOJIS (+24 more)
 
 ### Community 44 - "LandingPage / page"
-Cohesion: 0.25
-Nodes (15): CurrencyOption, formatCurrency(), DealCard(), DealCardProps, formatDate(), initials(), DealFormProps, PipelineAnalyticsProps (+7 more)
+Cohesion: 0.29
+Nodes (14): formatCurrency(), DealCard(), DealCardProps, formatDate(), initials(), DealFormProps, PipelineAnalyticsProps, DraggableDealCard() (+6 more)
 
 ### Community 45 - "next-env.d"
-Cohesion: 0.10
-Nodes (37): AutomationCard(), AutomationsPage(), TEMPLATE_ICON, TEMPLATE_ORDER, formatRelative(), TRIGGER_META, triggerMeta, DashboardShell() (+29 more)
+Cohesion: 0.15
+Nodes (26): AutomationCard(), AutomationsPage(), TEMPLATE_ICON, TEMPLATE_ORDER, formatRelative(), TRIGGER_META, triggerMeta, getPageTitle() (+18 more)
 
 ### Community 46 - "vitest.config"
 Cohesion: 0.26
 Nodes (10): PresenceMap, UsePresenceResult, derivePresence(), formatLastSeen(), presenceLabel(), PresenceRow, PresenceStatus, StoredPresence (+2 more)
 
 ### Community 47 - "CLAUDE.md"
-Cohesion: 0.14
-Nodes (14): AccountContext, RequireRole(), RequireRoleProps, AccountRole, AuthContextValue, Profile, PRESENCE_DOT_CLASS, PresenceDot() (+6 more)
+Cohesion: 0.18
+Nodes (13): MediaImage(), MediaUnavailable(), MessageBubble(), MessageBubbleProps, MessageContent(), StatusIcon(), MessageReactions(), MessageReactionsProps (+5 more)
 
 ### Community 48 - "Community 48"
 Cohesion: 0.08
@@ -320,28 +321,28 @@ Cohesion: 0.09
 Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
 ### Community 50 - "Community 50"
-Cohesion: 0.09
-Nodes (43): ContactFormProps, RealtimeEvent, useRealtime(), UseRealtimeOptions, ContactSidebar(), ContactSidebarProps, ConversationItem(), ConversationItemProps (+35 more)
+Cohesion: 0.15
+Nodes (25): RealtimeEvent, useRealtime(), UseRealtimeOptions, ContactSidebar(), ConversationItem(), ConversationItemProps, ConversationList(), ConversationListProps (+17 more)
 
 ### Community 51 - "Community 51"
-Cohesion: 0.44
-Nodes (7): computeStageProbability(), Metric(), PipelineAnalytics(), Tooltip(), TooltipContent(), TooltipProvider(), TooltipTrigger()
+Cohesion: 0.18
+Nodes (13): computeStageProbability(), Metric(), PipelineAnalytics(), PRESENCE_DOT_CLASS, PresenceDot(), InviteMemberDialog(), EDITABLE_ROLES, Invitation (+5 more)
 
 ### Community 52 - "Community 52"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
 
 ### Community 53 - "Community 53"
-Cohesion: 0.43
-Nodes (5): AutomationLogsPage(), StatusBadge(), StepRow(), AutomationLog, AutomationLogStepResult
+Cohesion: 0.20
+Nodes (10): DashboardShell(), DashboardLayout(), metadata, useTotalUnread(), WorkspacePermissions, bottomNavItems, NavGroup, navGroups (+2 more)
 
 ### Community 54 - "Community 54"
 Cohesion: 0.15
 Nodes (18): args, askQuestion(), { createClient }, envContent, envPath, envVars, extractContactName(), fs (+10 more)
 
 ### Community 55 - "Community 55"
-Cohesion: 0.38
-Nodes (5): FallbackAction, resolveFallbackPolicy(), DEFAULT_FALLBACK_POLICY, FlowFallbackPolicy, GET()
+Cohesion: 0.32
+Nodes (6): decideFallback(), FallbackAction, resolveFallbackPolicy(), DEFAULT_FALLBACK_POLICY, FlowFallbackPolicy, GET()
 
 ### Community 56 - "Community 56"
 Cohesion: 0.13
@@ -368,12 +369,12 @@ Cohesion: 0.20
 Nodes (10): scripts, build, dev, format, format:check, lint, start, test (+2 more)
 
 ### Community 62 - "Community 62"
-Cohesion: 0.12
+Cohesion: 0.13
 Nodes (9): AdminDashboard(), ALL_CHANNELS, DealLostReason, DealSource, GROWTH_LIMITS, Prospect, STATUS_CONFIG, UserProfile (+1 more)
 
 ### Community 63 - "Community 63"
-Cohesion: 0.22
-Nodes (13): contactFields, SAMPLE_CONTACT, Step3Personalize(), Step3Props, VariableMapping, VariableType, Step4Props, BroadcastPayload (+5 more)
+Cohesion: 0.20
+Nodes (9): DEFAULT_MEMBER_PERMISSIONS, OWNER_PERMISSIONS, Workspace, WorkspaceContext, WorkspaceContextValue, WorkspaceMember, WorkspacePlanLimits, WorkspaceProvider() (+1 more)
 
 ### Community 64 - "Community 64"
 Cohesion: 0.33
@@ -384,40 +385,40 @@ Cohesion: 0.22
 Nodes (7): { createClient }, envContent, envPath, envVars, fs, path, supabase
 
 ### Community 66 - "Community 66"
-Cohesion: 0.10
-Nodes (27): ContactDetailView(), ContactDetailViewProps, EditQuotationPage(), LocalLineItem, LocalSection, PageProps, EmployeeProfilePage(), TAB_VALUES (+19 more)
+Cohesion: 0.23
+Nodes (12): ContactDetailView(), ContactDetailViewProps, ContactSidebarProps, Contact, ContactCustomValue, ContactNote, ScrollArea(), Sheet() (+4 more)
 
 ### Community 67 - "Community 67"
 Cohesion: 0.33
 Nodes (4): { createClient }, dotenv, path, supabase
 
 ### Community 68 - "Community 68"
-Cohesion: 0.40
-Nodes (5): API_SCOPES, ApiScope, isApiScope(), normalizeScopes(), SCOPE_DESCRIPTIONS
+Cohesion: 0.16
+Nodes (12): API_SCOPES, ApiScope, isApiScope(), normalizeScopes(), SCOPE_DESCRIPTIONS, CURRENCIES, CurrencyOption, ApiKey (+4 more)
 
 ### Community 69 - "Community 69"
-Cohesion: 0.29
-Nodes (12): BuilderStep, AUTOMATION_TEMPLATES, AutomationTemplateDefinition, TemplateSlug, TemplateStepSeed, expandFromSeeds(), NewAutomationPage(), SeedRow (+4 more)
+Cohesion: 0.28
+Nodes (14): BuilderInitial, BuilderStep, AUTOMATION_TEMPLATES, AutomationTemplateDefinition, TemplateSlug, TemplateStepSeed, expandFromSeeds(), NewAutomationPage() (+6 more)
 
 ### Community 70 - "Community 70"
 Cohesion: 0.47
 Nodes (5): parseContactCsv(), ParseContactCsvResult, parseCsvLine(), ParsedContactRow, parseTagCell()
 
 ### Community 71 - "Community 71"
-Cohesion: 0.31
-Nodes (8): engineSendText(), ChatMessage, generateChatbotResponse(), getFallbackApiKey(), processChatbotReply(), ProcessChatbotReplyArgs, supabaseAdmin(), POST()
+Cohesion: 0.10
+Nodes (29): ChatMessage, generateChatbotResponse(), getFallbackApiKey(), processChatbotReply(), ProcessChatbotReplyArgs, supabaseAdmin(), DELETE(), GET() (+21 more)
 
 ### Community 72 - "Community 72"
-Cohesion: 0.70
-Nodes (4): GET(), POST(), requireUser(), getFlowTemplate()
+Cohesion: 0.25
+Nodes (7): EVENT_COLOR, EventLine(), EventRow, RunCard(), RunRow, STATUS_META, summarizePayload()
 
 ### Community 73 - "Community 73"
 Cohesion: 0.40
 Nodes (5): overrides, fast-uri, hono, ip-address, postcss
 
 ### Community 78 - "Community 78"
-Cohesion: 0.22
-Nodes (11): ALLOWED, normalizeStatus(), handleComponentsUpdate(), handleQualityUpdate(), handleStatusUpdate(), handleTemplateWebhookChange(), TEMPLATE_WEBHOOK_FIELDS, TemplateComponentsUpdateValue (+3 more)
+Cohesion: 0.25
+Nodes (5): channels, features, LandingPage(), stats, testimonials
 
 ### Community 79 - "Community 79"
 Cohesion: 0.33
@@ -444,64 +445,64 @@ Cohesion: 0.33
 Nodes (4): { createClient }, dotenv, path, supabase
 
 ### Community 93 - "Community 93"
-Cohesion: 0.13
-Nodes (16): applyEdgeConnection(), deriveCanvasEdges(), outgoingSlots(), ADD_NODE_TYPES, FlowNodeCard(), NODE_TYPES, NodeEditSheet(), autoLayout() (+8 more)
+Cohesion: 0.12
+Nodes (17): applyEdgeConnection(), CanvasEdge, deriveCanvasEdges(), OutgoingSlot, outgoingSlots(), unlinkNodeReferences(), ADD_NODE_TYPES, FlowNodeCard() (+9 more)
 
 ### Community 94 - "Community 94"
-Cohesion: 0.33
-Nodes (9): extractSampleValues(), MetaButton, MetaTemplate, MetaTemplateComponent, normalizeCategory(), normalizeQualityScore(), normalizeStatus(), parseButtons() (+1 more)
-
-### Community 95 - "Community 95"
-Cohesion: 0.29
-Nodes (8): CATEGORIES, categoryColors, COMMON_LANGUAGE_CODES, emptyForm, HEADER_FORMATS, HEADER_TYPES, HeaderFormat, TemplateManager()
+Cohesion: 0.14
+Nodes (18): extractSampleValues(), MetaButton, MetaTemplate, MetaTemplateComponent, normalizeCategory(), normalizeQualityScore(), normalizeStatus(), parseButtons() (+10 more)
 
 ### Community 96 - "Community 96"
-Cohesion: 0.29
-Nodes (9): POST(), FlowInput, NodeInput, outgoingEdges(), reachableFromEntry(), validateFlowForActivation(), validateNode(), validateTrigger() (+1 more)
+Cohesion: 0.39
+Nodes (7): FlowInput, NodeInput, outgoingEdges(), reachableFromEntry(), validateFlowForActivation(), validateNode(), validateTrigger()
 
 ### Community 97 - "Community 97"
-Cohesion: 0.21
-Nodes (13): getAccountName(), assignImportedContactTags(), ContactTagAssignment, resolveImportTagIds(), ResolveImportTagsResult, POST(), RateLimitResult, GET() (+5 more)
+Cohesion: 0.14
+Nodes (23): generateApiKey(), GeneratedApiKey, hashApiKey(), looksLikeApiKey(), hasScope(), getAccountName(), ApiKeyContext, extractKey() (+15 more)
 
 ### Community 98 - "Community 98"
-Cohesion: 0.29
-Nodes (7): CreatedInvite, EXPIRY_OPTIONS, InviteMemberDialog(), InviteMemberDialogProps, InviteRole, ROLE_DESCRIPTIONS, buttonVariants
+Cohesion: 0.70
+Nodes (4): POST(), corsHeaders(), OPTIONS(), supabaseAdmin()
 
 ### Community 99 - "Community 99"
-Cohesion: 0.26
-Nodes (19): BroadcastsPage(), percent(), RateCell(), EmployeeStats, PageHeader(), PageHeaderProps, KanbanTaskProps, TaskActivityProps (+11 more)
+Cohesion: 0.15
+Nodes (32): BroadcastsPage(), percent(), RateCell(), EmployeeAssetsTabProps, EmployeeDocumentsTabProps, EmployeeProfileOverview(), EmployeeProfilePage(), EmployeeStats (+24 more)
 
 ### Community 100 - "Community 100"
-Cohesion: 0.43
-Nodes (6): BuilderInitial, fromServerSteps(), ServerStepNode, DispatchInput, EditAutomationPage(), AutomationTriggerType
+Cohesion: 0.70
+Nodes (4): DELETE(), PATCH(), POST(), verifyWorkspaceAdmin()
+
+### Community 101 - "Community 101"
+Cohesion: 0.11
+Nodes (31): AdminLoginPage(), LoginPage(), PlanningView(), PlanningViewProps, ProjectInvoicesProps, ProjectTimesheet(), ProjectTimesheetProps, ProjectVelocity() (+23 more)
 
 ### Community 103 - "Community 103"
-Cohesion: 0.60
-Nodes (3): getWorkspaceUsageAndLimits(), WorkspaceUsageInfo, GET()
+Cohesion: 0.83
+Nodes (3): DELETE(), GET(), isSuperAdmin()
 
 ### Community 105 - "Community 105"
-Cohesion: 0.31
-Nodes (6): getAdminClient(), PageProps, SharedFormPage(), SharedFormClientProps, CustomForm, CustomFormField
+Cohesion: 0.67
+Nodes (3): getAdminClient(), PageProps, SharedFormPage()
 
 ## Knowledge Gaps
 - **534 isolated node(s):** `{ createClient }`, `dotenv`, `path`, `supabase`, `{ createClient }` (+529 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `config / postcss.config.mjs` to `Automations UI & Config`, `Automation Visual Builder UI`, `TypeScript & Build Configs`, `AdminDashboard / UserProfile`, `AuthContext / AuthContextValue`, `BuilderStep / AUTOMATION TEMPLATES`, `AudienceConfig / BroadcastApiResult`, `RealtimeEvent / UseRealtimeOptions`, `encryption.test / a`, `isTabValue / SettingsPage`, `ContactSidebar / ContactSidebarProps`, `inter / metadata`, `DashboardLayout / metadata`, `next-env.d`, `CLAUDE.md`, `Community 50`, `Community 51`, `Community 53`, `Community 57`, `Community 66`, `Community 93`, `Community 99`?**
-  _High betweenness centrality (0.087) - this node is a cross-community bridge._
-- **Why does `createClient()` connect `AutomationCard / formatRelative` to `Community 96`, `Dashboard Charts & Activity Feed`, `Community 66`, `API Routes & Step Trees`, `Automation Execution Engine`, `Community 71`, `WhatsApp Integration Providers`, `SECURITY HEADERS / next.config`, `Community 72`, `Workspace Tooling Configurations`, `Community 103`, `Contacts & Deals Management`, `BroadcastResult / NewRecipient`, `engineSendTemplate / engineSendText`, `AudienceConfig / audienceOptions`, `Community 94`?**
-  _High betweenness centrality (0.067) - this node is a cross-community bridge._
-- **Why does `createClient()` connect `AuthContext / AuthContextValue` to `Automations UI & Config`, `TypeScript & Build Configs`, `contactFields / SAMPLE CONTACT`, `AudienceConfig / BroadcastApiResult`, `RealtimeEvent / UseRealtimeOptions`, `encryption.test / a`, `POST / route`, `inter / metadata`, `AGENTS.md / This is NOT the Next.js y...`, `SECURITY HEADERS / next.config`, `next-env.d`, `vitest.config`, `Community 50`, `Community 53`, `Community 58`, `Community 62`, `Community 63`, `Community 66`, `Community 95`, `Community 99`, `Community 101`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+- **Why does `cn()` connect `config / postcss.config.mjs` to `Automations UI & Config`, `Automation Visual Builder UI`, `Shared Design System Components`, `TypeScript & Build Configs`, `Real-time Chat UI Components`, `AdminDashboard / UserProfile`, `BuilderStep / AUTOMATION TEMPLATES`, `AudienceConfig / BroadcastApiResult`, `RealtimeEvent / UseRealtimeOptions`, `encryption.test / a`, `isTabValue / SettingsPage`, `ContactSidebar / ContactSidebarProps`, `inter / metadata`, `DashboardLayout / metadata`, `next-env.d`, `CLAUDE.md`, `Community 50`, `Community 51`, `Community 53`, `Community 57`, `Community 66`, `Community 68`, `Community 72`, `Community 93`, `Community 99`, `Community 101`?**
+  _High betweenness centrality (0.079) - this node is a cross-community bridge._
+- **Why does `createClient()` connect `AuthContext / AuthContextValue` to `Automations UI & Config`, `Shared Design System Components`, `TypeScript & Build Configs`, `Real-time Chat UI Components`, `contactFields / SAMPLE CONTACT`, `AudienceConfig / BroadcastApiResult`, `RealtimeEvent / UseRealtimeOptions`, `isTabValue / SettingsPage`, `POST / route`, `AGENTS.md / This is NOT the Next.js y...`, `next-env.d`, `vitest.config`, `Community 50`, `Community 53`, `Community 58`, `Community 62`, `Community 63`, `Community 66`, `Community 68`, `Community 78`, `Community 99`, `Community 101`?**
+  _High betweenness centrality (0.065) - this node is a cross-community bridge._
+- **Why does `createClient()` connect `AutomationCard / formatRelative` to `Dashboard Charts & Activity Feed`, `API Routes & Step Trees`, `Automation Execution Engine`, `Community 100`, `Shared Design System Components`, `Community 71`, `Community 103`, `SECURITY HEADERS / next.config`, `Community 104`, `Contacts & Deals Management`, `BroadcastResult / NewRecipient`, `engineSendTemplate / engineSendText`, `buckets / Entry`, `AudienceConfig / audienceOptions`, `Community 94`, `Community 95`?**
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
 - **Are the 5 inferred relationships involving `useWorkspace()` (e.g. with `DashboardPage()` and `ProjectDashboardPage()`) actually correct?**
   _`useWorkspace()` has 5 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `{ createClient }`, `dotenv`, `path` to the rest of the system?**
   _534 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Automations UI & Config` be split into smaller, more focused modules?**
-  _Cohesion score 0.10535117056856187 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11392405063291139 - nodes in this community are weakly interconnected._
 - **Should `Dashboard Charts & Activity Feed` be split into smaller, more focused modules?**
-  _Cohesion score 0.08364389233954451 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08516242317822652 - nodes in this community are weakly interconnected._
