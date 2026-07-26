@@ -328,13 +328,14 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
         .from('whatsapp_config')
         .select('*')
 
+      // Strict Multi-Tenant SaaS Isolation: Match config strictly by phone_number_id or waba_id.
+      // NEVER fall back to another tenant's workspace config to prevent cross-tenant data leakage.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let config: any = null
       if (configs && configs.length > 0) {
         const pId = String(phoneNumberId).trim()
         const eId = String(entry.id).trim()
 
-        // 1. Match by phone_number_id or waba_id against phoneNumberId or entry.id
         config = configs.find(
           (c: { phone_number_id?: string; waba_id?: string }) => {
             const cPhone = c.phone_number_id?.trim()
@@ -345,23 +346,12 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
             )
           }
         )
-
-        // 2. If Meta webhook payload (has metadata), prefer provider === 'meta'
-        if (!config && meta?.phone_number_id) {
-          config = configs.find((c: { provider?: string }) => c.provider === "meta")
-        }
-
-        // 3. Fallback to first available config
-        if (!config) {
-          config = configs[0]
-          console.warn(
-            `[webhook] No direct match for phone_number_id ${phoneNumberId}. Falling back to workspace ${config.workspace_id}`
-          )
-        }
       }
 
       if (!config) {
-        console.error('No config found in whatsapp_config for incoming message')
+        console.error(
+          `[webhook] TENANT ISOLATION GUARANTEE: Unmatched incoming payload (phone_number_id: ${phoneNumberId}, entry_id: ${entry.id}). Dropping request to prevent cross-tenant data leakage.`
+        )
         continue
       }
 

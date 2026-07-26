@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify workspace membership
+    // Security Gate: Enforce workspace membership for multi-tenant isolation
     const { data: member, error: memberErr } = await supabase
       .from('workspace_members')
       .select('id')
@@ -36,23 +36,12 @@ export async function GET(request: Request) {
       );
     }
 
-    // Query conversations matching workspace_id OR user_id (if workspace_id was null)
+    // Strict Tenant Isolation: Query conversations strictly by workspace_id
     const { data: conversations, error: convError } = await supabase
       .from('conversations')
       .select('*, contact:contacts(*)')
-      .or(`workspace_id.eq.${workspaceId},and(workspace_id.is.null,user_id.eq.${user.id})`)
+      .eq('workspace_id', workspaceId)
       .order('last_message_at', { ascending: false });
-
-    // Auto-repair any null workspace_id rows in background
-    if (conversations && conversations.length > 0) {
-      const nullWsIds = conversations.filter((c) => !c.workspace_id).map((c) => c.id);
-      if (nullWsIds.length > 0) {
-        void supabase
-          .from('conversations')
-          .update({ workspace_id: workspaceId })
-          .in('id', nullWsIds);
-      }
-    }
 
     if (!convError && conversations) {
       return NextResponse.json({ conversations });
@@ -64,7 +53,7 @@ export async function GET(request: Request) {
     const { data: rawConvs, error: rawErr } = await supabase
       .from('conversations')
       .select('*')
-      .or(`workspace_id.eq.${workspaceId},and(workspace_id.is.null,user_id.eq.${user.id})`)
+      .eq('workspace_id', workspaceId)
       .order('last_message_at', { ascending: false });
 
     if (rawErr || !rawConvs) {
@@ -80,6 +69,7 @@ export async function GET(request: Request) {
       const { data: contacts } = await supabase
         .from('contacts')
         .select('*')
+        .eq('workspace_id', workspaceId)
         .in('id', contactIds);
 
       if (contacts) {

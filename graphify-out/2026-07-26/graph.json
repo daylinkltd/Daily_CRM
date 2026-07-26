@@ -5907,7 +5907,7 @@
       "label": "RECIPIENT_STATUS_LADDER",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L403",
+      "source_location": "L414",
       "_origin": "ast",
       "id": "webhook_route_recipient_status_ladder",
       "community": 9,
@@ -5917,7 +5917,7 @@
       "label": "ladderLevel()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L411",
+      "source_location": "L422",
       "_origin": "ast",
       "id": "webhook_route_ladderlevel",
       "community": 9,
@@ -5927,7 +5927,7 @@
       "label": "isValidStatusTransition()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L422",
+      "source_location": "L433",
       "_origin": "ast",
       "id": "webhook_route_isvalidstatustransition",
       "community": 9,
@@ -5937,7 +5937,7 @@
       "label": "handleStatusUpdate()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L436",
+      "source_location": "L447",
       "_origin": "ast",
       "id": "webhook_route_handlestatusupdate",
       "community": 9,
@@ -5947,7 +5947,7 @@
       "label": "flagBroadcastReplyIfAny()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L498",
+      "source_location": "L509",
       "_origin": "ast",
       "id": "webhook_route_flagbroadcastreplyifany",
       "community": 9,
@@ -5957,7 +5957,7 @@
       "label": "processMessage()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L526",
+      "source_location": "L537",
       "_origin": "ast",
       "id": "webhook_route_processmessage",
       "community": 9,
@@ -5967,7 +5967,7 @@
       "label": "parseMessageContent()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L712",
+      "source_location": "L723",
       "_origin": "ast",
       "id": "webhook_route_parsemessagecontent",
       "community": 9,
@@ -5977,7 +5977,7 @@
       "label": "ContactRow",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L854",
+      "source_location": "L865",
       "_origin": "ast",
       "id": "webhook_route_contactrow",
       "community": 9,
@@ -5987,7 +5987,7 @@
       "label": "ContactOutcome",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L856",
+      "source_location": "L867",
       "_origin": "ast",
       "id": "webhook_route_contactoutcome",
       "community": 9,
@@ -5997,7 +5997,7 @@
       "label": "findOrCreateContact()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L863",
+      "source_location": "L874",
       "_origin": "ast",
       "id": "webhook_route_findorcreatecontact",
       "community": 9,
@@ -6007,7 +6007,7 @@
       "label": "findOrCreateConversation()",
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/webhook/route.ts",
-      "source_location": "L929",
+      "source_location": "L940",
       "_origin": "ast",
       "id": "webhook_route_findorcreateconversation",
       "community": 9,
@@ -41531,9 +41531,9 @@
       "source_file": "src/app/api/admin/webhook-status/route.ts",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webhook_status_route",
-      "target": "webhook_status_route_get",
-      "confidence_score": 1.0
+      "target": "webhook_status_route_get"
     },
     {
       "relation": "contains",
@@ -41541,9 +41541,9 @@
       "source_file": "src/app/api/admin/webhook-status/route.ts",
       "source_location": "L69",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webhook_status_route",
-      "target": "webhook_status_route_post",
-      "confidence_score": 1.0
+      "target": "webhook_status_route_post"
     },
     {
       "relation": "contains",
@@ -41551,9 +41551,9 @@
       "source_file": "src/app/api/admin/webhook-status/route.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webhook_status_route",
-      "target": "webhook_status_route_supabaseadmin",
-      "confidence_score": 1.0
+      "target": "webhook_status_route_supabaseadmin"
     },
     {
       "relation": "calls",
@@ -41562,9 +41562,9 @@
       "source_file": "src/app/api/admin/webhook-status/route.ts",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webhook_status_route_get",
-      "target": "webhook_status_route_supabaseadmin",
-      "confidence_score": 1.0
+      "target": "webhook_status_route_supabaseadmin"
     },
     {
       "relation": "calls",
@@ -41573,9 +41573,9 @@
       "source_file": "src/app/api/admin/webhook-status/route.ts",
       "source_location": "L75",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "webhook_status_route_post",
-      "target": "webhook_status_route_supabaseadmin",
-      "confidence_score": 1.0
+      "target": "webhook_status_route_supabaseadmin"
     },
     {
       "relation": "imports_from",
@@ -104358,5 +104358,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "150949e3a8aa0ab786046847df6b2c3907ed5fd4"
+  "built_at_commit": "43dd3ff509b65d39c521212828e3b12e64bd17b6"
 }
