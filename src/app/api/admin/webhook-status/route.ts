@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { recentWebhookLogs } from '@/app/api/whatsapp/webhook/route';
+import { subscribeWabaToApp } from '@/lib/whatsapp/meta-api';
+import { decrypt } from '@/lib/whatsapp/encryption';
 
 function supabaseAdmin() {
   return createClient(
@@ -16,7 +18,27 @@ export async function GET() {
     // 1. Fetch configs
     const { data: configs, error: configError } = await supabase
       .from('whatsapp_config')
-      .select('id, workspace_id, user_id, provider, phone_number_id, waba_id, status, created_at');
+      .select('*');
+
+    // Auto-subscribe Meta WABAs to this App's Webhooks
+    const subscriptionResults: Array<{ waba_id: string; status: string; error?: string }> = [];
+    if (configs && configs.length > 0) {
+      for (const config of configs) {
+        if (config.provider === 'meta' && config.waba_id && config.access_token) {
+          try {
+            const token = decrypt(config.access_token);
+            await subscribeWabaToApp({ wabaId: config.waba_id, accessToken: token });
+            subscriptionResults.push({ waba_id: config.waba_id, status: 'subscribed' });
+          } catch (err) {
+            subscriptionResults.push({
+              waba_id: config.waba_id,
+              status: 'error',
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        }
+      }
+    }
 
     // 2. Fetch counts
     const { count: contactsCount } = await supabase
@@ -44,15 +66,27 @@ export async function GET() {
       .order('created_at', { ascending: false })
       .limit(5);
 
+    const sanitizedConfigs = configs?.map((c) => ({
+      id: c.id,
+      workspace_id: c.workspace_id,
+      user_id: c.user_id,
+      provider: c.provider,
+      phone_number_id: c.phone_number_id,
+      waba_id: c.waba_id,
+      status: c.status,
+      created_at: c.created_at,
+    }));
+
     return NextResponse.json({
       status: 'active',
-      configCount: configs?.length ?? 0,
-      configs: configs ?? [],
+      configCount: sanitizedConfigs?.length ?? 0,
+      configs: sanitizedConfigs ?? [],
       counts: {
         contacts: contactsCount ?? 0,
         conversations: conversationsCount ?? 0,
         messages: messagesCount ?? 0,
       },
+      wabaSubscriptions: subscriptionResults,
       recentConversations: recentConversations ?? [],
       recentMessages: recentMessages ?? [],
       webhookLogs: recentWebhookLogs ?? [],
