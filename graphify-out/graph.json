@@ -2730,7 +2730,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "designations_page",
-      "community": 45,
+      "community": 99,
       "norm_label": "page.tsx"
     },
     {
@@ -3280,7 +3280,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "leave_page",
-      "community": 99,
+      "community": 45,
       "norm_label": "page.tsx"
     },
     {
@@ -5600,7 +5600,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "react_route",
-      "community": 20,
+      "community": 1,
       "norm_label": "route.ts"
     },
     {
@@ -5610,7 +5610,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "react_route_post",
-      "community": 20,
+      "community": 1,
       "norm_label": "post()"
     },
     {
@@ -8967,7 +8967,7 @@
       "label": "ConversationItemProps",
       "file_type": "code",
       "source_file": "src/components/inbox/conversation-list.tsx",
-      "source_location": "L255",
+      "source_location": "L262",
       "_origin": "ast",
       "id": "inbox_conversation_list_conversationitemprops",
       "community": 53,
@@ -8977,7 +8977,7 @@
       "label": "ConversationItem()",
       "file_type": "code",
       "source_file": "src/components/inbox/conversation-list.tsx",
-      "source_location": "L262",
+      "source_location": "L269",
       "_origin": "ast",
       "id": "inbox_conversation_list_conversationitem",
       "community": 53,
@@ -17790,7 +17790,7 @@
       "source_location": "L680",
       "_origin": "ast",
       "id": "whatsapp_meta_api_sendreactionmessage",
-      "community": 20,
+      "community": 1,
       "norm_label": "sendreactionmessage()"
     },
     {
@@ -18220,7 +18220,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "providers_twilio_provider",
-      "community": 97,
+      "community": 3,
       "norm_label": "twilio-provider.ts"
     },
     {
@@ -18230,7 +18230,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "providers_twilio_provider_formattwilionumber",
-      "community": 97,
+      "community": 3,
       "norm_label": "formattwilionumber()"
     },
     {
@@ -18240,7 +18240,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider",
-      "community": 97,
+      "community": 3,
       "norm_label": "twilioprovider"
     },
     {
@@ -18250,7 +18250,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_verifyconfig",
-      "community": 97,
+      "community": 3,
       "norm_label": ".verifyconfig()"
     },
     {
@@ -18260,7 +18260,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_sendmessage",
-      "community": 97,
+      "community": 3,
       "norm_label": ".sendmessage()"
     },
     {
@@ -18270,7 +18270,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_sendtemplate",
-      "community": 97,
+      "community": 3,
       "norm_label": ".sendtemplate()"
     },
     {
@@ -98767,9 +98767,9 @@
       "source_file": "src/lib/whatsapp/encryption.ts",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "whatsapp_encryption",
-      "target": "whatsapp_encryption_getencryptionkeybuffer",
-      "confidence_score": 1.0
+      "target": "whatsapp_encryption_getencryptionkeybuffer"
     },
     {
       "relation": "contains",
@@ -98799,9 +98799,9 @@
       "source_file": "src/lib/whatsapp/encryption.ts",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "whatsapp_encryption_decrypt",
-      "target": "whatsapp_encryption_getencryptionkeybuffer",
-      "confidence_score": 1.0
+      "target": "whatsapp_encryption_getencryptionkeybuffer"
     },
     {
       "relation": "calls",
@@ -98810,9 +98810,9 @@
       "source_file": "src/lib/whatsapp/encryption.ts",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "whatsapp_encryption_encrypt",
-      "target": "whatsapp_encryption_getencryptionkeybuffer",
-      "confidence_score": 1.0
+      "target": "whatsapp_encryption_getencryptionkeybuffer"
     },
     {
       "relation": "imports",
@@ -104464,5 +104464,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "585b93050b8d012c186f2915b1e2056ee914aef3"
+  "built_at_commit": "1de323b00364e139535a51cf4cdd5a5423d1e1f1"
 }

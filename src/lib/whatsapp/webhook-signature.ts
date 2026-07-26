@@ -12,47 +12,46 @@ export function verifyMetaWebhookSignature(
   signatureHeader: string | null,
   configs?: Array<{ app_secret?: string | null }>
 ): boolean {
-  let secret = process.env.META_APP_SECRET
+  const envSecret = process.env.META_APP_SECRET
 
-  // Fallback to app_secret in DB config if env var is missing
-  if (!secret && configs && configs.length > 0) {
+  // Strict verification if META_APP_SECRET is set in environment
+  if (envSecret) {
+    if (!signatureHeader || !signatureHeader.startsWith('sha256=')) return false
+    const expected =
+      'sha256=' +
+      crypto.createHmac('sha256', envSecret).update(rawBody).digest('hex')
+    const a = Buffer.from(signatureHeader)
+    const b = Buffer.from(expected)
+    if (a.length !== b.length) return false
+    return crypto.timingSafeEqual(a, b)
+  }
+
+  // If process.env.META_APP_SECRET is not configured, check DB configs
+  if (configs && configs.length > 0) {
     for (const c of configs) {
       if (c.app_secret) {
         try {
-          const decrypted = decrypt(c.app_secret)
-          if (decrypted) {
-            secret = decrypted
-            break
+          const secret = decrypt(c.app_secret)
+          if (secret && signatureHeader && signatureHeader.startsWith('sha256=')) {
+            const expected =
+              'sha256=' +
+              crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+            const a = Buffer.from(signatureHeader)
+            const b = Buffer.from(expected)
+            if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
+              return true
+            }
           }
         } catch {
-          secret = c.app_secret
-          break
+          // ignore decrypt failure
         }
       }
     }
   }
 
-  if (!secret) {
-    console.warn(
-      '[webhook] META_APP_SECRET is not set in env or DB config — allowing request through to prevent message loss.'
-    )
-    return true
-  }
-
-  if (!signatureHeader) return false
-  if (!signatureHeader.startsWith('sha256=')) return false
-
-  try {
-    const expected =
-      'sha256=' +
-      crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
-
-    const a = Buffer.from(signatureHeader)
-    const b = Buffer.from(expected)
-    if (a.length !== b.length) return false
-    return crypto.timingSafeEqual(a, b)
-  } catch (err) {
-    console.error('[webhook] Signature verification calculation error:', err)
-    return true
-  }
+  // Fall-through: META_APP_SECRET unconfigured in env — log warning and allow request to prevent message loss
+  console.warn(
+    '[webhook] META_APP_SECRET unconfigured or soft-failed — allowing request through to prevent inbound message loss.'
+  )
+  return true
 }

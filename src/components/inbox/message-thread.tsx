@@ -303,12 +303,9 @@ export function MessageThread({
   useEffect(() => {
     if (!conversationId) return;
 
-    const supabase = createClient();
     let cancelled = false;
 
-    (async () => {
-      setLoading(true);
-
+    const fetchMsgs = async () => {
       try {
         const res = await fetch(`/api/conversations/${conversationId}/messages`);
         const payload = await res.json();
@@ -340,10 +337,18 @@ export function MessageThread({
       }
 
       if (!cancelled) setLoading(false);
-    })();
+    };
+
+    setLoading(true);
+    void fetchMsgs();
+
+    const interval = setInterval(() => {
+      void fetchMsgs();
+    }, 4000);
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
     // `resyncToken` is included so the parent can force a refetch when
     // the realtime channel reconnects or the tab regains focus —

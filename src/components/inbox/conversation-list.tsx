@@ -71,7 +71,7 @@ export function ConversationList({
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    const fetchConvs = async () => {
       if (!workspaceId) {
         setLoading(false);
         return;
@@ -109,10 +109,17 @@ export function ConversationList({
 
       onConversationsLoadedRef.current(data ?? []);
       setLoading(false);
-    })();
+    };
+
+    void fetchConvs();
+
+    const interval = setInterval(() => {
+      void fetchConvs();
+    }, 4000);
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, [workspaceId, resyncToken]);
 

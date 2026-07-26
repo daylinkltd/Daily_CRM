@@ -620,8 +620,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/conversation-list.tsx": {
-    "mtime": 1785073872.828091,
-    "ast_hash": "a3db92a8c54bd17c3b42cc3a82cade5f",
+    "mtime": 1785077635.6647022,
+    "ast_hash": "2f75674f87e944d989b051f709f98236",
     "semantic_hash": ""
   },
   "src/components/inbox/message-actions.tsx": {
@@ -645,8 +645,8 @@
     "semantic_hash": ""
   },
   "src/components/inbox/message-thread.tsx": {
-    "mtime": 1785073889.7522986,
-    "ast_hash": "d0fc3aa28defdac7a8d89731b35af7b3",
+    "mtime": 1785077662.4829848,
+    "ast_hash": "3cafec6148b0b8bf84d34a7a0601febf",
     "semantic_hash": ""
   },
   "src/components/inbox/reply-quote.tsx": {
@@ -1360,8 +1360,8 @@
     "semantic_hash": ""
   },
   "src/lib/whatsapp/webhook-signature.ts": {
-    "mtime": 1785074244.036982,
-    "ast_hash": "4fa8c4762307e751ef10d279e2065b72",
+    "mtime": 1785077581.0068862,
+    "ast_hash": "3f1938a7e05fec684608aaf0d57dd9a7",
     "semantic_hash": ""
   },
   "src/proxy.ts": {
