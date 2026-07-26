@@ -275,10 +275,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
-  // Process asynchronously so we can ack Meta within their timeout.
-  processWebhook(body).catch((error) => {
+  // Await processWebhook to guarantee serverless execution context stays alive
+  // until all database writes (contacts, conversations, messages) are complete.
+  try {
+    await processWebhook(body)
+  } catch (error) {
     console.error('Error processing webhook:', error)
-  })
+  }
 
   return NextResponse.json({ status: 'received' }, { status: 200 })
 }
@@ -861,34 +864,35 @@ interface ContactOutcome {
   wasCreated: boolean
 }
 
+async function findExistingContactByPhone(
+  workspaceId: string,
+  phone: string
+): Promise<ContactRow | null> {
+  const normalized = normalizePhone(phone)
+  if (!normalized) return null
+
+  const suffix = normalized.length >= 8 ? normalized.slice(-8) : normalized
+
+  let query = supabaseAdmin().from('contacts').select('*')
+  if (workspaceId) {
+    query = query.eq('workspace_id', workspaceId)
+  }
+  const { data, error } = await query.like('phone', `%${suffix}`)
+
+  if (error || !data) return null
+
+  return (data as ContactRow[]).find((c) => phonesMatch(c.phone, phone)) ?? null
+}
+
 async function findOrCreateContact(
   userId: string,
   phone: string,
   name: string,
   workspaceId: string
 ): Promise<ContactOutcome | null> {
-  // Query all contacts matching user_id or workspace_id
-  let query = supabaseAdmin().from('contacts').select('*')
-  if (workspaceId && userId) {
-    query = query.or(`workspace_id.eq.${workspaceId},user_id.eq.${userId}`)
-  } else if (workspaceId) {
-    query = query.eq('workspace_id', workspaceId)
-  } else {
-    query = query.eq('user_id', userId)
-  }
-
-  const { data: contacts, error: contactsError } = await query
-
-  if (contactsError) {
-    console.error('Error fetching contacts:', contactsError)
-    return null
-  }
-
-  // Use phonesMatch for flexible matching
-  const existingContact = contacts?.find((c: ContactRow) => phonesMatch(c.phone, phone))
+  const existingContact = await findExistingContactByPhone(workspaceId, phone)
 
   if (existingContact) {
-    // Update name or workspace_id if missing
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updatePayload: Record<string, any> = {}
     if (name && name !== existingContact.name) {
@@ -920,6 +924,12 @@ async function findOrCreateContact(
     .single()
 
   if (createError) {
+    // SQLSTATE 23505: Unique constraint violation (lost insert race)
+    // Re-resolve existing contact row instead of dropping the message
+    if ((createError as { code?: string })?.code === '23505') {
+      const raced = await findExistingContactByPhone(workspaceId, phone)
+      if (raced) return { contact: raced, wasCreated: false }
+    }
     console.error('Error creating contact:', createError)
     return null
   }
@@ -929,11 +939,12 @@ async function findOrCreateContact(
 
 async function findOrCreateConversation(userId: string, contactId: string, workspaceId: string) {
   // Look for existing conversation by contact_id first
-  const { data: existing } = await supabaseAdmin()
-    .from('conversations')
-    .select('*')
-    .eq('contact_id', contactId)
-    .maybeSingle()
+  let query = supabaseAdmin().from('conversations').select('*').eq('contact_id', contactId)
+  if (workspaceId) {
+    query = query.eq('workspace_id', workspaceId)
+  }
+
+  const { data: existing } = await query.maybeSingle()
 
   if (existing) {
     if (workspaceId && !existing.workspace_id) {
@@ -961,6 +972,14 @@ async function findOrCreateConversation(userId: string, contactId: string, works
     .single()
 
   if (createError) {
+    if ((createError as { code?: string })?.code === '23505') {
+      const raced = await supabaseAdmin()
+        .from('conversations')
+        .select('*')
+        .eq('contact_id', contactId)
+        .maybeSingle()
+      if (raced.data) return raced.data
+    }
     console.error('Error creating conversation:', createError)
     return null
   }
