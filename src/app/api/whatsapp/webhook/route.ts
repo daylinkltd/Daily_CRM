@@ -314,7 +314,7 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
       }
 
       // Handle incoming messages
-      if (!value.messages || !value.contacts) continue
+      if (!value.messages || !Array.isArray(value.messages) || value.messages.length === 0) continue
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const meta = value.metadata as any
@@ -381,7 +381,9 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
 
       for (let i = 0; i < value.messages.length; i++) {
         const message = value.messages[i]
-        const contact = value.contacts[i] || value.contacts[0]
+        const contact =
+          (value.contacts && (value.contacts[i] || value.contacts[0])) ||
+          { profile: { name: message.from }, wa_id: message.from }
 
         await processMessage(
           message,

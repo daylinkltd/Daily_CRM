@@ -1,16 +1,16 @@
 # Graph Report - Daily_CRM  (2026-07-26)
 
 ## Corpus Check
-- 450 files · ~1,218,193 words
+- 450 files · ~1,218,246 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2134 nodes · 7742 edges · 106 communities (93 shown, 13 thin omitted)
+- 2134 nodes · 7742 edges · 105 communities (93 shown, 12 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 38 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `585b9305`
+- Built from commit: `1de323b0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -106,7 +106,6 @@
 - [[_COMMUNITY_Community 94|Community 94]]
 - [[_COMMUNITY_Community 95|Community 95]]
 - [[_COMMUNITY_Community 96|Community 96]]
-- [[_COMMUNITY_Community 97|Community 97]]
 - [[_COMMUNITY_Community 98|Community 98]]
 - [[_COMMUNITY_Community 99|Community 99]]
 - [[_COMMUNITY_Community 100|Community 100]]
@@ -141,23 +140,23 @@
 ## Import Cycles
 - None detected.
 
-## Communities (106 total, 13 thin omitted)
+## Communities (105 total, 12 thin omitted)
 
 ### Community 0 - "Automations UI & Config"
 Cohesion: 0.11
 Nodes (55): AudienceConfig, Step4Props, Step4ScheduleSend(), ContactForm(), ContactFormProps, CustomFieldsManager(), CustomFieldsManagerProps, ImportModal() (+47 more)
 
 ### Community 1 - "Dashboard Charts & Activity Feed"
-Cohesion: 0.09
-Nodes (50): GET(), PATCH(), GET(), POST(), ForbiddenError, getCurrentAccount(), requireRole(), toErrorResponse() (+42 more)
+Cohesion: 0.08
+Nodes (52): GET(), PATCH(), GET(), POST(), ForbiddenError, getCurrentAccount(), requireRole(), toErrorResponse() (+44 more)
 
 ### Community 2 - "Project Package Dependencies"
 Cohesion: 0.33
 Nodes (6): url, bugs, url, repository, type, url
 
 ### Community 3 - "API Routes & Step Trees"
-Cohesion: 0.13
-Nodes (33): supabaseAdmin(), appendResults(), AutomationContext, evaluateCondition(), executeAutomation(), executeStepsFrom(), finalizeLog(), interpolate() (+25 more)
+Cohesion: 0.11
+Nodes (35): supabaseAdmin(), appendResults(), AutomationContext, evaluateCondition(), executeAutomation(), executeStepsFrom(), finalizeLog(), interpolate() (+27 more)
 
 ### Community 4 - "Automation Execution Engine"
 Cohesion: 0.12
@@ -224,8 +223,8 @@ Cohesion: 0.04
 Nodes (78): AssignAssetForm(), AssetsPage(), AttendancePage(), PunchAction(), PolicyAuditPage(), CustomFieldsPanel(), ContactsPage(), ProjectDashboardPage() (+70 more)
 
 ### Community 20 - "engineSendTemplate / engineSendText"
-Cohesion: 0.06
-Nodes (42): GET(), POST(), GET(), DeleteMessageTemplateArgs, downloadMedia(), DownloadMediaArgs, EditMessageTemplateArgs, EditMessageTemplateResult (+34 more)
+Cohesion: 0.07
+Nodes (40): GET(), GET(), DeleteMessageTemplateArgs, downloadMedia(), DownloadMediaArgs, EditMessageTemplateArgs, EditMessageTemplateResult, getMediaUrl() (+32 more)
 
 ### Community 21 - "buckets / Entry"
 Cohesion: 0.12
@@ -486,7 +485,7 @@ Nodes (3): getAdminClient(), PageProps, SharedFormPage()
 ## Knowledge Gaps
 - **533 isolated node(s):** `{ createClient }`, `dotenv`, `path`, `supabase`, `{ createClient }` (+528 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -504,4 +503,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Automations UI & Config` be split into smaller, more focused modules?**
   _Cohesion score 0.10762800417972831 - nodes in this community are weakly interconnected._
 - **Should `Dashboard Charts & Activity Feed` be split into smaller, more focused modules?**
-  _Cohesion score 0.08729081863410222 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08364389233954451 - nodes in this community are weakly interconnected._
