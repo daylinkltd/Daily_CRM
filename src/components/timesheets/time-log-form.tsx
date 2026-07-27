@@ -24,15 +24,17 @@ import {
 import { Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
 
 interface TimeLogFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultTaskId?: string;
+  defaultHours?: string | number;
   onSaved: () => void;
 }
 
-export function TimeLogForm({ open, onOpenChange, defaultTaskId, onSaved }: TimeLogFormProps) {
+export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, onSaved }: TimeLogFormProps) {
   const supabase = createClient();
   const { activeWorkspace, activeMember } = useWorkspace();
   
@@ -58,15 +60,25 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, onSaved }: Time
 
       setTaskId(defaultTaskId || 'none');
       setLogDate(new Date().toISOString().split('T')[0]);
-      setHours('');
+      setHours(defaultHours ? String(defaultHours) : '');
       setDescription('');
       setIsBillable(false);
     }
-  }, [open, activeWorkspace?.id, activeMember?.id, defaultTaskId]);
+  }, [open, activeWorkspace?.id, activeMember?.id, defaultTaskId, defaultHours]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!activeWorkspace?.id || !activeMember?.id || !hours || !logDate) return;
+    if (!hours || Number(hours) <= 0) {
+      toast.error('Please enter valid hours logged (e.g. 2.5)');
+      return;
+    }
+
+    if (!logDate) {
+      toast.error('Please select a date');
+      return;
+    }
+
+    if (!activeWorkspace?.id || !activeMember?.id) return;
 
     setSaving(true);
     
@@ -89,7 +101,8 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, onSaved }: Time
       onSaved();
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err.message || 'Failed to log time');
+      const msg = sanitizeErrorMessage(err, 'Failed to log time');
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -138,12 +151,12 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, onSaved }: Time
               <Input
                 type="number"
                 step="0.25"
-                min="0.25"
+                min="0.1"
                 max="24"
                 value={hours}
                 onChange={(e) => setHours(e.target.value)}
                 placeholder="e.g. 2.5"
-                className="bg-card border-border text-foreground"
+                className="bg-card border-border text-foreground font-semibold"
                 required
               />
             </div>
@@ -179,8 +192,8 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, onSaved }: Time
             </Button>
             <Button
               type="submit"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              disabled={saving || !hours || !logDate}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+              disabled={saving}
             >
               {saving && <Loader2 className="size-4 animate-spin mr-2" />}
               Save Entry

@@ -235,6 +235,11 @@ export function SettingsOverview({
       loading: false,
       subtitle: 'Shift timings, Leave rules & Payroll cycles',
     },
+    {
+      section: 'retail',
+      loading: false,
+      subtitle: 'Industry presets, POS rules & master forms',
+    },
   ];
 
   return (
