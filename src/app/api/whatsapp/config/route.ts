@@ -48,7 +48,7 @@ export async function GET(request: Request) {
 
     const { data: config, error: configError } = await supabase
       .from("whatsapp_config")
-      .select("phone_number_id, access_token, status, provider, waba_id")
+      .select("phone_number_id, access_token, status, provider, waba_id, verify_token")
       .eq("workspace_id", workspaceId)
       .maybeSingle();
 
@@ -82,11 +82,28 @@ export async function GET(request: Request) {
           connected: false,
           reason: "token_corrupted",
           needs_reset: true,
+          provider: config.provider || "meta",
+          phone_number_id: config.phone_number_id || "",
+          waba_id: config.waba_id || "",
           message:
             "The stored access token cannot be decrypted with the current ENCRYPTION_KEY. Click 'Reset Configuration' below and re-save.",
         },
         { status: 200 }
       );
+    }
+
+    // Try decrypting verify_token if present, or auto-generate fallback
+    let verifyToken = "";
+    if (config.verify_token) {
+      try {
+        verifyToken = decrypt(config.verify_token);
+      } catch {
+        verifyToken = config.verify_token;
+      }
+    }
+    if (!verifyToken) {
+      const rand = Math.random().toString(36).substring(2, 14);
+      verifyToken = `whvt_${rand}`;
     }
 
     // Resolve driver and verify credentials dynamically
@@ -102,6 +119,10 @@ export async function GET(request: Request) {
         connected: true,
         phone_info: phoneInfo,
         provider: config.provider || "meta",
+        phone_number_id: config.phone_number_id || "",
+        waba_id: config.waba_id || "",
+        verify_token: verifyToken,
+        has_token: true,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "API verification failed";
@@ -111,6 +132,11 @@ export async function GET(request: Request) {
           connected: false,
           reason: "api_error",
           message: `API rejected the credentials: ${message}`,
+          provider: config.provider || "meta",
+          phone_number_id: config.phone_number_id || "",
+          waba_id: config.waba_id || "",
+          verify_token: verifyToken,
+          has_token: true,
         },
         { status: 200 }
       );
@@ -149,13 +175,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "workspace_id is required" }, { status: 400 });
     }
 
-    if (!access_token || !phone_number_id) {
-      return NextResponse.json(
-        { error: "access_token and phone_number_id are required" },
-        { status: 400 }
-      );
-    }
-
     // Security Gate: Enforce workspace membership
     const { data: member, error: memberErr } = await supabase
       .from("workspace_members")
@@ -171,6 +190,36 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check existing config
+    const { data: existing } = await supabase
+      .from("whatsapp_config")
+      .select("id, access_token, verify_token")
+      .eq("workspace_id", workspace_id)
+      .maybeSingle();
+
+    let effectiveAccessToken = access_token;
+    let isNewToken = true;
+
+    // If access token is masked or missing and existing config exists, decrypt existing token
+    if (existing && (!access_token || access_token === "••••••••••••••••")) {
+      try {
+        effectiveAccessToken = decrypt(existing.access_token);
+        isNewToken = false;
+      } catch (err) {
+        return NextResponse.json(
+          { error: "Existing stored access token could not be decrypted. Please re-enter a new access token." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (!effectiveAccessToken || !phone_number_id) {
+      return NextResponse.json(
+        { error: "access_token and phone_number_id are required" },
+        { status: 400 }
+      );
+    }
+
     // Verify credentials via selected provider driver PRIOR to storage
     let phoneInfo;
     try {
@@ -178,7 +227,7 @@ export async function POST(request: Request) {
       phoneInfo = await driver.verifyConfig({
         phoneId: phone_number_id,
         wabaId: waba_id,
-        token: access_token,
+        token: effectiveAccessToken,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Validation failed";
@@ -189,27 +238,43 @@ export async function POST(request: Request) {
       );
     }
 
-    // Encrypt sensitive credentials
+    // Encrypt credentials
     let encryptedAccessToken: string;
-    let encryptedVerifyToken: string | null;
+    if (isNewToken) {
+      try {
+        encryptedAccessToken = encrypt(effectiveAccessToken);
+      } catch (err) {
+        console.error("Encryption of WhatsApp token failed:", err);
+        return NextResponse.json(
+          { error: "Failed to encrypt token. Verify ENCRYPTION_KEY environment configuration." },
+          { status: 500 }
+        );
+      }
+    } else {
+      encryptedAccessToken = existing!.access_token;
+    }
+
+    let finalVerifyToken = (verify_token && verify_token.trim()) ? verify_token.trim() : null;
+    if (!finalVerifyToken && existing?.verify_token) {
+      try {
+        finalVerifyToken = decrypt(existing.verify_token);
+      } catch {
+        finalVerifyToken = existing.verify_token;
+      }
+    }
+    if (!finalVerifyToken) {
+      const rand = Math.random().toString(36).substring(2, 14);
+      finalVerifyToken = `whvt_${rand}`;
+    }
+
+    let encryptedVerifyToken: string | null = null;
     try {
-      encryptedAccessToken = encrypt(access_token);
-      encryptedVerifyToken = verify_token ? encrypt(verify_token) : null;
-    } catch (err) {
-      console.error("Encryption of WhatsApp credentials failed:", err);
-      return NextResponse.json(
-        { error: "Failed to encrypt token. Verify ENCRYPTION_KEY environment configuration." },
-        { status: 500 }
-      );
+      encryptedVerifyToken = encrypt(finalVerifyToken);
+    } catch {
+      encryptedVerifyToken = finalVerifyToken;
     }
 
     // Upsert scoped strictly by workspace_id
-    const { data: existing } = await supabase
-      .from("whatsapp_config")
-      .select("id")
-      .eq("workspace_id", workspace_id)
-      .maybeSingle();
-
     if (existing) {
       const { error: updateError } = await supabase
         .from("whatsapp_config")
@@ -232,7 +297,7 @@ export async function POST(request: Request) {
     } else {
       const { error: insertError } = await supabase.from("whatsapp_config").insert({
         workspace_id,
-        user_id: user.id, // Tracks who originally configured it
+        user_id: user.id,
         provider,
         phone_number_id,
         waba_id: waba_id || null,

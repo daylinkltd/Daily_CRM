@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   derivePresence,
   type PresenceRow,
@@ -22,18 +22,20 @@ interface UsePresenceResult {
   now: number;
 }
 
-export function usePresence(enabled = true): UsePresenceResult {
-  const { accountId } = useAuth();
+export function usePresence(enabled = false): UsePresenceResult {
+  const { activeWorkspace } = useWorkspace();
+  const workspaceId = activeWorkspace?.id;
   const [rows, setRows] = useState<PresenceMap>(() => new Map());
   const [now, setNow] = useState(() => Date.now());
 
-  const active = enabled && !!accountId;
+  const active = enabled && !!workspaceId;
 
   useEffect(() => {
-    if (!active || !accountId) return;
+    if (!active || !workspaceId) return;
 
     const supabase = createClient();
     let cancelled = false;
+    let channel: RealtimeChannel | null = null;
 
     const applyRow = (row: {
       user_id: string;
@@ -50,47 +52,53 @@ export function usePresence(enabled = true): UsePresenceResult {
       });
     };
 
-    const channel: RealtimeChannel = supabase
-      .channel(`presence:${accountId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "member_presence",
-          filter: `account_id=eq.${accountId}`,
-        },
-        (payload) => {
-          if (payload.eventType === "DELETE") {
-            const old = payload.old as { user_id?: string };
-            if (!old.user_id) return;
-            setRows((prev) => {
-              if (!prev.has(old.user_id!)) return prev;
-              const next = new Map(prev);
-              next.delete(old.user_id!);
-              return next;
-            });
-            return;
-          }
-          applyRow(
-            payload.new as {
-              user_id: string;
-              status: StoredPresence;
-              last_seen_at: string;
-            },
-          );
-        },
-      )
-      .subscribe();
+    try {
+      channel = supabase
+        .channel(`presence:${workspaceId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "member_presence",
+            filter: `workspace_id=eq.${workspaceId}`,
+          },
+          (payload) => {
+            if (payload.eventType === "DELETE") {
+              const old = payload.old as { user_id?: string };
+              if (!old.user_id) return;
+              setRows((prev) => {
+                if (!prev.has(old.user_id!)) return prev;
+                const next = new Map(prev);
+                next.delete(old.user_id!);
+                return next;
+              });
+              return;
+            }
+            applyRow(
+              payload.new as {
+                user_id: string;
+                status: StoredPresence;
+                last_seen_at: string;
+              },
+            );
+          },
+        )
+        .subscribe();
+    } catch {
+      // Channel subscription catch
+    }
 
-    supabase
-      .from("member_presence")
-      .select("user_id, status, last_seen_at")
-      .eq("account_id", accountId)
-      .then(({ data, error }) => {
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("member_presence")
+          .select("user_id, status, last_seen_at")
+          .eq("workspace_id", workspaceId);
+
         if (cancelled) return;
         if (error) {
-          console.error("[usePresence] initial fetch error:", error.message);
+          // Table may not exist or workspace permissions failed — ignore silently
           return;
         }
         setRows((prev) => {
@@ -111,16 +119,21 @@ export function usePresence(enabled = true): UsePresenceResult {
           }
           return next;
         });
-      });
+      } catch {
+        // Table miss catch
+      }
+    })();
 
     const tick = setInterval(() => setNow(Date.now()), RE_DERIVE_MS);
 
     return () => {
       cancelled = true;
       clearInterval(tick);
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
-  }, [active, accountId]);
+  }, [active, workspaceId]);
 
   const getRow = useCallback(
     (userId: string): PresenceRow | undefined => rows.get(userId),

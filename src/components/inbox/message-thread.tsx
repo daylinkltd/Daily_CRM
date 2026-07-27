@@ -27,9 +27,11 @@ import {
   PanelRightOpen,
   PanelRightClose,
   Bot,
+  Trash2,
 } from "lucide-react";
 import { format, isToday, isYesterday, differenceInHours } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,15 +100,16 @@ interface MessageThreadProps {
    * working; the button is only rendered when this is provided.
    */
   onRefresh?: () => void;
-  /**
-   * Desktop-only contact-panel toggle. The page owns the open/closed
-   * state (it's the one that renders the sidebar), so the thread just
-   * reflects it and asks the page to flip it. Both optional so existing
-   * callers keep working; the toggle button only renders when
-   * `onToggleContactPanel` is wired up.
-   */
   contactPanelOpen?: boolean;
   onToggleContactPanel?: () => void;
+  /**
+   * Optional callback to open the New Chat modal from the empty state.
+   */
+  onOpenNewChat?: () => void;
+  /**
+   * Optional callback to delete the current conversation.
+   */
+  onDeleteConversation?: (conversationId: string) => void;
 }
 
 function formatDateSeparator(dateStr: string): string {
@@ -165,6 +168,8 @@ export function MessageThread({
   onRefresh,
   contactPanelOpen,
   onToggleContactPanel,
+  onOpenNewChat,
+  onDeleteConversation,
 }: MessageThreadProps) {
   const { user } = useAuth();
   const { getPresence, getRow, now } = usePresence();
@@ -298,12 +303,25 @@ export function MessageThread({
   useEffect(() => {
     if (!conversationId) return;
 
-    const supabase = createClient();
     let cancelled = false;
 
-    (async () => {
-      setLoading(true);
+    const fetchMsgs = async () => {
+      try {
+        const res = await fetch(`/api/conversations/${conversationId}/messages`);
+        const payload = await res.json();
 
+        if (cancelled) return;
+
+        if (res.ok && Array.isArray(payload.messages)) {
+          onMessagesLoadedRef.current(payload.messages);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn("[MessageThread] API messages fetch failed, trying direct query:", err);
+      }
+
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("messages")
         .select("*")
@@ -319,10 +337,18 @@ export function MessageThread({
       }
 
       if (!cancelled) setLoading(false);
-    })();
+    };
+
+    setLoading(true);
+    void fetchMsgs();
+
+    const interval = setInterval(() => {
+      void fetchMsgs();
+    }, 4000);
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
     // `resyncToken` is included so the parent can force a refetch when
     // the realtime channel reconnects or the tab regains focus —
@@ -343,16 +369,21 @@ export function MessageThread({
     let cancelled = false;
 
     (async () => {
-      const { data, error } = await supabase
-        .from("message_reactions")
-        .select("*")
-        .eq("conversation_id", conversationId);
-      if (cancelled) return;
-      if (error) {
-        console.error("Failed to fetch reactions:", error);
-        return;
+      try {
+        const { data, error } = await supabase
+          .from("message_reactions")
+          .select("*")
+          .eq("conversation_id", conversationId);
+        if (cancelled) return;
+        if (error) {
+          // Table may be absent on remote database — swallow silently
+          setReactions([]);
+          return;
+        }
+        setReactions((data as MessageReaction[]) ?? []);
+      } catch {
+        if (!cancelled) setReactions([]);
       }
-      setReactions((data as MessageReaction[]) ?? []);
     })();
 
     return () => {
@@ -813,16 +844,24 @@ export function MessageThread({
   // pattern under the user's eye.
   if (!conversation || !contact) {
     return (
-      <div className={cn("flex flex-1 flex-col items-center justify-center", DOODLE_BG_CLASSES)}>
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+      <div className={cn("flex flex-1 flex-col items-center justify-center p-6 text-center", DOODLE_BG_CLASSES)}>
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted shadow-sm">
           <MessageSquare className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="mt-4 text-sm font-medium text-muted-foreground">
-          Select a conversation
+        <h3 className="mt-4 text-base font-semibold text-foreground">
+          No Conversation Selected
         </h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Choose a conversation from the left to start messaging
+        <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+          Select a chat from the left sidebar or start a new conversation to begin messaging on WhatsApp.
         </p>
+        {onOpenNewChat && (
+          <Button
+            onClick={onOpenNewChat}
+            className="mt-4 bg-[#00aef0] hover:bg-[#00aef0]/90 text-white font-medium text-xs shadow-md shadow-[#00aef0]/10"
+          >
+            + Start New Conversation
+          </Button>
+        )}
       </div>
     );
   }
@@ -971,6 +1010,18 @@ export function MessageThread({
               <RefreshCw
                 className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")}
               />
+            </button>
+          )}
+
+          {onDeleteConversation && conversation && (
+            <button
+              type="button"
+              onClick={() => onDeleteConversation(conversation.id)}
+              aria-label="Delete conversation"
+              title="Delete Chat"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
 

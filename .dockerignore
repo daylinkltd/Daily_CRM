@@ -1,0 +1,9 @@
+.git
+.gitignore
+node_modules
+.next
+out
+graphify-out
+.gemini
+tmp
+*.log

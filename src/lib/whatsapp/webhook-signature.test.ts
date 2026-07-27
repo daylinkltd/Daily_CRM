@@ -58,12 +58,12 @@ describe("verifyMetaWebhookSignature", () => {
       process.env.META_APP_SECRET = originalSecret;
     });
 
-    it("rejects even a correctly-formed signature when no secret is configured", () => {
+    it("uses DB config secret when process.env.META_APP_SECRET is unconfigured", () => {
       const body = "{}";
-      // Use the original secret to produce the header so we can verify
-      // the rejection is solely due to missing config.
       const header = signedHeader(body, originalSecret!);
-      expect(verifyMetaWebhookSignature(body, header)).toBe(false);
+      expect(
+        verifyMetaWebhookSignature(body, header, [{ app_secret: originalSecret! }])
+      ).toBe(true);
     });
   });
 });

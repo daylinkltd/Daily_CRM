@@ -115,12 +115,16 @@ export async function GET(request: Request) {
     for (const config of configs) {
       if (!config.verify_token) continue
       try {
-        if (decrypt(config.verify_token) === verifyToken) {
+        const decrypted = decrypt(config.verify_token)
+        if (decrypted === verifyToken || config.verify_token === verifyToken) {
           matchedConfig = config
           break
         }
       } catch {
-        // Malformed / wrong-key token row — skip it and keep checking.
+        if (config.verify_token === verifyToken) {
+          matchedConfig = config
+          break
+        }
       }
     }
 
@@ -161,17 +165,51 @@ export async function GET(request: Request) {
   }
 }
 
+export interface WebhookLogEntry {
+  id: string
+  timestamp: string
+  method: string
+  signature: string | null
+  userAgent: string | null
+  rawBody: string
+  status: number
+  error?: string | null
+}
+
+export const recentWebhookLogs: WebhookLogEntry[] = []
+
+export function recordWebhookLog(entry: Omit<WebhookLogEntry, 'id' | 'timestamp'>) {
+  const logItem: WebhookLogEntry = {
+    id: Math.random().toString(36).substring(2, 9),
+    timestamp: new Date().toISOString(),
+    ...entry,
+  }
+  recentWebhookLogs.unshift(logItem)
+  if (recentWebhookLogs.length > 50) {
+    recentWebhookLogs.pop()
+  }
+}
+
 // POST - Receive messages
 export async function POST(request: Request) {
   // Read raw body first so we can HMAC-verify the exact bytes Meta
   // signed. request.json() would re-encode and break the signature.
   const rawBody = await request.text()
   const signature = request.headers.get('x-hub-signature-256')
+  const userAgent = request.headers.get('user-agent')
 
   let body: { entry?: WhatsAppWebhookEntry[] }
   try {
     body = JSON.parse(rawBody)
   } catch {
+    recordWebhookLog({
+      method: 'POST',
+      signature,
+      userAgent,
+      rawBody: rawBody.slice(0, 500),
+      status: 400,
+      error: 'Invalid JSON',
+    })
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
@@ -244,41 +282,53 @@ export async function POST(request: Request) {
     }
   }
 
-  if (phoneIds.size > 0) {
-    const { data: configs } = await supabaseAdmin()
-      .from('whatsapp_config')
-      .select('provider')
-      .in('phone_number_id', Array.from(phoneIds))
+  const { data: dbConfigs } = await supabaseAdmin()
+    .from('whatsapp_config')
+    .select('*')
 
-    // If we found configs and NONE of them are 'meta', bypass signature check
-    if (configs && configs.length > 0) {
-      requiresSignature = configs.some((c: { provider: string }) => c.provider === 'meta')
+  if (phoneIds.size > 0 && dbConfigs) {
+    const matchingConfigs = dbConfigs.filter((c: { phone_number_id?: string; waba_id?: string }) => {
+      const cPhone = c.phone_number_id?.trim()
+      const cWaba = c.waba_id?.trim()
+      return Array.from(phoneIds).some(
+        (pid) =>
+          (cPhone && (cPhone === pid || pid.includes(cPhone))) ||
+          (cWaba && (cWaba === pid || pid.includes(cWaba)))
+      )
+    })
+    if (matchingConfigs.length > 0) {
+      requiresSignature = matchingConfigs.some((c: { provider?: string }) => c.provider === 'meta')
     }
   }
 
   // Fallback: no signature header present at all + at least one apiauto workspace
-  // This handles cases where ApiAuto sends the phone_number_id in an unexpected field
-  if (requiresSignature && !signature) {
-    const { data: apiAutoConfigs } = await supabaseAdmin()
-      .from('whatsapp_config')
-      .select('id')
-      .eq('provider', 'apiauto')
-      .limit(1)
-
-    if (apiAutoConfigs && apiAutoConfigs.length > 0) {
+  if (requiresSignature && !signature && dbConfigs) {
+    const hasApiAuto = dbConfigs.some((c: { provider?: string }) => c.provider === 'apiauto')
+    if (hasApiAuto) {
       console.log('[webhook] No signature header — allowing through for apiauto workspace')
       requiresSignature = false
     }
   }
 
-  if (requiresSignature && !verifyMetaWebhookSignature(rawBody, signature)) {
+  if (requiresSignature && !verifyMetaWebhookSignature(rawBody, signature, dbConfigs ?? [])) {
     console.warn('[webhook] rejected request with invalid signature. Body preview:', rawBody.slice(0, 200))
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
-  // Process asynchronously so we can ack Meta within their timeout.
-  processWebhook(body).catch((error) => {
+  // Await processWebhook to guarantee serverless execution context stays alive
+  // until all database writes (contacts, conversations, messages) are complete.
+  try {
+    await processWebhook(body)
+  } catch (error) {
     console.error('Error processing webhook:', error)
+  }
+
+  recordWebhookLog({
+    method: 'POST',
+    signature,
+    userAgent,
+    rawBody: rawBody.slice(0, 1000),
+    status: 200,
   })
 
   return NextResponse.json({ status: 'received' }, { status: 200 })
@@ -312,7 +362,7 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
       }
 
       // Handle incoming messages
-      if (!value.messages || !value.contacts) continue
+      if (!value.messages || !Array.isArray(value.messages) || value.messages.length === 0) continue
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const meta = value.metadata as any
@@ -324,30 +374,71 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
         val?.phone_number_id ||
         entry.id
 
-      // Find user's config by phone_number_id
-      const { data: config, error: configError } = await supabaseAdmin()
+      // Find user's config by phone_number_id with smart fallbacks
+      const { data: configs } = await supabaseAdmin()
         .from('whatsapp_config')
         .select('*')
-        .eq('phone_number_id', phoneNumberId)
-        .single()
 
-      if (configError || !config) {
-        console.error('No config found for phone_number_id:', phoneNumberId)
+      // Strict Multi-Tenant SaaS Isolation: Match config strictly by phone_number_id or waba_id.
+      // NEVER fall back to another tenant's workspace config to prevent cross-tenant data leakage.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let config: any = null
+      if (configs && configs.length > 0) {
+        const pId = String(phoneNumberId).trim()
+        const eId = String(entry.id).trim()
+
+        config = configs.find(
+          (c: { phone_number_id?: string; waba_id?: string }) => {
+            const cPhone = c.phone_number_id?.trim()
+            const cWaba = c.waba_id?.trim()
+            return (
+              (cPhone && (cPhone === pId || cPhone === eId || pId.includes(cPhone))) ||
+              (cWaba && (cWaba === pId || cWaba === eId || pId.includes(cWaba)))
+            )
+          }
+        )
+      }
+
+      if (!config) {
+        console.error(
+          `[webhook] TENANT ISOLATION GUARANTEE: Unmatched incoming payload (phone_number_id: ${phoneNumberId}, entry_id: ${entry.id}). Dropping request to prevent cross-tenant data leakage.`
+        )
         continue
       }
 
       const decryptedAccessToken = decrypt(config.access_token)
 
+      // Ensure config has a valid workspace_id
+      let resolvedWorkspaceId = config.workspace_id
+      if (!resolvedWorkspaceId && config.user_id) {
+        const { data: member } = await supabaseAdmin()
+          .from('workspace_members')
+          .select('workspace_id')
+          .eq('user_id', config.user_id)
+          .limit(1)
+          .maybeSingle()
+
+        if (member?.workspace_id) {
+          resolvedWorkspaceId = member.workspace_id
+          void supabaseAdmin()
+            .from('whatsapp_config')
+            .update({ workspace_id: resolvedWorkspaceId })
+            .eq('id', config.id)
+        }
+      }
+
       for (let i = 0; i < value.messages.length; i++) {
         const message = value.messages[i]
-        const contact = value.contacts[i] || value.contacts[0]
+        const contact =
+          (value.contacts && (value.contacts[i] || value.contacts[0])) ||
+          { profile: { name: message.from }, wa_id: message.from }
 
         await processMessage(
           message,
           contact,
           config.user_id,
           decryptedAccessToken,
-          config.workspace_id
+          resolvedWorkspaceId
         )
       }
     }
@@ -823,32 +914,48 @@ interface ContactOutcome {
   wasCreated: boolean
 }
 
+async function findExistingContactByPhone(
+  workspaceId: string,
+  phone: string
+): Promise<ContactRow | null> {
+  const normalized = normalizePhone(phone)
+  if (!normalized) return null
+
+  const suffix = normalized.length >= 8 ? normalized.slice(-8) : normalized
+
+  let query = supabaseAdmin().from('contacts').select('*')
+  if (workspaceId) {
+    query = query.eq('workspace_id', workspaceId)
+  }
+  const { data, error } = await query.like('phone', `%${suffix}`)
+
+  if (error || !data) return null
+
+  return (data as ContactRow[]).find((c) => phonesMatch(c.phone, phone)) ?? null
+}
+
 async function findOrCreateContact(
   userId: string,
   phone: string,
   name: string,
   workspaceId: string
 ): Promise<ContactOutcome | null> {
-  // Look up existing contacts for this user
-  const { data: contacts, error: contactsError } = await supabaseAdmin()
-    .from('contacts')
-    .select('*')
-    .eq('user_id', userId)
-
-  if (contactsError) {
-    console.error('Error fetching contacts:', contactsError)
-    return null
-  }
-
-  // Use phonesMatch for flexible matching
-  const existingContact = contacts?.find((c: ContactRow) => phonesMatch(c.phone, phone))
+  const existingContact = await findExistingContactByPhone(workspaceId, phone)
 
   if (existingContact) {
-    // Update name if it changed
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updatePayload: Record<string, any> = {}
     if (name && name !== existingContact.name) {
+      updatePayload.name = name
+    }
+    if (workspaceId && !existingContact.workspace_id) {
+      updatePayload.workspace_id = workspaceId
+    }
+    if (Object.keys(updatePayload).length > 0) {
+      updatePayload.updated_at = new Date().toISOString()
       await supabaseAdmin()
         .from('contacts')
-        .update({ name, updated_at: new Date().toISOString() })
+        .update(updatePayload)
         .eq('id', existingContact.id)
     }
     return { contact: existingContact, wasCreated: false }
@@ -861,12 +968,18 @@ async function findOrCreateContact(
       user_id: userId,
       phone,
       name: name || phone,
-      workspace_id: workspaceId,
+      workspace_id: workspaceId || null,
     })
     .select()
     .single()
 
   if (createError) {
+    // SQLSTATE 23505: Unique constraint violation (lost insert race)
+    // Re-resolve existing contact row instead of dropping the message
+    if ((createError as { code?: string })?.code === '23505') {
+      const raced = await findExistingContactByPhone(workspaceId, phone)
+      if (raced) return { contact: raced, wasCreated: false }
+    }
     console.error('Error creating contact:', createError)
     return null
   }
@@ -875,15 +988,22 @@ async function findOrCreateContact(
 }
 
 async function findOrCreateConversation(userId: string, contactId: string, workspaceId: string) {
-  // Look for existing conversation
-  const { data: existing, error: findError } = await supabaseAdmin()
-    .from('conversations')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('contact_id', contactId)
-    .single()
+  // Look for existing conversation by contact_id first
+  let query = supabaseAdmin().from('conversations').select('*').eq('contact_id', contactId)
+  if (workspaceId) {
+    query = query.eq('workspace_id', workspaceId)
+  }
 
-  if (!findError && existing) {
+  const { data: existing } = await query.maybeSingle()
+
+  if (existing) {
+    if (workspaceId && !existing.workspace_id) {
+      await supabaseAdmin()
+        .from('conversations')
+        .update({ workspace_id: workspaceId })
+        .eq('id', existing.id)
+      existing.workspace_id = workspaceId
+    }
     return existing
   }
 
@@ -893,12 +1013,23 @@ async function findOrCreateConversation(userId: string, contactId: string, works
     .insert({
       user_id: userId,
       contact_id: contactId,
-      workspace_id: workspaceId,
+      workspace_id: workspaceId || null,
+      status: 'open',
+      bot_status: 'active',
+      last_message_at: new Date().toISOString(),
     })
     .select()
     .single()
 
   if (createError) {
+    if ((createError as { code?: string })?.code === '23505') {
+      const raced = await supabaseAdmin()
+        .from('conversations')
+        .select('*')
+        .eq('contact_id', contactId)
+        .maybeSingle()
+      if (raced.data) return raced.data
+    }
     console.error('Error creating conversation:', createError)
     return null
   }

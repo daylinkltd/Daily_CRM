@@ -147,7 +147,7 @@ const navGroups: NavGroup[] = [
 const bottomNavItems = [
   { href: "/automations", label: "Automations", icon: Zap },
   { href: "/integrations", label: "Integrations", icon: Blocks },
-  { href: "/documentation", label: "Documentation", icon: BookOpen },
+  { href: "/docs", label: "Documentation", icon: BookOpen },
   { href: "/settings?tab=workspace", label: "Workspace Settings", icon: Settings },
 ];
 

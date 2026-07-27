@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Conversation, ConversationStatus } from "@/types";
-import { Search, ChevronDown, Bot } from "lucide-react";
+import { Search, ChevronDown, Bot, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,9 @@ interface ConversationListProps {
   onSelect: (conversation: Conversation) => void;
   conversations: Conversation[];
   onConversationsLoaded: (conversations: Conversation[]) => void;
+  workspaceId?: string;
+  onOpenNewChat?: () => void;
+  onDeleteConversation?: (conversationId: string) => void;
   /**
    * Increment to force the fetch effect below to refire. The parent
    * bumps this on realtime reconnect / tab visibility → visible so the
@@ -51,64 +54,74 @@ export function ConversationList({
   onSelect,
   conversations,
   onConversationsLoaded,
+  workspaceId,
+  onOpenNewChat,
+  onDeleteConversation,
   resyncToken = 0,
 }: ConversationListProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<InboxFilter>("all");
   const [loading, setLoading] = useState(true);
 
-  // Keep the latest callback in a ref so the fetch effect below can
-  // have a stable, empty-dep identity. Previously the fetch useCallback
-  // depended on `onConversationsLoaded`, which depends on the parent's
-  // `deepLinkConvId` — so every URL change (including one the parent
-  // triggered via router.replace after a click) caused a fresh
-  // conversations fetch. That extra refetch was the trigger for the
-  // deep-link auto-select running a second time and wiping the active
-  // thread's messages.
-  // Mutation lives in an effect (not render) per React 19's refs rule;
-  // the fetch runs once on mount so it's fine to read the slightly
-  // older value — the very next render updates the ref for any
-  // subsequent async completion.
   const onConversationsLoadedRef = useRef(onConversationsLoaded);
   useEffect(() => {
     onConversationsLoadedRef.current = onConversationsLoaded;
   });
 
   useEffect(() => {
-    const supabase = createClient();
     let cancelled = false;
 
-    (async () => {
+    const fetchConvs = async () => {
+      if (!workspaceId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/conversations?workspace_id=${workspaceId}`);
+        const payload = await res.json();
+
+        if (cancelled) return;
+
+        if (res.ok && Array.isArray(payload.conversations)) {
+          onConversationsLoadedRef.current(payload.conversations);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn("[ConversationList] API fetch failed, trying direct query:", err);
+      }
+
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("conversations")
         .select("*, contact:contacts(*)")
+        .eq("workspace_id", workspaceId)
         .order("last_message_at", { ascending: false });
 
       if (cancelled) return;
 
       if (error) {
-        // Supabase errors have non-enumerable properties — log fields explicitly
-        console.error("Failed to fetch conversations:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
+        console.error("Failed to fetch conversations:", error);
         setLoading(false);
         return;
       }
 
       onConversationsLoadedRef.current(data ?? []);
       setLoading(false);
-    })();
+    };
+
+    void fetchConvs();
+
+    const interval = setInterval(() => {
+      void fetchConvs();
+    }, 4000);
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
-    // `resyncToken` is included so the parent can force a refetch when
-    // the realtime channel reconnects or the tab regains focus — catches
-    // up on any events sent while the WS was disconnected or throttled.
-  }, [resyncToken]);
+  }, [workspaceId, resyncToken]);
 
   const filtered = useMemo(() => {
     let result = conversations;
@@ -149,20 +162,29 @@ export function ConversationList({
   const activeFilter = FILTER_OPTIONS.find((o) => o.value === filter);
 
   return (
-    // w-full on mobile so the list occupies the whole viewport when it's
-    // the single pane showing; fixed 320px on desktop where it shares the
-    // row with the thread + contact sidebar.
     <div className="flex h-full w-full flex-col border-r border-border bg-card lg:w-80">
-      {/* Search + Filter */}
+      {/* Search + Filter + New Chat */}
       <div className="space-y-2 border-b border-border p-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Search conversations..."
-            className="border-border bg-muted pl-9 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Search..."
+              className="border-border bg-muted pl-9 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 h-9"
+            />
+          </div>
+          {onOpenNewChat && (
+            <Button
+              onClick={onOpenNewChat}
+              size="sm"
+              className="bg-[#00aef0] hover:bg-[#00aef0]/90 text-white shrink-0 font-medium text-xs px-2.5 h-9"
+              title="Start New Chat"
+            >
+              + New
+            </Button>
+          )}
         </div>
 
         <DropdownMenu>
@@ -204,8 +226,20 @@ export function ConversationList({
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <p className="text-sm text-muted-foreground">No conversations found</p>
+          <div className="flex flex-col items-center justify-center px-4 py-12 text-center space-y-3">
+            <p className="text-xs font-semibold text-foreground">No conversations found</p>
+            <p className="text-[11px] text-muted-foreground max-w-[200px] leading-relaxed">
+              Start messaging a contact or enter a phone number to test your WhatsApp setup.
+            </p>
+            {onOpenNewChat && (
+              <Button
+                onClick={onOpenNewChat}
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs h-8 px-3 mt-1"
+              >
+                + Start New Chat
+              </Button>
+            )}
           </div>
         ) : (
           <div className="flex flex-col">
@@ -215,6 +249,7 @@ export function ConversationList({
                 conversation={conv}
                 isActive={conv.id === activeConversationId}
                 onSelect={handleSelect}
+                onDelete={onDeleteConversation}
               />
             ))}
           </div>
@@ -228,12 +263,14 @@ interface ConversationItemProps {
   conversation: Conversation;
   isActive: boolean;
   onSelect: (conversation: Conversation) => void;
+  onDelete?: (conversationId: string) => void;
 }
 
 function ConversationItem({
   conversation,
   isActive,
   onSelect,
+  onDelete,
 }: ConversationItemProps) {
   const contact = conversation.contact;
   const displayName = contact?.name || contact?.phone || "Unknown";
@@ -243,6 +280,16 @@ function ConversationItem({
     onSelect(conversation);
   }, [onSelect, conversation]);
 
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onDelete) {
+        onDelete(conversation.id);
+      }
+    },
+    [onDelete, conversation.id]
+  );
+
   const timeAgo = conversation.last_message_at
     ? formatDistanceToNow(new Date(conversation.last_message_at), {
         addSuffix: false,
@@ -250,10 +297,10 @@ function ConversationItem({
     : "";
 
   return (
-    <button
+    <div
       onClick={handleClick}
       className={cn(
-        "flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50",
+        "group relative flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50 cursor-pointer border-b border-border/40",
         isActive && "border-l-2 border-primary bg-muted/70"
       )}
     >
@@ -306,9 +353,19 @@ function ConversationItem({
               )}
               title={conversation.status}
             />
+            {onDelete && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Delete Chat"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
-    </button>
+    </div>
   );
 }

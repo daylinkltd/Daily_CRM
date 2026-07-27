@@ -4120,7 +4120,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "register_phone_route",
-      "community": 111,
+      "community": 71,
       "norm_label": "route.ts"
     },
     {
@@ -4130,7 +4130,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "register_phone_route_supabaseadmin",
-      "community": 111,
+      "community": 71,
       "norm_label": "supabaseadmin()"
     },
     {
@@ -4140,7 +4140,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "register_phone_route_post",
-      "community": 111,
+      "community": 71,
       "norm_label": "post()"
     },
     {
@@ -4170,7 +4170,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "webhook_status_route",
-      "community": 111,
+      "community": 20,
       "norm_label": "route.ts"
     },
     {
@@ -4180,7 +4180,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "webhook_status_route_supabaseadmin",
-      "community": 111,
+      "community": 20,
       "norm_label": "supabaseadmin()"
     },
     {
@@ -4190,17 +4190,17 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "webhook_status_route_get",
-      "community": 111,
+      "community": 20,
       "norm_label": "get()"
     },
     {
       "label": "POST()",
       "file_type": "code",
       "source_file": "src/app/api/admin/webhook-status/route.ts",
-      "source_location": "L134",
+      "source_location": "L105",
       "_origin": "ast",
       "id": "webhook_status_route_post",
-      "community": 111,
+      "community": 20,
       "norm_label": "post()"
     },
     {
@@ -5550,7 +5550,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "config_route",
-      "community": 17,
+      "community": 71,
       "norm_label": "route.ts"
     },
     {
@@ -5560,7 +5560,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "config_route_get",
-      "community": 17,
+      "community": 71,
       "norm_label": "get()"
     },
     {
@@ -5570,7 +5570,7 @@
       "source_location": "L158",
       "_origin": "ast",
       "id": "config_route_post",
-      "community": 17,
+      "community": 71,
       "norm_label": "post()"
     },
     {
@@ -5580,7 +5580,7 @@
       "source_location": "L328",
       "_origin": "ast",
       "id": "config_route_delete",
-      "community": 17,
+      "community": 71,
       "norm_label": "delete()"
     },
     {
@@ -5610,7 +5610,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "mediaid_route",
-      "community": 20,
+      "community": 71,
       "norm_label": "route.ts"
     },
     {
@@ -5620,7 +5620,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "mediaid_route_get",
-      "community": 20,
+      "community": 71,
       "norm_label": "get()"
     },
     {
@@ -5670,7 +5670,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "suggest_draft_route",
-      "community": 110,
+      "community": 71,
       "norm_label": "route.ts"
     },
     {
@@ -5680,7 +5680,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "suggest_draft_route_post",
-      "community": 110,
+      "community": 71,
       "norm_label": "post()"
     },
     {
@@ -5930,7 +5930,7 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "webhook_route_recentwebhooklogs",
-      "community": 111,
+      "community": 20,
       "norm_label": "recentwebhooklogs"
     },
     {
@@ -6140,7 +6140,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "usage_route",
-      "community": 113,
+      "community": 17,
       "norm_label": "route.ts"
     },
     {
@@ -6150,7 +6150,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "usage_route_get",
-      "community": 113,
+      "community": 17,
       "norm_label": "get()"
     },
     {
@@ -8290,7 +8290,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "flows_flow_builder_flowbuilder",
-      "community": 22,
+      "community": 57,
       "norm_label": "flowbuilder()"
     },
     {
@@ -9510,7 +9510,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "inbox_template_picker_collectvariableslots",
-      "community": 106,
+      "community": 14,
       "norm_label": "collectvariableslots()"
     },
     {
@@ -11340,7 +11340,7 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "settings_template_manager_templateformdata",
-      "community": 106,
+      "community": 14,
       "norm_label": "templateformdata"
     },
     {
@@ -13680,7 +13680,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending",
-      "community": 109,
+      "community": 16,
       "norm_label": "use-broadcast-sending.ts"
     },
     {
@@ -13690,7 +13690,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_customfieldoperator",
-      "community": 109,
+      "community": 16,
       "norm_label": "customfieldoperator"
     },
     {
@@ -13700,7 +13700,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_customfieldfilter",
-      "community": 109,
+      "community": 16,
       "norm_label": "customfieldfilter"
     },
     {
@@ -13710,7 +13710,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_audienceconfig",
-      "community": 109,
+      "community": 16,
       "norm_label": "audienceconfig"
     },
     {
@@ -13720,7 +13720,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_variablemapping",
-      "community": 109,
+      "community": 16,
       "norm_label": "variablemapping"
     },
     {
@@ -13730,7 +13730,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_broadcastpayload",
-      "community": 109,
+      "community": 16,
       "norm_label": "broadcastpayload"
     },
     {
@@ -13740,7 +13740,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_usebroadcastsendingreturn",
-      "community": 109,
+      "community": 16,
       "norm_label": "usebroadcastsendingreturn"
     },
     {
@@ -13750,7 +13750,7 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_sleep",
-      "community": 109,
+      "community": 16,
       "norm_label": "sleep()"
     },
     {
@@ -13760,7 +13760,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_broadcastapiresult",
-      "community": 109,
+      "community": 16,
       "norm_label": "broadcastapiresult"
     },
     {
@@ -13770,7 +13770,7 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_customvalueindex",
-      "community": 109,
+      "community": 16,
       "norm_label": "customvalueindex"
     },
     {
@@ -13780,7 +13780,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_resolvevariables",
-      "community": 109,
+      "community": 16,
       "norm_label": "resolvevariables()"
     },
     {
@@ -13790,7 +13790,7 @@
       "source_location": "L117",
       "_origin": "ast",
       "id": "hooks_use_broadcast_sending_fetchcustomvalueindex",
-      "community": 109,
+      "community": 16,
       "norm_label": "fetchcustomvalueindex()"
     },
     {
@@ -15350,7 +15350,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "chatbot_ai_service",
-      "community": 110,
+      "community": 71,
       "norm_label": "ai-service.ts"
     },
     {
@@ -15360,7 +15360,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "chatbot_ai_service_chatmessage",
-      "community": 110,
+      "community": 71,
       "norm_label": "chatmessage"
     },
     {
@@ -15370,7 +15370,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "chatbot_ai_service_generatechatbotresponse",
-      "community": 110,
+      "community": 71,
       "norm_label": "generatechatbotresponse()"
     },
     {
@@ -15380,7 +15380,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "chatbot_ai_service_getfallbackapikey",
-      "community": 110,
+      "community": 71,
       "norm_label": "getfallbackapikey()"
     },
     {
@@ -15390,7 +15390,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "chatbot_processor",
-      "community": 110,
+      "community": 71,
       "norm_label": "processor.ts"
     },
     {
@@ -15400,7 +15400,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "chatbot_processor_supabaseadmin",
-      "community": 110,
+      "community": 71,
       "norm_label": "supabaseadmin()"
     },
     {
@@ -15410,7 +15410,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "chatbot_processor_processchatbotreplyargs",
-      "community": 110,
+      "community": 71,
       "norm_label": "processchatbotreplyargs"
     },
     {
@@ -15420,7 +15420,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "chatbot_processor_processchatbotreply",
-      "community": 110,
+      "community": 71,
       "norm_label": "processchatbotreply()"
     },
     {
@@ -16950,7 +16950,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_limits",
-      "community": 113,
+      "community": 17,
       "norm_label": "limits.ts"
     },
     {
@@ -16960,7 +16960,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "lib_limits_workspaceusageinfo",
-      "community": 113,
+      "community": 17,
       "norm_label": "workspaceusageinfo"
     },
     {
@@ -16970,7 +16970,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "lib_limits_getworkspaceusageandlimits",
-      "community": 113,
+      "community": 17,
       "norm_label": "getworkspaceusageandlimits()"
     },
     {
@@ -17470,7 +17470,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "whatsapp_encryption",
-      "community": 17,
+      "community": 71,
       "norm_label": "encryption.ts"
     },
     {
@@ -17480,7 +17480,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "whatsapp_encryption_getencryptionkeybuffer",
-      "community": 17,
+      "community": 71,
       "norm_label": "getencryptionkeybuffer()"
     },
     {
@@ -17490,7 +17490,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "whatsapp_encryption_encrypt",
-      "community": 17,
+      "community": 71,
       "norm_label": "encrypt()"
     },
     {
@@ -17500,7 +17500,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "whatsapp_encryption_decrypt",
-      "community": 17,
+      "community": 71,
       "norm_label": "decrypt()"
     },
     {
@@ -17510,7 +17510,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "whatsapp_encryption_islegacyformat",
-      "community": 17,
+      "community": 9,
       "norm_label": "islegacyformat()"
     },
     {
@@ -17610,7 +17610,7 @@
       "source_location": "L123",
       "_origin": "ast",
       "id": "whatsapp_meta_api_registerphonenumber",
-      "community": 111,
+      "community": 71,
       "norm_label": "registerphonenumber()"
     },
     {
@@ -17630,7 +17630,7 @@
       "source_location": "L167",
       "_origin": "ast",
       "id": "whatsapp_meta_api_subscribewabatoapp",
-      "community": 111,
+      "community": 20,
       "norm_label": "subscribewabatoapp()"
     },
     {
@@ -17970,7 +17970,7 @@
       "source_location": "L998",
       "_origin": "ast",
       "id": "whatsapp_meta_api_getmediaurl",
-      "community": 20,
+      "community": 71,
       "norm_label": "getmediaurl()"
     },
     {
@@ -17990,7 +17990,7 @@
       "source_location": "L1022",
       "_origin": "ast",
       "id": "whatsapp_meta_api_downloadmedia",
-      "community": 20,
+      "community": 71,
       "norm_label": "downloadmedia()"
     },
     {
@@ -18280,7 +18280,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "providers_twilio_provider",
-      "community": 112,
+      "community": 3,
       "norm_label": "twilio-provider.ts"
     },
     {
@@ -18290,7 +18290,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "providers_twilio_provider_formattwilionumber",
-      "community": 112,
+      "community": 3,
       "norm_label": "formattwilionumber()"
     },
     {
@@ -18300,7 +18300,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider",
-      "community": 112,
+      "community": 3,
       "norm_label": "twilioprovider"
     },
     {
@@ -18310,7 +18310,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_verifyconfig",
-      "community": 112,
+      "community": 3,
       "norm_label": ".verifyconfig()"
     },
     {
@@ -18320,7 +18320,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_sendmessage",
-      "community": 112,
+      "community": 3,
       "norm_label": ".sendmessage()"
     },
     {
@@ -18330,7 +18330,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "providers_twilio_provider_twilioprovider_sendtemplate",
-      "community": 112,
+      "community": 3,
       "norm_label": ".sendtemplate()"
     },
     {
@@ -18480,7 +18480,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "whatsapp_template_row_guard",
-      "community": 114,
+      "community": 16,
       "norm_label": "template-row-guard.ts"
     },
     {
@@ -18490,7 +18490,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "whatsapp_template_row_guard_ismessagetemplate",
-      "community": 114,
+      "community": 16,
       "norm_label": "ismessagetemplate()"
     },
     {
@@ -18500,7 +18500,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "whatsapp_template_row_guard_assertmessagetemplate",
-      "community": 114,
+      "community": 16,
       "norm_label": "assertmessagetemplate()"
     },
     {
@@ -18510,7 +18510,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "whatsapp_template_send_builder",
-      "community": 106,
+      "community": 14,
       "norm_label": "template-send-builder.ts"
     },
     {
@@ -18530,7 +18530,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "whatsapp_template_send_builder_metasendcomponent",
-      "community": 106,
+      "community": 14,
       "norm_label": "metasendcomponent"
     },
     {
@@ -18540,7 +18540,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "whatsapp_template_send_builder_metasendparameter",
-      "community": 106,
+      "community": 14,
       "norm_label": "metasendparameter"
     },
     {
@@ -18550,7 +18550,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "whatsapp_template_send_builder_buildheadercomponent",
-      "community": 106,
+      "community": 14,
       "norm_label": "buildheadercomponent()"
     },
     {
@@ -18560,7 +18560,7 @@
       "source_location": "L126",
       "_origin": "ast",
       "id": "whatsapp_template_send_builder_buildbodycomponent",
-      "community": 106,
+      "community": 14,
       "norm_label": "buildbodycomponent()"
     },
     {
@@ -18570,7 +18570,7 @@
       "source_location": "L147",
       "_origin": "ast",
       "id": "whatsapp_template_send_builder_buttonneedssendparam",
-      "community": 106,
+      "community": 14,
       "norm_label": "buttonneedssendparam()"
     },
     {
@@ -18580,7 +18580,7 @@
       "source_location": "L165",
       "_origin": "ast",
       "id": "whatsapp_template_send_builder_buildbuttoncomponent",
-      "community": 106,
+      "community": 14,
       "norm_label": "buildbuttoncomponent()"
     },
     {
@@ -18590,7 +18590,7 @@
       "source_location": "L219",
       "_origin": "ast",
       "id": "whatsapp_template_send_builder_buildsendcomponents",
-      "community": 106,
+      "community": 14,
       "norm_label": "buildsendcomponents()"
     },
     {
@@ -18600,7 +18600,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "whatsapp_template_status_normalize",
-      "community": 108,
+      "community": 14,
       "norm_label": "template-status-normalize.ts"
     },
     {
@@ -18610,7 +18610,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "whatsapp_template_status_normalize_allowed",
-      "community": 108,
+      "community": 14,
       "norm_label": "allowed"
     },
     {
@@ -18620,7 +18620,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "whatsapp_template_status_normalize_normalizestatus",
-      "community": 108,
+      "community": 14,
       "norm_label": "normalizestatus()"
     },
     {
@@ -18630,7 +18630,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "whatsapp_template_validators",
-      "community": 106,
+      "community": 14,
       "norm_label": "template-validators.ts"
     },
     {
@@ -18640,7 +18640,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "whatsapp_template_validators_template_limits",
-      "community": 106,
+      "community": 14,
       "norm_label": "template_limits"
     },
     {
@@ -18660,7 +18660,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "whatsapp_template_validators_validatetemplatename",
-      "community": 106,
+      "community": 14,
       "norm_label": "validatetemplatename()"
     },
     {
@@ -18670,7 +18670,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "whatsapp_template_validators_extractvariableindices",
-      "community": 106,
+      "community": 14,
       "norm_label": "extractvariableindices()"
     },
     {
@@ -18680,7 +18680,7 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "whatsapp_template_validators_assertcontiguous",
-      "community": 106,
+      "community": 14,
       "norm_label": "assertcontiguous()"
     },
     {
@@ -18690,7 +18690,7 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "whatsapp_template_validators_validatebody",
-      "community": 106,
+      "community": 14,
       "norm_label": "validatebody()"
     },
     {
@@ -18700,7 +18700,7 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "whatsapp_template_validators_validatefooter",
-      "community": 106,
+      "community": 14,
       "norm_label": "validatefooter()"
     },
     {
@@ -18710,7 +18710,7 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "whatsapp_template_validators_headervalidationresult",
-      "community": 106,
+      "community": 14,
       "norm_label": "headervalidationresult"
     },
     {
@@ -18720,7 +18720,7 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "whatsapp_template_validators_validateheader",
-      "community": 106,
+      "community": 14,
       "norm_label": "validateheader()"
     },
     {
@@ -18730,7 +18730,7 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "whatsapp_template_validators_countbuttonsbytype",
-      "community": 106,
+      "community": 14,
       "norm_label": "countbuttonsbytype()"
     },
     {
@@ -18740,7 +18740,7 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "whatsapp_template_validators_validatebuttons",
-      "community": 106,
+      "community": 14,
       "norm_label": "validatebuttons()"
     },
     {
@@ -18750,7 +18750,7 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "whatsapp_template_validators_validatesamplevalues",
-      "community": 106,
+      "community": 14,
       "norm_label": "validatesamplevalues()"
     },
     {
@@ -18760,7 +18760,7 @@
       "source_location": "L321",
       "_origin": "ast",
       "id": "whatsapp_template_validators_validatetemplatepayload",
-      "community": 106,
+      "community": 14,
       "norm_label": "validatetemplatepayload()"
     },
     {
@@ -18770,7 +18770,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "whatsapp_template_webhook",
-      "community": 108,
+      "community": 94,
       "norm_label": "template-webhook.ts"
     },
     {
@@ -18780,7 +18780,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_template_webhook_fields",
-      "community": 108,
+      "community": 94,
       "norm_label": "template_webhook_fields"
     },
     {
@@ -18800,7 +18800,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_templatestatusupdatevalue",
-      "community": 108,
+      "community": 94,
       "norm_label": "templatestatusupdatevalue"
     },
     {
@@ -18810,7 +18810,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_templatequalityupdatevalue",
-      "community": 108,
+      "community": 94,
       "norm_label": "templatequalityupdatevalue"
     },
     {
@@ -18820,7 +18820,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_templatecomponentsupdatevalue",
-      "community": 108,
+      "community": 94,
       "norm_label": "templatecomponentsupdatevalue"
     },
     {
@@ -18830,7 +18830,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_templatewebhookchange",
-      "community": 108,
+      "community": 94,
       "norm_label": "templatewebhookchange"
     },
     {
@@ -18840,7 +18840,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_handletemplatewebhookchange",
-      "community": 108,
+      "community": 94,
       "norm_label": "handletemplatewebhookchange()"
     },
     {
@@ -18850,7 +18850,7 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_handlestatusupdate",
-      "community": 108,
+      "community": 94,
       "norm_label": "handlestatusupdate()"
     },
     {
@@ -18860,7 +18860,7 @@
       "source_location": "L162",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_handlequalityupdate",
-      "community": 108,
+      "community": 94,
       "norm_label": "handlequalityupdate()"
     },
     {
@@ -18870,7 +18870,7 @@
       "source_location": "L208",
       "_origin": "ast",
       "id": "whatsapp_template_webhook_handlecomponentsupdate",
-      "community": 108,
+      "community": 94,
       "norm_label": "handlecomponentsupdate()"
     },
     {
@@ -19160,7 +19160,7 @@
       "source_location": "L245",
       "_origin": "ast",
       "id": "types_index_templatebutton",
-      "community": 106,
+      "community": 14,
       "norm_label": "templatebutton"
     },
     {
@@ -19350,7 +19350,7 @@
       "source_location": "L429",
       "_origin": "ast",
       "id": "types_index_sendtemplatestepconfig",
-      "community": 3,
+      "community": 13,
       "norm_label": "sendtemplatestepconfig"
     },
     {
@@ -19390,7 +19390,7 @@
       "source_location": "L457",
       "_origin": "ast",
       "id": "types_index_createdealstepconfig",
-      "community": 3,
+      "community": 13,
       "norm_label": "createdealstepconfig"
     },
     {
@@ -19400,7 +19400,7 @@
       "source_location": "L464",
       "_origin": "ast",
       "id": "types_index_createprojectstepconfig",
-      "community": 13,
+      "community": 3,
       "norm_label": "createprojectstepconfig"
     },
     {
@@ -19410,7 +19410,7 @@
       "source_location": "L470",
       "_origin": "ast",
       "id": "types_index_createtaskstepconfig",
-      "community": 13,
+      "community": 3,
       "norm_label": "createtaskstepconfig"
     },
     {
@@ -19420,7 +19420,7 @@
       "source_location": "L477",
       "_origin": "ast",
       "id": "types_index_createemployeestepconfig",
-      "community": 13,
+      "community": 3,
       "norm_label": "createemployeestepconfig"
     },
     {
@@ -19490,7 +19490,7 @@
       "source_location": "L546",
       "_origin": "ast",
       "id": "types_index_automationstep",
-      "community": 13,
+      "community": 3,
       "norm_label": "automationstep"
     },
     {
@@ -19500,7 +19500,7 @@
       "source_location": "L557",
       "_origin": "ast",
       "id": "types_index_automationlogstepresult",
-      "community": 3,
+      "community": 13,
       "norm_label": "automationlogstepresult"
     },
     {
@@ -20537,7 +20537,7 @@
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/config/route.ts",
       "source_location": "L1",
-      "community": 17,
+      "community": 71,
       "norm_label": "route.ts",
       "id": "src_app_api_whatsapp_config_route_ts"
     },
@@ -20582,7 +20582,7 @@
       "file_type": "code",
       "source_file": "src/app/api/whatsapp/media/[mediaId]/route.ts",
       "source_location": "L1",
-      "community": 20,
+      "community": 71,
       "norm_label": "route.ts",
       "id": "src_app_api_whatsapp_media_mediaid_route_ts"
     },
@@ -41601,9 +41601,9 @@
       "source_file": "src/app/api/admin/register-phone/route.ts",
       "source_location": "L17",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "register_phone_route",
-      "target": "register_phone_route_post"
+      "target": "register_phone_route_post",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -41611,9 +41611,9 @@
       "source_file": "src/app/api/admin/register-phone/route.ts",
       "source_location": "L6",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "register_phone_route",
-      "target": "register_phone_route_supabaseadmin"
+      "target": "register_phone_route_supabaseadmin",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -41622,9 +41622,9 @@
       "source_file": "src/app/api/admin/register-phone/route.ts",
       "source_location": "L4",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "register_phone_route",
-      "target": "whatsapp_encryption"
+      "target": "whatsapp_encryption",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -41633,9 +41633,9 @@
       "source_file": "src/app/api/admin/register-phone/route.ts",
       "source_location": "L4",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "register_phone_route",
-      "target": "whatsapp_encryption_decrypt"
+      "target": "whatsapp_encryption_decrypt",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -41644,9 +41644,9 @@
       "source_file": "src/app/api/admin/register-phone/route.ts",
       "source_location": "L3",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "register_phone_route",
-      "target": "whatsapp_meta_api"
+      "target": "whatsapp_meta_api",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -41655,9 +41655,9 @@
       "source_file": "src/app/api/admin/register-phone/route.ts",
       "source_location": "L3",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "register_phone_route",
-      "target": "whatsapp_meta_api_registerphonenumber"
+      "target": "whatsapp_meta_api_registerphonenumber",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -41666,9 +41666,9 @@
       "source_file": "src/app/api/admin/register-phone/route.ts",
       "source_location": "L22",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "register_phone_route_post",
-      "target": "register_phone_route_supabaseadmin"
+      "target": "register_phone_route_supabaseadmin",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -41794,17 +41794,6 @@
       "source_file": "src/app/api/admin/webhook-status/route.ts",
       "source_location": "L4",
       "weight": 1.0,
-      "source": "webhook_status_route",
-      "target": "whatsapp_meta_api_registerphonenumber",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/admin/webhook-status/route.ts",
-      "source_location": "L4",
-      "weight": 1.0,
       "confidence_score": 1.0,
       "source": "webhook_status_route",
       "target": "whatsapp_meta_api_subscribewabatoapp"
@@ -41841,17 +41830,6 @@
       "weight": 1.0,
       "source": "webhook_status_route_get",
       "target": "whatsapp_encryption_decrypt"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/app/api/admin/webhook-status/route.ts",
-      "source_location": "L47",
-      "weight": 1.0,
-      "source": "webhook_status_route_get",
-      "target": "whatsapp_meta_api_registerphonenumber"
     },
     {
       "relation": "calls",
@@ -104772,5 +104750,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "3ff3388df261c4b25e4e1e2dbf36b3c02fa6e5f5"
+  "built_at_commit": "b0688bd27c661631b6db53a87d9b4dcce032cf0b"
 }
