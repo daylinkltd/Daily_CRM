@@ -23,23 +23,27 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
     if (!taskId) return;
     setLoading(true);
 
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from('task_files')
-      .select(`
-        id,
-        storage_path,
-        created_at,
-        uploader:workspace_members!task_files_uploaded_by_fkey (
-          profiles:user_id ( full_name )
-        )
-      `)
+      .select(`id, storage_path, created_at, uploader:workspace_members!task_files_uploaded_by_fkey ( id, user_id )`)
       .eq('task_id', taskId)
       .order('created_at', { ascending: false });
 
     if (error) {
       toast.error('Failed to load attachments');
     } else {
-      setFiles(data || []);
+      const fileList = rawData || [];
+      if (fileList.length > 0) {
+        const userIds = fileList.map((f: any) => f.uploader?.user_id).filter(Boolean);
+        const profileMap: Record<string, any> = {};
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds);
+          (profilesData || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+        }
+        setFiles(fileList.map((f: any) => ({ ...f, uploader: f.uploader ? { ...f.uploader, profiles: profileMap[f.uploader.user_id] || null } : null })));
+      } else {
+        setFiles([]);
+      }
     }
     setLoading(false);
   }, [supabase, taskId]);

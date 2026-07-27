@@ -52,18 +52,27 @@ export function AssignAssetForm({ open, onOpenChange, onSaved }: AssignAssetForm
   async function loadEmployees() {
     setLoadingDeps(true);
     try {
-      const { data } = await supabase
+      const { data: empData } = await supabase
         .from('employee_profiles')
-        .select(`
-          workspace_member_id,
-          workspace_members (
-            profiles:user_id(full_name, email)
-          )
-        `)
+        .select('workspace_member_id, workspace_members(id, user_id)')
         .eq('workspace_id', activeWorkspace!.id)
         .eq('status', 'ACTIVE');
-        
-      setEmployees(data || []);
+
+      const empList = empData || [];
+      if (empList.length > 0) {
+        const userIds = empList.map((e: any) => e.workspace_members?.user_id).filter(Boolean);
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, email').in('user_id', userIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        const enriched = empList.map((e: any) => ({
+          ...e,
+          workspace_members: e.workspace_members
+            ? { ...e.workspace_members, profiles: profileMap[e.workspace_members.user_id] || null }
+            : null
+        }));
+        setEmployees(enriched);
+      } else {
+        setEmployees([]);
+      }
     } catch (error) {
       toast.error('Failed to load employees');
     } finally {

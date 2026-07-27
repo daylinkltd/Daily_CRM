@@ -43,15 +43,25 @@ export function AutomationsSettings({ projectId }: AutomationsSettingsProps) {
     setLoading(true);
     
     try {
-      const [autoRes, statusesRes, membersRes] = await Promise.all([
+      const [autoRes, statusesRes, rawMembersRes] = await Promise.all([
         supabase.from('project_automations').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
         supabase.from('project_statuses').select('*').eq('project_id', projectId).order('sort_order', { ascending: true }),
-        supabase.from('workspace_members').select('id, profiles:user_id(full_name)').eq('workspace_id', workspace.id)
+        supabase.from('workspace_members').select('id, user_id').eq('workspace_id', workspace.id)
       ]);
       
       setAutomations(autoRes.data || []);
       setStatuses(statusesRes.data || []);
-      setMembers(membersRes.data || []);
+
+      // Two-step: fetch profiles separately since workspace_members.user_id refs auth.users (not public.profiles)
+      const rawMembers = rawMembersRes.data || [];
+      if (rawMembers.length > 0) {
+        const userIds = rawMembers.map((m: any) => m.user_id);
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        setMembers(rawMembers.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null })));
+      } else {
+        setMembers([]);
+      }
     } catch (err) {
       console.error(err);
       toast.error('Failed to load automations data');

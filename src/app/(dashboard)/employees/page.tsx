@@ -42,20 +42,31 @@ export default function EmployeesPage() {
     if (!activeWorkspace?.id) return;
     setLoading(true);
 
-    // Fetch employee profiles and inner join with workspace_members & profiles for names
-    // Note: Depends on standard FK setup in Supabase between workspace_members -> profiles
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from('employee_profiles')
       .select(`
         *,
         departments ( name ),
         designations ( name ),
-        workspace_members!inner (
-          role,
-          profiles:user_id ( full_name, email, avatar_url )
-        )
+        workspace_members!inner ( id, user_id, role )
       `)
       .eq('workspace_id', activeWorkspace.id);
+
+    // Two-step: enrich workspace_members with profile data
+    let data: any[] = rawData || [];
+    if (!error && data.length > 0) {
+      const userIds = data.map((e: any) => e.workspace_members?.user_id).filter(Boolean);
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, email, avatar_url').in('user_id', userIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        data = data.map((e: any) => ({
+          ...e,
+          workspace_members: e.workspace_members
+            ? { ...e.workspace_members, profiles: profileMap[e.workspace_members.user_id] || null }
+            : null,
+        }));
+      }
+    }
 
     if (error) {
       toast.error('Failed to load employees');

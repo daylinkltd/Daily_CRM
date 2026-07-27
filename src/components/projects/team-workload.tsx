@@ -22,23 +22,25 @@ export function TeamWorkload({ projectId }: TeamWorkloadProps) {
 
     try {
       // Fetch open tasks for this project with their assignees
-      const { data: tasks, error } = await supabase
+      const { data: rawTasks, error } = await supabase
         .from('tasks')
-        .select(`
-          id,
-          estimated_hours,
-          assigned_workspace_member_id,
-          status_id,
-          assignee:workspace_members!tasks_assigned_workspace_member_id_fkey (
-            id,
-            profiles:user_id ( full_name, avatar_url )
-          )
-        `)
+        .select(`id, estimated_hours, assigned_workspace_member_id, status_id, assignee:workspace_members!tasks_assigned_workspace_member_id_fkey ( id, user_id )`)
         .eq('project_id', projectId)
-        .is('completed_at', null) // Only active/open tasks
+        .is('completed_at', null)
         .not('assigned_workspace_member_id', 'is', null);
 
       if (error) throw error;
+
+      // Two-step: enrich assignees with profile data
+      const tasks = rawTasks || [];
+      if (tasks.length > 0) {
+        const userIds = tasks.map((t: any) => t.assignee?.user_id).filter(Boolean);
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', userIds);
+          const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+          tasks.forEach((t: any) => { if (t.assignee?.user_id) t.assignee.profiles = profileMap[t.assignee.user_id] || null; });
+        }
+      }
 
       // Group by assignee
       const workloadMap = new Map<string, any>();

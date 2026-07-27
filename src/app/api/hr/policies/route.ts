@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       .select(`
         *,
         owner:workspace_members!hr_policies_owner_workspace_member_id_fkey(
-          profiles:user_id(full_name, avatar_url)
+          id, user_id
         ),
         versions:hr_policy_versions(*),
         targets:hr_policy_targets(*)
@@ -45,7 +45,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ policies: data || [] });
+    // Two-step profile enrichment
+    const policies = data || [];
+    const ownerUserIds = policies.map((p: any) => p.owner?.user_id).filter(Boolean);
+    if (ownerUserIds.length > 0) {
+      const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', ownerUserIds);
+      const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+      policies.forEach((p: any) => {
+        if (p.owner?.user_id) p.owner.profiles = profileMap[p.owner.user_id] || null;
+      });
+    }
+
+    return NextResponse.json({ policies });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }

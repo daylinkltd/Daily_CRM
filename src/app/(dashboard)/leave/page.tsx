@@ -45,12 +45,8 @@ export default function LeavePage() {
       .from('leave_requests')
       .select(`
         *,
-        workspace_members!leave_requests_workspace_member_id_fkey (
-          profiles:user_id ( full_name, avatar_url )
-        ),
-        approver:workspace_members!leave_requests_approved_by_fkey (
-          profiles:user_id ( full_name )
-        )
+        workspace_members!leave_requests_workspace_member_id_fkey ( id, user_id ),
+        approver:workspace_members!leave_requests_approved_by_fkey ( id, user_id )
       `)
       .eq('workspace_id', activeWorkspace.id)
       .order('created_at', { ascending: false });
@@ -60,6 +56,25 @@ export default function LeavePage() {
     }
 
     const { data, error } = await query;
+
+    if (!error && data && data.length > 0) {
+      // Two-step profile enrichment for both member and approver user_ids
+      const allUserIds = [
+        ...data.map((r: any) => r.workspace_members?.user_id),
+        ...data.map((r: any) => r.approver?.user_id)
+      ].filter(Boolean);
+      const uniqueUserIds = [...new Set(allUserIds)];
+      const profileMap: Record<string, any> = {};
+      if (uniqueUserIds.length > 0) {
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', uniqueUserIds);
+        (profilesData || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+      }
+      data.forEach((r: any) => {
+        if (r.workspace_members?.user_id) r.workspace_members.profiles = profileMap[r.workspace_members.user_id] || null;
+        if (r.approver?.user_id) r.approver.profiles = profileMap[r.approver.user_id] || null;
+      });
+    }
+
 
     if (error) {
       toast.error('Failed to load leave requests');

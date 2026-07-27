@@ -14,7 +14,7 @@ export async function GET(
       .select(`
         *,
         owner:workspace_members!hr_policies_owner_workspace_member_id_fkey(
-          profiles:user_id(full_name, avatar_url)
+          id, user_id
         ),
         versions:hr_policy_versions(*),
         targets:hr_policy_targets(*),
@@ -25,6 +25,12 @@ export async function GET(
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Two-step: enrich owner with profile data
+    if (policy?.owner?.user_id) {
+      const { data: profileData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').eq('user_id', policy.owner.user_id).single();
+      if (profileData) policy.owner.profiles = profileData;
     }
 
     return NextResponse.json({ policy });

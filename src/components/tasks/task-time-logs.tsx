@@ -18,23 +18,25 @@ export function TaskTimeLogs({ taskId }: TaskTimeLogsProps) {
     if (!taskId) return;
     setLoading(true);
     
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from('time_logs')
-      .select(`
-        id,
-        duration,
-        log_date,
-        billable,
-        description,
-        workspace_members:workspace_member_id (
-          profiles:user_id ( full_name )
-        )
-      `)
+      .select(`id, duration, log_date, billable, description, workspace_member_id, workspace_members:workspace_member_id ( id, user_id )`)
       .eq('task_id', taskId)
       .order('log_date', { ascending: false });
 
-    if (!error) {
-      setLogs(data || []);
+    if (!error && rawData && rawData.length > 0) {
+      const userIds = rawData.map((l: any) => l.workspace_members?.user_id).filter(Boolean);
+      const profileMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds);
+        (profilesData || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+      }
+      setLogs(rawData.map((l: any) => ({
+        ...l,
+        workspace_members: l.workspace_members ? { ...l.workspace_members, profiles: profileMap[l.workspace_members.user_id] || null } : null,
+      })));
+    } else if (!error) {
+      setLogs([]);
     }
     setLoading(false);
   }, [taskId, supabase]);

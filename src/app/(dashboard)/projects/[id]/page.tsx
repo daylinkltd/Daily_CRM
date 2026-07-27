@@ -43,7 +43,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       .select(`
         *,
         manager:workspace_members!projects_manager_workspace_member_id_fkey (
-          profiles:user_id ( full_name, avatar_url )
+          id, user_id
         ),
         client:contacts!projects_client_id_fkey ( name, company )
       `)
@@ -56,19 +56,31 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       setLoading(false);
       return;
     }
+
+    // Enrich manager with profile (two-step: workspace_members.user_id refs auth.users not public.profiles)
+    if (projData?.manager?.user_id) {
+      const { data: prof } = await supabase.from('profiles').select('user_id, full_name, avatar_url').eq('user_id', projData.manager.user_id).single();
+      if (prof) projData.manager.profiles = prof;
+    }
     setProject(projData);
 
-    const { data: memData } = await supabase
+    const { data: rawMemData } = await supabase
       .from('project_members')
-      .select(`
-        *,
-        workspace_members!inner (
-          profiles:user_id ( full_name, email, avatar_url )
-        )
-      `)
+      .select(`*, workspace_members!inner ( id, user_id )`)
       .eq('project_id', id);
-      
-    if (memData) setMembers(memData);
+
+    if (rawMemData && rawMemData.length > 0) {
+      const userIds = rawMemData.map((m: any) => m.workspace_members?.user_id).filter(Boolean);
+      const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, email, avatar_url').in('user_id', userIds);
+      const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+      const enriched = rawMemData.map((m: any) => ({
+        ...m,
+        workspace_members: m.workspace_members
+          ? { ...m.workspace_members, profiles: profileMap[m.workspace_members.user_id] || null }
+          : null,
+      }));
+      setMembers(enriched);
+    }
 
     setLoading(false);
   }, [supabase, activeWorkspace?.id, id]);

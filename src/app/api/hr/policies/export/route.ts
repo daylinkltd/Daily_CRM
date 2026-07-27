@@ -17,10 +17,7 @@ export async function GET(request: Request) {
       .select(`
         *,
         policy:hr_policies(title, category),
-        member:workspace_members(
-          id,
-          profiles:user_id(full_name, email)
-        )
+        member:workspace_members(id, user_id)
       `)
       .eq('workspace_id', workspaceId);
 
@@ -34,10 +31,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Two-step profile enrichment
+    const ackList = acks || [];
+    const memberUserIds = ackList.map((a: any) => a.member?.user_id).filter(Boolean);
+    const profileMap: Record<string, any> = {};
+    if (memberUserIds.length > 0) {
+      const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, email').in('user_id', memberUserIds);
+      (profilesData || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+    }
+
     // Build CSV Content
     const headers = ['Employee Name', 'Employee Email', 'Policy Title', 'Category', 'Version', 'Status', 'SHA-256 Hash', 'Typed Signature', 'IP Address', 'Signed Timestamp'];
-    const rows = (acks || []).map(a => {
-      const prof = Array.isArray(a.member?.profiles) ? a.member.profiles[0] : a.member?.profiles;
+    const rows = ackList.map((a: any) => {
+      const prof = a.member?.user_id ? profileMap[a.member.user_id] : null;
       return [
         `"${prof?.full_name || 'Unknown'}"`,
         `"${prof?.email || ''}"`,

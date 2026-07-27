@@ -31,20 +31,30 @@ export default function AssetsPage() {
     if (!activeWorkspace?.id) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from('employee_assets')
-        .select(`
-          *,
-          workspace_members(
-            id,
-            profiles:user_id ( full_name )
-          )
-        `)
+        .select(`*, workspace_members( id, user_id )`)
         .eq('workspace_id', activeWorkspace.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAssets(data || []);
+
+      // Two-step: enrich with profile data
+      let data: any[] = rawData || [];
+      if (data.length > 0) {
+        const userIds = data.map((d: any) => d.workspace_members?.user_id).filter(Boolean);
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds);
+          const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+          data = data.map((d: any) => ({
+            ...d,
+            workspace_members: d.workspace_members
+              ? { ...d.workspace_members, profiles: profileMap[d.workspace_members.user_id] || null }
+              : null,
+          }));
+        }
+      }
+      setAssets(data);
     } catch (err: any) {
       toast.error('Failed to load assets');
     } finally {

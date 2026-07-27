@@ -50,19 +50,26 @@ export function ProjectKanban({ projectId, canManage }: ProjectKanbanProps) {
 
     const [statusesRes, tasksRes] = await Promise.all([
       supabase.from('project_statuses').select('*').eq('project_id', projectId).order('sort_order', { ascending: true }),
-      supabase.from('tasks').select(`
-        *,
-        assignee:workspace_members!tasks_assigned_workspace_member_id_fkey (
-          profiles:user_id ( full_name, avatar_url )
-        )
-      `).eq('project_id', projectId).is('parent_id', null) // Only fetch parent tasks for the board
+      supabase.from('tasks').select(`*, assignee:workspace_members!tasks_assigned_workspace_member_id_fkey ( id, user_id )`).eq('project_id', projectId).is('parent_id', null)
     ]);
 
     if (statusesRes.error) toast.error('Failed to load workflow statuses');
     else setColumns(statusesRes.data || []);
 
-    if (tasksRes.error) toast.error('Failed to load tasks');
-    else setTasks(tasksRes.data || []);
+    if (tasksRes.error) {
+      toast.error('Failed to load tasks');
+    } else {
+      const taskList = tasksRes.data || [];
+      if (taskList.length > 0) {
+        const userIds = taskList.map((t: any) => t.assignee?.user_id).filter(Boolean);
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', userIds);
+          const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+          taskList.forEach((t: any) => { if (t.assignee?.user_id) t.assignee.profiles = profileMap[t.assignee.user_id] || null; });
+        }
+      }
+      setTasks(taskList);
+    }
 
     setLoading(false);
   }, [supabase, projectId]);

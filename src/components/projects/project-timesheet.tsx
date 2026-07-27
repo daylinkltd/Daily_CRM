@@ -46,26 +46,30 @@ export function ProjectTimesheet({ projectId }: ProjectTimesheetProps) {
         return;
       }
 
-      const { data: timeLogs, error: logsError } = await supabase
+      const { data: rawTimeLogs, error: logsError } = await supabase
         .from('time_logs')
-        .select(`
-          id,
-          duration,
-          log_date,
-          billable,
-          description,
-          tasks:task_id ( title ),
-          workspace_members:workspace_member_id (
-            profiles:user_id ( full_name )
-          )
-        `)
+        .select(`id, duration, log_date, billable, description, tasks:task_id ( title ), workspace_members:workspace_member_id ( id, user_id )`)
         .in('task_id', taskIds)
         .order('log_date', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (logsError) throw logsError;
 
-      setLogs(timeLogs || []);
+      // Two-step: enrich workspace_members with profile data
+      let timeLogs: any[] = rawTimeLogs || [];
+      if (timeLogs.length > 0) {
+        const userIds = timeLogs.map((l: any) => l.workspace_members?.user_id).filter(Boolean);
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds);
+          const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+          timeLogs = timeLogs.map((l: any) => ({
+            ...l,
+            workspace_members: l.workspace_members ? { ...l.workspace_members, profiles: profileMap[l.workspace_members.user_id] || null } : null,
+          }));
+        }
+      }
+
+      setLogs(timeLogs);
 
       // Calculate totals
       let actual = 0;

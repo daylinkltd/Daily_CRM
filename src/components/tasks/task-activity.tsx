@@ -20,22 +20,25 @@ export function TaskActivity({ taskId }: TaskActivityProps) {
     if (!taskId) return;
     setLoading(true);
 
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from('task_activity')
-      .select(`
-        id,
-        action,
-        details,
-        created_at,
-        member:workspace_members!task_activity_workspace_member_id_fkey (
-          profiles:user_id ( full_name, avatar_url )
-        )
-      `)
+      .select(`id, action, details, created_at, member:workspace_members!task_activity_workspace_member_id_fkey ( id, user_id )`)
       .eq('task_id', taskId)
       .order('created_at', { ascending: false });
 
-    if (!error) {
-      setActivities(data || []);
+    if (!error && rawData && rawData.length > 0) {
+      const userIds = rawData.map((a: any) => a.member?.user_id).filter(Boolean);
+      const profileMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', userIds);
+        (profilesData || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+      }
+      setActivities(rawData.map((a: any) => ({
+        ...a,
+        member: a.member ? { ...a.member, profiles: profileMap[a.member.user_id] || null } : null,
+      })));
+    } else if (!error) {
+      setActivities([]);
     }
     setLoading(false);
   }, [supabase, taskId]);

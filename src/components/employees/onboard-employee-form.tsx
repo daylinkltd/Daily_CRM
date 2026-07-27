@@ -72,11 +72,19 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
       // 2. Fetch designations
       const { data: desigs } = await supabase.from('designations').select('*').eq('workspace_id', activeWorkspace!.id);
       
-      // 3. Fetch all workspace members
-      const { data: members } = await supabase
+      // 3. Fetch all workspace members (two-step: user_id refs auth.users not public.profiles)
+      const { data: rawMembers } = await supabase
         .from('workspace_members')
-        .select(`id, profiles:user_id(full_name, email)`)
+        .select('id, user_id')
         .eq('workspace_id', activeWorkspace!.id);
+      
+      let members: any[] = [];
+      if (rawMembers && rawMembers.length > 0) {
+        const userIds = rawMembers.map((m: any) => m.user_id);
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, email').in('user_id', userIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        members = rawMembers.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null }));
+      }
 
       // 4. Fetch existing employee profiles
       const { data: profiles } = await supabase
@@ -87,7 +95,7 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
       const existingIds = new Set((profiles || []).map(p => p.workspace_member_id));
       
       // Filter members who DO NOT have an employee profile yet
-      const unassigned = (members || []).filter(m => !existingIds.has(m.id));
+      const unassigned = members.filter(m => !existingIds.has(m.id));
 
       setDepartments(deps || []);
       setDesignations(desigs || []);

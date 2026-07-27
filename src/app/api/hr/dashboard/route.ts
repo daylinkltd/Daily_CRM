@@ -15,14 +15,14 @@ export async function GET(request: Request) {
 
     // Fetch parallel dashboard aggregates
     const [empRes, attRes, lveRes, reqRes, jobRes] = await Promise.all([
-      supabase.from('workspace_members').select('id, joined_at, profiles:user_id(full_name, avatar_url, birth_date)').eq('workspace_id', workspaceId),
+      supabase.from('workspace_members').select('id', { count: 'exact', head: true }).eq('workspace_id', workspaceId),
       supabase.from('attendance_logs').select('id, status').eq('workspace_id', workspaceId).eq('date', todayStr),
       supabase.from('leave_requests').select('id, status').eq('workspace_id', workspaceId).eq('status', 'PENDING'),
       supabase.from('hr_employee_requests').select('id, status').eq('workspace_id', workspaceId).eq('status', 'PENDING'),
       supabase.from('hr_recruitment_jobs').select('id').eq('workspace_id', workspaceId).eq('status', 'OPEN')
     ]);
 
-    const totalEmployees = empRes.data?.length || 0;
+    const totalEmployees = empRes.count ?? 0;
     const presentToday = attRes.data?.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length || 0;
     const pendingLeaves = lveRes.data?.length || 0;
     const pendingRequests = reqRes.data?.length || 0;

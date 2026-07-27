@@ -33,16 +33,10 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
     if (!activeWorkspace?.id) return;
     setLoading(true);
 
-    // 1. Fetch employee
-    const { data: empData, error: empErr } = await supabase
+    // 1. Fetch employee (two-step: workspace_members.user_id refs auth.users not public.profiles)
+    const { data: rawEmpData, error: empErr } = await supabase
       .from('employee_profiles')
-      .select(`
-        *,
-        workspace_members!inner (
-          role,
-          profiles:user_id ( full_name, email, avatar_url )
-        )
-      `)
+      .select(`*, workspace_members!inner ( id, user_id, role )`)
       .eq('workspace_id', activeWorkspace.id)
       .eq('workspace_member_id', id)
       .single();
@@ -52,23 +46,37 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
       setLoading(false);
       return;
     }
+
+    // Enrich with profile
+    const empData: any = rawEmpData;
+    if (empData?.workspace_members?.user_id) {
+      const { data: prof } = await supabase.from('profiles').select('user_id, full_name, email, avatar_url').eq('user_id', empData.workspace_members.user_id).single();
+      if (prof) empData.workspace_members.profiles = prof;
+    }
     setEmployee(empData);
 
     // 2. Fetch reference data for the edit form
-    const [deptRes, desigRes, mgrRes] = await Promise.all([
+    const [deptRes, desigRes, rawMgrRes] = await Promise.all([
       supabase.from('departments').select('id, name').eq('workspace_id', activeWorkspace.id).order('name'),
       supabase.from('designations').select('id, name').eq('workspace_id', activeWorkspace.id).order('name'),
-      supabase.from('employee_profiles').select(`
-        workspace_member_id,
-        workspace_members!inner (
-          profiles:user_id ( full_name )
-        )
-      `).eq('workspace_id', activeWorkspace.id)
+      supabase.from('employee_profiles').select(`workspace_member_id, workspace_members!inner ( id, user_id )`).eq('workspace_id', activeWorkspace.id)
     ]);
 
     if (deptRes.data) setDepartments(deptRes.data);
     if (desigRes.data) setDesignations(desigRes.data);
-    if (mgrRes.data) setManagers(mgrRes.data);
+
+    // Enrich managers with profiles
+    if (rawMgrRes.data && rawMgrRes.data.length > 0) {
+      const mgrUserIds = rawMgrRes.data.map((m: any) => m.workspace_members?.user_id).filter(Boolean);
+      const { data: mgrProfilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', mgrUserIds);
+      const mgrProfileMap = Object.fromEntries((mgrProfilesData || []).map((p: any) => [p.user_id, p]));
+      setManagers(rawMgrRes.data.map((m: any) => ({
+        ...m,
+        workspace_members: m.workspace_members
+          ? { ...m.workspace_members, profiles: mgrProfileMap[m.workspace_members.user_id] || null }
+          : null,
+      })));
+    }
 
     setLoading(false);
   }, [supabase, activeWorkspace?.id, id]);

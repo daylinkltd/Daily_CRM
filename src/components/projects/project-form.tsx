@@ -53,7 +53,15 @@ export function ProjectForm({ open, onOpenChange, project, onSaved }: ProjectFor
   useEffect(() => {
     if (open && activeWorkspace?.id) {
       // Fetch references
-      supabase.from('workspace_members').select(`id, profiles:user_id(full_name)`).eq('workspace_id', activeWorkspace.id).then(({ data }) => setManagers(data || []));
+      // Two-step fetch: workspace_members.user_id refs auth.users (not public.profiles),
+      // so PostgREST cannot join directly. We fetch members + profiles separately and merge.
+      supabase.from('workspace_members').select('id, user_id').eq('workspace_id', activeWorkspace.id).then(async ({ data: members }) => {
+        if (!members || members.length === 0) { setManagers([]); return; }
+        const userIds = members.map((m: any) => m.user_id);
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        setManagers(members.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null })));
+      });
       supabase.from('contacts').select('id, name, company').eq('workspace_id', activeWorkspace.id).then(({ data }) => setClients(data || []));
 
       if (project) {

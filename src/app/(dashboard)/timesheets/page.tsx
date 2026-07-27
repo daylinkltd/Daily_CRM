@@ -67,9 +67,7 @@ export default function TimesheetsPage() {
     const [attRes, logsRes] = await Promise.all([
       supabase.from('attendance').select(`
         *,
-        workspace_members!inner (
-          profiles:user_id ( full_name, avatar_url )
-        )
+        workspace_members!inner ( id, user_id )
       `).eq('workspace_id', activeWorkspace.id).eq('attendance_date', reportDate),
       
       supabase.from('time_logs').select('workspace_member_id, hours_logged')
@@ -82,6 +80,15 @@ export default function TimesheetsPage() {
       return;
     }
 
+    // Two-step: enrich workspace_members with profile data
+    const attList = attRes.data || [];
+    const memberUserIds = attList.map((a: any) => a.workspace_members?.user_id).filter(Boolean);
+    const profileMap: Record<string, any> = {};
+    if (memberUserIds.length > 0) {
+      const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', memberUserIds);
+      (profilesData || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+    }
+
     // Aggregate logs by member
     const logMap: Record<string, number> = {};
     (logsRes.data || []).forEach(log => {
@@ -90,10 +97,10 @@ export default function TimesheetsPage() {
     });
 
     // Combine with attendance
-    const aggregated = (attRes.data || []).map(att => {
+    const aggregated = attList.map((att: any) => {
       const loggedTime = logMap[att.workspace_member_id] || 0;
       const attendanceHours = att.working_hours || 0;
-      const profile = Array.isArray(att.workspace_members?.profiles) ? att.workspace_members.profiles[0] : att.workspace_members?.profiles;
+      const profile = att.workspace_members?.user_id ? profileMap[att.workspace_members.user_id] : null;
       
       return {
         member_id: att.workspace_member_id,

@@ -47,7 +47,7 @@ export default function GlobalTasksPage() {
         *,
         project:projects!tasks_project_id_fkey ( name ),
         assignee:workspace_members!tasks_assigned_workspace_member_id_fkey (
-          profiles:user_id ( full_name, avatar_url )
+          id, user_id
         )
       `)
       .eq('workspace_id', activeWorkspace.id)
@@ -63,7 +63,14 @@ export default function GlobalTasksPage() {
     if (error) {
       toast.error('Failed to load tasks');
     } else {
-      setTasks(data || []);
+      const taskList = data || [];
+      const assigneeUserIds = taskList.map((t: any) => t.assignee?.user_id).filter(Boolean);
+      if (assigneeUserIds.length > 0) {
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', assigneeUserIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        taskList.forEach((t: any) => { if (t.assignee?.user_id) t.assignee.profiles = profileMap[t.assignee.user_id] || null; });
+      }
+      setTasks(taskList);
     }
     setLoading(false);
   }, [supabase, activeWorkspace?.id, activeMember?.id, search]);

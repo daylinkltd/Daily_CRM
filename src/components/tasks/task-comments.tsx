@@ -28,24 +28,27 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
     if (!taskId) return;
     setLoading(true);
 
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from('task_comments')
-      .select(`
-        id,
-        comment,
-        created_at,
-        member:workspace_members!task_comments_workspace_member_id_fkey (
-          id,
-          profiles:user_id ( full_name, avatar_url )
-        )
-      `)
+      .select(`id, comment, created_at, member:workspace_members!task_comments_workspace_member_id_fkey ( id, user_id )`)
       .eq('task_id', taskId)
       .order('created_at', { ascending: true });
 
     if (error) {
       toast.error('Failed to load comments');
     } else {
-      setComments(data || []);
+      const commentList = rawData || [];
+      if (commentList.length > 0) {
+        const userIds = commentList.map((c: any) => c.member?.user_id).filter(Boolean);
+        const profileMap: Record<string, any> = {};
+        if (userIds.length > 0) {
+          const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', userIds);
+          (profilesData || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+        }
+        setComments(commentList.map((c: any) => ({ ...c, member: c.member ? { ...c.member, profiles: profileMap[c.member.user_id] || null } : null })));
+      } else {
+        setComments([]);
+      }
     }
     setLoading(false);
   }, [supabase, taskId]);
@@ -65,27 +68,26 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
     setSubmitting(true);
 
     try {
-      const { data, error } = await supabase
+      const { data: insertedComment, error } = await supabase
         .from('task_comments')
         .insert({
           task_id: taskId,
           workspace_member_id: activeMember.id,
           comment: newComment.trim(),
         })
-        .select(`
-          id,
-          comment,
-          created_at,
-          member:workspace_members!task_comments_workspace_member_id_fkey (
-            id,
-            profiles:user_id ( full_name, avatar_url )
-          )
-        `)
+        .select(`id, comment, created_at, member:workspace_members!task_comments_workspace_member_id_fkey ( id, user_id )`)
         .single();
 
       if (error) throw error;
-      
-      setComments((prev) => [...prev, data]);
+
+      // Enrich with profile (cast to any — Supabase infers member as array type but .single() gives object)
+      const inserted = insertedComment as any;
+      let enrichedComment: any = inserted;
+      if (inserted?.member?.user_id) {
+        const { data: prof } = await supabase.from('profiles').select('user_id, full_name, avatar_url').eq('user_id', inserted.member.user_id).single();
+        if (prof) enrichedComment = { ...inserted, member: { ...inserted.member, profiles: prof } };
+      }
+      setComments((prev) => [...prev, enrichedComment]);
       setNewComment('');
     } catch (err) {
       toast.error('Failed to add comment');

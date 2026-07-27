@@ -59,17 +59,22 @@ export default function ReportsDashboard() {
 
     try {
       // 1. Fetch all active employees in this workspace
-      const { data: members, error: memErr } = await supabase
+      const { data: rawMembers, error: memErr } = await supabase
         .from('workspace_members')
-        .select(`
-          id,
-          profiles:user_id ( full_name, avatar_url ),
-          employee_profiles!inner ( designation_id, status )
-        `)
+        .select(`id, user_id, employee_profiles!inner ( designation_id, status )`)
         .eq('workspace_id', activeWorkspace.id)
         .eq('employee_profiles.status', 'ACTIVE');
 
       if (memErr) throw memErr;
+
+      // Two-step profile enrichment
+      let members: any[] = rawMembers || [];
+      if (members.length > 0) {
+        const userIds = members.map((m: any) => m.user_id).filter(Boolean);
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', userIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        members = members.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null }));
+      }
 
       const startDate = startOfMonth(new Date()).toISOString();
       const endDate = endOfMonth(new Date()).toISOString();

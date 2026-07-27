@@ -92,7 +92,13 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
   useEffect(() => {
     if (open && activeWorkspace?.id) {
       supabase.from('projects').select('id, name').eq('workspace_id', activeWorkspace.id).eq('status', 'active').then(({ data }) => setProjects(data || []));
-      supabase.from('workspace_members').select(`id, profiles:user_id(full_name)`).eq('workspace_id', activeWorkspace.id).then(({ data }) => setMembers(data || []));
+      supabase.from('workspace_members').select('id, user_id').eq('workspace_id', activeWorkspace.id).then(async ({ data: members }) => {
+        if (!members || members.length === 0) { setMembers([]); return; }
+        const userIds = members.map((m: any) => m.user_id);
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        setMembers(members.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null })));
+      });
       supabase.from('workspace_labels').select('id, name, color').eq('workspace_id', activeWorkspace.id).then(({ data }) => setAllLabels(data || []));
 
       if (task) {

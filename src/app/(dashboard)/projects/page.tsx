@@ -49,7 +49,7 @@ export default function ProjectsListPage() {
       .select(`
         *,
         manager:workspace_members!projects_manager_workspace_member_id_fkey (
-          profiles:user_id ( full_name, avatar_url )
+          id, user_id
         ),
         client:contacts!projects_client_id_fkey ( name, company )
       `)
@@ -65,7 +65,20 @@ export default function ProjectsListPage() {
     if (error) {
       toast.error('Failed to load projects');
     } else {
-      setProjects(data || []);
+      const projectList = data || [];
+
+      // Two-step: workspace_members.user_id refs auth.users, not public.profiles
+      // PostgREST cannot traverse cross-schema FKs, so we enrich separately
+      const managerUserIds = projectList.map((p: any) => p.manager?.user_id).filter(Boolean);
+      if (managerUserIds.length > 0) {
+        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', managerUserIds);
+        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+        projectList.forEach((p: any) => {
+          if (p.manager?.user_id) p.manager.profiles = profileMap[p.manager.user_id] || null;
+        });
+      }
+
+      setProjects(projectList);
     }
     setLoading(false);
   }, [supabase, activeWorkspace?.id, search]);
