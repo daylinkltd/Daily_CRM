@@ -46,8 +46,8 @@ export function EmailConfig() {
       <div className="space-y-6">
         <Alert className="bg-slate-900 border-slate-700">
           <div className="flex items-center gap-2">
-            {connectionStatus === 'connected' ? <CheckCircle2 className="size-4 text-[#00aef0]" /> : <XCircle className="size-4 text-red-500" />}
-            <AlertTitle className="text-white mb-0">{connectionStatus === 'connected' ? 'Connected' : 'Not Connected'}</AlertTitle>
+            {connectionStatus === 'connected' ? <CheckCircle2 className="size-4 text-primary" /> : <XCircle className="size-4 text-red-500" />}
+            <AlertTitle className="text-foreground mb-0">{connectionStatus === 'connected' ? 'Connected' : 'Not Connected'}</AlertTitle>
           </div>
           <AlertDescription className="text-slate-400">
             {connectionStatus === 'connected' ? `Your ${provider} account is connected.` : 'Configure your SMTP/API email provider.'}
@@ -56,13 +56,13 @@ export function EmailConfig() {
 
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white">API Credentials</CardTitle>
+            <CardTitle className="text-foreground">API Credentials</CardTitle>
             <CardDescription className="text-slate-400">Enter your Email provider credentials.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label className="text-slate-300">Provider</Label>
-              <select value={provider} onChange={(e) => setProvider(e.target.value)} className="w-full h-10 rounded-md bg-slate-800 border-slate-700 text-white px-3">
+              <select value={provider} onChange={(e) => setProvider(e.target.value)} className="w-full h-10 rounded-md bg-slate-800 border-slate-700 text-foreground px-3">
                 <option value="SendGrid">SendGrid</option>
                 <option value="AWS SES">AWS SES</option>
                 <option value="Resend">Resend</option>
@@ -70,13 +70,13 @@ export function EmailConfig() {
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300">From Email Address</Label>
-              <Input value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} placeholder="hello@yourdomain.com" className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500" />
+              <Input value={fromEmail} onChange={(e) => setFromEmail(e.target.value)} placeholder="hello@yourdomain.com" className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500" />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300">API Key</Label>
               <div className="relative">
-                <Input type={showToken ? 'text' : 'password'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 pr-10" />
-                <button type="button" onClick={() => setShowToken(!showToken)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                <Input type={showToken ? 'text' : 'password'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 pr-10" />
+                <button type="button" onClick={() => setShowToken(!showToken)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground">
                   {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
@@ -85,10 +85,10 @@ export function EmailConfig() {
         </Card>
 
         <div className="flex gap-3">
-          <Button onClick={handleSave} disabled={saving} className="bg-[#00aef0] hover:bg-[#00aef0]/90 text-white">
+          <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Saving...</> : 'Save Configuration'}
           </Button>
-          <Button variant="outline" onClick={handleTestConnection} disabled={testing} className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800">
+          <Button variant="outline" onClick={handleTestConnection} disabled={testing} className="border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800">
             {testing ? 'Sending...' : 'Send Test Email'}
           </Button>
         </div>
@@ -96,7 +96,7 @@ export function EmailConfig() {
       <div>
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white text-base">Instructions</CardTitle>
+            <CardTitle className="text-foreground text-base">Instructions</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-slate-400">

@@ -80,7 +80,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
 
   if (loading) {
     return (
-      <div className={cn("flex items-center justify-between rounded-[10px] border border-border bg-card px-3 py-2 text-muted-foreground", hideText ? "px-1.5 py-1.5" : "")}>
+      <div className={cn("flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 text-muted-foreground", hideText ? "px-1.5 py-1.5" : "")}>
         <div className="flex items-center gap-2">
           <div className="h-5 w-5 animate-pulse rounded bg-muted" />
           {!hideText && <div className="h-4 w-24 animate-pulse rounded bg-muted" />}
@@ -96,7 +96,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
           type="button"
           onClick={() => setIsDialogOpen(true)}
           className={cn(
-            "flex w-full items-center justify-between gap-2 rounded-[10px] border border-dashed border-border bg-card px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus:outline-none focus:ring-1 focus:ring-primary",
+            "flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-border bg-card px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus:outline-none focus:ring-1 focus:ring-primary",
             hideText ? "px-1.5 py-1.5 justify-center" : ""
           )}
         >
@@ -198,7 +198,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
           render={
             <button
               type="button"
-              className={cn("flex w-full items-center justify-between gap-2 rounded-[10px] transition-all focus:outline-none focus:ring-1 focus:ring-primary px-3 py-2.5 text-left text-sm font-medium", switcherBg, hideText ? "px-1 py-1 justify-center" : "")}
+              className={cn("flex w-full items-center justify-between gap-2 rounded-lg transition-all focus:outline-none focus:ring-1 focus:ring-primary px-3 py-2.5 text-left text-sm font-medium", switcherBg, hideText ? "px-1 py-1 justify-center" : "")}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {activeWorkspace.logo_url ? (
@@ -233,7 +233,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
         <DropdownMenuContent
           align="start"
           sideOffset={6}
-          className="w-56 bg-popover border-border text-popover-foreground rounded-[10px] shadow-md"
+          className="w-56 bg-popover border-border text-popover-foreground rounded-lg shadow-md"
         >
           <DropdownMenuLabel className="text-xs text-muted-foreground font-medium px-2 py-1.5">
             Workspaces
@@ -246,7 +246,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                 <DropdownMenuItem
                   key={workspace.id}
                   onClick={() => switchWorkspace(workspace.id)}
-                  className="flex items-center justify-between px-2 py-2 text-foreground focus:bg-primary/10 focus:text-primary cursor-pointer rounded-[8px]"
+                  className="flex items-center justify-between px-2 py-2 text-foreground focus:bg-primary/10 focus:text-primary cursor-pointer rounded-md"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     {workspace.logo_url ? (
@@ -275,7 +275,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
           <DropdownMenuSeparator className="bg-border" />
           <DropdownMenuItem
             onClick={() => setIsDialogOpen(true)}
-            className="flex items-center gap-2 px-2 py-2 text-primary focus:bg-primary/10 focus:text-primary font-medium cursor-pointer rounded-[8px]"
+            className="flex items-center gap-2 px-2 py-2 text-primary focus:bg-primary/10 focus:text-primary font-medium cursor-pointer rounded-md"
           >
             <Plus className="h-4 w-4 shrink-0" />
             Create Workspace
@@ -312,7 +312,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     setIsDialogOpen(false);
                     window.location.href = "/settings?tab=billing";
                   }}
-                  className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium"
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium"
                 >
                   Upgrade Plan
                 </Button>
@@ -335,7 +335,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     placeholder="e.g. Sales Team, Marketing Dept"
                     value={newWorkspaceName}
                     onChange={(e) => setNewWorkspaceName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 focus:border-[#00aef0] focus:ring-[#00aef0] text-white"
+                    className="bg-slate-950 border-slate-800 focus:border-primary focus:ring-primary text-white"
                     required
                     autoFocus
                   />
@@ -353,7 +353,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                 <Button
                   type="submit"
                   disabled={isCreating || !newWorkspaceName.trim()}
-                  className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10"
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium shadow-md shadow-primary/10"
                 >
                   {isCreating ? "Creating..." : "Create Workspace"}
                 </Button>

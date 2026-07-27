@@ -20,7 +20,7 @@ const features = [
     icon: MessageSquare,
     title: "Unified Inbox",
     desc: "WhatsApp, Instagram, Messenger, and Email — all in one lightning-fast inbox. No tab-switching.",
-    color: "#00aef0",
+    color: "#0284C7",
   },
   {
     icon: Bot,
@@ -50,7 +50,7 @@ const features = [
     icon: Globe,
     title: "Multi-Workspace",
     desc: "Manage multiple brands or clients from a single account with complete data isolation between tenants.",
-    color: "#00aef0",
+    color: "#0284C7",
   },
 ];
 
@@ -59,7 +59,7 @@ const channels = [
   { label: "WhatsApp", icon: PhoneCall, color: "#25D366" },
   { label: "Instagram", icon: Sparkles, color: "#E1306C" },
   { label: "Messenger", icon: MessageSquare, color: "#0078FF" },
-  { label: "Email", icon: Mail, color: "#00aef0" },
+  { label: "Email", icon: Mail, color: "#0284C7" },
 ];
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
@@ -78,7 +78,7 @@ const testimonials = [
     name: "Priya Sharma",
     title: "Head of Sales, GrowthStack",
     avatar: "PS",
-    color: "#00aef0",
+    color: "#0284C7",
   },
   {
     stars: 5,
@@ -180,7 +180,7 @@ function SalesModal({
             <h3 className="text-xl font-bold text-white mb-2">Request Submitted!</h3>
             <p className="text-slate-400 text-sm mb-6">
               Thanks, <strong className="text-white">{form.full_name.split(" ")[0]}</strong>! Our team will reach out to{" "}
-              <strong className="text-[#00aef0]">{form.email}</strong> within 24 hours.
+              <strong className="text-primary">{form.email}</strong> within 24 hours.
             </p>
             <button
               onClick={onClose}
@@ -207,7 +207,7 @@ function SalesModal({
                     placeholder="Jane Smith"
                     value={form.full_name}
                     onChange={e => set("full_name", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-[#00aef0] focus:outline-none transition-colors"
+                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -220,7 +220,7 @@ function SalesModal({
                     placeholder="Acme Corp"
                     value={form.company_name}
                     onChange={e => set("company_name", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-[#00aef0] focus:outline-none transition-colors"
+                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -236,7 +236,7 @@ function SalesModal({
                   placeholder="you@company.com"
                   value={form.email}
                   onChange={e => set("email", e.target.value)}
-                  className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-[#00aef0] focus:outline-none transition-colors"
+                  className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -250,7 +250,7 @@ function SalesModal({
                     placeholder="+91 98765 43210"
                     value={form.phone}
                     onChange={e => set("phone", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-[#00aef0] focus:outline-none transition-colors"
+                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -261,7 +261,7 @@ function SalesModal({
                   <select
                     value={form.team_size}
                     onChange={e => set("team_size", e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-slate-700/60 bg-slate-900/60 px-3 py-2.5 text-sm text-white focus:border-[#00aef0] focus:outline-none transition-colors"
+                    className="w-full appearance-none rounded-xl border border-slate-700/60 bg-slate-900/60 px-3 py-2.5 text-sm text-white focus:border-primary focus:outline-none transition-colors"
                   >
                     <option value="">Select...</option>
                     <option value="1-5">1–5</option>
@@ -283,7 +283,7 @@ function SalesModal({
                     onClick={() => set("plan_interest", p)}
                     className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all text-left ${
                       form.plan_interest === p
-                        ? "border-[#00aef0] bg-[#00aef0]/10 text-[#00aef0]"
+                        ? "border-primary bg-primary/10 text-primary"
                         : "border-slate-700 text-slate-400 hover:border-slate-600"
                     }`}
                   >
@@ -300,14 +300,14 @@ function SalesModal({
                 placeholder="Tell us about your use case, current tools, or any specific requirements..."
                 value={form.message}
                 onChange={e => set("message", e.target.value)}
-                className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:border-[#00aef0] focus:outline-none transition-colors resize-none"
+                className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors resize-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#00aef0] hover:bg-[#008ec4] text-white font-bold py-3 text-sm transition-all shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/35 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold py-3 text-sm transition-all shadow-lg shadow-primary/20 hover:shadow-primary/35 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
@@ -382,7 +382,7 @@ export default function LandingPage() {
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 rounded-full bg-[#00aef0] px-5 py-2 text-sm font-semibold text-white hover:bg-[#008ec4] transition-all shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/30 hover:scale-105"
+                className="flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105"
               >
                 Go to Dashboard <ChevronRight className="h-3.5 w-3.5" />
               </Link>
@@ -396,7 +396,7 @@ export default function LandingPage() {
                 </Link>
                 <button
                   onClick={() => openModal("growth")}
-                  className="flex items-center gap-1.5 rounded-full bg-[#00aef0] px-5 py-2 text-sm font-semibold text-white hover:bg-[#008ec4] transition-all shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/30 hover:scale-105"
+                  className="flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105"
                 >
                   Contact Sales <ChevronRight className="h-3.5 w-3.5" />
                 </button>
@@ -409,7 +409,7 @@ export default function LandingPage() {
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative flex flex-col items-center justify-center px-6 pt-24 pb-32 text-center overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full bg-[#00aef0]/10 blur-[120px]" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full bg-primary/10 blur-[120px]" />
           <div className="absolute top-40 left-1/4 h-[400px] w-[400px] rounded-full bg-violet-600/8 blur-[100px]" />
           <div className="absolute top-40 right-1/4 h-[300px] w-[300px] rounded-full bg-indigo-600/6 blur-[100px]" />
           <div
@@ -420,11 +420,11 @@ export default function LandingPage() {
               backgroundSize: "60px 60px",
             }}
           />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00aef0]/40 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
         </div>
 
         <div className="relative z-10 max-w-5xl mx-auto">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#00aef0]/25 bg-[#00aef0]/8 px-4 py-1.5 text-xs font-semibold text-[#00aef0] mb-8 shadow-lg shadow-[#00aef0]/5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1.5 text-xs font-semibold text-primary mb-8 shadow-lg shadow-primary/5">
             <Sparkles className="h-3.5 w-3.5 animate-pulse" />
             Omni-Channel CRM — WhatsApp · Instagram · Email · Messenger
           </div>
@@ -432,10 +432,10 @@ export default function LandingPage() {
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.06] mb-6">
             The CRM that{" "}
             <span className="relative inline-block">
-              <span className="relative z-10 bg-gradient-to-r from-[#00aef0] via-[#44c8ff] to-[#a78bfa] bg-clip-text text-transparent">
+              <span className="relative z-10 bg-gradient-to-r from-primary via-[#44c8ff] to-[#a78bfa] bg-clip-text text-transparent">
                 closes deals
               </span>
-              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#00aef0] to-[#a78bfa] opacity-50 rounded-full" />
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-[#a78bfa] opacity-50 rounded-full" />
             </span>{" "}
             <br />
             across every channel.
@@ -450,7 +450,7 @@ export default function LandingPage() {
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="flex items-center gap-2 rounded-full bg-[#00aef0] px-8 py-3.5 text-base font-bold text-white hover:bg-[#008ec4] transition-all shadow-xl shadow-[#00aef0]/20 hover:shadow-[#00aef0]/35 hover:scale-105"
+                className="flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-base font-bold text-white hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 hover:shadow-primary/35 hover:scale-105"
               >
                 Go to Dashboard <ArrowRight className="h-4 w-4" />
               </Link>
@@ -458,7 +458,7 @@ export default function LandingPage() {
               <>
                 <button
                   onClick={() => openModal("growth")}
-                  className="flex items-center gap-2 rounded-full bg-[#00aef0] px-8 py-3.5 text-base font-bold text-white hover:bg-[#008ec4] transition-all shadow-xl shadow-[#00aef0]/20 hover:shadow-[#00aef0]/35 hover:scale-105"
+                  className="flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-base font-bold text-white hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 hover:shadow-primary/35 hover:scale-105"
                 >
                   Get Started Free <ArrowRight className="h-4 w-4" />
                 </button>
@@ -499,13 +499,13 @@ export default function LandingPage() {
             </div>
             <div className="grid grid-cols-12 gap-0 min-h-[340px]">
               <div className="col-span-2 border-r border-slate-800 bg-slate-950/50 p-4 space-y-3">
-                <div className="h-7 w-20 bg-[#00aef0]/10 rounded-lg flex items-center justify-center">
-                  <div className="h-2 w-12 bg-[#00aef0]/60 rounded-full" />
+                <div className="h-7 w-20 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <div className="h-2 w-12 bg-primary/60 rounded-full" />
                 </div>
                 {["Inbox", "Contacts", "Pipeline", "Automations"].map((item, i) => (
-                  <div key={item} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${i === 0 ? "bg-[#00aef0]/15" : ""}`}>
-                    <div className={`h-3 w-3 rounded-sm ${i === 0 ? "bg-[#00aef0]" : "bg-slate-700"}`} />
-                    <div className={`h-2 w-10 rounded-full ${i === 0 ? "bg-[#00aef0]/60" : "bg-slate-700"}`} />
+                  <div key={item} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${i === 0 ? "bg-primary/15" : ""}`}>
+                    <div className={`h-3 w-3 rounded-sm ${i === 0 ? "bg-primary" : "bg-slate-700"}`} />
+                    <div className={`h-2 w-10 rounded-full ${i === 0 ? "bg-primary/60" : "bg-slate-700"}`} />
                   </div>
                 ))}
               </div>
@@ -514,7 +514,7 @@ export default function LandingPage() {
                 {[
                   { color: "#25D366", name: "Riya S." },
                   { color: "#E1306C", name: "Arjun M." },
-                  { color: "#00aef0", name: "Priya K." },
+                  { color: "#0284C7", name: "Priya K." },
                   { color: "#25D366", name: "Karan V." },
                 ].map((conv, i) => (
                   <div key={i} className={`flex items-center gap-2 p-2 rounded-lg ${i === 0 ? "bg-slate-800/70" : ""}`}>
@@ -541,9 +541,9 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <div className="bg-[#00aef0]/20 border border-[#00aef0]/30 rounded-xl px-3 py-2 max-w-[55%]">
-                      <div className="h-1.5 w-20 bg-[#00aef0]/60 rounded-full mb-1" />
-                      <div className="h-1.5 w-14 bg-[#00aef0]/40 rounded-full" />
+                    <div className="bg-primary/20 border border-primary/30 rounded-xl px-3 py-2 max-w-[55%]">
+                      <div className="h-1.5 w-20 bg-primary/60 rounded-full mb-1" />
+                      <div className="h-1.5 w-14 bg-primary/40 rounded-full" />
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -562,9 +562,9 @@ export default function LandingPage() {
                   {["New Lead", "Proposal Sent", "Negotiating"].map((stage, i) => (
                     <div key={stage} className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full shrink-0"
-                        style={{ background: ["#00aef0", "#a855f7", "#f59e0b"][i] }} />
+                        style={{ background: ["#0284C7", "#a855f7", "#f59e0b"][i] }} />
                       <div className="flex-1 h-5 bg-slate-800 rounded flex items-center px-2">
-                        <div className="h-1.5 rounded-full" style={{ width: [70, 45, 55][i] + "%", background: ["#00aef0", "#a855f7", "#f59e0b"][i] + "40" }} />
+                        <div className="h-1.5 rounded-full" style={{ width: [70, 45, 55][i] + "%", background: ["#0284C7", "#a855f7", "#f59e0b"][i] + "40" }} />
                       </div>
                     </div>
                   ))}
@@ -580,7 +580,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 h-24 w-3/4 bg-[#00aef0]/10 blur-[60px] pointer-events-none rounded-full" />
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 h-24 w-3/4 bg-primary/10 blur-[60px] pointer-events-none rounded-full" />
         </div>
       </section>
 
@@ -609,7 +609,7 @@ export default function LandingPage() {
       <section id="features" className="py-28 px-6 relative">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute top-1/2 left-0 h-[500px] w-[500px] rounded-full bg-violet-600/5 blur-[120px]" />
-          <div className="absolute top-1/2 right-0 h-[400px] w-[400px] rounded-full bg-[#00aef0]/5 blur-[100px]" />
+          <div className="absolute top-1/2 right-0 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[100px]" />
         </div>
 
         <div className="mx-auto max-w-6xl relative z-10">
@@ -619,7 +619,7 @@ export default function LandingPage() {
             </div>
             <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
               Built for teams that{" "}
-              <span className="bg-gradient-to-r from-[#00aef0] to-[#a78bfa] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-[#a78bfa] bg-clip-text text-transparent">
                 move fast
               </span>
             </h2>
@@ -658,7 +658,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold tracking-tight mb-3">
               Up and running in{" "}
-              <span className="text-[#00aef0]">minutes</span>
+              <span className="text-primary">minutes</span>
             </h2>
             <p className="text-slate-400 text-lg">
               No complex setup. Connect, configure, and start closing.
@@ -668,7 +668,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <div className="hidden md:block absolute top-14 left-1/3 right-1/3 h-px border-t border-dashed border-slate-700" />
             {[
-              { step: "01", icon: Globe, title: "Connect Channels", desc: "Link your WhatsApp Business API, Instagram, Facebook Page, and email in one click.", color: "#00aef0" },
+              { step: "01", icon: Globe, title: "Connect Channels", desc: "Link your WhatsApp Business API, Instagram, Facebook Page, and email in one click.", color: "#0284C7" },
               { step: "02", icon: Zap, title: "Configure Automations", desc: "Set up lead qualification, auto-responses, and team routing with our visual builder.", color: "#a855f7" },
               { step: "03", icon: TrendingUp, title: "Close More Deals", desc: "Your team works in a unified inbox while analytics track every conversion.", color: "#10b981" },
             ].map((item) => (
@@ -731,12 +731,12 @@ export default function LandingPage() {
       {/* ── PRICING ───────────────────────────────────────────────────────── */}
       <section id="pricing" className="py-28 px-6 bg-slate-900/20 border-y border-slate-800/50 relative">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[#00aef0]/5 blur-[140px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[140px]" />
         </div>
 
         <div className="mx-auto max-w-7xl relative z-10">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#00aef0]/20 bg-[#00aef0]/8 px-4 py-1.5 text-xs font-semibold text-[#00aef0] mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 text-xs font-semibold text-primary mb-4">
               <Lock className="h-3 w-3" /> Flat-Fee CRM Plans
             </div>
             <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3">Simple, transparent pricing</h2>
@@ -749,7 +749,7 @@ export default function LandingPage() {
                 onClick={() => setBillingCycle('monthly')}
                 className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${
                   billingCycle === 'monthly'
-                    ? 'bg-[#00aef0] text-white shadow-md'
+                    ? 'bg-primary text-primary-foreground shadow-md'
                     : 'text-slate-400 hover:text-white bg-slate-950/40 border border-slate-800'
                 }`}
               >
@@ -760,7 +760,7 @@ export default function LandingPage() {
                 onClick={() => setBillingCycle('annual')}
                 className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors relative ${
                   billingCycle === 'annual'
-                    ? 'bg-[#00aef0] text-white shadow-md'
+                    ? 'bg-primary text-primary-foreground shadow-md'
                     : 'text-slate-400 hover:text-white bg-slate-950/40 border border-slate-800'
                 }`}
               >
@@ -814,12 +814,12 @@ export default function LandingPage() {
                   key={plan.id}
                   className={`relative flex flex-col rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-2xl ${
                     plan.isRecommended
-                      ? "border-2 border-[#00aef0]/50 bg-gradient-to-b from-[#00aef0]/10 to-slate-900/80 shadow-xl shadow-[#00aef0]/10 lg:scale-105"
+                      ? "border-2 border-primary/50 bg-gradient-to-b from-primary/10 to-slate-900/80 shadow-xl shadow-primary/10 lg:scale-105"
                       : "border border-slate-800/60 bg-slate-900/40"
                   }`}
                 >
                   {plan.isRecommended && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#00aef0] text-white text-xs font-bold rounded-full shadow-lg shadow-[#00aef0]/30 whitespace-nowrap">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-lg shadow-primary/30 whitespace-nowrap">
                       RECOMMENDED
                     </div>
                   )}
@@ -838,14 +838,14 @@ export default function LandingPage() {
                         {" (excl. GST)"}
                       </p>
                     )}
-                    {isFree && <p className="text-[11px] text-[#00aef0] mb-2">14-day free trial</p>}
+                    {isFree && <p className="text-[11px] text-primary mb-2">14-day free trial</p>}
                     {isCustom && <p className="text-[11px] text-slate-500 mb-2">Tailored for large operations</p>}
                   </div>
 
                   <ul className="space-y-2.5 mb-6 flex-1">
                     {plan.features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-xs text-slate-300">
-                        <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${plan.isRecommended ? "text-[#00aef0]" : "text-emerald-400"}`} />
+                        <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${plan.isRecommended ? "text-primary" : "text-emerald-400"}`} />
                         <span>{f}</span>
                       </li>
                     ))}
@@ -856,7 +856,7 @@ export default function LandingPage() {
                     onClick={handleAction}
                     className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition-all ${
                       plan.isRecommended
-                        ? "bg-[#00aef0] text-white hover:bg-[#008ec4] shadow-lg shadow-[#00aef0]/20 hover:shadow-[#00aef0]/35 hover:scale-105"
+                        ? "bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg shadow-primary/20 hover:shadow-primary/35 hover:scale-105"
                         : "border border-slate-700 text-slate-200 hover:border-slate-600 hover:text-white hover:bg-slate-800/60"
                     }`}
                   >
@@ -874,7 +874,7 @@ export default function LandingPage() {
             </p>
             <p>
               All plans include an onboarding setup call. Questions?{" "}
-              <button onClick={() => openModal("growth")} className="text-[#00aef0] hover:text-[#44c8ff] transition-colors">
+              <button onClick={() => openModal("growth")} className="text-primary hover:text-primary/80 transition-colors">
                 Talk to us
               </button>
             </p>
@@ -887,7 +887,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-4xl">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             {[
-              { icon: Shield, title: "Enterprise Security", desc: "Row-level security, encrypted data at rest, SOC2-ready infrastructure.", color: "#00aef0" },
+              { icon: Shield, title: "Enterprise Security", desc: "Row-level security, encrypted data at rest, SOC2-ready infrastructure.", color: "#0284C7" },
               { icon: Clock, title: "99.9% Uptime SLA", desc: "Built on Supabase + Vercel with global edge distribution.", color: "#10b981" },
               { icon: Lock, title: "GDPR Compliant", desc: "Full data sovereignty, deletion rights, and audit logs built-in.", color: "#a855f7" },
             ].map((item) => (
@@ -911,15 +911,15 @@ export default function LandingPage() {
       {/* ── CTA BANNER ────────────────────────────────────────────────────── */}
       <section className="py-24 px-6 relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#00aef0]/8 via-transparent to-[#a78bfa]/8" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00aef0]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-[#a78bfa]/8" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/30 to-transparent" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
             Ready to transform your{" "}
-            <span className="bg-gradient-to-r from-[#00aef0] to-[#a78bfa] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-[#a78bfa] bg-clip-text text-transparent">
               customer experience?
             </span>
           </h2>
@@ -928,7 +928,7 @@ export default function LandingPage() {
           </p>
           <button
             onClick={() => openModal("growth")}
-            className="inline-flex items-center gap-2 rounded-full bg-[#00aef0] px-10 py-4 text-base font-bold text-white hover:bg-[#008ec4] transition-all shadow-xl shadow-[#00aef0]/25 hover:shadow-[#00aef0]/40 hover:scale-105"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-10 py-4 text-base font-bold text-white hover:bg-primary-hover transition-all shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-105"
           >
             Get Started Today <ArrowRight className="h-5 w-5" />
           </button>

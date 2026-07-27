@@ -61,8 +61,8 @@ export function ConversationsChart({ series, loading, range, onRangeChange }: Co
               className={cn(
                 'rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
                 range === r
-                  ? 'bg-slate-700 text-white'
-                  : 'text-slate-400 hover:text-white',
+                  ? 'bg-slate-700 text-foreground'
+                  : 'text-slate-400 hover:text-foreground',
               )}
             >
               {r} days
@@ -283,14 +283,14 @@ function LineSvg({
           className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-md border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-[11px] shadow-lg"
           style={{ left: `${hover.tooltipLeftPx}px` }}
         >
-          <div className="font-medium text-white">{longDayLabel(hovered.day)}</div>
+          <div className="font-medium text-foreground">{longDayLabel(hovered.day)}</div>
           <div className="mt-1 flex flex-col gap-0.5">
             <span className="flex items-center gap-1.5 text-blue-300">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
               {hovered.incoming} incoming
             </span>
             <span className="flex items-center gap-1.5 text-violet-300">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#00aef0]" />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
               {hovered.outgoing} outgoing
             </span>
           </div>

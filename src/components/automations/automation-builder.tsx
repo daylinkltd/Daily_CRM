@@ -271,7 +271,7 @@ export function AutomationBuilder({ initial }: { initial: BuilderInitial }) {
         <button
           type="button"
           onClick={() => router.push("/automations")}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-foreground"
           aria-label="Back to automations"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -280,7 +280,7 @@ export function AutomationBuilder({ initial }: { initial: BuilderInitial }) {
           value={state.name}
           onChange={(e) => patchTop("name", e.target.value)}
           placeholder="Untitled automation"
-          className="min-w-0 flex-1 rounded-md bg-transparent px-2 py-1 text-sm font-semibold text-white placeholder:text-slate-500 focus:bg-slate-800 focus:outline-none sm:text-base"
+          className="min-w-0 flex-1 rounded-md bg-transparent px-2 py-1 text-sm font-semibold text-foreground placeholder:text-slate-500 focus:bg-slate-800 focus:outline-none sm:text-base"
         />
         <div className="flex items-center gap-2 text-xs text-slate-400">
           <span className="hidden sm:inline">Active</span>
@@ -293,7 +293,7 @@ export function AutomationBuilder({ initial }: { initial: BuilderInitial }) {
         <Button
           onClick={save}
           disabled={saving}
-          className="bg-[#00aef0] text-white hover:bg-[#00aef0]"
+          className="bg-primary text-primary-foreground hover:bg-primary"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {isEditing ? "Save" : "Save Draft"}
@@ -357,7 +357,7 @@ function TriggerCard({
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[11px] uppercase tracking-wide text-blue-300">Trigger</div>
-            <div className="truncate text-sm font-medium text-white">
+            <div className="truncate text-sm font-medium text-foreground">
               {TRIGGER_OPTIONS.find((o) => o.value === type)?.label ?? type}
             </div>
           </div>
@@ -374,7 +374,7 @@ function TriggerCard({
               <select
                 value={type}
                 onChange={(e) => onTypeChange(e.target.value as AutomationTriggerType)}
-                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-white focus:border-[#00aef0] focus:outline-none"
+                className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
               >
                 {TRIGGER_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -399,7 +399,7 @@ function TriggerCard({
                 onChange={(e) =>
                   onConfigChange({ ...config, tag_id: e.target.value })
                 }
-                className="bg-slate-800 text-white"
+                className="bg-slate-800 text-foreground"
               />
             )}
             {type === "time_based" && (
@@ -409,7 +409,7 @@ function TriggerCard({
                 onChange={(e) =>
                   onConfigChange({ ...config, schedule: e.target.value })
                 }
-                className="bg-slate-800 text-white"
+                className="bg-slate-800 text-foreground"
               />
             )}
           </div>
@@ -469,7 +469,7 @@ function KeywordMatchConfig({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
-          className="bg-slate-800 text-white"
+          className="bg-slate-800 text-foreground"
         />
       </div>
       <div>
@@ -479,7 +479,7 @@ function KeywordMatchConfig({
         <select
           value={config?.match_type ?? "contains"}
           onChange={(e) => onChange({ ...config, match_type: e.target.value as "exact" | "contains" })}
-          className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-white focus:outline-none"
+          className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
         >
           <option value="contains">Contains</option>
           <option value="exact">Exact</option>
@@ -595,7 +595,7 @@ function StepRenderer({
               <div className="text-[11px] uppercase tracking-wide text-slate-400">
                 {isCondition ? "Condition" : step.step_type === "wait" ? "Wait" : "Action"}
               </div>
-              <div className="truncate text-sm font-medium text-white">{meta.label}</div>
+              <div className="truncate text-sm font-medium text-foreground">{meta.label}</div>
               <div className="truncate text-[11px] text-slate-500">{previewFor(step)}</div>
             </div>
             <ChevronDown
@@ -680,7 +680,7 @@ function ConditionBranches({
     // cram each branch to ~170px which is too narrow for the nested
     // cards. Two-column grid returns on sm+.
     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <BranchColumn label="Yes" color="text-[#00aef0]">
+      <BranchColumn label="Yes" color="text-primary">
         <StepList {...props} steps={yes} parentPath={yesPath} />
       </BranchColumn>
       <BranchColumn label="No" color="text-rose-400">
@@ -713,7 +713,7 @@ function AddButton({ onPick }: { onPick: (t: AutomationStepType) => void }) {
       <div className="h-4 w-[2px] bg-slate-700" aria-hidden />
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-dashed border-slate-700 bg-slate-950 text-slate-400 transition-colors hover:border-[#00aef0] hover:bg-[#00aef0]/10 hover:text-[#00aef0] data-[popup-open]:border-[#00aef0] data-[popup-open]:bg-[#00aef0]/20 data-[popup-open]:text-[#00aef0]"
+          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-dashed border-slate-700 bg-slate-950 text-slate-400 transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary data-[popup-open]:border-primary data-[popup-open]:bg-primary/20 data-[popup-open]:text-primary"
           aria-label="Add step"
         >
           <Plus className="h-4 w-4" />
@@ -761,7 +761,7 @@ function StepEditor({
             value={(cfg.text as string) ?? ""}
             onChange={(e) => set({ text: e.target.value })}
             placeholder="Hi! Thanks for reaching out…"
-            className="min-h-24 bg-slate-800 text-white"
+            className="min-h-24 bg-slate-800 text-foreground"
           />
         </FieldBlock>
       )
@@ -772,14 +772,14 @@ function StepEditor({
             <Input
               value={(cfg.template_name as string) ?? ""}
               onChange={(e) => set({ template_name: e.target.value })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
           <FieldBlock label="Language">
             <Input
               value={(cfg.language as string) ?? ""}
               onChange={(e) => set({ language: e.target.value })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
         </>
@@ -791,7 +791,7 @@ function StepEditor({
           <Input
             value={(cfg.tag_id as string) ?? ""}
             onChange={(e) => set({ tag_id: e.target.value })}
-            className="bg-slate-800 text-white"
+            className="bg-slate-800 text-foreground"
           />
         </FieldBlock>
       )
@@ -802,7 +802,7 @@ function StepEditor({
             <select
               value={(cfg.mode as string) ?? "round_robin"}
               onChange={(e) => set({ mode: e.target.value })}
-              className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-white"
+              className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-foreground"
             >
               <option value="round_robin">Round-robin</option>
               <option value="specific">Specific agent</option>
@@ -813,7 +813,7 @@ function StepEditor({
               <Input
                 value={(cfg.agent_id as string) ?? ""}
                 onChange={(e) => set({ agent_id: e.target.value })}
-                className="bg-slate-800 text-white"
+                className="bg-slate-800 text-foreground"
               />
             </FieldBlock>
           )}
@@ -826,7 +826,7 @@ function StepEditor({
             <select
               value={(cfg.field as string) ?? "name"}
               onChange={(e) => set({ field: e.target.value })}
-              className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-white"
+              className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-foreground"
             >
               <option value="name">Name</option>
               <option value="email">Email</option>
@@ -837,7 +837,7 @@ function StepEditor({
             <Input
               value={(cfg.value as string) ?? ""}
               onChange={(e) => set({ value: e.target.value })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
         </>
@@ -849,21 +849,21 @@ function StepEditor({
             <Input
               value={(cfg.pipeline_id as string) ?? ""}
               onChange={(e) => set({ pipeline_id: e.target.value })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
           <FieldBlock label="Stage id">
             <Input
               value={(cfg.stage_id as string) ?? ""}
               onChange={(e) => set({ stage_id: e.target.value })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
           <FieldBlock label="Title">
             <Input
               value={(cfg.title as string) ?? ""}
               onChange={(e) => set({ title: e.target.value })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
           <FieldBlock label="Value">
@@ -871,7 +871,7 @@ function StepEditor({
               type="number"
               value={(cfg.value as number) ?? 0}
               onChange={(e) => set({ value: Number(e.target.value) })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
         </>
@@ -885,14 +885,14 @@ function StepEditor({
               min={1}
               value={(cfg.amount as number) ?? 1}
               onChange={(e) => set({ amount: Math.max(1, Number(e.target.value)) })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
           <FieldBlock label="Unit">
             <select
               value={(cfg.unit as string) ?? "hours"}
               onChange={(e) => set({ unit: e.target.value })}
-              className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-white"
+              className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-foreground"
             >
               <option value="minutes">Minutes</option>
               <option value="hours">Hours</option>
@@ -908,7 +908,7 @@ function StepEditor({
             <select
               value={(cfg.subject as string) ?? "tag_presence"}
               onChange={(e) => set({ subject: e.target.value })}
-              className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-white"
+              className="w-full rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm text-foreground"
             >
               <option value="tag_presence">Tag presence</option>
               <option value="contact_field">Contact field</option>
@@ -929,7 +929,7 @@ function StepEditor({
               }
               value={(cfg.operand as string) ?? ""}
               onChange={(e) => set({ operand: e.target.value })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
           {(cfg.subject === "contact_field" || cfg.subject === "message_content") && (
@@ -937,7 +937,7 @@ function StepEditor({
               <Input
                 value={(cfg.value as string) ?? ""}
                 onChange={(e) => set({ value: e.target.value })}
-                className="bg-slate-800 text-white"
+                className="bg-slate-800 text-foreground"
               />
             </FieldBlock>
           )}
@@ -950,14 +950,14 @@ function StepEditor({
             <Input
               value={(cfg.url as string) ?? ""}
               onChange={(e) => set({ url: e.target.value })}
-              className="bg-slate-800 text-white"
+              className="bg-slate-800 text-foreground"
             />
           </FieldBlock>
           <FieldBlock label="Body template (JSON)">
             <Textarea
               value={(cfg.body_template as string) ?? ""}
               onChange={(e) => set({ body_template: e.target.value })}
-              className="min-h-20 bg-slate-800 font-mono text-xs text-white"
+              className="min-h-20 bg-slate-800 font-mono text-xs text-foreground"
             />
           </FieldBlock>
         </>

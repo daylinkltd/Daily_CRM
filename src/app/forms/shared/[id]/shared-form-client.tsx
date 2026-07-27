@@ -144,7 +144,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
     return (
       <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center p-4 relative overflow-hidden">
         {/* Glow meshes */}
-        <div className="absolute top-1/4 left-1/4 size-80 rounded-full bg-[#00aef0]/10 blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 size-80 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 size-80 rounded-full bg-indigo-500/10 blur-3xl" />
 
         <div className="relative max-w-md w-full rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md p-8 text-center shadow-2xl space-y-5 animate-scaleUp">
@@ -168,7 +168,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                 setSubmitted(false);
                 setErrors({});
               }}
-              className="w-full bg-[#00aef0] hover:bg-[#009bd6] text-white"
+              className="w-full bg-primary hover:bg-primary-hover text-white"
             >
               Submit Another Response
             </Button>
@@ -181,7 +181,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
   return (
     <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center p-4 relative overflow-hidden py-12">
       {/* Background radial overlays */}
-      <div className="absolute top-1/4 left-1/4 size-96 rounded-full bg-[#00aef0]/10 blur-3xl" />
+      <div className="absolute top-1/4 left-1/4 size-96 rounded-full bg-primary/10 blur-3xl" />
       <div className="absolute bottom-1/4 right-1/4 size-96 rounded-full bg-indigo-500/10 blur-3xl" />
 
       {/* Grid Pattern overlay */}
@@ -225,7 +225,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                     value={values[field.id] || ''}
                     onChange={(e) => handleInputChange(field.id, e.target.value)}
                     placeholder={field.placeholder || ''}
-                    className={`bg-slate-950/40 border text-slate-200 placeholder:text-slate-600 focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0]/20 h-10 transition-all ${
+                    className={`bg-slate-950/40 border text-slate-200 placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary/20 h-10 transition-all ${
                       hasError ? 'border-red-500/70 focus:border-red-500' : 'border-slate-800'
                     }`}
                   />
@@ -238,7 +238,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                     value={values[field.id] || ''}
                     onChange={(e) => handleInputChange(field.id, e.target.value)}
                     placeholder={field.placeholder || ''}
-                    className={`bg-slate-950/40 border text-slate-200 placeholder:text-slate-600 focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0]/20 min-h-[90px] transition-all ${
+                    className={`bg-slate-950/40 border text-slate-200 placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary/20 min-h-[90px] transition-all ${
                       hasError ? 'border-red-500/70 focus:border-red-500' : 'border-slate-800'
                     }`}
                   />
@@ -250,7 +250,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                     id={field.id}
                     value={values[field.id] || ''}
                     onChange={(e) => handleInputChange(field.id, e.target.value)}
-                    className={`w-full bg-slate-950/50 border text-slate-200 focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0]/20 rounded-md h-10 px-3 transition-all outline-none ${
+                    className={`w-full bg-slate-950/50 border text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-md h-10 px-3 transition-all outline-none ${
                       hasError ? 'border-red-500/70' : 'border-slate-800'
                     }`}
                   >
@@ -273,7 +273,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                       type="checkbox"
                       checked={!!values[field.id]}
                       onChange={(e) => handleInputChange(field.id, e.target.checked)}
-                      className="size-4 rounded border-slate-800 bg-slate-950/40 text-[#00aef0] focus:ring-[#00aef0]/20"
+                      className="size-4 rounded border-slate-800 bg-slate-950/40 text-primary focus:ring-primary/20"
                     />
                     <label htmlFor={field.id} className="text-sm text-slate-400 select-none">
                       {field.placeholder || 'Please check this box'}
@@ -295,7 +295,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                           <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             <Upload className="w-8 h-8 mb-2.5 text-slate-500" />
                             <p className="mb-1 text-sm text-slate-400">
-                              <span className="font-semibold text-[#00aef0]">Click to upload</span> or drag & drop
+                              <span className="font-semibold text-primary">Click to upload</span> or drag & drop
                             </p>
                             <p className="text-[10px] text-slate-500">PDF, Word, Images, etc. (Max 10MB)</p>
                           </div>
@@ -310,7 +310,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                     ) : (
                       <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/40 border border-slate-800 animate-scaleUp">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <File className="w-5 h-5 text-[#00aef0] shrink-0 animate-pulse" />
+                          <File className="w-5 h-5 text-primary shrink-0 animate-pulse" />
                           <div className="min-w-0">
                             <p className="text-sm text-slate-200 truncate font-medium">
                               {values[field.id].name}
@@ -348,7 +348,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full bg-[#00aef0] hover:bg-[#009bd6] text-white font-semibold py-2.5 text-sm transition-all h-10 flex items-center justify-center gap-2"
+              className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-2.5 text-sm transition-all h-10 flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

@@ -329,11 +329,11 @@ export function WorkspaceSettings() {
                 value={workspaceName}
                 onChange={(e) => setWorkspaceName(e.target.value)}
                 disabled={!canManageWorkspace || isSavingName}
-                className="bg-slate-950 border-slate-800 focus:border-[#00aef0] text-white"
+                className="bg-slate-950 border-slate-800 focus:border-primary text-foreground"
               />
               {canManageWorkspace && (
                 <Button type="submit" disabled={isSavingName || workspaceName.trim() === activeWorkspace.name}
-                  className="bg-[#00aef0] hover:bg-[#008ec4] text-white shrink-0">
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground shrink-0">
                   {isSavingName ? "Saving..." : "Save"}
                 </Button>
               )}
@@ -357,7 +357,7 @@ export function WorkspaceSettings() {
                   className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-800/30 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-7 w-7 items-center justify-center rounded-md ${role.is_system ? "bg-[#00aef0]/10 text-[#00aef0]" : "bg-violet-500/10 text-violet-400"}`}>
+                    <div className={`flex h-7 w-7 items-center justify-center rounded-md ${role.is_system ? "bg-primary/10 text-primary" : "bg-violet-500/10 text-violet-400"}`}>
                       {role.is_system ? <Shield className="h-4 w-4" /> : <Settings2 className="h-4 w-4" />}
                     </div>
                     <div className="text-left">
@@ -407,19 +407,19 @@ export function WorkspaceSettings() {
           {/* Create new role form */}
           <form onSubmit={handleCreateRole} className="space-y-5 max-w-2xl rounded-xl border border-dashed border-slate-700 p-5 bg-slate-950/30">
             <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Plus className="h-4 w-4 text-[#00aef0]" /> Create Custom Role
+              <Plus className="h-4 w-4 text-primary" /> Create Custom Role
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-xs text-slate-400 font-medium">Role Name *</Label>
                 <Input value={roleName} onChange={(e) => setRoleName(e.target.value)} placeholder="e.g. Sales Agent" required
-                  className="bg-slate-950 border-slate-800 focus:border-[#00aef0] text-white text-sm" />
+                  className="bg-slate-950 border-slate-800 focus:border-primary text-foreground text-sm" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-slate-400 font-medium">Description</Label>
                 <Input value={roleDesc} onChange={(e) => setRoleDesc(e.target.value)} placeholder="Optional description"
-                  className="bg-slate-950 border-slate-800 focus:border-[#00aef0] text-white text-sm" />
+                  className="bg-slate-950 border-slate-800 focus:border-primary text-foreground text-sm" />
               </div>
             </div>
 
@@ -434,12 +434,12 @@ export function WorkspaceSettings() {
                       return (
                         <label key={p.key} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-sm ${
                           checked
-                            ? "bg-[#00aef0]/10 border-[#00aef0]/30 text-[#00aef0]"
+                            ? "bg-primary/10 border-primary/30 text-primary"
                             : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600"
                         }`}>
                           <input type="checkbox" checked={checked} onChange={(e) => setRolePerms({ ...rolePerms, [p.key]: e.target.checked })}
                             className="sr-only" />
-                          <div className={`flex h-4 w-4 items-center justify-center rounded border shrink-0 ${checked ? "bg-[#00aef0] border-[#00aef0]" : "border-slate-600"}`}>
+                          <div className={`flex h-4 w-4 items-center justify-center rounded border shrink-0 ${checked ? "bg-primary border-primary" : "border-slate-600"}`}>
                             {checked && <Check className="h-2.5 w-2.5 text-white" />}
                           </div>
                           {p.label}
@@ -455,7 +455,7 @@ export function WorkspaceSettings() {
             {roleSuccess && <Alert variant="success">{roleSuccess}</Alert>}
 
             <Button type="submit" disabled={roleLoading || !roleName.trim()}
-              className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10">
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium shadow-md shadow-primary/10">
               {roleLoading ? "Creating..." : "Create Role"}
             </Button>
           </form>
@@ -491,13 +491,13 @@ export function WorkspaceSettings() {
 
                   return (
                     <tr key={member.id} className="hover:bg-slate-800/20 transition-colors">
-                      <td className="py-3.5 px-4 font-medium text-white">
+                      <td className="py-3.5 px-4 font-medium text-foreground">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8 shrink-0">
                             {member.profile?.avatar_url
                               ? <AvatarImage src={member.profile.avatar_url} alt={displayName} />
                               : null}
-                            <AvatarFallback className="bg-[#00aef0]/10 text-xs font-semibold text-[#00aef0]">
+                            <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                               {displayName.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
@@ -518,10 +518,10 @@ export function WorkspaceSettings() {
                               handleChangeRole(member.id, workspaceRole, foundRole?.id);
                             }}
                           >
-                            <SelectTrigger className="w-36 h-8 bg-slate-950 border-slate-800 focus:ring-[#00aef0] text-xs">
+                            <SelectTrigger className="w-36 h-8 bg-slate-950 border-slate-800 focus:ring-primary text-xs">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                            <SelectContent className="bg-slate-900 border-slate-800 text-foreground">
                               <SelectItem value="admin" className="text-xs">Admin</SelectItem>
                               <SelectItem value="member" className="text-xs">Member</SelectItem>
                               {selectableRoles.map((r) => (
@@ -531,7 +531,7 @@ export function WorkspaceSettings() {
                           </Select>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 capitalize text-xs font-semibold">
-                            {member.role === "owner" && <Shield className="h-3 w-3 text-[#00aef0]" />}
+                            {member.role === "owner" && <Shield className="h-3 w-3 text-primary" />}
                             {roleName}
                           </span>
                         )}
@@ -543,7 +543,7 @@ export function WorkspaceSettings() {
                               .filter(([, v]) => v)
                               .slice(0, 3)
                               .map(([k]) => (
-                                <span key={k} className="text-[10px] bg-[#00aef0]/10 text-[#00aef0] px-1.5 py-0.5 rounded font-medium capitalize">
+                                <span key={k} className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium capitalize">
                                   {k.replace(/_/g, " ")}
                                 </span>
                               ))}
@@ -591,8 +591,8 @@ export function WorkspaceSettings() {
                     onClick={() => setCreateTab(key as "new" | "existing")}
                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       createTab === key
-                        ? "bg-[#00aef0] text-white shadow-md"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "text-slate-400 hover:text-foreground"
                     }`}
                   >{label}</button>
                 ))}
@@ -604,7 +604,7 @@ export function WorkspaceSettings() {
                     <Label className="text-sm font-medium text-slate-300">Full Name</Label>
                     <Input value={newUserName} onChange={(e) => setNewUserName(e.target.value)}
                       placeholder="Jane Doe" required
-                      className="bg-slate-950 border-slate-800 focus:border-[#00aef0] text-white" />
+                      className="bg-slate-950 border-slate-800 focus:border-primary text-foreground" />
                   </div>
                 )}
 
@@ -613,7 +613,7 @@ export function WorkspaceSettings() {
                     <Label className="text-sm font-medium text-slate-300">Email Address *</Label>
                     <Input type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)}
                       placeholder="agent@company.com" required
-                      className="bg-slate-950 border-slate-800 focus:border-[#00aef0] text-white" />
+                      className="bg-slate-950 border-slate-800 focus:border-primary text-foreground" />
                   </div>
 
                   {createTab === "new" && (
@@ -623,7 +623,7 @@ export function WorkspaceSettings() {
                         <Input type={showPassword ? "text" : "password"} value={newUserPassword}
                           onChange={(e) => setNewUserPassword(e.target.value)}
                           placeholder="Min 8 characters" required minLength={8}
-                          className="bg-slate-950 border-slate-800 focus:border-[#00aef0] text-white pr-10" />
+                          className="bg-slate-950 border-slate-800 focus:border-primary text-foreground pr-10" />
                         <button type="button" onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -637,10 +637,10 @@ export function WorkspaceSettings() {
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium text-slate-300">Workspace Role</Label>
                     <Select value={newUserWorkspaceRole} onValueChange={(v) => setNewUserWorkspaceRole(v as "admin" | "member")}>
-                      <SelectTrigger className="bg-slate-950 border-slate-800 focus:ring-[#00aef0] text-white">
+                      <SelectTrigger className="bg-slate-950 border-slate-800 focus:ring-primary text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                      <SelectContent className="bg-slate-900 border-slate-800 text-foreground">
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="member">Member</SelectItem>
                       </SelectContent>
@@ -650,10 +650,10 @@ export function WorkspaceSettings() {
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium text-slate-300">Custom Role (optional)</Label>
                     <Select value={newUserRoleId} onValueChange={(v) => setNewUserRoleId(v ?? "")}>
-                      <SelectTrigger className="bg-slate-950 border-slate-800 focus:ring-[#00aef0] text-white">
+                      <SelectTrigger className="bg-slate-950 border-slate-800 focus:ring-primary text-foreground">
                         <SelectValue placeholder="Select role template..." />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                      <SelectContent className="bg-slate-900 border-slate-800 text-foreground">
                         <SelectItem value="">None (use base role)</SelectItem>
                         {selectableRoles.map((r) => (
                           <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
@@ -667,7 +667,7 @@ export function WorkspaceSettings() {
                 {createSuccess && <Alert variant="success">{createSuccess}</Alert>}
 
                 <Button type="submit" disabled={createLoading}
-                  className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium shadow-md shadow-[#00aef0]/10">
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium shadow-md shadow-primary/10">
                   {createLoading
                     ? "Processing..."
                     : createTab === "new" ? "Create & Add User" : "Add to Workspace"}
@@ -681,12 +681,12 @@ export function WorkspaceSettings() {
                 <Label className="text-sm font-medium text-slate-300">Email Address</Label>
                 <Input type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)}
                   placeholder="user@company.com" required
-                  className="bg-slate-950 border-slate-800 focus:border-[#00aef0] text-white" />
+                  className="bg-slate-950 border-slate-800 focus:border-primary text-foreground" />
               </div>
               {createError && <Alert variant="error">{createError}</Alert>}
               {createSuccess && <Alert variant="success">{createSuccess}</Alert>}
               <Button type="submit" disabled={createLoading}
-                className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium">
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium">
                 {createLoading ? "Adding..." : "Add to Workspace"}
               </Button>
             </form>
@@ -702,9 +702,9 @@ export function WorkspaceSettings() {
             <div className="flex gap-3">
               <Input value={newWsName} onChange={(e) => setNewWsName(e.target.value)}
                 placeholder="e.g. Enterprise Sales, Europe"
-                className="bg-slate-950 border-slate-800 focus:border-[#00aef0] text-white" required />
+                className="bg-slate-950 border-slate-800 focus:border-primary text-foreground" required />
               <Button type="submit" disabled={createWsLoading || !newWsName.trim()}
-                className="bg-[#00aef0] hover:bg-[#008ec4] text-white shrink-0">
+                className="bg-primary hover:bg-primary-hover text-primary-foreground shrink-0">
                 {createWsLoading ? "Creating..." : "Create"}
               </Button>
             </div>
@@ -741,7 +741,7 @@ function Section({
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#00aef0]/15 text-[#00aef0]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
             {icon}
           </div>
           <div>
@@ -758,7 +758,7 @@ function Section({
 
 function RoleBadge({ role }: { role: string }) {
   return (
-    <span className="capitalize text-xs font-semibold text-[#00aef0] bg-[#00aef0]/10 px-2 py-0.5 rounded border border-[#00aef0]/20">
+    <span className="capitalize text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
       {role}
     </span>
   );

@@ -76,7 +76,7 @@ export default function AutomationLogsPage({
   if (!automation || logs === null) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#00aef0]" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     )
   }
@@ -87,7 +87,7 @@ export default function AutomationLogsPage({
         <button
           type="button"
           onClick={() => router.push("/automations")}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-foreground"
           aria-label="Back"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -126,7 +126,7 @@ export default function AutomationLogsPage({
                   )}
                   <StatusBadge status={log.status} />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-white">
+                    <div className="truncate text-sm font-medium text-foreground">
                       {log.contact?.name ?? log.contact?.phone ?? "Unknown contact"}
                     </div>
                     <div className="truncate text-xs text-slate-500">
@@ -167,7 +167,7 @@ export default function AutomationLogsPage({
 function StatusBadge({ status }: { status: AutomationLog["status"] }) {
   const classes =
     status === "success"
-      ? "border-[#00aef0]/30 bg-[#00aef0]/10 text-violet-300"
+      ? "border-primary/30 bg-primary/10 text-violet-300"
       : status === "partial"
       ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
       : "border-red-500/30 bg-red-500/10 text-red-300"
@@ -190,7 +190,7 @@ function StepRow({ result }: { result: AutomationLogStepResult }) {
       <span
         className={cn(
           "mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full",
-          ok ? "bg-[#00aef0]/20 text-[#00aef0]" : "bg-red-500/20 text-red-400",
+          ok ? "bg-primary/20 text-primary" : "bg-red-500/20 text-red-400",
         )}
         aria-hidden
       >

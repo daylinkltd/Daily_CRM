@@ -273,7 +273,7 @@ function OnboardingInner() {
             name: orgName,
           },
           theme: {
-            color: "#00aef0",
+            color: "#0284C7",
           },
           modal: {
             ondismiss: function () {
@@ -308,7 +308,7 @@ function OnboardingInner() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
       {/* Ambient backgrounds */}
-      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full bg-[#00aef0]/5 blur-[120px]" />
+      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full bg-primary/5 blur-[120px]" />
 
       <div className="w-full max-w-4xl flex flex-col items-center relative z-10">
         {/* Header Logo */}
@@ -318,18 +318,18 @@ function OnboardingInner() {
 
         {/* Wizard Progress Steps Bar */}
         <div className="w-full max-w-md flex items-center justify-between mb-8 text-xs font-semibold text-slate-500">
-          <div className={`flex items-center gap-1.5 ${step >= 1 ? "text-[#00aef0]" : ""}`}>
-            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 1 ? "border-[#00aef0] bg-[#00aef0]/15" : "border-slate-800"}`}>1</span>
+          <div className={`flex items-center gap-1.5 ${step >= 1 ? "text-primary" : ""}`}>
+            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 1 ? "border-primary bg-primary/15" : "border-slate-800"}`}>1</span>
             Profile
           </div>
           <div className="h-px bg-slate-800 flex-1 mx-3" />
-          <div className={`flex items-center gap-1.5 ${step >= 2 ? "text-[#00aef0]" : ""}`}>
-            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 2 ? "border-[#00aef0] bg-[#00aef0]/15" : "border-slate-800"}`}>2</span>
+          <div className={`flex items-center gap-1.5 ${step >= 2 ? "text-primary" : ""}`}>
+            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 2 ? "border-primary bg-primary/15" : "border-slate-800"}`}>2</span>
             Plan selection
           </div>
           <div className="h-px bg-slate-800 flex-1 mx-3" />
-          <div className={`flex items-center gap-1.5 ${step >= 3 ? "text-[#00aef0]" : ""}`}>
-            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 3 ? "border-[#00aef0] bg-[#00aef0]/15" : "border-slate-800"}`}>3</span>
+          <div className={`flex items-center gap-1.5 ${step >= 3 ? "text-primary" : ""}`}>
+            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 3 ? "border-primary bg-primary/15" : "border-slate-800"}`}>3</span>
             Workspace setup
           </div>
         </div>
@@ -339,7 +339,7 @@ function OnboardingInner() {
           {step === 1 && (
             <form onSubmit={handleStep1Submit} className="space-y-6 max-w-md mx-auto">
               <div className="text-center">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#00aef0]/10 border border-[#00aef0]/20 mb-4 text-[#00aef0]">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4 text-primary">
                   <User className="h-6 w-6" />
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight">Set up your profile name</h1>
@@ -354,7 +354,7 @@ function OnboardingInner() {
                   placeholder="e.g. Sarah Chen"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-white h-10 rounded-xl focus:border-[#00aef0]"
+                  className="bg-slate-950 border-slate-800 text-foreground h-10 rounded-xl focus:border-primary"
                   required
                   autoFocus
                 />
@@ -363,7 +363,7 @@ function OnboardingInner() {
               <Button
                 type="submit"
                 disabled={loading || !fullName.trim()}
-                className="w-full bg-[#00aef0] hover:bg-[#008ec4] text-white h-10 rounded-xl font-bold shadow-lg shadow-[#00aef0]/10 mt-2"
+                className="w-full bg-primary hover:bg-primary-hover text-primary-foreground h-10 rounded-xl font-bold shadow-lg shadow-primary/10 mt-2"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue"}
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -374,7 +374,7 @@ function OnboardingInner() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#00aef0]/10 border border-[#00aef0]/20 mb-4 text-[#00aef0]">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4 text-primary">
                   <CreditCard className="h-6 w-6" />
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight">Select your plan tier</h1>
@@ -387,8 +387,8 @@ function OnboardingInner() {
                     onClick={() => setBillingCycle("monthly")}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                       billingCycle === "monthly"
-                        ? "bg-[#00aef0] text-white"
-                        : "text-slate-400 hover:text-white bg-slate-900 border border-slate-800"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-slate-400 hover:text-foreground bg-slate-900 border border-slate-800"
                     }`}
                   >
                     Monthly
@@ -398,8 +398,8 @@ function OnboardingInner() {
                     onClick={() => setBillingCycle("annual")}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors relative ${
                       billingCycle === "annual"
-                        ? "bg-[#00aef0] text-white"
-                        : "text-slate-400 hover:text-white bg-slate-900 border border-slate-800"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-slate-400 hover:text-foreground bg-slate-900 border border-slate-800"
                     }`}
                   >
                     Annual
@@ -431,12 +431,12 @@ function OnboardingInner() {
                       onClick={() => setSelectedPlan(plan.id)}
                       className={`relative flex flex-col rounded-2xl p-4 border transition-all cursor-pointer select-none ${
                         isSelected
-                          ? "border-[#00aef0] bg-[#00aef0]/5 shadow-xl shadow-[#00aef0]/5"
+                          ? "border-primary bg-primary/5 shadow-xl shadow-primary/5"
                           : "border-slate-800 bg-slate-950/40 hover:border-slate-700"
                       }`}
                     >
                       {plan.isRecommended && (
-                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#00aef0] text-white text-[9px] font-bold rounded-full">
+                        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full">
                           POPULAR
                         </div>
                       )}
@@ -466,7 +466,7 @@ function OnboardingInner() {
                       </ul>
 
                       <div className="flex justify-center mt-2">
-                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-[#00aef0] bg-[#00aef0]" : "border-slate-800"}`}>
+                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-slate-800"}`}>
                           {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
                         </div>
                       </div>
@@ -480,14 +480,14 @@ function OnboardingInner() {
                   type="button"
                   variant="ghost"
                   onClick={() => setStep(1)}
-                  className="w-1/2 border border-slate-800 text-slate-400 hover:text-white"
+                  className="w-1/2 border border-slate-800 text-slate-400 hover:text-foreground"
                 >
                   Back
                 </Button>
                 <Button
                   type="button"
                   onClick={handleStep2Submit}
-                  className="w-1/2 bg-[#00aef0] hover:bg-[#008ec4] text-white font-bold"
+                  className="w-1/2 bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
                 >
                   Next step
                 </Button>
@@ -498,7 +498,7 @@ function OnboardingInner() {
           {step === 3 && (
             <form onSubmit={handleOnboardingComplete} className="space-y-6 max-w-md mx-auto">
               <div className="text-center">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#00aef0]/10 border border-[#00aef0]/20 mb-4 text-[#00aef0]">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4 text-primary">
                   <Building2 className="h-6 w-6" />
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight">Create your workspace</h1>
@@ -514,7 +514,7 @@ function OnboardingInner() {
                     placeholder="e.g. Acme Sales Corp"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white h-10 rounded-xl focus:border-[#00aef0]"
+                    className="bg-slate-950 border-slate-800 text-foreground h-10 rounded-xl focus:border-primary"
                     required
                     autoFocus
                   />
@@ -533,7 +533,7 @@ function OnboardingInner() {
                     <div className="flex-1">
                       <Label
                         htmlFor="logoFile"
-                        className="inline-flex items-center gap-2 border border-slate-800 bg-slate-950/60 text-slate-300 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-2 border border-slate-800 bg-slate-950/60 text-slate-300 hover:text-foreground px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
                       >
                         <Upload className="h-4.5 w-4.5" /> Upload Logo
                       </Label>
@@ -570,8 +570,8 @@ function OnboardingInner() {
               </div>
 
               {/* Selected Plan limits summary card */}
-              <div className="rounded-xl border border-[#00aef0]/20 bg-[#00aef0]/5 p-4 space-y-2 text-xs">
-                <span className="font-bold text-[#00aef0] flex items-center gap-1">
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2 text-xs">
+                <span className="font-bold text-primary flex items-center gap-1">
                   <Sparkles className="h-3.5 w-3.5" /> Selected plan benefits ({activePlanConfig.name})
                 </span>
                 <ul className="space-y-1 text-slate-300">
@@ -586,14 +586,14 @@ function OnboardingInner() {
                   type="button"
                   variant="ghost"
                   onClick={() => setStep(2)}
-                  className="w-1/2 border border-slate-800 text-slate-400 hover:text-white"
+                  className="w-1/2 border border-slate-800 text-slate-400 hover:text-foreground"
                 >
                   Back
                 </Button>
                 <Button
                   type="submit"
                   disabled={loading || !orgName.trim()}
-                  className="w-1/2 bg-[#00aef0] hover:bg-[#008ec4] text-white font-bold"
+                  className="w-1/2 bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
                 >
                   {loading ? (
                     <>
@@ -643,7 +643,7 @@ function OnboardingPageContent() {
   if (loading || wsLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 text-sm">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00aef0] mb-3" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
         Loading...
       </div>
     );

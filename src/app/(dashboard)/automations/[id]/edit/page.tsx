@@ -54,7 +54,7 @@ export default function EditAutomationPage({
         <p className="text-sm text-red-400">{error}</p>
         <button
           onClick={() => router.push("/automations")}
-          className="text-sm text-[#00aef0] hover:text-[#00aef0]/80"
+          className="text-sm text-primary hover:text-primary/80"
         >
           Back to Automations
         </button>
@@ -65,7 +65,7 @@ export default function EditAutomationPage({
   if (!initial) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#00aef0]" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     )
   }

@@ -376,14 +376,14 @@ export function Step2SelectAudience({
               }
               className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${
                 isSelected
-                  ? 'border-[#00aef0] bg-[#00aef0]/5 ring-1 ring-violet-500/30'
+                  ? 'border-primary bg-primary/5 ring-1 ring-violet-500/30'
                   : 'border-slate-800 bg-slate-900/50 hover:border-slate-700'
               }`}
             >
               <div
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
                   isSelected
-                    ? 'bg-[#00aef0]/10 text-[#00aef0]'
+                    ? 'bg-primary/10 text-primary'
                     : 'bg-slate-800 text-slate-400'
                 }`}
               >
@@ -404,7 +404,7 @@ export function Step2SelectAudience({
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
           <p className="mb-3 text-sm font-medium text-white">Select Tags</p>
           {loadingTags ? (
-            <Loader2 className="h-5 w-5 animate-spin text-[#00aef0]" />
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
           ) : tags.length === 0 ? (
             <p className="text-xs text-slate-400">
               No tags found. Create tags in Settings.
@@ -419,7 +419,7 @@ export function Step2SelectAudience({
                     onClick={() => toggleTag(tag.id)}
                     className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${
                       isSelected
-                        ? 'border-[#00aef0]/30 bg-[#00aef0]/10 text-[#00aef0]'
+                        ? 'border-primary/30 bg-primary/10 text-primary'
                         : 'border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600'
                     }`}
                   >
@@ -440,7 +440,7 @@ export function Step2SelectAudience({
         <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
           <p className="text-sm font-medium text-white">Custom Field Filter</p>
           {loadingFields ? (
-            <Loader2 className="h-5 w-5 animate-spin text-[#00aef0]" />
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
           ) : customFields.length === 0 ? (
             <p className="text-xs text-slate-400">
               No custom fields defined. Create one in Settings → Custom Fields.
@@ -450,7 +450,7 @@ export function Step2SelectAudience({
               <select
                 value={audience.customField?.fieldId ?? ''}
                 onChange={(e) => updateCustomField({ fieldId: e.target.value })}
-                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none focus:border-[#00aef0] focus:ring-1 focus:ring-violet-500"
+                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-violet-500"
               >
                 <option value="">Select field…</option>
                 {customFields.map((f) => (
@@ -466,7 +466,7 @@ export function Step2SelectAudience({
                     operator: e.target.value as CustomFieldOperator,
                   })
                 }
-                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none focus:border-[#00aef0] focus:ring-1 focus:ring-violet-500"
+                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-violet-500"
               >
                 {OPERATOR_OPTIONS.map((op) => (
                   <option key={op.value} value={op.value}>
@@ -479,7 +479,7 @@ export function Step2SelectAudience({
                 value={audience.customField?.value ?? ''}
                 onChange={(e) => updateCustomField({ value: e.target.value })}
                 placeholder="Value"
-                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-[#00aef0] focus:ring-1 focus:ring-violet-500"
+                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none placeholder:text-slate-500 focus:border-primary focus:ring-1 focus:ring-violet-500"
               />
             </div>
           )}
@@ -492,11 +492,11 @@ export function Step2SelectAudience({
           
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-700 p-6 cursor-pointer hover:border-[#00aef0]/50 transition-colors bg-slate-950/20"
+            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-700 p-6 cursor-pointer hover:border-primary/50 transition-colors bg-slate-950/20"
           >
             {audience.csvContacts && audience.csvContacts.length > 0 ? (
               <>
-                <Upload className="size-8 text-[#00aef0]" />
+                <Upload className="size-8 text-primary" />
                 <p className="text-sm text-slate-300">
                   {csvFileName || 'Contacts Loaded Successfully'}
                 </p>
@@ -609,12 +609,12 @@ export function Step2SelectAudience({
         <p className="mb-2 text-sm font-medium text-white">Audience Summary</p>
         {loadingCount ? (
           <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-[#00aef0]" />
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
             <span className="text-xs text-slate-400">Calculating…</span>
           </div>
         ) : estimatedCount !== null ? (
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-[#00aef0]" />
+            <Users className="h-4 w-4 text-primary" />
             <span className="text-sm text-white">
               {estimatedCount.toLocaleString()}
             </span>
@@ -639,7 +639,7 @@ export function Step2SelectAudience({
         <Button
           onClick={onNext}
           disabled={!isValid}
-          className="bg-[#00aef0] text-white hover:bg-[#00aef0] disabled:opacity-50"
+          className="bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50"
         >
           Next
           <ArrowRight className="h-4 w-4" />

@@ -157,7 +157,7 @@ function Metric({
               <button
                 type="button"
                 aria-label={`How ${label} is calculated`}
-                className="ml-auto text-muted-foreground hover:text-foreground focus:outline-none"
+                className="ml-auto rounded-sm text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               />
             }
           >

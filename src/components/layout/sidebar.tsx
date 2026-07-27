@@ -253,7 +253,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
   const linkClass = (isActive: boolean) => {
     if (isActive) {
-      return "bg-[#00aef0]/15 text-[#00aef0]";
+      return "bg-primary/15 text-primary";
     }
     return "text-slate-400 hover:bg-slate-800/30 hover:text-white";
   };
@@ -345,7 +345,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                   title={isCollapsed ? `Module: ${activeModule}` : "Switch App Module"}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-[#00aef0]/15 text-[#00aef0] border border-[#00aef0]/20">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary/15 text-primary border border-primary/20">
                       <ActiveGroupIcon className="h-3.5 w-3.5" />
                     </div>
                     {!isCollapsed && (
@@ -353,7 +353,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                         <p className="truncate text-xs font-bold text-white leading-tight">
                           {activeModule} Module
                         </p>
-                        <p className="text-[8px] text-[#00aef0] font-extrabold uppercase tracking-wider leading-none mt-0.5">
+                        <p className="text-[8px] text-primary font-extrabold uppercase tracking-wider leading-none mt-0.5">
                           Switch Module
                         </p>
                       </div>
@@ -386,7 +386,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     className={cn(
                       "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-bold transition-all focus:bg-slate-800 focus:text-white cursor-pointer",
                       isSelected
-                        ? "bg-[#00aef0]/15 text-[#00aef0] focus:bg-[#00aef0]/20 focus:text-[#00aef0]"
+                        ? "bg-primary/15 text-primary focus:bg-primary/20 focus:text-primary"
                         : "text-slate-400 hover:text-white"
                     )}
                   >
@@ -478,7 +478,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     {profile?.avatar_url && (
                       <AvatarImage src={profile.avatar_url} alt={profile.full_name ?? "Avatar"} />
                     )}
-                    <AvatarFallback className="bg-primary/20 text-xs font-bold text-[#00aef0]">
+                    <AvatarFallback className="bg-primary/20 text-xs font-bold text-primary">
                       {profile?.full_name?.charAt(0)?.toUpperCase() ?? "U"}
                     </AvatarFallback>
                   </Avatar>

@@ -116,7 +116,7 @@ export function Step4ScheduleSend({
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="e.g. Summer Sale Announcement"
-          className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
+          className="border-slate-700 bg-slate-800 text-foreground placeholder:text-slate-500"
         />
       </div>
 
@@ -136,10 +136,10 @@ export function Step4ScheduleSend({
             <p className="text-xs text-slate-400">Estimated Reach</p>
             <div className="flex items-center gap-1.5">
               {loadingReach ? (
-                <Loader2 className="h-3 w-3 animate-spin text-[#00aef0]" />
+                <Loader2 className="h-3 w-3 animate-spin text-primary" />
               ) : (
                 <>
-                  <Users className="h-3.5 w-3.5 text-[#00aef0]" />
+                  <Users className="h-3.5 w-3.5 text-primary" />
                   <p className="font-medium text-white">{estimatedReach.toLocaleString()}</p>
                 </>
               )}
@@ -154,17 +154,17 @@ export function Step4ScheduleSend({
 
       {/* Processing overlay */}
       {isProcessing && (
-        <div className="rounded-xl border border-[#00aef0]/20 bg-[#00aef0]/5 p-4">
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-[#00aef0]" />
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
               <p className="text-sm font-medium text-white">Sending broadcast...</p>
             </div>
-            <span className="text-xs font-medium text-[#00aef0]">{progress}%</span>
+            <span className="text-xs font-medium text-primary">{progress}%</span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-slate-800">
             <div
-              className="h-1.5 rounded-full bg-[#00aef0] transition-all duration-300"
+              className="h-1.5 rounded-full bg-primary transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -200,7 +200,7 @@ export function Step4ScheduleSend({
             render={
               <Button
                 disabled={!name.trim() || isProcessing}
-                className="bg-[#00aef0] text-white hover:bg-[#00aef0] disabled:opacity-50"
+                className="bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50"
               />
             }
           >
@@ -209,7 +209,7 @@ export function Step4ScheduleSend({
           </DialogTrigger>
           <DialogContent className="border-slate-700 bg-slate-900 sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Confirm Broadcast</DialogTitle>
+              <DialogTitle className="text-foreground">Confirm Broadcast</DialogTitle>
               <DialogDescription className="text-slate-400">
                 You are about to send this broadcast to{' '}
                 <span className="font-medium text-white">{estimatedReach.toLocaleString()}</span>{' '}
@@ -231,7 +231,7 @@ export function Step4ScheduleSend({
                   setShowConfirm(false);
                   onSend();
                 }}
-                className="bg-[#00aef0] text-white hover:bg-[#00aef0]"
+                className="bg-primary text-primary-foreground hover:bg-primary"
               >
                 <Send className="h-4 w-4" />
                 Confirm & Send

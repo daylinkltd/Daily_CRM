@@ -288,7 +288,7 @@ export function InviteMemberDialog({
         ) : isLimitReached ? (
           <div className="py-6 text-center space-y-4">
             <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
-            <DialogTitle className="text-lg font-semibold text-white">
+            <DialogTitle className="text-lg font-semibold text-foreground">
               Teammate limit reached
             </DialogTitle>
             <p className="text-sm text-slate-300">
@@ -302,7 +302,7 @@ export function InviteMemberDialog({
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="text-slate-400 hover:text-white hover:bg-slate-800"
+                className="text-slate-400 hover:text-foreground hover:bg-slate-800"
               >
                 Cancel
               </Button>
@@ -312,7 +312,7 @@ export function InviteMemberDialog({
                   onOpenChange(false);
                   window.location.href = "/settings?tab=billing";
                 }}
-                className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-medium"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium"
               >
                 Upgrade Plan
               </Button>

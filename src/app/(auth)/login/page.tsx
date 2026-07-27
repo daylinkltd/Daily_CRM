@@ -64,7 +64,7 @@ function LoginPageInner() {
     <div className="flex min-h-screen items-center justify-center bg-[#020817] px-4 relative overflow-hidden">
       {/* Ambient glows */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-1/3 left-1/4 h-[500px] w-[500px] rounded-full bg-[#00aef0]/5 blur-[160px]" />
+        <div className="absolute top-1/3 left-1/4 h-[500px] w-[500px] rounded-full bg-primary/5 blur-[160px]" />
         <div className="absolute bottom-1/4 right-1/4 h-[400px] w-[400px] rounded-full bg-violet-600/4 blur-[140px]" />
       </div>
 
@@ -125,7 +125,7 @@ function LoginPageInner() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-11 rounded-xl placeholder:text-[#64748b] focus-visible:ring-[#00aef0]/20"
+                className="h-11 rounded-xl placeholder:text-[#64748b] focus-visible:ring-primary/20"
                 style={{ 
                   backgroundColor: 'rgba(2, 8, 23, 0.85)', 
                   borderColor: '#1e293b', 
@@ -142,7 +142,7 @@ function LoginPageInner() {
                 <Link
                   href="/forgot-password"
                   className="text-xs transition-colors hover:underline"
-                  style={{ color: '#00aef0' }}
+                  style={{ color: '#0284C7' }}
                 >
                   Forgot password?
                 </Link>
@@ -155,7 +155,7 @@ function LoginPageInner() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="h-11 rounded-xl pr-11 placeholder:text-[#64748b] focus-visible:ring-[#00aef0]/20"
+                  className="h-11 rounded-xl pr-11 placeholder:text-[#64748b] focus-visible:ring-primary/20"
                   style={{ 
                     backgroundColor: 'rgba(2, 8, 23, 0.85)', 
                     borderColor: '#1e293b', 
@@ -178,9 +178,9 @@ function LoginPageInner() {
               disabled={loading}
               className="mt-1 h-12 w-full font-bold rounded-xl transition-all disabled:opacity-50"
               style={{ 
-                backgroundColor: '#00aef0', 
+                backgroundColor: '#0284C7', 
                 color: '#ffffff',
-                boxShadow: '0 10px 25px -5px rgba(0, 174, 240, 0.3)' 
+                boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.3)' 
               }}
             >
               {loading ? (

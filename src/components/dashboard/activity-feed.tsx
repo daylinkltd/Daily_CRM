@@ -32,8 +32,8 @@ interface KindTheme {
 
 const KIND_THEME: Record<ActivityKind, KindTheme> = {
   message: { icon: MessageSquare, badge: 'bg-blue-500/10 text-blue-400' },
-  contact: { icon: UserPlus, badge: 'bg-[#00aef0]/10 text-[#00aef0]' },
-  deal: { icon: Briefcase, badge: 'bg-[#00aef0]/10 text-[#00aef0]' },
+  contact: { icon: UserPlus, badge: 'bg-primary/10 text-primary' },
+  deal: { icon: Briefcase, badge: 'bg-primary/10 text-primary' },
   broadcast: { icon: Radio, badge: 'bg-amber-500/10 text-amber-400' },
   automation: { icon: Zap, badge: 'bg-rose-500/10 text-rose-400' },
 }
@@ -59,7 +59,7 @@ export function ActivityFeed({ items, loading }: ActivityFeedProps) {
         <h2 className="text-sm font-semibold text-white">Recent Activity</h2>
         <Link
           href="/inbox"
-          className="text-xs font-medium text-[#00aef0] hover:text-[#00aef0]/80"
+          className="text-xs font-medium text-primary hover:text-primary/80"
         >
           View all →
         </Link>
@@ -137,8 +137,8 @@ export function ActivityFeed({ items, loading }: ActivityFeedProps) {
                     className={cn(
                       'rounded-md px-2 py-1 font-medium tabular-nums transition-colors',
                       pageSize === size
-                        ? 'bg-slate-700 text-white'
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-white',
+                        ? 'bg-slate-700 text-foreground'
+                        : 'text-slate-400 hover:bg-slate-800 hover:text-foreground',
                       disabled && 'cursor-not-allowed opacity-40 hover:bg-transparent hover:text-slate-400',
                     )}
                   >

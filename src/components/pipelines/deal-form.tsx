@@ -380,7 +380,7 @@ export function DealForm({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Deal title"
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-slate-700 bg-slate-800 text-foreground"
               />
             </div>
 
@@ -389,7 +389,7 @@ export function DealForm({
               <select
                 value={contactId}
                 onChange={(e) => setContactId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0]"
+                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 <option value="">Select a contact</option>
                 {contacts.map((c) => (
@@ -402,7 +402,7 @@ export function DealForm({
               {linkedConversation && (
                 <Link
                   href="/inbox"
-                  className="mt-1 inline-flex items-center gap-1.5 self-start rounded-md bg-[#00aef0]/10 px-2 py-1 text-xs text-[#00aef0] hover:bg-[#00aef0]/20"
+                  className="mt-1 inline-flex items-center gap-1.5 self-start rounded-md bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20"
                 >
                   <MessageSquare className="h-3 w-3" />
                   Link to Conversation
@@ -420,7 +420,7 @@ export function DealForm({
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     placeholder="0"
-                    className="border-slate-700 bg-slate-800 pl-7 text-white"
+                    className="border-slate-700 bg-slate-800 pl-7 text-foreground"
                   />
                 </div>
               </div>
@@ -429,7 +429,7 @@ export function DealForm({
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none focus:border-[#00aef0]"
+                  className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary"
                 >
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -452,7 +452,7 @@ export function DealForm({
                   type="date"
                   value={expectedCloseDate}
                   onChange={(e) => setExpectedCloseDate(e.target.value)}
-                  className="border-slate-700 bg-slate-800 text-white [color-scheme:dark]"
+                  className="border-slate-700 bg-slate-800 text-foreground [color-scheme:dark]"
                 />
               </div>
               <div className="grid gap-2">
@@ -463,7 +463,7 @@ export function DealForm({
                       value={newSourceName}
                       onChange={(e) => setNewSourceName(e.target.value)}
                       placeholder="Name"
-                      className="border-slate-700 bg-slate-800 text-white flex-1 h-9"
+                      className="border-slate-700 bg-slate-800 text-foreground flex-1 h-9"
                     />
                     <Button
                       type="button"
@@ -480,11 +480,11 @@ export function DealForm({
                            toast.error(error?.message || "Failed to create source");
                         }
                       }}
-                      className="h-9 px-3 bg-[#00aef0] text-white hover:bg-[#009bd6]"
+                      className="h-9 px-3 bg-primary text-primary-foreground hover:bg-primary-hover"
                     >
                       Add
                     </Button>
-                    <Button variant="ghost" onClick={() => setIsAddingSource(false)} className="h-9 px-3 text-slate-400 hover:text-white"><X className="h-4 w-4" /></Button>
+                    <Button variant="ghost" onClick={() => setIsAddingSource(false)} className="h-9 px-3 text-slate-400 hover:text-foreground"><X className="h-4 w-4" /></Button>
                   </div>
                 ) : (
                   <select
@@ -493,7 +493,7 @@ export function DealForm({
                       if (e.target.value === "ADD_NEW") setIsAddingSource(true);
                       else setSourceId(e.target.value);
                     }}
-                    className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0]"
+                    className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   >
                     <option value="">Select source</option>
                     {sources.map((s) => (
@@ -510,7 +510,7 @@ export function DealForm({
               <select
                 value={stageId}
                 onChange={(e) => setStageId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none focus:border-[#00aef0]"
+                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary"
               >
                 {stages.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -525,7 +525,7 @@ export function DealForm({
               <select
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
-                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none focus:border-[#00aef0]"
+                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary"
               >
                 <option value="">Unassigned</option>
                 {profiles.map((p) => (
@@ -542,7 +542,7 @@ export function DealForm({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add notes..."
-                className="min-h-[100px] border-slate-700 bg-slate-800 text-white"
+                className="min-h-[100px] border-slate-700 bg-slate-800 text-foreground"
               />
             </div>
 
@@ -576,9 +576,9 @@ export function DealForm({
                       href={f.local_path} 
                       target="_blank" 
                       rel="noreferrer"
-                      className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/50 border border-slate-700 hover:border-slate-600 transition-colors text-sm text-slate-300 hover:text-white"
+                      className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/50 border border-slate-700 hover:border-slate-600 transition-colors text-sm text-slate-300 hover:text-foreground"
                     >
-                      <File className="w-4 h-4 text-[#00aef0]" />
+                      <File className="w-4 h-4 text-primary" />
                       <span className="truncate">{f.name}</span>
                     </a>
                   ))}
@@ -598,7 +598,7 @@ export function DealForm({
                     type="button"
                     onClick={() => handleStatusChange("won")}
                     disabled={!!statusAction || deal.status === "won"}
-                    className="flex-1 bg-[#00aef0] text-white hover:bg-[#00aef0] disabled:opacity-50"
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50"
                   >
                     {statusAction === "won" ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -631,7 +631,7 @@ export function DealForm({
                     <select
                       value={lostReasonId}
                       onChange={(e) => setLostReasonId(e.target.value)}
-                      className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-white outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                      className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
                     >
                       <option value="">Select a reason</option>
                       {reasons.map((r) => (
@@ -651,7 +651,7 @@ export function DealForm({
                         type="button"
                         variant="ghost"
                         onClick={() => setShowLostReasonPrompt(false)}
-                        className="flex-1 h-8 text-slate-400 hover:text-white text-xs"
+                        className="flex-1 h-8 text-slate-400 hover:text-foreground text-xs"
                       >
                         Cancel
                       </Button>
@@ -664,7 +664,7 @@ export function DealForm({
                     variant="ghost"
                     onClick={() => handleStatusChange("open")}
                     disabled={!!statusAction}
-                    className="w-full text-slate-400 hover:text-white"
+                    className="w-full text-slate-400 hover:text-foreground"
                   >
                     Reopen deal
                   </Button>
@@ -685,7 +685,7 @@ export function DealForm({
               <Button
                 onClick={handleSave}
                 disabled={saving || !title.trim() || !contactId || !stageId}
-                className="flex-1 bg-[#00aef0] text-white hover:bg-[#00aef0]"
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary"
               >
                 {saving ? "Saving..." : deal ? "Save Changes" : "Create Deal"}
               </Button>

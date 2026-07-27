@@ -381,12 +381,12 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-7 pb-12 animate-in fade-in duration-300">
-      <div className="absolute top-10 right-10 h-96 w-96 rounded-full bg-[#00aef0]/5 blur-[160px] pointer-events-none" />
+      <div className="absolute top-10 right-10 h-96 w-96 rounded-full bg-primary/5 blur-[160px] pointer-events-none" />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-900 pb-6">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-[#00aef0] uppercase tracking-widest mb-1.5">
+          <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-widest mb-1.5">
             <Shield className="h-4 w-4 animate-pulse" /> Global Platform Admin Control
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">SaaS System Administrator</h1>
@@ -394,21 +394,21 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-3">
           <Button onClick={() => setShowCreateOwner(!showCreateOwner)}
-            className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-semibold flex items-center gap-2 shadow-lg shadow-[#00aef0]/20">
+            className="bg-primary hover:bg-primary-hover text-white font-semibold flex items-center gap-2 shadow-lg shadow-primary/20">
             <Plus className="h-4 w-4" /> Create Owner
           </Button>
           <Button onClick={fetchData} disabled={loading}
             className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 flex items-center gap-2">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-[#00aef0]" : ""}`} /> Refresh
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-primary" : ""}`} /> Refresh
           </Button>
         </div>
       </div>
 
       {/* Create Owner Panel */}
       {showCreateOwner && (
-        <div className="rounded-xl border border-[#00aef0]/30 bg-[#00aef0]/5 p-6 animate-in slide-in-from-top duration-200">
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 animate-in slide-in-from-top duration-200">
           <div className="flex items-center gap-3 mb-5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00aef0]/15 text-[#00aef0]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
               <UserCog className="h-5 w-5" />
             </div>
             <div>
@@ -422,24 +422,24 @@ export default function AdminDashboard() {
               <div className="space-y-1.5">
                 <Label className="text-xs text-slate-400">Full Name *</Label>
                 <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="Jane Smith" required
-                  className="bg-slate-950 border-slate-700 focus:border-[#00aef0] text-white text-sm" />
+                  className="bg-slate-950 border-slate-700 focus:border-primary text-white text-sm" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-slate-400">Organisation Name *</Label>
                 <Input value={ownerOrg} onChange={e => setOwnerOrg(e.target.value)} placeholder="Acme Corp" required
-                  className="bg-slate-950 border-slate-700 focus:border-[#00aef0] text-white text-sm" />
+                  className="bg-slate-950 border-slate-700 focus:border-primary text-white text-sm" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-slate-400">Email Address *</Label>
                 <Input type="email" value={ownerEmail} onChange={e => setOwnerEmail(e.target.value)} placeholder="owner@acme.com" required
-                  className="bg-slate-950 border-slate-700 focus:border-[#00aef0] text-white text-sm" />
+                  className="bg-slate-950 border-slate-700 focus:border-primary text-white text-sm" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-slate-400">Password *</Label>
                 <div className="relative">
                   <Input type={showOwnerPass ? "text" : "password"} value={ownerPassword}
                     onChange={e => setOwnerPassword(e.target.value)} placeholder="Min 8 characters" required minLength={8}
-                    className="bg-slate-950 border-slate-700 focus:border-[#00aef0] text-white text-sm pr-10" />
+                    className="bg-slate-950 border-slate-700 focus:border-primary text-white text-sm pr-10" />
                   <button type="button" onClick={() => setShowOwnerPass(!showOwnerPass)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
                     {showOwnerPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -456,7 +456,7 @@ export default function AdminDashboard() {
                   <button key={p} type="button" onClick={() => setSelectedPlan(p)}
                     className={`rounded-xl border p-4 text-left transition-all ${
                       selectedPlan === p
-                        ? "border-[#00aef0] bg-[#00aef0]/10 text-white"
+                        ? "border-primary bg-primary/10 text-white"
                         : "border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700"
                     }`}>
                     <div className="font-bold text-sm">{p === "growth" ? "Growth — $20/mo" : "Custom Solution"}</div>
@@ -489,8 +489,8 @@ export default function AdminDashboard() {
             )}
 
             {selectedPlan === "custom" && (
-              <div className="rounded-lg border border-[#00aef0]/20 bg-slate-950/60 p-4 space-y-4">
-                <p className="text-xs font-bold text-[#00aef0] uppercase tracking-widest">Custom Plan Limits</p>
+              <div className="rounded-lg border border-primary/20 bg-slate-950/60 p-4 space-y-4">
+                <p className="text-xs font-bold text-primary uppercase tracking-widest">Custom Plan Limits</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-slate-400">Max Members</Label>
@@ -524,7 +524,7 @@ export default function AdminDashboard() {
                       <button key={ch.id} type="button" onClick={() => toggleChannel(ch.id)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                           customLimits.channels.includes(ch.id)
-                            ? "bg-[#00aef0]/15 border-[#00aef0]/40 text-[#00aef0]"
+                            ? "bg-primary/15 border-primary/40 text-primary"
                             : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600"
                         }`}>
                         {ch.label}
@@ -537,7 +537,7 @@ export default function AdminDashboard() {
 
             <div className="flex gap-3">
               <Button type="submit" disabled={createOwnerLoading}
-                className="bg-[#00aef0] hover:bg-[#008ec4] text-white font-semibold">
+                className="bg-primary hover:bg-primary-hover text-white font-semibold">
                 {createOwnerLoading ? "Creating..." : "Create Owner + Workspace"}
               </Button>
               <Button type="button" variant="ghost" onClick={() => setShowCreateOwner(false)}
@@ -563,7 +563,7 @@ export default function AdminDashboard() {
 
       {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard icon={<Building className="h-5 w-5" />} label="Active Tenants" value={loading ? null : workspaces.length} sub="Total workspaces" accent="#00aef0" />
+        <MetricCard icon={<Building className="h-5 w-5" />} label="Active Tenants" value={loading ? null : workspaces.length} sub="Total workspaces" accent="#0284C7" />
         <MetricCard icon={<Users className="h-5 w-5" />} label="Platform Users" value={loading ? null : users.length} sub="Registered accounts" accent="#a855f7" />
         <MetricCard icon={<Inbox className="h-5 w-5" />} label="Prospects" value={loading ? null : prospects.length}
           badge={newCount > 0 ? `${newCount} new` : undefined}
@@ -582,7 +582,7 @@ export default function AdminDashboard() {
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
               activeTab === tab.key
-                ? "bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20"
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                 : "text-slate-400 hover:text-white hover:bg-slate-800"
             }`}>
             <tab.icon className="h-4 w-4" />
@@ -598,13 +598,13 @@ export default function AdminDashboard() {
           <div className="rounded-xl border border-slate-900 bg-slate-900/20 p-6 flex flex-col h-[520px] shadow-lg">
             <div className="flex items-center justify-between gap-4 mb-5 shrink-0">
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2"><Building className="h-4 w-4 text-[#00aef0]" /> Tenants Directory</h2>
+                <h2 className="text-base font-bold text-white flex items-center gap-2"><Building className="h-4 w-4 text-primary" /> Tenants Directory</h2>
                 <p className="text-xs text-slate-400 mt-0.5">{workspaces.length} workspace{workspaces.length !== 1 ? "s" : ""} on platform</p>
               </div>
               <div className="relative w-48">
                 <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
                 <Input placeholder="Search..." value={workspaceSearch} onChange={e => setWorkspaceSearch(e.target.value)}
-                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-[#00aef0] h-8 text-xs text-white" />
+                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-primary h-8 text-xs text-white" />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto pr-1 space-y-2">
@@ -636,13 +636,13 @@ export default function AdminDashboard() {
           <div className="rounded-xl border border-slate-900 bg-slate-900/20 p-6 flex flex-col h-[520px] shadow-lg">
             <div className="flex items-center justify-between gap-4 mb-5 shrink-0">
               <div>
-                <h2 className="text-base font-bold text-white flex items-center gap-2"><Users className="h-4 w-4 text-[#00aef0]" /> User Privileges</h2>
+                <h2 className="text-base font-bold text-white flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> User Privileges</h2>
                 <p className="text-xs text-slate-400 mt-0.5">{users.length} account{users.length !== 1 ? "s" : ""} registered</p>
               </div>
               <div className="relative w-48">
                 <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
                 <Input placeholder="Search..." value={userSearch} onChange={e => setUserSearch(e.target.value)}
-                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-[#00aef0] h-8 text-xs text-white" />
+                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-primary h-8 text-xs text-white" />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto pr-1 space-y-2">
@@ -658,12 +658,12 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-3 min-w-0 pr-2">
                         <Avatar className="h-8 w-8 shrink-0 border border-slate-800">
                           {u.avatar_url ? <AvatarImage src={u.avatar_url} alt={displayName} /> : null}
-                          <AvatarFallback className="bg-[#00aef0]/10 text-xs font-bold text-[#00aef0]">{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">{displayName.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <h4 className="font-semibold text-xs text-slate-200 truncate">{displayName}</h4>
-                            {isCurrent && <span className="text-[8px] bg-slate-800 text-[#00aef0] px-1.5 py-0.5 rounded-full font-bold uppercase">You</span>}
+                            {isCurrent && <span className="text-[8px] bg-slate-800 text-primary px-1.5 py-0.5 rounded-full font-bold uppercase">You</span>}
                             {isBlocked && <span className="text-[8px] bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded-full font-bold uppercase">Blocked</span>}
                           </div>
                           <p className="text-[10px] text-slate-500 truncate">{u.email}</p>
@@ -671,7 +671,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span className={`text-[8px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full border ${
-                          isSuperAdmin ? "bg-[#00aef0]/15 text-[#00aef0] border-[#00aef0]/25" : "bg-slate-800 text-slate-500 border-slate-700"
+                          isSuperAdmin ? "bg-primary/15 text-primary border-primary/25" : "bg-slate-800 text-slate-500 border-slate-700"
                         }`}>{u.system_role || "user"}</span>
                         {!isCurrent && (
                           <>
@@ -685,7 +685,7 @@ export default function AdminDashboard() {
                             <Button variant="ghost" size="icon" onClick={() => handleToggleSystemRole(u.id, u.system_role, u.email)}
                               title={isSuperAdmin ? "Demote" : "Promote"}
                               className={`h-7 w-7 rounded-lg border border-transparent ${
-                                isSuperAdmin ? "text-amber-400 hover:bg-amber-500/10" : "text-[#00aef0] hover:bg-[#00aef0]/10"
+                                isSuperAdmin ? "text-amber-400 hover:bg-amber-500/10" : "text-primary hover:bg-primary/10"
                               }`}>
                               {isSuperAdmin ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
                             </Button>
@@ -768,7 +768,7 @@ export default function AdminDashboard() {
                 <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
                 <Input placeholder="Search by name, email, company..." value={prospectSearch}
                   onChange={e => setProspectSearch(e.target.value)}
-                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-[#00aef0] h-8 text-xs text-white" />
+                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-primary h-8 text-xs text-white" />
               </div>
             </div>
 
@@ -886,7 +886,7 @@ export default function AdminDashboard() {
                             {/* Action buttons */}
                             <div className="flex items-center gap-3">
                               <a href={`mailto:${p.email}?subject=Re: Daily CRM ${p.plan_interest === "custom" ? "Custom Solution" : "Growth Plan"} Inquiry`}
-                                className="flex items-center gap-1.5 rounded-lg bg-[#00aef0]/10 hover:bg-[#00aef0]/20 border border-[#00aef0]/20 text-[#00aef0] px-3 py-1.5 text-xs font-semibold transition-all">
+                                className="flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary px-3 py-1.5 text-xs font-semibold transition-all">
                                 <Mail className="h-3.5 w-3.5" /> Reply via Email <ArrowUpRight className="h-3 w-3 opacity-60" />
                               </a>
                               <span className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border ${cfg.bg} ${cfg.border} ${cfg.color}`}>
@@ -956,7 +956,7 @@ export default function AdminDashboard() {
         <div className="space-y-6 animate-in fade-in duration-300">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Tag className="h-6 w-6 text-[#00aef0]" />
+              <Tag className="h-6 w-6 text-primary" />
               Deal Sources
             </h2>
           </div>
@@ -972,7 +972,7 @@ export default function AdminDashboard() {
                     className="bg-slate-950 border-slate-800 text-white"
                   />
                 </div>
-                <Button type="submit" disabled={isSubmittingSource || !newSourceName.trim()} className="bg-[#00aef0] hover:bg-[#009bd6] text-white">
+                <Button type="submit" disabled={isSubmittingSource || !newSourceName.trim()} className="bg-primary hover:bg-primary-hover text-white">
                   <Plus className="h-4 w-4 mr-2" /> Add
                 </Button>
               </form>
@@ -1062,7 +1062,7 @@ function PlanBadge({ plan, size = "md" }: { plan: string; size?: "sm" | "md" }) 
     <span className={`${base} font-bold uppercase tracking-wider rounded-full border shrink-0 ${
       isCustom
         ? "bg-purple-500/15 text-purple-400 border-purple-500/25"
-        : "bg-[#00aef0]/10 text-[#00aef0] border-[#00aef0]/20"
+        : "bg-primary/10 text-primary border-primary/20"
     }`}>
       {isCustom ? "Custom" : "Growth"}
     </span>
@@ -1074,7 +1074,7 @@ function DetailItem({ icon: Icon, label, value, link }: { icon: any; label: stri
     <div>
       <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-1">{label}</p>
       {link ? (
-        <a href={link} className="text-xs text-[#00aef0] hover:underline flex items-center gap-1">
+        <a href={link} className="text-xs text-primary hover:underline flex items-center gap-1">
           <Icon className="h-3 w-3" /> {value}
         </a>
       ) : (

@@ -70,11 +70,11 @@ export function InstagramConfig() {
         <Alert className="bg-slate-900 border-slate-700">
           <div className="flex items-center gap-2">
             {connectionStatus === 'connected' ? (
-              <CheckCircle2 className="size-4 text-[#00aef0]" />
+              <CheckCircle2 className="size-4 text-primary" />
             ) : (
               <XCircle className="size-4 text-red-500" />
             )}
-            <AlertTitle className="text-white mb-0">
+            <AlertTitle className="text-foreground mb-0">
               {connectionStatus === 'connected' ? 'Connected' : 'Not Connected'}
             </AlertTitle>
           </div>
@@ -88,7 +88,7 @@ export function InstagramConfig() {
         {/* API Credentials */}
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white">API Credentials</CardTitle>
+            <CardTitle className="text-foreground">API Credentials</CardTitle>
             <CardDescription className="text-slate-400">
               Enter your Instagram Graph API credentials to start receiving DMs.
             </CardDescription>
@@ -100,7 +100,7 @@ export function InstagramConfig() {
                 placeholder="e.g. 17841400000000000"
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
               />
               <p className="text-xs text-slate-500">
                 The ID of the Instagram Professional account you want to connect.
@@ -115,12 +115,12 @@ export function InstagramConfig() {
                   placeholder="Enter your Page Access Token"
                   value={accessToken}
                   onChange={(e) => setAccessToken(e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 pr-10"
+                  className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowToken(!showToken)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground transition-colors"
                 >
                   {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -136,7 +136,7 @@ export function InstagramConfig() {
                 placeholder="Create a custom verify token"
                 value={verifyToken}
                 onChange={(e) => setVerifyToken(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
               />
             </div>
           </CardContent>
@@ -145,7 +145,7 @@ export function InstagramConfig() {
         {/* Webhook URL */}
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white">Webhook Configuration</CardTitle>
+            <CardTitle className="text-foreground">Webhook Configuration</CardTitle>
             <CardDescription className="text-slate-400">
               Use this URL in your Meta App Dashboard for Instagram.
             </CardDescription>
@@ -163,7 +163,7 @@ export function InstagramConfig() {
                   variant="outline"
                   size="icon"
                   onClick={handleCopyWebhookUrl}
-                  className="shrink-0 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800"
+                  className="shrink-0 border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800"
                 >
                   <Copy className="size-4" />
                 </Button>
@@ -173,10 +173,10 @@ export function InstagramConfig() {
         </Card>
 
         <div className="flex flex-wrap gap-3">
-          <Button onClick={handleSave} disabled={saving} className="bg-[#00aef0] hover:bg-[#00aef0]/90 text-white">
+          <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Saving...</> : 'Save Configuration'}
           </Button>
-          <Button variant="outline" onClick={handleTestConnection} disabled={testing} className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800">
+          <Button variant="outline" onClick={handleTestConnection} disabled={testing} className="border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800">
             {testing ? 'Testing...' : 'Test Connection'}
           </Button>
         </div>
@@ -186,7 +186,7 @@ export function InstagramConfig() {
       <div>
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white text-base">Setup Instructions</CardTitle>
+            <CardTitle className="text-foreground text-base">Setup Instructions</CardTitle>
             <CardDescription className="text-slate-400">
               Follow these steps to connect Instagram DMs.
             </CardDescription>
@@ -194,9 +194,9 @@ export function InstagramConfig() {
           <CardContent>
             <Accordion>
               <AccordionItem className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+                <AccordionTrigger className="text-slate-300 hover:text-foreground hover:no-underline">
                   <span className="flex items-center gap-2">
-                    <span className="flex size-5 items-center justify-center rounded-full bg-[#00aef0] text-xs font-bold text-white">1</span>
+                    <span className="flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">1</span>
                     Link Instagram to Facebook Page
                   </span>
                 </AccordionTrigger>
@@ -209,9 +209,9 @@ export function InstagramConfig() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-white hover:no-underline">
+                <AccordionTrigger className="text-slate-300 hover:text-foreground hover:no-underline">
                   <span className="flex items-center gap-2">
-                    <span className="flex size-5 items-center justify-center rounded-full bg-[#00aef0] text-xs font-bold text-white">2</span>
+                    <span className="flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">2</span>
                     Enable Message Access
                   </span>
                 </AccordionTrigger>

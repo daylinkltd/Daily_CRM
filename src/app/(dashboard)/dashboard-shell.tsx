@@ -109,7 +109,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
           name: activeWorkspace.name,
         },
         theme: {
-          color: "#00aef0",
+          color: "#0284C7",
         },
         modal: {
           ondismiss: function () {
@@ -147,7 +147,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#00aef0] border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <p className="text-sm text-slate-400">Loading...</p>
         </div>
       </div>
@@ -186,8 +186,8 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                   onClick={() => setBillingCycle("monthly")}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                     billingCycle === "monthly"
-                      ? "bg-[#00aef0] text-white"
-                      : "text-slate-400 hover:text-white bg-slate-950 border border-slate-800"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-slate-400 hover:text-foreground bg-slate-950 border border-slate-800"
                   }`}
                 >
                   Monthly
@@ -197,8 +197,8 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                   onClick={() => setBillingCycle("annual")}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors relative ${
                     billingCycle === "annual"
-                      ? "bg-[#00aef0] text-white"
-                      : "text-slate-400 hover:text-white bg-slate-950 border border-slate-800"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-slate-400 hover:text-foreground bg-slate-950 border border-slate-800"
                   }`}
                 >
                   Annual
@@ -222,12 +222,12 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                     onClick={() => setSelectedPlan(plan.id)}
                     className={`relative flex flex-col rounded-2xl p-4 border transition-all cursor-pointer select-none ${
                       isSelected
-                        ? "border-[#00aef0] bg-[#00aef0]/5 shadow-xl shadow-[#00aef0]/5"
+                        ? "border-primary bg-primary/5 shadow-xl shadow-primary/5"
                         : "border-slate-800 bg-slate-950/40 hover:border-slate-700"
                     }`}
                   >
                     {plan.isRecommended && (
-                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#00aef0] text-white text-[9px] font-bold rounded-full">
+                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full">
                         RECOMMENDED
                       </div>
                     )}
@@ -247,7 +247,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                     </ul>
 
                     <div className="flex justify-center mt-2">
-                      <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-[#00aef0] bg-[#00aef0]" : "border-slate-800"}`}>
+                      <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-slate-800"}`}>
                         {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
                       </div>
                     </div>
@@ -259,7 +259,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
             <Button
               onClick={handleUpgrade}
               disabled={upgrading}
-              className="w-full bg-[#00aef0] hover:bg-[#008ec4] text-white h-11 rounded-xl font-bold text-sm"
+              className="w-full bg-primary hover:bg-primary-hover text-primary-foreground h-11 rounded-xl font-bold text-sm"
             >
               {upgrading ? (
                 <>
@@ -293,7 +293,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
             fallback={
               <div className="flex h-full items-center justify-center bg-transparent">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#00aef0] border-t-transparent" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   <p className="text-sm text-slate-400">Loading section...</p>
                 </div>
               </div>

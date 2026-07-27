@@ -82,9 +82,9 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#020817] px-4 relative overflow-hidden">
       {/* Ambient glows */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 h-[500px] w-[500px] rounded-full bg-[#00aef0]/6 blur-[160px]" />
+        <div className="absolute top-1/4 left-1/4 h-[500px] w-[500px] rounded-full bg-primary/6 blur-[160px]" />
         <div className="absolute bottom-1/4 right-1/4 h-[400px] w-[400px] rounded-full bg-indigo-600/5 blur-[140px]" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00aef0]/20 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       </div>
 
       {/* Grid overlay */}
@@ -114,8 +114,8 @@ export default function AdminLoginPage() {
         <div className="rounded-2xl border border-slate-800/60 bg-slate-900/50 backdrop-blur-2xl shadow-2xl shadow-black/60 p-8">
           {/* Icon + Title */}
           <div className="text-center mb-7">
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#00aef0]/10 border border-[#00aef0]/20 mb-4">
-              <Shield className="h-7 w-7 text-[#00aef0]" />
+            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4">
+              <Shield className="h-7 w-7 text-primary" />
             </div>
             <h1 className="text-2xl font-extrabold text-white tracking-tight">
               Administrative Access
@@ -146,7 +146,7 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-[#00aef0] focus-visible:ring-[#00aef0]/10 h-11 rounded-xl"
+                className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-primary focus-visible:ring-primary/10 h-11 rounded-xl"
               />
             </div>
 
@@ -164,7 +164,7 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-[#00aef0] focus-visible:ring-[#00aef0]/10 h-11 rounded-xl pr-11"
+                  className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-primary focus-visible:ring-primary/10 h-11 rounded-xl pr-11"
                 />
                 <button
                   type="button"
@@ -183,7 +183,7 @@ export default function AdminLoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="mt-1 h-12 w-full bg-[#00aef0] hover:bg-[#008ec4] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/15 hover:shadow-[#00aef0]/30 transition-all text-sm tracking-wide disabled:opacity-50"
+              className="mt-1 h-12 w-full bg-primary hover:bg-primary-hover text-white font-bold rounded-xl shadow-lg shadow-primary/15 hover:shadow-primary/30 transition-all text-sm tracking-wide disabled:opacity-50"
             >
               {loading ? (
                 <span className="flex items-center gap-2">

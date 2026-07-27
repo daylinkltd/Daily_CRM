@@ -31,7 +31,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-950">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#00aef0] border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <p className="text-sm text-slate-400">Verifying administrator access...</p>
         </div>
       </div>
@@ -57,7 +57,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       >
         {/* Header */}
         <div className="flex h-16 items-center border-b border-slate-900 px-6 gap-2 shrink-0">
-          <Shield className="h-6 w-6 text-[#00aef0]" />
+          <Shield className="h-6 w-6 text-primary" />
           <span className="font-bold text-lg tracking-tight">SaaS Admin</span>
         </div>
 
@@ -67,7 +67,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             href="/saas-admin/dashboard"
             className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-200 hover:text-white hover:bg-slate-900/60 transition-colors"
           >
-            <LayoutDashboard className="h-4 w-4 text-[#00aef0]" />
+            <LayoutDashboard className="h-4 w-4 text-primary" />
             Dashboard
           </Link>
         </nav>
@@ -104,7 +104,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                   <p className="text-xs font-semibold text-white">{profile.full_name || "SaaS Admin"}</p>
                   <p className="text-[10px] text-slate-400">{profile.email}</p>
                 </div>
-                <div className="h-8 w-8 rounded-full bg-[#00aef0]/10 flex items-center justify-center text-[#00aef0] font-bold text-sm">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
                   {(profile.full_name || "A").charAt(0).toUpperCase()}
                 </div>
               </div>

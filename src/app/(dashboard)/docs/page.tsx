@@ -12,9 +12,9 @@ export default function DocsPage() {
         <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">
           <h2 className="text-lg font-semibold text-white">Quick Start Guides</h2>
           <ul className="mt-4 space-y-2 text-slate-300">
-            <li><a href="#" className="text-[#00aef0] hover:underline">Connecting WhatsApp Business API</a></li>
-            <li><a href="#" className="text-[#00aef0] hover:underline">Linking Instagram DMs</a></li>
-            <li><a href="#" className="text-[#00aef0] hover:underline">Setting up Team Members and Workspaces</a></li>
+            <li><a href="#" className="text-primary hover:underline">Connecting WhatsApp Business API</a></li>
+            <li><a href="#" className="text-primary hover:underline">Linking Instagram DMs</a></li>
+            <li><a href="#" className="text-primary hover:underline">Setting up Team Members and Workspaces</a></li>
           </ul>
         </div>
         <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-6">

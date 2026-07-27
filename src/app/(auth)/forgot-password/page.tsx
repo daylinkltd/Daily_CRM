@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#020817] px-4 relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-[#00aef0]/5 blur-[160px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[500px] w-[500px] rounded-full bg-primary/5 blur-[160px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 <span className="text-white font-medium">{email}</span>.
               </p>
               <Link href="/login">
-                <Button className="w-full h-11 bg-[#00aef0] hover:bg-[#008ec4] text-white font-bold rounded-xl">
+                <Button className="w-full h-11 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl">
                   Back to sign in
                 </Button>
               </Link>
@@ -74,8 +74,8 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               <div className="mb-6">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#00aef0]/10 border border-[#00aef0]/20 mb-4">
-                  <Mail className="h-6 w-6 text-[#00aef0]" />
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 mb-4">
+                  <Mail className="h-6 w-6 text-primary" />
                 </div>
                 <h1 className="text-2xl font-extrabold text-white tracking-tight">
                   Reset your password
@@ -104,14 +104,14 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-[#00aef0] focus-visible:ring-[#00aef0]/10 h-11 rounded-xl"
+                    className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-primary focus-visible:ring-primary/10 h-11 rounded-xl"
                   />
                 </div>
 
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="h-12 w-full bg-[#00aef0] hover:bg-[#008ec4] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/15 transition-all disabled:opacity-50"
+                  className="h-12 w-full bg-primary hover:bg-primary-hover text-white font-bold rounded-xl shadow-lg shadow-primary/15 transition-all disabled:opacity-50"
                 >
                   {loading ? "Sending..." : "Send reset link"}
                 </Button>

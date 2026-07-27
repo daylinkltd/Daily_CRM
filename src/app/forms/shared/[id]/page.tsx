@@ -28,7 +28,7 @@ export default async function SharedFormPage({ params }: PageProps) {
     return (
       <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center p-4 relative overflow-hidden">
         {/* Abstract glowing background blobs */}
-        <div className="absolute top-1/4 left-1/4 size-80 rounded-full bg-[#00aef0]/10 blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 size-80 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 size-80 rounded-full bg-indigo-500/10 blur-3xl" />
 
         <div className="relative max-w-md w-full rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md p-8 text-center shadow-xl space-y-4">
@@ -50,7 +50,7 @@ export default async function SharedFormPage({ params }: PageProps) {
     return (
       <div className="min-h-screen bg-[#0b0f19] flex items-center justify-center p-4 relative overflow-hidden">
         {/* Abstract glowing background blobs */}
-        <div className="absolute top-1/4 left-1/4 size-80 rounded-full bg-[#00aef0]/10 blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 size-80 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 size-80 rounded-full bg-indigo-500/10 blur-3xl" />
 
         <div className="relative max-w-md w-full rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-md p-8 text-center shadow-xl space-y-4">

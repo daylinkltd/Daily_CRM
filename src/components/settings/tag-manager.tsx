@@ -149,7 +149,7 @@ export function TagManager() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="size-6 animate-spin text-[#00aef0]" />
+        <Loader2 className="size-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -167,7 +167,7 @@ export function TagManager() {
             setSelectedColor(PRESET_COLORS[3].value);
             setDialogOpen(true);
           }}
-          className="bg-[#00aef0] hover:bg-[#00aef0] text-white"
+          className="bg-primary hover:bg-primary text-primary-foreground"
         >
           <Plus className="size-4" />
           New Tag
@@ -217,7 +217,7 @@ export function TagManager() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="bg-slate-900 border-slate-700 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">New Tag</DialogTitle>
+            <DialogTitle className="text-foreground">New Tag</DialogTitle>
             <DialogDescription className="text-slate-400">
               Create a new tag with a name and color.
             </DialogDescription>
@@ -230,7 +230,7 @@ export function TagManager() {
                 placeholder="e.g. VIP Customer"
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleCreate();
                 }}
@@ -288,7 +288,7 @@ export function TagManager() {
             <Button
               onClick={handleCreate}
               disabled={saving}
-              className="bg-[#00aef0] hover:bg-[#00aef0] text-white"
+              className="bg-primary hover:bg-primary text-primary-foreground"
             >
               {saving ? (
                 <>
@@ -307,7 +307,7 @@ export function TagManager() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="bg-slate-900 border-slate-700 sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">Delete Tag</DialogTitle>
+            <DialogTitle className="text-foreground">Delete Tag</DialogTitle>
             <DialogDescription className="text-slate-400">
               Are you sure you want to delete the tag &quot;{tagToDelete?.name}&quot;? This will remove
               it from all contacts. This action cannot be undone.

@@ -50,8 +50,8 @@ export function SheetsConfig() {
       <div className="space-y-6">
         <Alert className="bg-slate-900 border-slate-700">
           <div className="flex items-center gap-2">
-            {connectionStatus === 'connected' ? <CheckCircle2 className="size-4 text-[#00aef0]" /> : <XCircle className="size-4 text-red-500" />}
-            <AlertTitle className="text-white mb-0">{connectionStatus === 'connected' ? 'Google Account Connected' : 'Not Connected'}</AlertTitle>
+            {connectionStatus === 'connected' ? <CheckCircle2 className="size-4 text-primary" /> : <XCircle className="size-4 text-red-500" />}
+            <AlertTitle className="text-foreground mb-0">{connectionStatus === 'connected' ? 'Google Account Connected' : 'Not Connected'}</AlertTitle>
           </div>
           <AlertDescription className="text-slate-400">
             {connectionStatus === 'connected' ? 'Your Google Workspace account is successfully linked.' : 'Authenticate with Google to enable 2-way sync.'}
@@ -66,25 +66,25 @@ export function SheetsConfig() {
         {connectionStatus === 'connected' && (
           <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
             <CardHeader>
-              <CardTitle className="text-white">Sync Configuration</CardTitle>
+              <CardTitle className="text-foreground">Sync Configuration</CardTitle>
               <CardDescription className="text-slate-400">Map your Daily CRM data to a specific spreadsheet.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-slate-300">Spreadsheet ID</Label>
-                <Input value={spreadsheetId} onChange={(e) => setSpreadsheetId(e.target.value)} placeholder="1BxiMVs0XRY..." className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500" />
+                <Input value={spreadsheetId} onChange={(e) => setSpreadsheetId(e.target.value)} placeholder="1BxiMVs0XRY..." className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500" />
                 <p className="text-xs text-slate-500">The long string of characters in your Google Sheets URL.</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-300">Target Sheet / Tab Name</Label>
-                <Input value={sheetName} onChange={(e) => setSheetName(e.target.value)} placeholder="Sheet1" className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500" />
+                <Input value={sheetName} onChange={(e) => setSheetName(e.target.value)} placeholder="Sheet1" className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500" />
               </div>
               
               <div className="flex gap-3 pt-4">
-                <Button onClick={handleSave} disabled={saving} className="bg-[#00aef0] hover:bg-[#00aef0]/90 text-white">
+                <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Saving...</> : 'Save Sync Settings'}
                 </Button>
-                <Button variant="outline" onClick={handleSync} disabled={syncing} className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800">
+                <Button variant="outline" onClick={handleSync} disabled={syncing} className="border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800">
                   {syncing ? <><RefreshCw className="mr-2 size-4 animate-spin" /> Syncing...</> : 'Force Manual Sync'}
                 </Button>
               </div>
@@ -95,7 +95,7 @@ export function SheetsConfig() {
       <div>
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white text-base">2-Way Sync Rules</CardTitle>
+            <CardTitle className="text-foreground text-base">2-Way Sync Rules</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="list-disc list-inside space-y-2 text-sm text-slate-400">

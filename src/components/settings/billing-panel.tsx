@@ -132,7 +132,7 @@ export function BillingPanel() {
           name: activeWorkspace.name,
         },
         theme: {
-          color: "#00aef0",
+          color: "#0284C7",
         },
         modal: {
           ondismiss: function () {
@@ -155,7 +155,7 @@ export function BillingPanel() {
     return (
       <div className="flex h-[350px] items-center justify-center rounded-xl border border-slate-800 bg-slate-900/20">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-[#00aef0]" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <span className="text-sm text-slate-400">Loading plan subscription details...</span>
         </div>
       </div>
@@ -180,11 +180,11 @@ export function BillingPanel() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
       {/* Current Plan Overview Banner */}
-      <div className="relative rounded-2xl border border-[#00aef0]/20 bg-gradient-to-br from-[#00aef0]/5 via-slate-950/60 to-slate-950 p-6 shadow-xl">
+      <div className="relative rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-slate-950/60 to-slate-950 p-6 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-[#00aef0]/15 px-3 py-1 text-xs font-semibold text-[#00aef0]">
+              <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                 Active Plan
               </span>
               {usage?.isTrial && (
@@ -228,7 +228,7 @@ export function BillingPanel() {
           <div className="w-full bg-slate-900 rounded-full h-2">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${
-                msgPercent >= 100 ? "bg-red-500" : msgPercent >= 80 ? "bg-amber-500" : "bg-[#00aef0]"
+                msgPercent >= 100 ? "bg-red-500" : msgPercent >= 80 ? "bg-amber-500" : "bg-primary"
               }`}
               style={{ width: `${msgPercent}%` }}
             />
@@ -255,7 +255,7 @@ export function BillingPanel() {
           </div>
           <div className="w-full bg-slate-900 rounded-full h-2">
             <div
-              className="h-2 rounded-full bg-[#00aef0] transition-all duration-500"
+              className="h-2 rounded-full bg-primary transition-all duration-500"
               style={{ width: `${maxMembers === 999999 ? 100 : membersPercent}%` }}
             />
           </div>
@@ -281,7 +281,7 @@ export function BillingPanel() {
           </div>
           <div className="w-full bg-slate-900 rounded-full h-2">
             <div
-              className="h-2 rounded-full bg-[#00aef0] transition-all duration-500"
+              className="h-2 rounded-full bg-primary transition-all duration-500"
               style={{ width: `${maxWorkspaces === 999999 ? 100 : workspacesPercent}%` }}
             />
           </div>
@@ -304,8 +304,8 @@ export function BillingPanel() {
               onClick={() => setBillingCycle("monthly")}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                 billingCycle === "monthly"
-                  ? "bg-[#00aef0] text-white"
-                  : "text-slate-400 hover:text-white bg-slate-900 border border-slate-800"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-slate-400 hover:text-foreground bg-slate-900 border border-slate-800"
               }`}
             >
               Monthly
@@ -315,8 +315,8 @@ export function BillingPanel() {
               onClick={() => setBillingCycle("annual")}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors relative ${
                 billingCycle === "annual"
-                  ? "bg-[#00aef0] text-white"
-                  : "text-slate-400 hover:text-white bg-slate-900 border border-slate-800"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-slate-400 hover:text-foreground bg-slate-900 border border-slate-800"
               }`}
             >
               Annual
@@ -344,12 +344,12 @@ export function BillingPanel() {
                 key={plan.id}
                 className={`relative flex flex-col rounded-xl p-5 border transition-all ${
                   isCurrent
-                    ? "border-[#00aef0] bg-[#00aef0]/5"
+                    ? "border-primary bg-primary/5"
                     : "border-slate-800 bg-slate-900/20 hover:border-slate-700"
                 }`}
               >
                 {plan.isRecommended && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-[#00aef0] text-white text-[9px] font-bold rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full">
                     RECOMMENDED
                   </div>
                 )}
@@ -387,8 +387,8 @@ export function BillingPanel() {
                     isCurrent
                       ? "bg-slate-800 text-slate-400 cursor-default"
                       : plan.isRecommended
-                      ? "bg-[#00aef0] text-white hover:bg-[#008ec4]"
-                      : "border border-slate-700 text-slate-200 hover:border-slate-600 hover:text-white"
+                      ? "bg-primary text-primary-foreground hover:bg-primary-hover"
+                      : "border border-slate-700 text-slate-200 hover:border-slate-600 hover:text-foreground"
                   }`}
                 >
                   {isCurrent ? (

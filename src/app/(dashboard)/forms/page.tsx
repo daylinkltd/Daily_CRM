@@ -199,7 +199,7 @@ export default function FormsPage() {
         </div>
         <Button
           onClick={() => setCreateOpen(true)}
-          className="bg-[#00aef0] hover:bg-[#009bd6] text-white"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground"
         >
           <Plus className="size-4 mr-2" />
           Create Form
@@ -209,13 +209,13 @@ export default function FormsPage() {
       {/* Grid List */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <Loader2 className="size-8 animate-spin text-[#00aef0]" />
+          <Loader2 className="size-8 animate-spin text-primary" />
           <p className="text-sm text-slate-400">Loading forms...</p>
         </div>
       ) : forms.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-800 p-12 text-center bg-slate-900/20 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3 max-w-sm mx-auto">
-            <div className="size-12 rounded-full bg-slate-800 flex items-center justify-center text-[#00aef0]">
+            <div className="size-12 rounded-full bg-slate-800 flex items-center justify-center text-primary">
               <FileText className="size-6" />
             </div>
             <h3 className="text-lg font-medium text-white">No forms created yet</h3>
@@ -224,7 +224,7 @@ export default function FormsPage() {
             </p>
             <Button
               onClick={() => setCreateOpen(true)}
-              className="mt-2 bg-[#00aef0] hover:bg-[#009bd6] text-white"
+              className="mt-2 bg-primary hover:bg-primary-hover text-primary-foreground"
             >
               <Plus className="size-4 mr-2" />
               Create your first form
@@ -241,24 +241,24 @@ export default function FormsPage() {
               <div>
                 {/* Title and Top Row */}
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-semibold text-white group-hover:text-[#00aef0] transition-colors line-clamp-1">
+                  <h3 className="font-semibold text-white group-hover:text-primary transition-colors line-clamp-1">
                     {form.title}
                   </h3>
                   <DropdownMenu>
-                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-white" />} >
+                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-foreground" />} >
                       <MoreVertical className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-slate-300">
                       <DropdownMenuItem
                         onClick={() => router.push(`/forms/${form.id}`)}
-                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-foreground"
                       >
                         <Pencil className="size-4 mr-2" />
                         Edit / Build
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => copyShareLink(form.id)}
-                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-foreground"
                       >
                         <Copy className="size-4 mr-2" />
                         Copy Share Link
@@ -268,7 +268,7 @@ export default function FormsPage() {
                           const origin = typeof window !== 'undefined' ? window.location.origin : '';
                           window.open(`${origin}/forms/shared/${form.id}`, '_blank');
                         }}
-                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-white"
+                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-foreground"
                       >
                         <ExternalLink className="size-4 mr-2" />
                         Open Public Form
@@ -302,7 +302,7 @@ export default function FormsPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => copyShareLink(form.id)}
-                    className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors"
+                    className="text-slate-400 hover:text-foreground p-1 rounded hover:bg-slate-800 transition-colors"
                     title="Copy Public Link"
                   >
                     {copiedId === form.id ? (
@@ -317,7 +317,7 @@ export default function FormsPage() {
                     <Switch
                       checked={form.is_active}
                       onCheckedChange={(checked) => toggleStatus(form, checked)}
-                      className="data-checked:bg-[#00aef0] data-unchecked:bg-slate-800"
+                      className="data-checked:bg-primary data-unchecked:bg-slate-800"
                     />
                   </div>
                 </div>
@@ -331,7 +331,7 @@ export default function FormsPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="bg-slate-900 border-slate-800 text-slate-200 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Create New Form</DialogTitle>
+            <DialogTitle className="text-foreground">Create New Form</DialogTitle>
             <DialogDescription className="text-slate-400 text-sm">
               Enter a name and optional description. You will customize fields and mappings on the next screen.
             </DialogDescription>
@@ -345,7 +345,7 @@ export default function FormsPage() {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="e.g. Website Contact Form"
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
               />
             </div>
             <div className="space-y-1.5">
@@ -355,7 +355,7 @@ export default function FormsPage() {
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
                 placeholder="Briefly state the goal of this form..."
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 min-h-[80px]"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 min-h-[80px]"
               />
             </div>
           </div>
@@ -364,14 +364,14 @@ export default function FormsPage() {
             <Button
               variant="outline"
               onClick={() => setCreateOpen(false)}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-foreground"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreate}
               disabled={creating || !newTitle.trim()}
-              className="bg-[#00aef0] hover:bg-[#009bd6] text-white"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground"
             >
               {creating ? <Loader2 className="size-4 animate-spin" /> : 'Create & Design'}
             </Button>
@@ -383,7 +383,7 @@ export default function FormsPage() {
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="bg-slate-900 border-slate-800 text-slate-200 max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">Delete Form</DialogTitle>
+            <DialogTitle className="text-foreground">Delete Form</DialogTitle>
             <DialogDescription className="text-slate-400 text-sm">
               Are you sure you want to delete <span className="text-white font-medium">"{deleteTarget?.title}"</span>? All fields and submissions will be permanently removed. This action cannot be undone.
             </DialogDescription>
@@ -393,7 +393,7 @@ export default function FormsPage() {
             <Button
               variant="outline"
               onClick={() => setDeleteTarget(null)}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-foreground"
             >
               Cancel
             </Button>

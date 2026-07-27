@@ -225,7 +225,7 @@ export function ChatbotConfig() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="size-6 animate-spin text-[#00aef0]" />
+        <Loader2 className="size-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -238,7 +238,7 @@ export function ChatbotConfig() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#00aef0]/10 rounded-xl text-[#00aef0]">
+                <div className="p-2 bg-primary/10 rounded-xl text-primary">
                   <Bot className="size-6 animate-pulse" />
                 </div>
                 <div>
@@ -256,8 +256,8 @@ export function ChatbotConfig() {
         {/* ── AI Provider Configurations ── */}
         <Card className="bg-slate-900 border-slate-700">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2 text-base">
-              <Sparkles className="size-4 text-[#00aef0]" />
+            <CardTitle className="text-foreground flex items-center gap-2 text-base">
+              <Sparkles className="size-4 text-primary" />
               AI Engine Credentials
             </CardTitle>
             <CardDescription className="text-slate-400">
@@ -269,10 +269,10 @@ export function ChatbotConfig() {
             <div className="grid gap-2">
               <Label className="text-slate-300">LLM Provider</Label>
               <Select value={provider} onValueChange={(val) => handleProviderChange((val ?? "openai") as AIProvider)}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground">
                   <SelectValue placeholder="Select provider" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                <SelectContent className="bg-slate-800 border-slate-700 text-foreground">
                   <SelectItem value="openai">OpenAI (GPT)</SelectItem>
                   <SelectItem value="grok">xAI (Grok AI)</SelectItem>
                   <SelectItem value="groq">Groq (groq.com)</SelectItem>
@@ -289,7 +289,7 @@ export function ChatbotConfig() {
                 placeholder="e.g. grok-beta, gpt-4o-mini"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
               />
             </div>
 
@@ -322,12 +322,12 @@ export function ChatbotConfig() {
                       setKeyEdited(true);
                     }
                   }}
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 pr-10"
+                  className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowKey(!showKey)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground transition-colors"
                 >
                   {showKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -350,8 +350,8 @@ export function ChatbotConfig() {
         {/* ── Prompts & Business Knowledge ── */}
         <Card className="bg-slate-900 border-slate-700">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2 text-base">
-              <BookOpen className="size-4 text-[#00aef0]" />
+            <CardTitle className="text-foreground flex items-center gap-2 text-base">
+              <BookOpen className="size-4 text-primary" />
               Persona & Knowledge Base
             </CardTitle>
             <CardDescription className="text-slate-400">
@@ -366,7 +366,7 @@ export function ChatbotConfig() {
                 placeholder="e.g. Voyage Bot"
                 value={botName}
                 onChange={(e) => setBotName(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
               />
             </div>
 
@@ -378,7 +378,7 @@ export function ChatbotConfig() {
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
                 rows={4}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 resize-y"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 resize-y"
               />
             </div>
 
@@ -395,7 +395,7 @@ Support contacts: support@example.com"
                 value={businessContext}
                 onChange={(e) => setBusinessContext(e.target.value)}
                 rows={6}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 resize-y font-mono text-xs leading-normal"
+                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 resize-y font-mono text-xs leading-normal"
               />
             </div>
           </CardContent>
@@ -404,8 +404,8 @@ Support contacts: support@example.com"
         {/* ── Control Rules (Auto-Pause & Typing Delay) ── */}
         <Card className="bg-slate-900 border-slate-700">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2 text-base">
-              <Sliders className="size-4 text-[#00aef0]" />
+            <CardTitle className="text-foreground flex items-center gap-2 text-base">
+              <Sliders className="size-4 text-primary" />
               Conversation Control Rules
             </CardTitle>
             <CardDescription className="text-slate-400">
@@ -417,10 +417,10 @@ Support contacts: support@example.com"
             <div className="grid gap-2">
               <Label className="text-slate-300">Agent Handover Auto-Pause</Label>
               <Select value={autoPauseDuration} onValueChange={(val) => setAutoPauseDuration(val ?? "60")}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                <SelectContent className="bg-slate-800 border-slate-700 text-foreground">
                   <SelectItem value="0">Off (Do not auto-pause)</SelectItem>
                   <SelectItem value="15">15 Minutes</SelectItem>
                   <SelectItem value="30">30 Minutes</SelectItem>
@@ -439,10 +439,10 @@ Support contacts: support@example.com"
             <div className="grid gap-2">
               <Label className="text-slate-300">Simulated Response Delay</Label>
               <Select value={responseDelay} onValueChange={(val) => setResponseDelay(val ?? "0")}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                <SelectContent className="bg-slate-800 border-slate-700 text-foreground">
                   <SelectItem value="0">Instant reply</SelectItem>
                   <SelectItem value="2">2 Seconds</SelectItem>
                   <SelectItem value="4">4 Seconds</SelectItem>
@@ -463,7 +463,7 @@ Support contacts: support@example.com"
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-[#00aef0] hover:bg-[#00aef0]/90 text-white shadow-lg shadow-[#00aef0]/15 px-6"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/15 px-6"
           >
             {saving ? (
               <>
@@ -498,11 +498,11 @@ Support contacts: support@example.com"
       <div>
         <Card className="bg-slate-900 border-slate-700">
           <CardHeader>
-            <CardTitle className="text-white text-base">Quick Start Guide</CardTitle>
+            <CardTitle className="text-foreground text-base">Quick Start Guide</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-xs text-slate-400 leading-relaxed">
             <div className="p-3 bg-slate-950/50 rounded-lg border border-slate-800">
-              <p className="text-[#00aef0] font-semibold mb-1 flex items-center gap-1">
+              <p className="text-primary font-semibold mb-1 flex items-center gap-1">
                 <Zap className="size-3.5" /> 1. Connect API Credentials
               </p>
               <p>
@@ -512,7 +512,7 @@ Support contacts: support@example.com"
             </div>
 
             <div className="p-3 bg-slate-950/50 rounded-lg border border-slate-800">
-              <p className="text-[#00aef0] font-semibold mb-1 flex items-center gap-1">
+              <p className="text-primary font-semibold mb-1 flex items-center gap-1">
                 <BookOpen className="size-3.5" /> 2. Add Business Knowledge
               </p>
               <p>
@@ -523,7 +523,7 @@ Support contacts: support@example.com"
             </div>
 
             <div className="p-3 bg-slate-950/50 rounded-lg border border-slate-800">
-              <p className="text-[#00aef0] font-semibold mb-1 flex items-center gap-1">
+              <p className="text-primary font-semibold mb-1 flex items-center gap-1">
                 <Sliders className="size-3.5" /> 3. Test & Enable
               </p>
               <p>

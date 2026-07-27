@@ -117,7 +117,7 @@ function SignupPageInner() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center relative overflow-hidden" style={{ backgroundColor: '#020817' }}>
       {/* Ambient glow */}
-      <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[#00aef0]/10 blur-[140px]" />
+      <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/10 blur-[140px]" />
 
       <div 
         className="relative z-10 w-full max-w-md rounded-3xl border backdrop-blur-2xl p-8 text-left shadow-2xl"
@@ -128,8 +128,8 @@ function SignupPageInner() {
         }}
       >
         <div className="flex justify-center mb-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ backgroundColor: 'rgba(0, 174, 240, 0.12)' }}>
-            <UsersRound className="h-6 w-6" style={{ color: '#00aef0' }} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ backgroundColor: 'rgba(2, 132, 199, 0.12)' }}>
+            <UsersRound className="h-6 w-6" style={{ color: '#0284C7' }} />
           </div>
         </div>
         
@@ -143,7 +143,7 @@ function SignupPageInner() {
         </p>
 
         {plan && (
-          <div className="mb-4 rounded-lg px-3 py-2 text-center text-xs font-semibold capitalize border" style={{ backgroundColor: 'rgba(0, 174, 240, 0.1)', borderColor: 'rgba(0, 174, 240, 0.25)', color: '#00aef0' }}>
+          <div className="mb-4 rounded-lg px-3 py-2 text-center text-xs font-semibold capitalize border" style={{ backgroundColor: 'rgba(2, 132, 199, 0.1)', borderColor: 'rgba(2, 132, 199, 0.25)', color: '#0284C7' }}>
             Registering for {plan} plan ({cycle || "monthly"})
           </div>
         )}
@@ -164,7 +164,7 @@ function SignupPageInner() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-[#00aef0]"
+              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-primary"
               style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
             />
           </div>
@@ -178,7 +178,7 @@ function SignupPageInner() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-[#00aef0]"
+              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-primary"
               style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
             />
           </div>
@@ -192,7 +192,7 @@ function SignupPageInner() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-[#00aef0]"
+              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-primary"
               style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
             />
           </div>
@@ -206,7 +206,7 @@ function SignupPageInner() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-[#00aef0]"
+              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-primary"
               style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
             />
           </div>
@@ -215,7 +215,7 @@ function SignupPageInner() {
             type="submit"
             disabled={loading}
             className="w-full h-10 rounded-xl mt-2 font-semibold transition-all disabled:opacity-50"
-            style={{ backgroundColor: '#00aef0', color: '#ffffff', boxShadow: '0 10px 25px -5px rgba(0, 174, 240, 0.3)' }}
+            style={{ backgroundColor: '#0284C7', color: '#ffffff', boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.3)' }}
           >
             {loading ? "Creating account..." : "Create account"}
           </Button>
@@ -223,7 +223,7 @@ function SignupPageInner() {
 
         <p className="mt-6 text-center text-xs" style={{ color: '#64748b' }}>
           Already have an account?{" "}
-          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"} className="hover:underline font-medium" style={{ color: '#00aef0' }}>
+          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"} className="hover:underline font-medium" style={{ color: '#0284C7' }}>
             Sign in
           </Link>
         </p>

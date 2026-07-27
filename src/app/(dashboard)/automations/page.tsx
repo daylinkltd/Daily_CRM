@@ -146,7 +146,7 @@ export default function AutomationsPage() {
   if (automations === null) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#00aef0]" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     )
   }
@@ -164,7 +164,7 @@ export default function AutomationsPage() {
         </div>
         <Button
           onClick={() => router.push("/automations/new")}
-          className="bg-[#00aef0] text-white hover:bg-[#00aef0]"
+          className="bg-primary text-primary-foreground hover:bg-primary"
         >
           <Plus className="h-4 w-4" />
           Create Automation
@@ -182,12 +182,12 @@ export default function AutomationsPage() {
                 <button
                   key={slug}
                   onClick={() => startFromTemplate(slug)}
-                  className="group flex flex-col items-start rounded-xl border border-slate-800 bg-slate-900 p-4 text-left transition-colors hover:border-[#00aef0]/50 hover:bg-slate-900/80"
+                  className="group flex flex-col items-start rounded-xl border border-slate-800 bg-slate-900 p-4 text-left transition-colors hover:border-primary/50 hover:bg-slate-900/80"
                 >
-                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-[#00aef0]/10 text-[#00aef0] group-hover:bg-[#00aef0]/15">
+                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary/15">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <div className="text-sm font-semibold text-white">{t.name}</div>
+                  <div className="text-sm font-semibold text-foreground">{t.name}</div>
                   <p className="mt-1 text-xs text-slate-400">{t.description}</p>
                 </button>
               )
@@ -198,8 +198,8 @@ export default function AutomationsPage() {
 
       {automations.length === 0 ? (
         <div className="flex h-48 flex-col items-center justify-center rounded-xl border border-dashed border-slate-800 bg-slate-900/40">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#00aef0]/10">
-            <Zap className="h-6 w-6 text-[#00aef0]" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <Zap className="h-6 w-6 text-primary" />
           </div>
           <p className="mt-3 text-sm font-medium text-white">No automations yet</p>
           <p className="mt-1 text-xs text-slate-400">
@@ -275,10 +275,10 @@ function AutomationCard({
     <li className="rounded-xl border border-slate-800 bg-slate-900 transition-colors hover:border-slate-700">
       <div className="flex items-center gap-4 p-4">
         <div
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#00aef0]/10"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10"
           aria-hidden
         >
-          <Zap className="h-5 w-5 text-[#00aef0]" />
+          <Zap className="h-5 w-5 text-primary" />
         </div>
 
         <button
@@ -292,8 +292,8 @@ function AutomationCard({
             </span>
             {automation.is_active && (
               <span className="relative flex h-2 w-2" aria-label="active">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00aef0] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#00aef0]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
               </span>
             )}
           </div>
@@ -327,7 +327,7 @@ function AutomationCard({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Open menu"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-white data-[popup-open]:bg-slate-800"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-foreground data-[popup-open]:bg-slate-800"
             >
               <MoreVertical className="h-4 w-4" />
             </DropdownMenuTrigger>

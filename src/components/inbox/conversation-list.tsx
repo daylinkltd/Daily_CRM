@@ -179,7 +179,7 @@ export function ConversationList({
             <Button
               onClick={onOpenNewChat}
               size="sm"
-              className="bg-[#00aef0] hover:bg-[#00aef0]/90 text-white shrink-0 font-medium text-xs px-2.5 h-9"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 font-medium text-xs px-2.5 h-9"
               title="Start New Chat"
             >
               + New

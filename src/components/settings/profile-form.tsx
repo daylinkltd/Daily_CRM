@@ -249,7 +249,7 @@ export function ProfileForm() {
   return (
     <Card className="bg-slate-900/40 border-slate-800">
       <CardHeader>
-        <CardTitle className="text-white">Profile</CardTitle>
+        <CardTitle className="text-foreground">Profile</CardTitle>
         <CardDescription className="text-slate-400">
           How you show up across the app. Your avatar and name appear in the
           header, sidebar, and anywhere your teammates see you.
@@ -264,7 +264,7 @@ export function ProfileForm() {
               {currentAvatar ? (
                 <AvatarImage src={currentAvatar} alt={fullName || 'Avatar'} />
               ) : null}
-              <AvatarFallback className="bg-[#00aef0]/10 text-base text-[#00aef0]">
+              <AvatarFallback className="bg-primary/10 text-base text-primary">
                 {initial}
               </AvatarFallback>
             </Avatar>
@@ -292,7 +292,7 @@ export function ProfileForm() {
                   variant="ghost"
                   onClick={onRemoveAvatar}
                   disabled={saving}
-                  className="text-slate-400 hover:text-white"
+                  className="text-slate-400 hover:text-foreground"
                 >
                   <Trash2 className="size-4" />
                   Remove

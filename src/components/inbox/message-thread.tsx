@@ -857,7 +857,7 @@ export function MessageThread({
         {onOpenNewChat && (
           <Button
             onClick={onOpenNewChat}
-            className="mt-4 bg-[#00aef0] hover:bg-[#00aef0]/90 text-white font-medium text-xs shadow-md shadow-[#00aef0]/10"
+            className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs shadow-md shadow-primary/10"
           >
             + Start New Conversation
           </Button>

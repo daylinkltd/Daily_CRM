@@ -83,8 +83,8 @@ export function PasswordForm() {
   return (
     <Card className="bg-slate-900/40 border-slate-800">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <KeyRound className="size-4 text-[#00aef0]" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <KeyRound className="size-4 text-primary" />
           Password
         </CardTitle>
         <CardDescription className="text-slate-400">

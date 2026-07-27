@@ -35,7 +35,7 @@ export function FormsConfig() {
       <div className="space-y-6">
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white">Universal Form Webhook</CardTitle>
+            <CardTitle className="text-foreground">Universal Form Webhook</CardTitle>
             <CardDescription className="text-slate-400">Send form submissions from any platform (Google Forms, Facebook Lead Ads, Webflow, Typeform) directly into Daily CRM.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -43,7 +43,7 @@ export function FormsConfig() {
               <Label className="text-slate-300">Your Unique Capture URL</Label>
               <div className="flex gap-2">
                 <Input readOnly value={webhookUrl} className="bg-slate-800 border-slate-700 text-slate-300 font-mono text-xs" />
-                <Button variant="outline" onClick={copyWebhook} className="border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 shrink-0">
+                <Button variant="outline" onClick={copyWebhook} className="border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800 shrink-0">
                   <Copy className="size-4" />
                 </Button>
               </div>
@@ -53,13 +53,13 @@ export function FormsConfig() {
 
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white">Processing Rules</CardTitle>
+            <CardTitle className="text-foreground">Processing Rules</CardTitle>
             <CardDescription className="text-slate-400">How should new leads be handled when a form is submitted?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label className="text-slate-300">Assign to Pipeline</Label>
-              <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className="w-full h-10 rounded-md bg-slate-800 border-slate-700 text-white px-3">
+              <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className="w-full h-10 rounded-md bg-slate-800 border-slate-700 text-foreground px-3">
                 <option value="Sales">Sales Pipeline</option>
                 <option value="Support">Support Tickets</option>
                 <option value="None">Don't create a deal</option>
@@ -67,11 +67,11 @@ export function FormsConfig() {
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300">Auto-Apply Tag</Label>
-              <Input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. facebook-ad" className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500" />
+              <Input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. facebook-ad" className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500" />
             </div>
             
             <div className="pt-4">
-              <Button onClick={handleSave} disabled={saving} className="bg-[#00aef0] hover:bg-[#00aef0]/90 text-white">
+              <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Saving...</> : 'Save Rules'}
               </Button>
             </div>
@@ -81,7 +81,7 @@ export function FormsConfig() {
       <div>
         <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
           <CardHeader>
-            <CardTitle className="text-white text-base">Field Mapping</CardTitle>
+            <CardTitle className="text-foreground text-base">Field Mapping</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-slate-400 mb-4">

@@ -51,8 +51,8 @@ export function SessionsCard() {
     <>
       <Card className="bg-slate-900/40 border-slate-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-white">
-            <LogOut className="size-4 text-[#00aef0]" />
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <LogOut className="size-4 text-primary" />
             Active sessions
           </CardTitle>
           <CardDescription className="text-slate-400">
