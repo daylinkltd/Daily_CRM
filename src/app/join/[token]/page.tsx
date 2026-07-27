@@ -192,6 +192,9 @@ export default function JoinPage() {
         return;
       }
       toast.success('Welcome to the team');
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("pending_invite_token");
+      }
       // Full reload (not router.push) so AuthProvider re-fetches
       // the profile with the new account_id and account_role.
       window.location.href = '/dashboard';

@@ -77,7 +77,15 @@ function OnboardingInner() {
   }, [user]);
 
   // If user already has workspaces, they shouldn't be here, redirect them to dashboard
+  // If they have a pending invite token in progress, redirect them to the invitation join page.
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pendingInvite = sessionStorage.getItem("pending_invite_token");
+      if (pendingInvite) {
+        router.push(`/join/${encodeURIComponent(pendingInvite)}`);
+        return;
+      }
+    }
     if (workspaces.length > 0) {
       router.push("/dashboard");
     }

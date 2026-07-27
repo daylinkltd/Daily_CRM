@@ -86,7 +86,10 @@ function SignupPageInner() {
     if (cycle) {
       localStorage.setItem("crm_onboarding_cycle", cycle);
     }
-  }, [plan, cycle]);
+    if (inviteToken) {
+      sessionStorage.setItem("pending_invite_token", inviteToken);
+    }
+  }, [plan, cycle, inviteToken]);
 
   if (success) {
     return (

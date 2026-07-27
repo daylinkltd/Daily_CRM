@@ -129,6 +129,13 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pendingInvite = sessionStorage.getItem("pending_invite_token");
+      if (pendingInvite) {
+        router.push(`/join/${encodeURIComponent(pendingInvite)}`);
+        return;
+      }
+    }
     if (!loading && !user) {
       router.push("/login");
     } else if (!loading && user && !wsLoading && workspaces.length === 0) {

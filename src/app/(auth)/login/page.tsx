@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -11,13 +11,34 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#020817] flex flex-col items-center justify-center text-slate-400 text-sm">
+        Loading login...
+      </div>
+    }>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  const inviteToken = searchParams.get("invite");
+
+  useEffect(() => {
+    if (inviteToken) {
+      sessionStorage.setItem("pending_invite_token", inviteToken);
+    }
+  }, [inviteToken]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +53,11 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    if (inviteToken) {
+      router.push(`/join/${encodeURIComponent(inviteToken)}`);
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   return (
