@@ -262,6 +262,7 @@ export async function POST(request: Request) {
   //    include phone_number_id in the top-level metadata field we expect)
   // 3. Otherwise enforce Meta HMAC signature.
   let requiresSignature = true
+  let matchedAnyConfig = false
   const phoneIds = new Set<string>()
 
   if (body.entry) {
@@ -297,12 +298,19 @@ export async function POST(request: Request) {
       )
     })
     if (matchingConfigs.length > 0) {
+      matchedAnyConfig = true
       requiresSignature = matchingConfigs.some((c: { provider?: string }) => c.provider === 'meta')
     }
   }
 
-  // Fallback: no signature header present at all + at least one apiauto workspace
-  if (requiresSignature && !signature && dbConfigs) {
+  // Fallback: no signature header + at least one apiauto workspace —
+  // but ONLY when the payload matched no known config. A payload that
+  // names a known Meta phone_number_id must always carry a valid
+  // signature; without this guard, one apiauto tenant anywhere on the
+  // instance would let anonymous callers inject forged inbound
+  // messages into every Meta tenant's inbox. Unmatched payloads are
+  // dropped by the tenant-isolation check in processWebhook anyway.
+  if (requiresSignature && !signature && !matchedAnyConfig && dbConfigs) {
     const hasApiAuto = dbConfigs.some((c: { provider?: string }) => c.provider === 'apiauto')
     if (hasApiAuto) {
       console.log('[webhook] No signature header — allowing through for apiauto workspace')
@@ -494,21 +502,40 @@ async function handleStatusUpdate(status: {
   recipient_id: string
 }) {
   // 1) Mirror onto messages (legacy behavior) — Meta's status values
-  //    already match the CHECK constraint on messages.status.
-  const { error: msgErr } = await supabaseAdmin()
+  //    already match the CHECK constraint on messages.status. Apply
+  //    the same forward-only ladder as broadcast_recipients so an
+  //    out-of-order delivery receipt can't regress a `read` message
+  //    back to `delivered` (read ticks flickering off in the inbox).
+  const { data: msgRows, error: msgFetchErr } = await supabaseAdmin()
     .from('messages')
-    .update({ status: status.status })
+    .select('id, status')
     .eq('message_id', status.id)
 
-  if (msgErr) {
-    console.error('Error updating message status:', msgErr)
+  if (msgFetchErr) {
+    console.error('Error fetching message for status update:', msgFetchErr)
+  } else if (msgRows) {
+    for (const msgRow of msgRows) {
+      if (!isValidStatusTransition(msgRow.status, status.status)) continue
+      const { error: msgErr } = await supabaseAdmin()
+        .from('messages')
+        .update({ status: status.status })
+        .eq('id', msgRow.id)
+      if (msgErr) {
+        console.error('Error updating message status:', msgErr)
+      }
+    }
   }
 
   // 2) Mirror onto broadcast_recipients via whatsapp_message_id
   //    (added in migration 003). The aggregate trigger on
   //    broadcast_recipients re-derives the parent broadcast's
   //    sent/delivered/read/failed counts automatically.
-  const tsIso = new Date(parseInt(status.timestamp) * 1000).toISOString()
+  //    Guard the timestamp — a non-numeric value would make
+  //    toISOString() throw and abort the whole webhook batch.
+  const tsMs = parseInt(status.timestamp) * 1000
+  const tsIso = Number.isFinite(tsMs)
+    ? new Date(tsMs).toISOString()
+    : new Date().toISOString()
 
   const { data: recipient, error: recFetchErr } = await supabaseAdmin()
     .from('broadcast_recipients')
@@ -644,6 +671,13 @@ async function processMessage(
     .eq('sender_type', 'customer')
   const isFirstInboundMessage = (priorCustomerMsgCount ?? 0) === 0
 
+  // Guard the timestamp — a malformed value would make toISOString()
+  // throw and drop every remaining message in this webhook batch.
+  const msgTsMs = parseInt(message.timestamp) * 1000
+  const msgCreatedAt = Number.isFinite(msgTsMs)
+    ? new Date(msgTsMs).toISOString()
+    : new Date().toISOString()
+
   const { error: msgError } = await supabaseAdmin().from('messages').insert({
     conversation_id: conversation.id,
     sender_type: 'customer',
@@ -652,7 +686,7 @@ async function processMessage(
     media_url: mediaUrl,
     message_id: message.id,
     status: 'delivered',
-    created_at: new Date(parseInt(message.timestamp) * 1000).toISOString(),
+    created_at: msgCreatedAt,
   })
 
   if (msgError) {
@@ -660,19 +694,31 @@ async function processMessage(
     return
   }
 
-  // Update conversation
-  const { error: convError } = await supabaseAdmin()
-    .from('conversations')
-    .update({
-      last_message_text: contentText || `[${message.type}]`,
-      last_message_at: new Date().toISOString(),
-      unread_count: (conversation.unread_count || 0) + 1,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', conversation.id)
+  // Update conversation. The unread counter uses an atomic SQL
+  // increment (migration 053) — a client-side read-modify-write loses
+  // counts when two messages of one webhook batch land concurrently.
+  // Falls back to the racy version when the RPC isn't installed yet.
+  const { error: rpcErr } = await supabaseAdmin().rpc(
+    'record_inbound_conversation_update',
+    {
+      p_conversation_id: conversation.id,
+      p_last_message_text: contentText || `[${message.type}]`,
+    }
+  )
+  if (rpcErr) {
+    const { error: convError } = await supabaseAdmin()
+      .from('conversations')
+      .update({
+        last_message_text: contentText || `[${message.type}]`,
+        last_message_at: new Date().toISOString(),
+        unread_count: (conversation.unread_count || 0) + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', conversation.id)
 
-  if (convError) {
-    console.error('Error updating conversation:', convError)
+    if (convError) {
+      console.error('Error updating conversation:', convError)
+    }
   }
 
   // If this contact was a recent broadcast recipient, flag the reply
@@ -988,13 +1034,19 @@ async function findOrCreateContact(
 }
 
 async function findOrCreateConversation(userId: string, contactId: string, workspaceId: string) {
-  // Look for existing conversation by contact_id first
+  // Look for existing conversation by contact_id first. The table has
+  // no unique constraint on (workspace_id, contact_id), so duplicates
+  // can exist — .maybeSingle() would error on >1 row and we'd insert
+  // yet another duplicate. Take the most recent one instead.
   let query = supabaseAdmin().from('conversations').select('*').eq('contact_id', contactId)
   if (workspaceId) {
     query = query.eq('workspace_id', workspaceId)
   }
 
-  const { data: existing } = await query.maybeSingle()
+  const { data: existingRows } = await query
+    .order('last_message_at', { ascending: false, nullsFirst: false })
+    .limit(1)
+  const existing = existingRows?.[0]
 
   if (existing) {
     if (workspaceId && !existing.workspace_id) {
@@ -1027,8 +1079,9 @@ async function findOrCreateConversation(userId: string, contactId: string, works
         .from('conversations')
         .select('*')
         .eq('contact_id', contactId)
-        .maybeSingle()
-      if (raced.data) return raced.data
+        .order('last_message_at', { ascending: false, nullsFirst: false })
+        .limit(1)
+      if (raced.data?.[0]) return raced.data[0]
     }
     console.error('Error creating conversation:', createError)
     return null

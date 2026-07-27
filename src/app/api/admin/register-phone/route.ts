@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { registerPhoneNumber } from '@/lib/whatsapp/meta-api'
 import { decrypt } from '@/lib/whatsapp/encryption'
+import { isAuthorizedAdminRequest } from '@/lib/auth/admin-gate'
 
 function supabaseAdmin() {
   return createClient(
@@ -16,8 +17,14 @@ function supabaseAdmin() {
  */
 export async function POST(request: Request) {
   try {
+    if (!(await isAuthorizedAdminRequest(request))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json().catch(() => ({}))
-    const pin = body.pin || '123456'
+    // Priority: explicit request pin → META_TWO_STEP_PIN env → the
+    // account's known two-step verification PIN.
+    const pin = body.pin || process.env.META_TWO_STEP_PIN || '792725'
 
     const supabase = supabaseAdmin()
     const { data: configs, error } = await supabase

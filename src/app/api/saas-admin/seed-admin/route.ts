@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-const ADMIN_EMAIL = 'info@daylink.in';
-const ADMIN_PASSWORD = 'Tech@132';
+// Prefer env-provided credentials; the literals remain only as a
+// fallback for existing deployments and should be rotated via env.
+const ADMIN_EMAIL = process.env.SAAS_ADMIN_EMAIL || 'info@daylink.in';
+const ADMIN_PASSWORD = process.env.SAAS_ADMIN_PASSWORD || 'Tech@132';
 
 /**
  * GET /api/saas-admin/seed-admin
@@ -21,14 +23,17 @@ export async function GET(request: NextRequest) {
   const secret = request.nextUrl.searchParams.get('secret');
   const envSecret = process.env.ADMIN_SEED_SECRET;
 
-  if (envSecret && secret !== envSecret) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-  if (!envSecret && process.env.NODE_ENV === 'production') {
+  // ADMIN_SEED_SECRET is required in EVERY environment. The previous
+  // dev-mode bypass meant any visitor to the login page could reset
+  // the super-admin password to the seed value.
+  if (!envSecret) {
     return NextResponse.json(
-      { error: 'Set ADMIN_SEED_SECRET in env for production use' },
+      { error: 'Set ADMIN_SEED_SECRET in env to enable this endpoint' },
       { status: 403 }
     );
+  }
+  if (secret !== envSecret) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   try {

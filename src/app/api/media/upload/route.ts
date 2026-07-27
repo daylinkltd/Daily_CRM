@@ -88,8 +88,12 @@ export async function POST(req: NextRequest) {
     }
 
     const uniqueId = uuidv4();
-    const extension = file.name.split('.').pop() || 'bin';
-    const sanitizedOriginalName = sanitize(file.name.replace(`.${extension}`, ''));
+    // Sanitize the extension as well as the stem — an unsanitized
+    // extension like "js/../../x" lets join() escape public/uploads.
+    const rawExtension = file.name.split('.').pop() || 'bin';
+    const extension =
+      rawExtension.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10) || 'bin';
+    const sanitizedOriginalName = sanitize(file.name.replace(/\.[^.]*$/, ''));
     const savedName = `${sanitizedOriginalName}_${uniqueId.substring(0, 8)}.${extension}`;
     
     // Construct local path: public/uploads/[Workspace Name]/[Subfolder]/[savedName]

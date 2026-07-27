@@ -273,8 +273,14 @@ export async function POST(
       if (typeof value === 'object' && value !== null && 'base64' in value && 'name' in value) {
         const fileObj = value as any;
         const uniqueId = Math.random().toString(36).substring(2, 10);
-        const extension = fileObj.name.split('.').pop() || 'bin';
-        const sanitizedOriginalName = sanitize(fileObj.name.replace(`.${extension}`, ''));
+        // The extension MUST be sanitized too — "a.js/../../x" would
+        // otherwise let join() escape public/uploads (path traversal).
+        const rawExtension = String(fileObj.name).split('.').pop() || 'bin';
+        const extension =
+          rawExtension.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10) || 'bin';
+        const sanitizedOriginalName = sanitize(
+          String(fileObj.name).replace(/\.[^.]*$/, '')
+        );
         const savedName = `${sanitizedOriginalName}_${uniqueId}.${extension}`;
         const relativePath = `/uploads/${workspaceName}/${subFolder}/${savedName}`;
 

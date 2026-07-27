@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server'
+import { timingSafeEqual } from 'node:crypto'
 import { supabaseAdmin } from '@/lib/automations/admin-client'
 import { resumePendingExecution } from '@/lib/automations/engine'
 import type { AutomationContext } from '@/lib/automations/engine'
+
+function secretsMatch(supplied: string | null, expected: string): boolean {
+  if (!supplied) return false
+  const a = Buffer.from(supplied)
+  const b = Buffer.from(expected)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
 
 /**
  * Drain due `automation_pending_executions` rows. Meant to be hit
@@ -20,7 +28,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'cron not configured' }, { status: 503 })
   }
   const supplied = request.headers.get('x-cron-secret')
-  if (supplied !== expected) {
+  if (!secretsMatch(supplied, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -47,18 +55,30 @@ export async function GET(request: Request) {
       .maybeSingle()
     if (!claim) continue
 
-    await resumePendingExecution({
-      id: row.id as string,
-      automation_id: row.automation_id as string,
-      user_id: row.user_id as string,
-      contact_id: (row.contact_id as string | null) ?? null,
-      log_id: (row.log_id as string | null) ?? null,
-      parent_step_id: (row.parent_step_id as string | null) ?? null,
-      branch: (row.branch as 'yes' | 'no' | null) ?? null,
-      next_step_position: row.next_step_position as number,
-      context: (row.context as AutomationContext) ?? {},
-    })
-    processed++
+    // The row is already claimed (status = 'running'); if the resume
+    // throws we must release it back to a terminal state, or it stays
+    // 'running' forever and the rest of the batch is skipped.
+    try {
+      await resumePendingExecution({
+        id: row.id as string,
+        automation_id: row.automation_id as string,
+        user_id: row.user_id as string,
+        contact_id: (row.contact_id as string | null) ?? null,
+        log_id: (row.log_id as string | null) ?? null,
+        parent_step_id: (row.parent_step_id as string | null) ?? null,
+        branch: (row.branch as 'yes' | 'no' | null) ?? null,
+        next_step_position: row.next_step_position as number,
+        context: (row.context as AutomationContext) ?? {},
+      })
+      processed++
+    } catch (err) {
+      console.error('[automations/cron] resume failed for row', row.id, err)
+      await admin
+        .from('automation_pending_executions')
+        .update({ status: 'failed' })
+        .eq('id', row.id)
+        .eq('status', 'running')
+    }
   }
 
   return NextResponse.json({ processed })

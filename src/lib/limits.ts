@@ -135,6 +135,18 @@ export async function checkMessageLimit(workspaceId: string): Promise<{
     };
   } catch (err: any) {
     console.error('[checkMessageLimit] error:', err.message);
+    // A workspace that definitively doesn't exist must not send —
+    // fail closed. Transient DB errors still fail open so a hiccup
+    // doesn't block every tenant's messaging.
+    if (typeof err?.message === 'string' && err.message.includes('Workspace not found')) {
+      return {
+        allowed: false,
+        warn: false,
+        messageCount: 0,
+        limit: 0,
+        error: 'Workspace not found for this conversation. Cannot verify plan limits.',
+      };
+    }
     return { allowed: true, warn: false, messageCount: 0, limit: 999999 };
   }
 }

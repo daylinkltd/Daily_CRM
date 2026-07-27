@@ -13,6 +13,7 @@ import {
   rateLimitResponse,
   RATE_LIMITS,
 } from '@/lib/rate-limit'
+import { withMetaErrorHint } from '@/lib/whatsapp/meta-error-hints'
 
 interface BroadcastResult {
   phone: string
@@ -218,7 +219,7 @@ export async function POST(request: Request) {
         results.push({
           phone: recipient.phone,
           status: 'failed',
-          error: lastError || 'Unknown error',
+          error: withMetaErrorHint(lastError || 'Unknown error'),
         })
         failedCount++
       }

@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { recentWebhookLogs } from '@/app/api/whatsapp/webhook/route';
-import { registerPhoneNumber, subscribeWabaToApp } from '@/lib/whatsapp/meta-api';
+import { registerPhoneNumber } from '@/lib/whatsapp/meta-api';
+import { ensureWabaSubscribed } from '@/lib/whatsapp/webhook-subscribe';
 import { decrypt } from '@/lib/whatsapp/encryption';
+import { isAuthorizedAdminRequest } from '@/lib/auth/admin-gate';
 
 function supabaseAdmin() {
   return createClient(
@@ -13,6 +15,10 @@ function supabaseAdmin() {
 
 export async function GET(request: Request) {
   try {
+    if (!(await isAuthorizedAdminRequest(request))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const supabase = supabaseAdmin();
 
     // 1. Fetch configs
@@ -29,21 +35,36 @@ export async function GET(request: Request) {
           try {
             const token = decrypt(config.access_token);
             if (config.waba_id) {
-              try {
-                await subscribeWabaToApp({ wabaId: config.waba_id, accessToken: token });
-                subscriptionResults.push({ waba_id: config.waba_id, status: 'subscribed' });
-              } catch (err) {
-                subscriptionResults.push({
-                  waba_id: config.waba_id,
-                  status: 'error',
-                  error: err instanceof Error ? err.message : String(err),
-                });
+              // Decrypt the workspace verify token so the subscription
+              // can pin inbound delivery to this deployment's webhook
+              // URL (override_callback_uri). Falls back to the
+              // app-dashboard callback when the pin fails.
+              let verifyToken: string | null = null;
+              if (config.verify_token) {
+                try {
+                  verifyToken = decrypt(config.verify_token);
+                } catch {
+                  verifyToken = config.verify_token;
+                }
               }
+              const sub = await ensureWabaSubscribed({
+                wabaId: config.waba_id,
+                accessToken: token,
+                verifyToken,
+              });
+              subscriptionResults.push({
+                waba_id: config.waba_id,
+                status: sub.subscribed ? `subscribed (${sub.mode})` : 'error',
+                ...(sub.error ? { error: sub.error } : {}),
+              });
             }
             if (config.phone_number_id) {
               try {
                 const url = new URL(request.url);
-                const pin = url.searchParams.get('pin') || '792725';
+                const pin =
+                  url.searchParams.get('pin') ||
+                  process.env.META_TWO_STEP_PIN ||
+                  '792725';
                 const res = await registerPhoneNumber({
                   phoneNumberId: config.phone_number_id,
                   accessToken: token,
@@ -133,6 +154,10 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
+    if (!(await isAuthorizedAdminRequest(request))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const phone = body.phone || '919876543210';
     const messageText = body.message || 'Hello from WhatsApp CRM Test!';

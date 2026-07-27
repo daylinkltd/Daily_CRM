@@ -85,10 +85,21 @@ export async function POST(request: NextRequest) {
     let targetUserId: string;
 
     // --- Check if user already exists ---
-    const { data: existingUsers } = await adminClient.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(
-      (u) => u.email?.toLowerCase() === normalizedEmail
-    );
+    // listUsers defaults to 50 per page; past 50 users an existing
+    // account wouldn't be found and we'd wrongly try createUser.
+    // Paginate until the email is found or the pages run out.
+    let existingUser: { id: string; email?: string } | undefined;
+    for (let page = 1; page <= 20 && !existingUser; page++) {
+      const { data: pageData, error: listErr } = await adminClient.auth.admin.listUsers({
+        page,
+        perPage: 1000,
+      });
+      if (listErr || !pageData?.users?.length) break;
+      existingUser = pageData.users.find(
+        (u) => u.email?.toLowerCase() === normalizedEmail
+      );
+      if (pageData.users.length < 1000) break;
+    }
 
     if (existingUser) {
       // User exists — just add them to the workspace
@@ -140,6 +151,15 @@ export async function POST(request: NextRequest) {
     }
 
     // --- Insert workspace_members row ---
+    // Only 'admin' and 'member' are assignable. The DB enum also
+    // accepts 'owner' — without this whitelist an admin could mint
+    // new owners (privilege escalation).
+    if (workspace_role && !['admin', 'member'].includes(workspace_role)) {
+      return NextResponse.json(
+        { error: 'workspace_role must be "admin" or "member"' },
+        { status: 400 }
+      );
+    }
     const memberInsert: Record<string, unknown> = {
       workspace_id,
       user_id: targetUserId,
@@ -200,7 +220,17 @@ export async function PATCH(request: NextRequest) {
 
     const updates: Record<string, unknown> = {};
     if (role_id !== undefined) updates.role_id = role_id;
-    if (workspace_role) updates.role = workspace_role;
+    // Whitelist — the DB enum also accepts 'owner', so an unchecked
+    // value would let an admin promote themselves to owner.
+    if (workspace_role) {
+      if (!['admin', 'member'].includes(workspace_role)) {
+        return NextResponse.json(
+          { error: 'workspace_role must be "admin" or "member"' },
+          { status: 400 }
+        );
+      }
+      updates.role = workspace_role;
+    }
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No updates provided' }, { status: 400 });

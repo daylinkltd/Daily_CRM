@@ -158,6 +158,15 @@ export async function registerPhoneNumber(
 export interface SubscribeWabaToAppArgs {
   wabaId: string
   accessToken: string
+  /**
+   * When set (together with `verifyToken`), Meta routes THIS WABA's
+   * webhook events to this URL instead of the app-dashboard callback.
+   * Meta verifies the URI with a GET challenge at subscribe time, so
+   * the target must already respond to hub.challenge with this
+   * verify token.
+   */
+  overrideCallbackUri?: string
+  verifyToken?: string
 }
 
 /**
@@ -167,11 +176,23 @@ export interface SubscribeWabaToAppArgs {
 export async function subscribeWabaToApp(
   args: SubscribeWabaToAppArgs
 ): Promise<void> {
-  const { wabaId, accessToken } = args
+  const { wabaId, accessToken, overrideCallbackUri, verifyToken } = args
   const url = `${META_API_BASE}/${wabaId}/subscribed_apps`
+  const useOverride = Boolean(overrideCallbackUri && verifyToken)
+  const params = new URLSearchParams()
+  if (useOverride) {
+    params.set('override_callback_uri', overrideCallbackUri!)
+    params.set('verify_token', verifyToken!)
+  }
   const response = await fetch(url, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...(useOverride
+        ? { 'Content-Type': 'application/x-www-form-urlencoded' }
+        : {}),
+    },
+    body: useOverride ? params.toString() : undefined,
   })
   if (!response.ok) {
     await throwMetaError(response, `Meta API error: ${response.status}`)

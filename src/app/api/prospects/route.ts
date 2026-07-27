@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
 const VALID_PLANS = ['growth', 'custom'];
 
 export async function POST(request: NextRequest) {
   try {
+    // Public lead form — rate-limit per IP so the prospects table
+    // can't be flooded by an anonymous loop.
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      'unknown';
+    const limit = checkRateLimit(`prospects:${ip}`, {
+      limit: 5,
+      windowMs: 60_000,
+    });
+    if (!limit.success) {
+      return rateLimitResponse(limit);
+    }
+
     const body = await request.json();
 
     const { full_name, company_name, email, phone, team_size, plan_interest, message } = body as {
@@ -63,6 +78,24 @@ export async function POST(request: NextRequest) {
 // Allow PATCH to update prospect status (admin only)
 export async function PATCH(request: NextRequest) {
   try {
+    // "Admin only" must actually be enforced — this mutates the sales
+    // pipeline with a service-role client.
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('system_role')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (profile?.system_role !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const admin = createAdminClient();
     const body = await request.json();
     const { id, status } = body as { id?: string; status?: string };

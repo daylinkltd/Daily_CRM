@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getWhatsAppProvider } from "@/lib/whatsapp/providers/factory";
 import { encrypt, decrypt } from "@/lib/whatsapp/encryption";
+import { ensureWabaSubscribed } from "@/lib/whatsapp/webhook-subscribe";
 
 /**
  * GET /api/whatsapp/config?workspace_id=...
@@ -313,7 +314,35 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, phone_info: phoneInfo });
+    // Wire inbound webhooks immediately after a successful save.
+    // Without this, saving credentials only enables OUTBOUND sending —
+    // Meta won't deliver inbound messages until the WABA is subscribed
+    // to our app. Best-effort: a subscription failure must not fail
+    // the save, but it is surfaced so the UI can warn.
+    let webhookSubscription: {
+      subscribed: boolean;
+      mode: string;
+      error?: string;
+    } | null = null;
+    if (provider === "meta" && waba_id) {
+      webhookSubscription = await ensureWabaSubscribed({
+        wabaId: waba_id,
+        accessToken: effectiveAccessToken,
+        verifyToken: finalVerifyToken,
+      });
+      if (!webhookSubscription.subscribed) {
+        console.error(
+          "[whatsapp/config] WABA webhook subscription failed:",
+          webhookSubscription.error
+        );
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      phone_info: phoneInfo,
+      webhook_subscription: webhookSubscription,
+    });
   } catch (error) {
     console.error("Error in WhatsApp config POST:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

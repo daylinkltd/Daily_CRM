@@ -378,12 +378,36 @@ async function runStep(step: AutomationStep, args: ExecuteArgs): Promise<string>
       if (!args.contactId) throw new Error('assign_conversation needs a contact')
       let agentId = cfg.agent_id
       if (cfg.mode === 'round_robin') {
-        const { data: profiles } = await db
-          .from('profiles')
+        // Distribute across ALL workspace members, picking whoever has
+        // the fewest open conversations. The previous version queried
+        // profiles filtered to the automation owner's user_id, so every
+        // conversation was "rotated" to the same single person.
+        const workspaceId = await resolveAutomationWorkspaceId(args.automation.user_id)
+        const { data: members } = await db
+          .from('workspace_members')
           .select('user_id')
-          .eq('user_id', args.automation.user_id)
-          .limit(1)
-        agentId = profiles?.[0]?.user_id
+          .eq('workspace_id', workspaceId ?? '00000000-0000-0000-0000-000000000000')
+        const candidates = (members ?? [])
+          .map((m: { user_id: string | null }) => m.user_id)
+          .filter(Boolean) as string[]
+        if (candidates.length > 0) {
+          let best: string = candidates[0]
+          let bestCount = Number.POSITIVE_INFINITY
+          for (const candidate of candidates) {
+            const { count } = await db
+              .from('conversations')
+              .select('id', { count: 'exact', head: true })
+              .eq('assigned_agent_id', candidate)
+              .eq('status', 'open')
+            if ((count ?? 0) < bestCount) {
+              bestCount = count ?? 0
+              best = candidate
+            }
+          }
+          agentId = best
+        } else {
+          agentId = args.automation.user_id
+        }
       }
       if (!agentId) return 'no agent resolved'
       await db
@@ -426,55 +450,62 @@ async function runStep(step: AutomationStep, args: ExecuteArgs): Promise<string>
     case 'create_project': {
       const cfg = step.step_config as CreateProjectStepConfig
       if (!cfg.name) throw new Error('create_project needs a name')
-      await db.from('projects').insert({
-        workspace_id: args.automation.account_id,
+      // automations rows carry user_id, not a workspace — resolve it.
+      // The previous `args.automation.account_id` was always undefined
+      // (no such column), so this step failed on every run.
+      const workspaceId = await resolveAutomationWorkspaceId(args.automation.user_id)
+      if (!workspaceId) throw new Error('create_project: no workspace for automation owner')
+      const { error } = await db.from('projects').insert({
+        workspace_id: workspaceId,
         name: interpolate(cfg.name, args),
         manager_workspace_member_id: cfg.manager_id || null,
         budget: cfg.budget || null,
         status: 'active',
         project_source: 'AUTOMATION',
       })
+      if (error) throw new Error(`create_project failed: ${error.message}`)
       return 'project created'
     }
 
     case 'create_task': {
       const cfg = step.step_config as CreateTaskStepConfig
       if (!cfg.title) throw new Error('create_task needs a title')
-      await db.from('tasks').insert({
-        workspace_id: args.automation.account_id,
+      const workspaceId = await resolveAutomationWorkspaceId(args.automation.user_id)
+      if (!workspaceId) throw new Error('create_task: no workspace for automation owner')
+      // created_by_workspace_member_id is a FK to workspace_members.id
+      // — writing the owner's auth user id there violated the FK and
+      // failed the step every time.
+      const { data: creatorMember } = await db
+        .from('workspace_members')
+        .select('id')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', args.automation.user_id)
+        .maybeSingle()
+      const { error } = await db.from('tasks').insert({
+        workspace_id: workspaceId,
         title: interpolate(cfg.title, args),
         priority: cfg.priority || 'medium',
         project_id: cfg.project_id || null,
         assigned_workspace_member_id: cfg.assignee_id || null,
         task_type: cfg.project_id ? 'PROJECT' : 'GENERAL',
-        created_by_workspace_member_id: args.automation.user_id, // As a fallback/system initiator
+        created_by_workspace_member_id: creatorMember?.id ?? null,
         status: 'todo',
       })
+      if (error) throw new Error(`create_task failed: ${error.message}`)
       return 'task created'
     }
 
     case 'create_employee': {
       const cfg = step.step_config as CreateEmployeeStepConfig
       if (!cfg.first_name || !cfg.last_name || !cfg.email) throw new Error('create_employee needs name and email')
-      
-      // Since automation doesn't have Supabase Auth context to create a real user,
-      // we can create a workspace_member placeholder (if schema allows null user_id)
-      // or invite them via edge function. For now, we'll assume a placeholder workflow.
-      const { data: member } = await db.from('workspace_members').insert({
-        workspace_id: args.automation.account_id,
-        role: 'member',
-      }).select().single()
-
-      if (member) {
-        await db.from('employee_profiles').insert({
-          workspace_member_id: member.id,
-          workspace_id: args.automation.account_id,
-          employment_status: 'ACTIVE',
-          department_id: cfg.department_id || null,
-          designation_id: cfg.designation_id || null,
-        })
-      }
-      return 'employee created'
+      // workspace_members requires a real auth user and
+      // employee_profiles has no name/email columns — a placeholder
+      // "employee" cannot be represented in the current schema. Fail
+      // loudly instead of silently inserting a broken row and
+      // reporting success.
+      throw new Error(
+        'create_employee is not supported yet: employees must be invited through Settings → Team so they have a real user account.'
+      )
     }
 
     case 'send_webhook': {
@@ -544,6 +575,21 @@ function triggerMatches(automation: Automation, ctx: AutomationContext | undefin
   })
 }
 
+/**
+ * automations rows are keyed by user_id — resolve the owner's
+ * workspace for steps that write workspace-scoped tables
+ * (projects, tasks, conversations round-robin).
+ */
+async function resolveAutomationWorkspaceId(userId: string): Promise<string | null> {
+  const { data } = await supabaseAdmin()
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', userId)
+    .limit(1)
+    .maybeSingle()
+  return data?.workspace_id ?? null
+}
+
 async function evaluateCondition(cfg: ConditionStepConfig, args: ExecuteArgs): Promise<boolean> {
   const db = supabaseAdmin()
   switch (cfg.subject) {
@@ -558,6 +604,11 @@ async function evaluateCondition(cfg: ConditionStepConfig, args: ExecuteArgs): P
     }
     case 'contact_field': {
       if (!args.contactId || !cfg.operand) return false
+      // Whitelist the column — cfg.operand is user-authored step
+      // config, and interpolating it into the select list of a
+      // service-role query is a PostgREST injection vector.
+      const CONTACT_FIELDS = new Set(['name', 'email', 'phone', 'company', 'source', 'notes'])
+      if (!CONTACT_FIELDS.has(cfg.operand)) return false
       const { data } = await db
         .from('contacts')
         .select(cfg.operand)

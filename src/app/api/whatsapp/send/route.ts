@@ -8,6 +8,7 @@ import {
   phoneVariants,
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
+import { withMetaErrorHint } from '@/lib/whatsapp/meta-error-hints'
 import {
   checkRateLimit,
   rateLimitResponse,
@@ -200,7 +201,7 @@ export async function POST(request: Request) {
       const message = err instanceof Error ? err.message : 'API error'
       console.error('WhatsApp send failed for all variants:', message)
       return NextResponse.json(
-        { error: `WhatsApp API error: ${message}` },
+        { error: `WhatsApp API error: ${withMetaErrorHint(message)}` },
         { status: 502 }
       )
     }

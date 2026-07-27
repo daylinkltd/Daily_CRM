@@ -55,22 +55,37 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
-    // 4. Clean up any orphaned workspaces not owned by super_admin
-    //    (just in case FK cascades didn't catch everything)
-    const { error: wsError } = await admin
-      .from('workspaces')
-      .delete()
-      .not(
-        'id',
-        'in',
-        `(SELECT workspace_id FROM workspace_members wm
-           JOIN profiles p ON p.user_id = wm.user_id
-           WHERE p.system_role = 'super_admin')`
-      );
+    // 4. Clean up workspaces that now have NO members at all (FK
+    //    cascades removed the memberships with the users). PostgREST
+    //    can't evaluate a SQL subquery inside .not('id','in',...) —
+    //    the previous version passed one as a string, which either
+    //    errored (cleanup silently never ran) or, worse, would treat
+    //    the literal as a value list and match EVERY workspace for
+    //    deletion. Resolve the member-owned ids first, then delete
+    //    only true orphans.
+    const { data: memberRows, error: memberErr } = await admin
+      .from('workspace_members')
+      .select('workspace_id');
 
-    // wsError is non-fatal — log it but proceed
-    if (wsError) {
-      console.warn('[delete-tenants] Workspace cleanup warn:', wsError.message);
+    if (memberErr) {
+      console.warn('[delete-tenants] Workspace cleanup skipped:', memberErr.message);
+    } else {
+      const ownedIds = [
+        ...new Set((memberRows ?? []).map((m) => m.workspace_id).filter(Boolean)),
+      ];
+      let orphanQuery = admin.from('workspaces').delete();
+      if (ownedIds.length > 0) {
+        orphanQuery = orphanQuery.not(
+          'id',
+          'in',
+          `(${ownedIds.join(',')})`
+        );
+      }
+      const { error: wsError } = await orphanQuery;
+      // wsError is non-fatal — log it but proceed
+      if (wsError) {
+        console.warn('[delete-tenants] Workspace cleanup warn:', wsError.message);
+      }
     }
 
     return NextResponse.json({

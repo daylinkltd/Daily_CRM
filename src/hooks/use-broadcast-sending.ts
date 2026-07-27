@@ -463,7 +463,22 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
               : [],
           }));
 
-        if (apiRecipients.length === 0) continue;
+        // A batch where nobody has a phone number still needs its
+        // rows reconciled — skipping before the loop below stranded
+        // them in `pending` forever and the broadcast showed "sent".
+        if (apiRecipients.length === 0) {
+          for (const recipient of batch) {
+            failedCount++;
+            await supabase
+              .from('broadcast_recipients')
+              .update({
+                status: 'failed',
+                error_message: 'No phone number on contact',
+              })
+              .eq('id', recipient.id);
+          }
+          continue;
+        }
 
         try {
           const res = await fetch('/api/whatsapp/broadcast', {

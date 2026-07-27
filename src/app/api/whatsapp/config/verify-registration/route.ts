@@ -5,30 +5,26 @@ import {
   getSubscribedApps,
   verifyPhoneNumber,
 } from '@/lib/whatsapp/meta-api'
+import { getWebhookCallbackUrl } from '@/lib/whatsapp/webhook-subscribe'
 
 /**
- * GET /api/whatsapp/config/verify-registration
+ * GET /api/whatsapp/config/verify-registration?workspace_id=...
  *
- * Diagnostic endpoint — confirms the user's saved phone number is
- * actually reachable on Meta's side. Solves the failure mode that
- * surfaced the multi-number bug originally: "UI says Connected but
- * Meta isn't delivering events."
+ * Diagnostic endpoint — confirms the workspace's saved phone number is
+ * actually reachable on Meta's side. Solves the failure mode: "UI says
+ * Connected but Meta isn't delivering events."
  *
- * Three checks run independently so the UI can show which step
- * passes and which fails:
+ * Checks run independently so the UI can show which step passes:
  *
- *   1. phone_info  — GET /{phone_number_id} succeeds
- *   2. waba_subscription — our app appears in
- *                    GET /{waba_id}/subscribed_apps
- *   3. registered_at — local timestamp set by POST /config when
- *                    /register last succeeded; NULL means the
- *                    number was saved but never actually subscribed
+ *   1. phone_metadata_ok    — GET /{phone_number_id} succeeds
+ *   2. waba_subscribed_to_app — our app appears in
+ *                             GET /{waba_id}/subscribed_apps
  *
  * Returns 200 in every case so the UI can render diagnostic detail
- * rather than a generic error toast. The combined `live` flag is
- * what the UI badges on.
+ * rather than a generic error toast. The combined `live` flag is what
+ * the UI badges on.
  */
-export async function GET() {
+export async function GET(request: Request) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -38,27 +34,47 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // whatsapp_config is one-row-per-account post-017. Resolve the
-  // caller's account_id so a teammate who joined an existing account
-  // sees the same registration state as the admin who set it up.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('account_id')
-    .eq('user_id', user.id)
-    .maybeSingle()
-  const accountId = profile?.account_id as string | undefined
-  if (!accountId) {
+  // whatsapp_config is scoped by workspace_id. Accept it as a query
+  // param (like GET /api/whatsapp/config); fall back to the caller's
+  // first workspace membership when omitted.
+  const { searchParams } = new URL(request.url)
+  let workspaceId = searchParams.get('workspace_id')
+
+  if (workspaceId) {
+    const { data: member } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (!member) {
+      return NextResponse.json(
+        { error: 'Forbidden: not a member of this workspace' },
+        { status: 403 }
+      )
+    }
+  } else {
+    const { data: member } = await supabase
+      .from('workspace_members')
+      .select('workspace_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle()
+    workspaceId = member?.workspace_id ?? null
+  }
+
+  if (!workspaceId) {
     return NextResponse.json({
       live: false,
       checks: { config_exists: false },
-      message: 'Your profile is not linked to an account.',
+      message: 'Your profile is not linked to a workspace.',
     })
   }
 
   const { data: config } = await supabase
     .from('whatsapp_config')
     .select('*')
-    .eq('account_id', accountId)
+    .eq('workspace_id', workspaceId)
     .maybeSingle()
 
   if (!config) {
@@ -89,13 +105,11 @@ export async function GET() {
     token_decryptable: boolean
     phone_metadata_ok: boolean
     waba_subscribed_to_app: boolean | null
-    locally_marked_registered: boolean
   } = {
     config_exists: true,
     token_decryptable: true,
     phone_metadata_ok: false,
     waba_subscribed_to_app: null,
-    locally_marked_registered: config.registered_at != null,
   }
   const errors: string[] = []
 
@@ -141,16 +155,12 @@ export async function GET() {
   }
 
   const live =
-    checks.phone_metadata_ok &&
-    (checks.waba_subscribed_to_app ?? false) &&
-    checks.locally_marked_registered
+    checks.phone_metadata_ok && (checks.waba_subscribed_to_app ?? false)
 
   return NextResponse.json({
     live,
     checks,
     errors,
-    last_registration_error: config.last_registration_error ?? null,
-    registered_at: config.registered_at ?? null,
-    subscribed_apps_at: config.subscribed_apps_at ?? null,
+    webhook_callback_url: getWebhookCallbackUrl(),
   })
 }

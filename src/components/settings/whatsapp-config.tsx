@@ -290,6 +290,24 @@ export function WhatsAppConfig() {
           : `${providerName} configuration saved successfully`
       );
 
+      // Surface the inbound-webhook wiring result so a silent inbox
+      // isn't discovered days later. `override_callback` means Meta
+      // will deliver directly to this deployment's webhook URL.
+      const sub = data.webhook_subscription;
+      if (sub) {
+        if (!sub.subscribed) {
+          toast.error(
+            `Saved, but inbound webhook subscription failed: ${sub.error || 'unknown error'}. Incoming messages will NOT arrive until this is resolved.`,
+            { duration: 12000 }
+          );
+        } else if (sub.mode === 'app_default') {
+          toast.warning(
+            'Webhook subscribed via your Meta App dashboard settings. Make sure the Callback URL there points to this CRM, or incoming messages will not arrive.',
+            { duration: 10000 }
+          );
+        }
+      }
+
       await fetchConfig();
     } catch (err) {
       console.error('Save error:', err);
