@@ -543,7 +543,7 @@ export default function ProductsPage() {
           <Link href="/settings?tab=retail">
             <Button variant="outline" className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11">
               <Settings className="h-4 w-4 text-[#00aef0]" />
-              Master Template: <span className="text-white font-bold">{activeTemplate}</span>
+              Master Template: <span className="text-[#00aef0] font-extrabold">{activeTemplate}</span>
             </Button>
           </Link>
           <Button
@@ -703,7 +703,7 @@ export default function ProductsPage() {
               <div className="flex items-center gap-2 text-xs">
                 <Sparkles className="h-4 w-4 text-[#00aef0]" />
                 <span className="text-slate-400">Active Business Template:</span>
-                <span className="font-extrabold text-white text-sm">{activeTemplate}</span>
+                <span className="font-extrabold text-[#00aef0] text-sm">{activeTemplate}</span>
               </div>
               <Link href="/settings?tab=retail" className="text-[11px] text-[#00aef0] hover:underline flex items-center gap-1 font-semibold">
                 <Settings className="h-3 w-3" /> Settings
@@ -872,6 +872,300 @@ export default function ProductsPage() {
                             />
                             Waterproof / All-Weather Footwear
                           </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: JEWELLERY */}
+                  {activeTemplate === "JEWELLERY" && (
+                    <div className="space-y-2.5 bg-amber-500/10 p-3.5 rounded-2xl border border-amber-500/20 sm:col-span-2">
+                      <Label className="text-xs text-amber-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Gem className="h-4 w-4 text-amber-400" /> Jewellery Attributes (Karat, Weight, Making Charges)
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Karat Purity</Label>
+                          <select
+                            value={karatPurity}
+                            onChange={(e) => setKaratPurity(e.target.value)}
+                            className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-9 text-xs mt-1 px-2"
+                          >
+                            <option value="24K">24K (99.9% Pure Gold)</option>
+                            <option value="22K">22K (91.6% BIS Hallmark)</option>
+                            <option value="18K">18K (75% Gold)</option>
+                            <option value="14K">14K (58.5% Gold)</option>
+                            <option value="925 Silver">925 Sterling Silver</option>
+                            <option value="Platinum 950">Platinum 950</option>
+                          </select>
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Net Weight (grams)</Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g. 8.50"
+                            value={netWeightGrams}
+                            onChange={(e) => setNetWeightGrams(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Gross Weight (grams)</Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g. 10.00"
+                            value={grossWeightGrams}
+                            onChange={(e) => setGrossWeightGrams(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Stone / Diamond Weight (grams)</Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g. 1.50"
+                            value={stoneWeightGrams}
+                            onChange={(e) => setStoneWeightGrams(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Making Charges</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. ₹500 or 12%"
+                            value={makingCharge}
+                            onChange={(e) => setMakingCharge(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Wastage %</Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g. 3.5"
+                            value={wastagePercent}
+                            onChange={(e) => setWastagePercent(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">BIS Hallmark Number</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. HUID: AB1234"
+                            value={hallmarkNumber}
+                            onChange={(e) => setHallmarkNumber(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Diamond Weight (Carat)</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. 0.50 ct"
+                            value={diamondWeightCarat}
+                            onChange={(e) => setDiamondWeightCarat(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: ELECTRONICS */}
+                  {activeTemplate === "ELECTRONICS" && (
+                    <div className="space-y-2.5 bg-blue-500/10 p-3.5 rounded-2xl border border-blue-500/20 sm:col-span-2">
+                      <Label className="text-xs text-blue-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Smartphone className="h-4 w-4 text-blue-400" /> Electronics & Mobile Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Model Number</Label>
+                          <Input type="text" placeholder="e.g. iPhone 15 Pro / Samsung S24" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Processor / Chipset</Label>
+                          <Input type="text" placeholder="e.g. Apple A17 Pro / Snapdragon 8 Gen 3" value={processor} onChange={(e) => setProcessor(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">RAM / Storage</Label>
+                          <Input type="text" placeholder="e.g. 8GB RAM / 256GB" value={ramSize} onChange={(e) => setRamSize(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Display Size</Label>
+                          <Input type="text" placeholder='e.g. 6.7" AMOLED 120Hz' value={displaySize} onChange={(e) => setDisplaySize(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Battery Capacity (mAh)</Label>
+                          <Input type="text" placeholder="e.g. 5000 mAh" value={batteryCapacity} onChange={(e) => setBatteryCapacity(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Warranty (Months)</Label>
+                          <Input type="number" placeholder="e.g. 12" value={warrantyMonths} onChange={(e) => setWarrantyMonths(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: HARDWARE */}
+                  {activeTemplate === "HARDWARE" && (
+                    <div className="space-y-2.5 bg-orange-500/10 p-3.5 rounded-2xl border border-orange-500/20 sm:col-span-2">
+                      <Label className="text-xs text-orange-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Wrench className="h-4 w-4 text-orange-400" /> Hardware & Building Material Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Material Grade / Type</Label>
+                          <Input type="text" placeholder="e.g. IS 2062 Grade A / M.S. / CPVC" value={materialGrade} onChange={(e) => setMaterialGrade(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Dimensions (L × W × H / Dia)</Label>
+                          <Input type="text" placeholder="e.g. 12mm × 6m / 3/4 inch dia" value={furnitureDimensions} onChange={(e) => setFurnitureDimensions(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: FURNITURE */}
+                  {activeTemplate === "FURNITURE" && (
+                    <div className="space-y-2.5 bg-stone-500/10 p-3.5 rounded-2xl border border-stone-500/20 sm:col-span-2">
+                      <Label className="text-xs text-stone-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Armchair className="h-4 w-4 text-stone-400" /> Furniture Showroom Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Dimensions (L × W × H cm)</Label>
+                          <Input type="text" placeholder="e.g. 180 × 90 × 75 cm" value={furnitureDimensions} onChange={(e) => setFurnitureDimensions(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Wood / Material Type</Label>
+                          <Input type="text" placeholder="e.g. Sheesham / Teak / MDF / Engineered Wood" value={woodMaterialType} onChange={(e) => setWoodMaterialType(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Weight Capacity (kg)</Label>
+                          <Input type="text" placeholder="e.g. 120 kg" value={weightCapacityKg} onChange={(e) => setWeightCapacityKg(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div className="flex items-end">
+                          <label className="flex items-center gap-2 text-xs text-stone-300 cursor-pointer">
+                            <input type="checkbox" checked={isAssemblyRequired} onChange={(e) => setIsAssemblyRequired(e.target.checked)} className="rounded border-slate-800" />
+                            Assembly Required
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: AUTOMOBILE */}
+                  {activeTemplate === "AUTOMOBILE" && (
+                    <div className="space-y-2.5 bg-slate-500/10 p-3.5 rounded-2xl border border-slate-500/30 sm:col-span-2">
+                      <Label className="text-xs text-slate-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Car className="h-4 w-4 text-slate-400" /> Automobile & Spare Parts Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">OEM Part Number</Label>
+                          <Input type="text" placeholder="e.g. MRF-TYR-185/65R15" value={oemPartNumber} onChange={(e) => setOemPartNumber(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Vehicle Fitment</Label>
+                          <Input type="text" placeholder="e.g. Honda City 2020-2024 / Maruti Swift" value={vehicleFitment} onChange={(e) => setVehicleFitment(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Engine Type</Label>
+                          <Input type="text" placeholder="e.g. 1.5L Petrol / 2.0L Diesel / EV" value={engineType} onChange={(e) => setEngineType(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Model Year Range</Label>
+                          <Input type="text" placeholder="e.g. 2018-2024" value={vehicleYear} onChange={(e) => setVehicleYear(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: BOOKS & STATIONERY */}
+                  {activeTemplate === "BOOKS_STATIONERY" && (
+                    <div className="space-y-2.5 bg-indigo-500/10 p-3.5 rounded-2xl border border-indigo-500/20 sm:col-span-2">
+                      <Label className="text-xs text-indigo-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <BookOpen className="h-4 w-4 text-indigo-400" /> Books & Stationery Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">ISBN Number</Label>
+                          <Input type="text" placeholder="e.g. 978-3-16-148410-0" value={isbnNumber} onChange={(e) => setIsbnNumber(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Author Name</Label>
+                          <Input type="text" placeholder="e.g. R.K. Narayan / Amish Tripathi" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Publisher</Label>
+                          <Input type="text" placeholder="e.g. Penguin Books India" value={publisher} onChange={(e) => setPublisher(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Edition / Language</Label>
+                          <Input type="text" placeholder="e.g. 3rd Edition / Hindi" value={edition} onChange={(e) => setEdition(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: RESTAURANT */}
+                  {activeTemplate === "RESTAURANT" && (
+                    <div className="space-y-2.5 bg-rose-500/10 p-3.5 rounded-2xl border border-rose-500/20 sm:col-span-2">
+                      <Label className="text-xs text-rose-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Utensils className="h-4 w-4 text-rose-400" /> Restaurant & Menu Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Food Type</Label>
+                          <div className="flex items-center gap-3 mt-2">
+                            <label className="flex items-center gap-1.5 text-xs text-emerald-400 cursor-pointer">
+                              <input type="radio" name="vegtype" checked={isVeg} onChange={() => { setIsVeg(true); setIsJain(false); }} /> 🟢 Veg
+                            </label>
+                            <label className="flex items-center gap-1.5 text-xs text-red-400 cursor-pointer">
+                              <input type="radio" name="vegtype" checked={!isVeg && !isJain} onChange={() => { setIsVeg(false); setIsJain(false); }} /> 🔴 Non-Veg
+                            </label>
+                            <label className="flex items-center gap-1.5 text-xs text-yellow-400 cursor-pointer">
+                              <input type="radio" name="vegtype" checked={isJain} onChange={() => { setIsVeg(true); setIsJain(true); }} /> 🟡 Jain
+                            </label>
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Spice Level</Label>
+                          <select value={spicyLevel} onChange={(e) => setSpicyLevel(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-9 text-xs mt-1 px-2">
+                            <option value="MILD">Mild 🌶</option>
+                            <option value="MEDIUM">Medium 🌶🌶</option>
+                            <option value="HOT">Hot 🌶🌶🌶</option>
+                            <option value="EXTRA_HOT">Extra Hot 🌶🌶🌶🌶</option>
+                          </select>
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">KOT Station</Label>
+                          <Input type="text" placeholder="e.g. Main Kitchen / Tandoor / Bar" value={kotStation} onChange={(e) => setKotStation(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Recipe Code</Label>
+                          <Input type="text" placeholder="e.g. RCP-BTR-CHK-01" value={recipeCode} onChange={(e) => setRecipeCode(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: MANUFACTURING */}
+                  {activeTemplate === "MANUFACTURING" && (
+                    <div className="space-y-2.5 bg-zinc-500/10 p-3.5 rounded-2xl border border-zinc-500/20 sm:col-span-2">
+                      <Label className="text-xs text-zinc-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Factory className="h-4 w-4 text-zinc-400" /> Manufacturing & Production Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">BOM Reference Code</Label>
+                          <Input type="text" placeholder="e.g. BOM-PROD-2024-001" value={bomReference} onChange={(e) => setBomReference(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono" />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Yield % / Scrap %</Label>
+                          <Input type="text" placeholder="e.g. 95% yield / 5% scrap" value={yieldPercent} onChange={(e) => setYieldPercent(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
                     </div>

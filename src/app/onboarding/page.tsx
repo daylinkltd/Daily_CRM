@@ -24,6 +24,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
+import { INDUSTRY_TEMPLATES } from "@/app/(dashboard)/settings/retail/page";
 
 function OnboardingInner() {
   const { user, profile, signOut } = useAuth();
@@ -41,6 +42,7 @@ function OnboardingInner() {
   const [orgName, setOrgName] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [selectedIndustryTemplate, setSelectedIndustryTemplate] = useState("GENERAL_RETAIL");
 
   // Action states
   const [loading, setLoading] = useState(false);
@@ -141,6 +143,12 @@ function OnboardingInner() {
         throw new Error("Failed to create workspace.");
       }
       workspaceId = workspace.id;
+
+      // Save industry template settings to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`retail_template_${workspaceId}`, selectedIndustryTemplate);
+        localStorage.setItem("retail_template_active", selectedIndustryTemplate);
+      }
 
       // 2. Upload logo to Supabase storage public bucket 'avatars'
       let uploadedLogoUrl = null;
@@ -531,6 +539,25 @@ function OnboardingInner() {
                       <span className="block text-[10px] text-slate-500 mt-1.5">Max size 2MB (PNG, JPG, SVG)</span>
                     </div>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="industryTemplate" className="text-slate-300 text-xs font-semibold">Business Industry Preset</Label>
+                  <select
+                    id="industryTemplate"
+                    value={selectedIndustryTemplate}
+                    onChange={(e) => setSelectedIndustryTemplate(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-10 text-xs px-3 focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0] outline-none transition-all cursor-pointer"
+                  >
+                    {INDUSTRY_TEMPLATES.map((tmpl) => (
+                      <option key={tmpl.id} value={tmpl.id}>
+                        {tmpl.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed bg-slate-950/50 p-2.5 rounded-xl border border-slate-900/60">
+                    <strong>Preset Features:</strong> {INDUSTRY_TEMPLATES.find(t => t.id === selectedIndustryTemplate)?.desc}
+                  </p>
                 </div>
               </div>
 
