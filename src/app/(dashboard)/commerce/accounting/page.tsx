@@ -109,7 +109,7 @@ export default function AccountingLedgerPage() {
           className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
             activeTab === "DAYBOOK"
               ? "bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20"
-              : "text-slate-400 hover:text-white"
+              : "text-slate-400 hover:text-foreground"
           }`}
         >
           General Daybook & Journal Vouchers
@@ -119,7 +119,7 @@ export default function AccountingLedgerPage() {
           className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
             activeTab === "ACCOUNTS"
               ? "bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20"
-              : "text-slate-400 hover:text-white"
+              : "text-slate-400 hover:text-foreground"
           }`}
         >
           Chart of Accounts (GL)

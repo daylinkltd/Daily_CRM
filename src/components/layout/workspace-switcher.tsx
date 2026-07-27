@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { ChevronsUpDown, Plus, Check, Briefcase, AlertTriangle } from "lucide-react";
+import { ChevronsUpDown, Plus, Check, Building2, AlertTriangle } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import {
@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-export function WorkspaceSwitcher() {
+export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hideText?: boolean; minimalist?: boolean }) {
   const {
     workspaces,
     activeWorkspace,
@@ -40,7 +40,9 @@ export function WorkspaceSwitcher() {
   const isDark = mode === "dark";
 
   // Dynamic switcher styling depending on light vs dark sidebar look
-  const switcherBg = isDark
+  const switcherBg = minimalist
+    ? "border-transparent bg-transparent hover:bg-slate-800/40 text-white px-2 py-1.5"
+    : isDark
     ? "border-border bg-card hover:bg-muted/80 text-foreground"
     : "border-slate-700 bg-slate-950/40 hover:bg-slate-800/80 text-white";
 
@@ -78,10 +80,10 @@ export function WorkspaceSwitcher() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-between rounded-[10px] border border-border bg-card px-3 py-2 text-muted-foreground">
+      <div className={cn("flex items-center justify-between rounded-[10px] border border-border bg-card px-3 py-2 text-muted-foreground", hideText ? "px-1.5 py-1.5" : "")}>
         <div className="flex items-center gap-2">
           <div className="h-5 w-5 animate-pulse rounded bg-muted" />
-          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+          {!hideText && <div className="h-4 w-24 animate-pulse rounded bg-muted" />}
         </div>
       </div>
     );
@@ -93,13 +95,16 @@ export function WorkspaceSwitcher() {
         <button
           type="button"
           onClick={() => setIsDialogOpen(true)}
-          className="flex w-full items-center justify-between gap-2 rounded-[10px] border border-dashed border-border bg-card px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          className={cn(
+            "flex w-full items-center justify-between gap-2 rounded-[10px] border border-dashed border-border bg-card px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus:outline-none focus:ring-1 focus:ring-primary",
+            hideText ? "px-1.5 py-1.5 justify-center" : ""
+          )}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
               <Plus className="h-4 w-4" />
             </div>
-            <span className="truncate text-xs font-semibold">Create Workspace</span>
+            {!hideText && <span className="truncate text-xs font-semibold">Create Workspace</span>}
           </div>
         </button>
 
@@ -189,33 +194,42 @@ export function WorkspaceSwitcher() {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className={cn("flex w-full items-center justify-between gap-2 rounded-[10px] transition-all focus:outline-none focus:ring-1 focus:ring-primary px-3 py-2.5 text-left text-sm font-medium", switcherBg)}>
-          <div className="flex items-center gap-2.5 min-w-0">
-            {activeWorkspace.logo_url ? (
-              <div className={cn("h-7 w-7 shrink-0 rounded overflow-hidden relative border", switcherLogoBorder)}>
-                <Image
-                  src={activeWorkspace.logo_url}
-                  alt={activeWorkspace.name}
-                  fill
-                  className="object-cover"
-                />
+        <DropdownMenuTrigger
+          render={
+            <button
+              type="button"
+              className={cn("flex w-full items-center justify-between gap-2 rounded-[10px] transition-all focus:outline-none focus:ring-1 focus:ring-primary px-3 py-2.5 text-left text-sm font-medium", switcherBg, hideText ? "px-1 py-1 justify-center" : "")}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                {activeWorkspace.logo_url ? (
+                  <div className={cn("h-7 w-7 shrink-0 rounded overflow-hidden relative border", switcherLogoBorder)}>
+                    <Image
+                      src={activeWorkspace.logo_url}
+                      alt={activeWorkspace.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+                    <Building2 className="h-4 w-4" />
+                  </div>
+                )}
+                {!hideText && (
+                  <div className="min-w-0">
+                    <p className={cn("truncate text-xs font-semibold", switcherTextClass)}>
+                      {activeWorkspace.name}
+                    </p>
+                    <p className={cn("text-[10px] capitalize font-medium", switcherRoleClass)}>
+                      {activeRole || "Member"}
+                    </p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
-                <Briefcase className="h-4 w-4" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className={cn("truncate text-xs font-semibold", switcherTextClass)}>
-                {activeWorkspace.name}
-              </p>
-              <p className={cn("text-[10px] capitalize font-medium", switcherRoleClass)}>
-                {activeRole || "Member"}
-              </p>
-            </div>
-          </div>
-          <ChevronsUpDown className={cn("h-4 w-4 shrink-0", switcherArrowClass)} />
-        </DropdownMenuTrigger>
+              {!hideText && <ChevronsUpDown className={cn("h-4 w-4 shrink-0", switcherArrowClass)} />}
+            </button>
+          }
+        />
         <DropdownMenuContent
           align="start"
           sideOffset={6}
@@ -246,7 +260,7 @@ export function WorkspaceSwitcher() {
                       </div>
                     ) : (
                       <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
-                        <Briefcase className="h-3.5 w-3.5" />
+                        <Building2 className="h-3.5 w-3.5" />
                       </div>
                     )}
                     <span className="truncate text-sm font-medium">

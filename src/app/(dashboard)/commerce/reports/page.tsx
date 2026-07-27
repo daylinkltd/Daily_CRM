@@ -38,7 +38,7 @@ export default function ReportsHubPage() {
             className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
               activeTab === tab
                 ? "bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20"
-                : "text-slate-400 hover:text-white"
+                : "text-slate-400 hover:text-foreground"
             }`}
           >
             {tab === "TRIAL_BALANCE" && "Trial Balance Sheet"}

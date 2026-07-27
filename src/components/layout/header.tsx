@@ -33,12 +33,25 @@ function getPageTitle(pathname: string): string {
   const match = Object.entries(pageTitles).find(([path]) =>
     pathname.startsWith(path),
   );
-  return match ? match[1] : "Dashboard";
+  if (match) return match[1];
+
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length === 0) return "Dashboard";
+
+  const lastSegment = segments[segments.length - 1];
+  return lastSegment
+    .split("-")
+    .map((word) => {
+      const lower = word.toLowerCase();
+      if (lower === "hr" || lower === "gst" || lower === "pos") {
+        return word.toUpperCase();
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
 }
 
 interface HeaderProps {
-  /** Wired to the shell's drawer state. Used only on mobile — the
-   *  hamburger button is hidden on lg+. */
   onOpenSidebar?: () => void;
 }
 
@@ -55,7 +68,7 @@ export function Header({ onOpenSidebar }: HeaderProps) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-background px-4 lg:px-6">
       <div className="flex min-w-0 items-center gap-2">
-        {/* Hamburger — mobile only. 44×44 hit target per Apple HIG. */}
+        {/* Hamburger — mobile only */}
         <button
           type="button"
           onClick={onOpenSidebar}
@@ -73,24 +86,29 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger
-            className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-muted/70 focus:bg-muted/70 focus:outline-none data-popup-open:bg-muted/70 sm:gap-3 sm:pl-1 sm:pr-3"
-            aria-label="Open account menu"
-          >
-            <Avatar className="size-8">
-              {profile?.avatar_url ? (
-                <AvatarImage
-                  src={profile.avatar_url}
-                  alt={profile.full_name ?? "Avatar"}
-                />
-              ) : null}
-              <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
-                {initial}
-              </AvatarFallback>
-            </Avatar>
-            <span className="hidden text-sm font-medium text-foreground sm:inline">
-              {profile?.full_name ?? "User"}
-            </span>
-          </DropdownMenuTrigger>
+            render={
+              <button
+                type="button"
+                className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-muted/70 focus:bg-muted/70 focus:outline-none data-popup-open:bg-muted/70 sm:gap-3 sm:pl-1 sm:pr-3"
+                aria-label="Open account menu"
+              >
+                <Avatar className="size-8">
+                  {profile?.avatar_url ? (
+                    <AvatarImage
+                      src={profile.avatar_url}
+                      alt={profile.full_name ?? "Avatar"}
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-primary/10 text-sm font-medium text-primary">
+                    {initial}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="hidden text-sm font-medium text-foreground sm:inline">
+                  {profile?.full_name ?? "User"}
+                </span>
+              </button>
+            }
+          />
           <DropdownMenuContent
             align="end"
             sideOffset={6}

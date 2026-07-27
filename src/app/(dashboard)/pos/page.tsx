@@ -379,7 +379,7 @@ export default function POSTerminalPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   customerType === type
                     ? "bg-[#00aef0] text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-400 hover:text-foreground"
                 }`}
               >
                 {type}

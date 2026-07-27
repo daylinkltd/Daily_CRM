@@ -268,7 +268,7 @@ export default function AttendancePage() {
             className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
               activeTab === 'LOGS'
                 ? 'bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20'
-                : 'text-slate-400 hover:text-white'
+                : 'text-slate-400 hover:text-foreground'
             }`}
           >
             Live Attendance Logs &amp; Breaks
@@ -278,7 +278,7 @@ export default function AttendancePage() {
             className={`px-4 py-2 text-xs font-bold rounded-xl transition-all relative ${
               activeTab === 'APPROVALS'
                 ? 'bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20'
-                : 'text-slate-400 hover:text-white'
+                : 'text-slate-400 hover:text-foreground'
             }`}
           >
             Manager Approvals
