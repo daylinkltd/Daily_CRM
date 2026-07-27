@@ -36,17 +36,21 @@ export async function POST(request: Request) {
       return rateLimitResponse(limit);
     }
 
-    // Resolve the caller's account_id so conversation + whatsapp_config
-    // lookups work for teammates who didn't author the rows directly.
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    const accountId = profile?.account_id as string | undefined;
-    if (!accountId) {
+    // Resolve the caller's workspace memberships so conversation +
+    // whatsapp_config lookups work for teammates who didn't author the
+    // rows directly. (The schema is workspace_id-based — the previous
+    // profiles.account_id lookup hit a nonexistent column and made
+    // this route 403 for every caller.)
+    const { data: memberships } = await supabase
+      .from('workspace_members')
+      .select('workspace_id')
+      .eq('user_id', user.id);
+    const workspaceIds = (memberships ?? [])
+      .map((m: { workspace_id: string | null }) => m.workspace_id)
+      .filter(Boolean) as string[];
+    if (workspaceIds.length === 0) {
       return NextResponse.json(
-        { error: 'Your profile is not linked to an account.' },
+        { error: 'Your profile is not linked to a workspace.' },
         { status: 403 },
       );
     }
@@ -86,9 +90,9 @@ export async function POST(request: Request) {
 
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
-      .select('id, account_id, contact:contacts(phone)')
+      .select('id, workspace_id, contact:contacts(phone)')
       .eq('id', targetMessage.conversation_id)
-      .eq('account_id', accountId)
+      .in('workspace_id', workspaceIds)
       .maybeSingle();
 
     if (convError || !conversation) {
@@ -108,12 +112,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // WhatsApp config + access token. Account-scoped post-multi-user.
+    // WhatsApp config + access token, scoped to the conversation's
+    // workspace so multi-workspace members react via the right number.
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
       .select('phone_number_id, access_token')
-      .eq('account_id', accountId)
-      .single();
+      .eq('workspace_id', conversation.workspace_id)
+      .maybeSingle();
 
     if (configError || !config) {
       return NextResponse.json(

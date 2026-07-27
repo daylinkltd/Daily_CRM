@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronLeft, Loader2, Briefcase, Calendar, DollarSign, Target, Users, Settings } from 'lucide-react';
+import { ChevronLeft, Loader2, Briefcase, Calendar, Banknote, Target, Users, Settings } from 'lucide-react';
+import { formatCurrency } from '@/lib/currency';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,7 +28,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const supabase = createClient();
   const router = useRouter();
-  const { activeWorkspace, can } = useWorkspace();
+  const { activeWorkspace, can, defaultCurrency } = useWorkspace();
   const canManageProjects = can('projects_manage' as any);
 
   const [project, setProject] = useState<any | null>(null);
@@ -205,8 +206,8 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Budget</p>
                         <p className="text-sm text-foreground mt-1.5 flex items-center gap-1">
-                          <DollarSign className="size-4 text-emerald-500" />
-                          {project.budget ? project.budget.toLocaleString() : 'Not set'}
+                          <Banknote className="size-4 text-emerald-500" />
+                          {project.budget ? formatCurrency(project.budget, defaultCurrency) : 'Not set'}
                         </p>
                       </div>
                     </div>

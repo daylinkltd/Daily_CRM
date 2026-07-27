@@ -19,6 +19,7 @@ import {
   X,
   Loader2,
   Sparkles,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GatedButton } from "@/components/ui/gated-button";
@@ -478,19 +479,29 @@ export function MessageComposer({
       )}
 
       {sessionExpired && (
-        <div className="mb-2 flex items-center justify-between rounded-lg bg-amber-500/10 px-3 py-2">
-          <p className="text-xs text-amber-400">
-            24-hour session expired. Use a template to re-engage.
-          </p>
-          <Button
-            variant="ghost"
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2.5">
+          <div className="flex min-w-0 items-center gap-2">
+            <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-foreground">
+                Session window closed
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                WhatsApp only allows freeform replies within 24 hours of the
+                customer&apos;s last message — send a template to re-engage.
+              </p>
+            </div>
+          </div>
+          <GatedButton
             size="sm"
-            className="h-7 text-xs text-amber-400 hover:text-amber-300"
+            canAct={!readOnly}
+            gateReason="send messages"
+            className="h-8 shrink-0 bg-primary text-xs text-primary-foreground hover:bg-primary/90"
             onClick={onOpenTemplates}
           >
-            <LayoutTemplate className="mr-1 h-3 w-3" />
-            Templates
-          </Button>
+            <LayoutTemplate className="mr-1.5 h-3.5 w-3.5" />
+            Send template
+          </GatedButton>
         </div>
       )}
 
@@ -621,7 +632,7 @@ export function MessageComposer({
               readOnly
                 ? "Read-only — viewers can browse but not reply"
                 : sessionExpired
-                  ? "Session expired - use a template"
+                  ? "Session window closed — send a template to re-engage"
                   : "Type a message... (Shift+Enter for new line)"
             }
             disabled={sessionExpired || readOnly}

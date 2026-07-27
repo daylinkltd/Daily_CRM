@@ -5,7 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Package, Plus, Search, Barcode, Tag, Layers, RefreshCw, Printer, X, ShieldCheck, Layers3, DollarSign, Warehouse, Sliders, Sparkles, Stethoscope, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2 } from "lucide-react";
+import { Package, Plus, Search, Barcode, Tag, Layers, RefreshCw, Printer, X, ShieldCheck, Layers3, Banknote, Warehouse, Sliders, Sparkles, Stethoscope, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { BarcodeTagModal } from "@/components/commerce/barcode-tag-modal";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
@@ -714,7 +714,7 @@ export default function ProductsPage() {
             <div className="flex items-center gap-1 border-b border-slate-800 pb-2 overflow-x-auto">
               {[
                 { id: "BASIC", label: "Basic Info", icon: Package },
-                { id: "UNITS_PRICING", label: "Units & Rates", icon: DollarSign },
+                { id: "UNITS_PRICING", label: "Units & Rates", icon: Banknote },
                 { id: "TAX", label: "GST & Statutory", icon: ShieldCheck },
                 { id: "INVENTORY", label: "Stock & Location", icon: Warehouse },
                 { id: "SETTINGS", label: "Tracking & Flags", icon: Sliders },

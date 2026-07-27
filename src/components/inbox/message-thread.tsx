@@ -50,6 +50,10 @@ import {
 import { deleteAccountMedia } from "@/lib/storage/upload-media";
 import { TemplatePicker } from "./template-picker";
 import { buildReplyPreview } from "./reply-quote";
+import {
+  contactDisplayName as formatContactName,
+  contactInitial,
+} from "@/lib/contact-display";
 import { toast } from "sonner";
 
 interface ReplyDraft {
@@ -63,6 +67,17 @@ function renderTemplateBody(body: string, params: string[]): string {
     const idx = Number(raw) - 1;
     return params[idx] ?? `{{${raw}}}`;
   });
+}
+
+/**
+ * True when a send-API error means the 24-hour customer-service window
+ * has closed (Meta error 131047 / "re-engagement message"). Used to
+ * offer the template picker directly from the failure toast.
+ */
+function isSessionWindowError(reason: string): boolean {
+  return /131047|re-?engagement|24.?h(our)?s? (window|session)|customer service window|session window/i.test(
+    reason,
+  );
 }
 
 interface MessageThreadProps {
@@ -110,6 +125,13 @@ interface MessageThreadProps {
    * Optional callback to delete the current conversation.
    */
   onDeleteConversation?: (conversationId: string) => void;
+  /**
+   * Whether the workspace's chatbot feature is enabled
+   * (chatbot_config.is_enabled). The per-conversation bot pause/resume
+   * toggle is only rendered when true — showing it while the feature is
+   * off in Settings is just confusing noise.
+   */
+  chatbotEnabled?: boolean;
 }
 
 function formatDateSeparator(dateStr: string): string {
@@ -170,6 +192,7 @@ export function MessageThread({
   onToggleContactPanel,
   onOpenNewChat,
   onDeleteConversation,
+  chatbotEnabled = false,
 }: MessageThreadProps) {
   const { user } = useAuth();
   const { getPresence, getRow, now } = usePresence();
@@ -201,6 +224,23 @@ export function MessageThread({
     }, 700);
   }, [isRefreshing, onRefresh]);
   const [replyTo, setReplyTo] = useState<ReplyDraft | null>(null);
+
+  // Failure toast for sends rejected because the 24h window closed —
+  // surfaces the API's actionable message and offers the template picker
+  // directly from the toast.
+  const notifySendFailure = useCallback((reason: string) => {
+    if (isSessionWindowError(reason)) {
+      toast.error(reason, {
+        duration: 10000,
+        action: {
+          label: "Send template",
+          onClick: () => setTemplateModalOpen(true),
+        },
+      });
+      return;
+    }
+    toast.error(`Failed to send: ${reason}`);
+  }, []);
 
   const [updatingBot, setUpdatingBot] = useState(false);
   const handleToggleBot = useCallback(async () => {
@@ -536,7 +576,7 @@ export function MessageThread({
         if (!res.ok) {
           const reason = payload?.error || `HTTP ${res.status}`;
           console.error("Failed to send message:", reason);
-          toast.error(`Failed to send: ${reason}`);
+          notifySendFailure(reason);
           // Mark the optimistic bubble as failed so the user sees what happened
           onUpdateMessage(tempId, { status: "failed" });
           return;
@@ -553,7 +593,7 @@ export function MessageThread({
         onUpdateMessage(tempId, { status: "failed" });
       }
     },
-    [conversation, onNewMessage, onUpdateMessage]
+    [conversation, onNewMessage, onUpdateMessage, notifySendFailure]
   );
 
   const handleSendMedia = useCallback(
@@ -602,7 +642,7 @@ export function MessageThread({
         if (!res.ok) {
           const reason = data?.error || `HTTP ${res.status}`;
           console.error("Failed to send media:", reason);
-          toast.error(`Failed to send: ${reason}`);
+          notifySendFailure(reason);
           onUpdateMessage(tempId, { status: "failed" });
           // The upload never reached the recipient — GC the orphaned
           // object rather than leaving it in the public bucket forever.
@@ -619,7 +659,7 @@ export function MessageThread({
         void deleteAccountMedia(CHAT_MEDIA_BUCKET, payload.path).catch(() => {});
       }
     },
-    [conversation, onNewMessage, onUpdateMessage],
+    [conversation, onNewMessage, onUpdateMessage, notifySendFailure],
   );
 
   const handleStatusChange = useCallback(
@@ -730,7 +770,11 @@ export function MessageThread({
     return map;
   }, [reactions]);
 
-  const contactDisplayName = contact?.name || contact?.phone || "Customer";
+  const contactDisplayName = formatContactName(
+    contact?.name,
+    contact?.phone,
+    "Customer",
+  );
 
   // Author label for a quoted message: "You" when we sent the parent,
   // contact name when the customer sent it.
@@ -866,7 +910,7 @@ export function MessageThread({
     );
   }
 
-  const displayName = contact.name || contact.phone;
+  const displayName = formatContactName(contact.name, contact.phone);
   const messageGroups = groupMessagesByDate(messages);
   const currentStatus = STATUS_OPTIONS.find(
     (s) => s.value === conversation.status
@@ -904,7 +948,7 @@ export function MessageThread({
             </button>
           )}
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-foreground">
-            {displayName.charAt(0).toUpperCase()}
+            {contactInitial(contact.name, contact.phone)}
           </div>
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold text-foreground">{displayName}</h2>
@@ -925,44 +969,46 @@ export function MessageThread({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Chatbot Toggle Button */}
-          <button
-            type="button"
-            onClick={handleToggleBot}
-            disabled={updatingBot}
-            title={
-              conversation.bot_status === 'paused'
-                ? conversation.bot_paused_until
-                  ? `Bot is paused until ${new Date(conversation.bot_paused_until).toLocaleTimeString()}. Click to resume.`
-                  : 'Bot is paused. Click to resume.'
-                : 'Bot is active. Click to pause.'
-            }
-            className={cn(
-              "inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors disabled:opacity-60",
-              conversation.bot_status === 'paused'
-                ? "bg-slate-900 border border-slate-700 text-muted-foreground hover:bg-slate-800 hover:text-foreground"
-                : "bg-emerald-950/40 border border-emerald-600/30 text-emerald-400 hover:bg-emerald-950/60 hover:text-emerald-300"
-            )}
-          >
-            {conversation.bot_status !== 'paused' ? (
-              <>
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                </span>
-                <Bot className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Bot Active</span>
-              </>
-            ) : (
-              <>
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
-                <Bot className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">
-                  {conversation.bot_paused_until ? 'Bot Paused (Auto)' : 'Bot Paused'}
-                </span>
-              </>
-            )}
-          </button>
+          {/* Chatbot pause/resume toggle — only rendered when the
+              workspace's chatbot feature is enabled in Settings. */}
+          {chatbotEnabled && (
+            <button
+              type="button"
+              onClick={handleToggleBot}
+              disabled={updatingBot}
+              aria-pressed={conversation.bot_status !== "paused"}
+              title={
+                conversation.bot_status === "paused"
+                  ? conversation.bot_paused_until
+                    ? `Chatbot is paused until ${new Date(conversation.bot_paused_until).toLocaleTimeString()}. Click to resume.`
+                    : "Chatbot is paused for this conversation. Click to resume."
+                  : "Chatbot is active for this conversation. Click to pause."
+              }
+              className={cn(
+                "inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                conversation.bot_status === "paused"
+                  ? "border-border bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                  : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+              )}
+            >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  conversation.bot_status === "paused"
+                    ? "bg-muted-foreground"
+                    : "bg-primary"
+                )}
+              />
+              <Bot className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">
+                {conversation.bot_status === "paused"
+                  ? conversation.bot_paused_until
+                    ? "Bot paused (auto)"
+                    : "Bot paused"
+                  : "Bot active"}
+              </span>
+            </button>
+          )}
 
           {/* Contact-panel toggle — desktop only. The contact sidebar
               eats a chunk of horizontal width that crowds the thread on

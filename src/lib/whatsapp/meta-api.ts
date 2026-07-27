@@ -232,6 +232,63 @@ export async function getSubscribedApps(
   return data.data ?? []
 }
 
+export interface ValidateAppSecretArgs {
+  accessToken: string
+  appSecret: string
+}
+
+export interface ValidateAppSecretResult {
+  valid: boolean
+  appId?: string
+  error?: string
+}
+
+/**
+ * Validate that `appSecret` is the App Secret of the Meta app the
+ * access token belongs to. Wrong secrets here are the silent killer
+ * for inbound messages: webhook HMAC verification fails and every
+ * event is dropped with a 401.
+ *
+ * Strategy: debug_token reveals the token's app_id, then an app
+ * access token composed as `{app_id}|{app_secret}` only works when
+ * the secret is genuine.
+ */
+export async function validateAppSecret(
+  args: ValidateAppSecretArgs
+): Promise<ValidateAppSecretResult> {
+  const { accessToken, appSecret } = args
+  try {
+    const dbgRes = await fetch(
+      `${META_API_BASE}/debug_token?input_token=${encodeURIComponent(accessToken)}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    )
+    const dbg = (await dbgRes.json()) as { data?: { app_id?: string } }
+    const appId = dbg.data?.app_id
+    if (!appId) {
+      return { valid: false, error: 'Could not resolve the app id for this access token.' }
+    }
+
+    const appToken = `${appId}|${appSecret.trim()}`
+    const check = await fetch(`${META_API_BASE}/${appId}?fields=id`, {
+      headers: { Authorization: `Bearer ${appToken}` },
+    })
+    if (check.ok) return { valid: true, appId }
+    const body = (await check.json().catch(() => ({}))) as MetaErrorResponse
+    return {
+      valid: false,
+      appId,
+      error:
+        body.error?.message ??
+        `App secret rejected by Meta (HTTP ${check.status}).`,
+    }
+  } catch (err) {
+    return {
+      valid: false,
+      error: err instanceof Error ? err.message : String(err),
+    }
+  }
+}
+
 // ============================================================
 // Sending
 // ============================================================

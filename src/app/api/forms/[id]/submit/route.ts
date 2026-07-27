@@ -318,6 +318,15 @@ export async function POST(
 
       const rawDealValue = parseFloat(dealData.value);
       const dealValue = isNaN(rawDealValue) ? 0 : rawDealValue;
+
+      // New deals inherit the workspace's default currency instead of
+      // a hardcoded USD (workspaces.default_currency, migration 033).
+      const { data: wsCurrencyRow } = await supabase
+        .from('workspaces')
+        .select('default_currency')
+        .eq('id', form.workspace_id)
+        .maybeSingle();
+      const dealCurrency = wsCurrencyRow?.default_currency || 'USD';
       const finalNotes = (dealData.notes ? `${dealData.notes}\n` : '') + responsesSummary;
 
       const { data: newDeal, error: dealError } = await supabase
@@ -331,7 +340,7 @@ export async function POST(
           contact_id: contactId,
           title: dealTitle,
           value: dealValue,
-          currency: 'USD',
+          currency: dealCurrency,
           notes: finalNotes,
           expected_close_date: dealData.expected_close_date || null,
           status: 'open',

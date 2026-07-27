@@ -15,6 +15,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  contactDisplayName,
+  contactInitial,
+} from "@/lib/contact-display";
 
 interface ConversationListProps {
   activeConversationId: string | null;
@@ -31,6 +35,11 @@ interface ConversationListProps {
    * or the tab was throttled. Optional so existing callers keep working.
    */
   resyncToken?: number;
+  /**
+   * Whether the workspace's chatbot feature is enabled — the per-row
+   * bot status icon is only rendered when true.
+   */
+  chatbotEnabled?: boolean;
 }
 
 const STATUS_COLORS: Record<ConversationStatus, string> = {
@@ -58,6 +67,7 @@ export function ConversationList({
   onOpenNewChat,
   onDeleteConversation,
   resyncToken = 0,
+  chatbotEnabled = false,
 }: ConversationListProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<InboxFilter>("all");
@@ -250,6 +260,7 @@ export function ConversationList({
                 isActive={conv.id === activeConversationId}
                 onSelect={handleSelect}
                 onDelete={onDeleteConversation}
+                chatbotEnabled={chatbotEnabled}
               />
             ))}
           </div>
@@ -264,6 +275,7 @@ interface ConversationItemProps {
   isActive: boolean;
   onSelect: (conversation: Conversation) => void;
   onDelete?: (conversationId: string) => void;
+  chatbotEnabled?: boolean;
 }
 
 function ConversationItem({
@@ -271,10 +283,11 @@ function ConversationItem({
   isActive,
   onSelect,
   onDelete,
+  chatbotEnabled = false,
 }: ConversationItemProps) {
   const contact = conversation.contact;
-  const displayName = contact?.name || contact?.phone || "Unknown";
-  const initials = displayName.charAt(0).toUpperCase();
+  const displayName = contactDisplayName(contact?.name, contact?.phone);
+  const initials = contactInitial(contact?.name, contact?.phone);
 
   const handleClick = useCallback(() => {
     onSelect(conversation);
@@ -324,13 +337,23 @@ function ConversationItem({
             <span className="truncate text-sm font-medium text-foreground">
               {displayName}
             </span>
-            {conversation.bot_status !== 'paused' ? (
-              <span title="AI Bot Active" className="shrink-0">
-                <Bot className="h-3.5 w-3.5 text-emerald-500" />
-              </span>
-            ) : (
-              <span title="AI Bot Paused" className="shrink-0">
-                <Bot className="h-3.5 w-3.5 text-slate-500" />
+            {chatbotEnabled && (
+              <span
+                title={
+                  conversation.bot_status !== "paused"
+                    ? "AI bot active"
+                    : "AI bot paused"
+                }
+                className="shrink-0"
+              >
+                <Bot
+                  className={cn(
+                    "h-3.5 w-3.5",
+                    conversation.bot_status !== "paused"
+                      ? "text-primary"
+                      : "text-muted-foreground",
+                  )}
+                />
               </span>
             )}
           </div>
@@ -346,13 +369,19 @@ function ConversationItem({
                 {conversation.unread_count}
               </span>
             )}
-            <span
-              className={cn(
-                "h-2 w-2 rounded-full",
-                STATUS_COLORS[conversation.status]
-              )}
-              title={conversation.status}
-            />
+            {/* Status dot only for non-default states (pending/closed).
+                "open" used to paint a permanent primary-blue dot on every
+                row, which read as an unread indicator that never cleared —
+                unread state is carried by the count badge above. */}
+            {conversation.status !== "open" && (
+              <span
+                className={cn(
+                  "h-2 w-2 rounded-full",
+                  STATUS_COLORS[conversation.status]
+                )}
+                title={conversation.status}
+              />
+            )}
             {onDelete && (
               <button
                 type="button"

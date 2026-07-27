@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getWhatsAppProvider } from "@/lib/whatsapp/providers/factory";
 import { encrypt, decrypt } from "@/lib/whatsapp/encryption";
 import { ensureWabaSubscribed } from "@/lib/whatsapp/webhook-subscribe";
+import { validateAppSecret } from "@/lib/whatsapp/meta-api";
 
 /**
  * GET /api/whatsapp/config?workspace_id=...
@@ -47,9 +48,11 @@ export async function GET(request: Request) {
       );
     }
 
+    // select * so this works whether or not optional columns
+    // (app_secret, migration 054) exist yet.
     const { data: config, error: configError } = await supabase
       .from("whatsapp_config")
-      .select("phone_number_id, access_token, status, provider, waba_id, verify_token")
+      .select("*")
       .eq("workspace_id", workspaceId)
       .maybeSingle();
 
@@ -124,6 +127,9 @@ export async function GET(request: Request) {
         waba_id: config.waba_id || "",
         verify_token: verifyToken,
         has_token: true,
+        has_app_secret: Boolean(
+          (config as { app_secret?: string | null }).app_secret || process.env.META_APP_SECRET
+        ),
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "API verification failed";
@@ -170,7 +176,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { workspace_id, provider = "meta", phone_number_id, waba_id, access_token, verify_token } = body;
+    const { workspace_id, provider = "meta", phone_number_id, waba_id, access_token, verify_token, app_secret } = body;
 
     if (!workspace_id) {
       return NextResponse.json({ error: "workspace_id is required" }, { status: 400 });
@@ -275,28 +281,74 @@ export async function POST(request: Request) {
       encryptedVerifyToken = finalVerifyToken;
     }
 
-    // Upsert scoped strictly by workspace_id
+    // Validate + encrypt the Meta App Secret when provided. A wrong
+    // secret silently kills inbound (every webhook 401s on HMAC), so
+    // reject bad values at save time with a clear error.
+    let encryptedAppSecret: string | null | undefined = undefined; // undefined = leave unchanged
+    if (provider === "meta" && typeof app_secret === "string" && app_secret.trim() && app_secret !== "••••••••••••••••") {
+      const secretCheck = await validateAppSecret({
+        accessToken: effectiveAccessToken,
+        appSecret: app_secret.trim(),
+      });
+      if (!secretCheck.valid) {
+        return NextResponse.json(
+          {
+            error: `The Meta App Secret is not valid for this app${secretCheck.appId ? ` (${secretCheck.appId})` : ""}: ${secretCheck.error || "rejected"}. Copy it from Meta App Dashboard → App settings → Basic → App Secret.`,
+          },
+          { status: 400 }
+        );
+      }
+      try {
+        encryptedAppSecret = encrypt(app_secret.trim());
+      } catch {
+        encryptedAppSecret = app_secret.trim();
+      }
+    }
+
+    // Upsert scoped strictly by workspace_id. app_secret is only
+    // included when the caller provided one; if the column doesn't
+    // exist yet (migration 054 not applied) we retry without it and
+    // surface a warning instead of failing the whole save.
+    let appSecretWarning: string | null = null;
+    const isMissingColumnError = (e: { code?: string; message?: string } | null) =>
+      e?.code === "42703" ||
+      e?.code === "PGRST204" ||
+      /app_secret/.test(e?.message ?? "");
+
     if (existing) {
-      const { error: updateError } = await supabase
+      const updatePayload: Record<string, unknown> = {
+        provider,
+        phone_number_id,
+        waba_id: waba_id || null,
+        access_token: encryptedAccessToken,
+        verify_token: encryptedVerifyToken,
+        status: "connected",
+        connected_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      if (encryptedAppSecret !== undefined) updatePayload.app_secret = encryptedAppSecret;
+
+      let { error: updateError } = await supabase
         .from("whatsapp_config")
-        .update({
-          provider,
-          phone_number_id,
-          waba_id: waba_id || null,
-          access_token: encryptedAccessToken,
-          verify_token: encryptedVerifyToken,
-          status: "connected",
-          connected_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq("workspace_id", workspace_id);
+
+      if (updateError && "app_secret" in updatePayload && isMissingColumnError(updateError)) {
+        delete updatePayload.app_secret;
+        appSecretWarning =
+          "App Secret could not be stored: run migration 054 (whatsapp_config.app_secret) in Supabase, or set META_APP_SECRET on the server.";
+        ({ error: updateError } = await supabase
+          .from("whatsapp_config")
+          .update(updatePayload)
+          .eq("workspace_id", workspace_id));
+      }
 
       if (updateError) {
         console.error("Error updating whatsapp_config:", updateError);
         return NextResponse.json({ error: "Failed to update configuration" }, { status: 500 });
       }
     } else {
-      const { error: insertError } = await supabase.from("whatsapp_config").insert({
+      const insertPayload: Record<string, unknown> = {
         workspace_id,
         user_id: user.id,
         provider,
@@ -306,7 +358,17 @@ export async function POST(request: Request) {
         verify_token: encryptedVerifyToken,
         status: "connected",
         connected_at: new Date().toISOString(),
-      });
+      };
+      if (encryptedAppSecret !== undefined) insertPayload.app_secret = encryptedAppSecret;
+
+      let { error: insertError } = await supabase.from("whatsapp_config").insert(insertPayload);
+
+      if (insertError && "app_secret" in insertPayload && isMissingColumnError(insertError)) {
+        delete insertPayload.app_secret;
+        appSecretWarning =
+          "App Secret could not be stored: run migration 054 (whatsapp_config.app_secret) in Supabase, or set META_APP_SECRET on the server.";
+        ({ error: insertError } = await supabase.from("whatsapp_config").insert(insertPayload));
+      }
 
       if (insertError) {
         console.error("Error inserting whatsapp_config:", insertError);
@@ -342,6 +404,7 @@ export async function POST(request: Request) {
       success: true,
       phone_info: phoneInfo,
       webhook_subscription: webhookSubscription,
+      app_secret_warning: appSecretWarning,
     });
   } catch (error) {
     console.error("Error in WhatsApp config POST:", error);

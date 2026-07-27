@@ -27,11 +27,11 @@ import {
   X,
   Trash2,
   MessageSquare,
-  DollarSign,
   Loader2,
   File,
   Upload,
 } from "lucide-react";
+import { CURRENCIES, getCurrencySymbol } from "@/lib/currency";
 import { toast } from "sonner";
 
 interface DealFormProps {
@@ -55,11 +55,11 @@ export function DealForm({
   onSaved,
 }: DealFormProps) {
   const supabase = createClient();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, defaultCurrency } = useWorkspace();
 
   const [title, setTitle] = useState("");
   const [value, setValue] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState(defaultCurrency);
   const [contactId, setContactId] = useState("");
   const [stageId, setStageId] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
@@ -97,7 +97,7 @@ export function DealForm({
     if (deal) {
       setTitle(deal.title);
       setValue(String(deal.value ?? ""));
-      setCurrency(deal.currency || "USD");
+      setCurrency(deal.currency || defaultCurrency);
       // contact_id is nullable when the contact has been deleted
       // (migration 004: ON DELETE SET NULL). "" means "no selection".
       setContactId(deal.contact_id ?? "");
@@ -110,7 +110,7 @@ export function DealForm({
     } else {
       setTitle("");
       setValue("");
-      setCurrency("USD");
+      setCurrency(defaultCurrency);
       setContactId("");
       setStageId(defaultStageId || stages[0]?.id || "");
       setAssignedTo("");
@@ -119,7 +119,7 @@ export function DealForm({
       setSourceId("");
       setLostReasonId("");
     }
-  }, [open, deal, defaultStageId, stages]);
+  }, [open, deal, defaultStageId, stages, defaultCurrency]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   // Load supporting data once the sheet is open
@@ -414,7 +414,9 @@ export function DealForm({
               <div className="grid gap-2">
                 <Label className="text-slate-300">Value</Label>
                 <div className="relative">
-                  <DollarSign className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+                  <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                    {getCurrencySymbol(currency)}
+                  </span>
                   <Input
                     type="number"
                     value={value}
@@ -431,16 +433,16 @@ export function DealForm({
                   onChange={(e) => setCurrency(e.target.value)}
                   className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary"
                 >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="INR">INR</option>
-                  <option value="AUD">AUD</option>
-                  <option value="CAD">CAD</option>
-                  <option value="SGD">SGD</option>
-                  <option value="AED">AED</option>
-                  <option value="JPY">JPY</option>
-                  <option value="CHF">CHF</option>
+                  {/* Keep a legacy/unknown saved code selectable so
+                      editing an old deal doesn't silently rewrite it. */}
+                  {currency && !CURRENCIES.some((c) => c.code === currency) && (
+                    <option value={currency}>{currency}</option>
+                  )}
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

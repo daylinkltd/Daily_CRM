@@ -12,7 +12,6 @@ import {
   CheckCircle,
   XCircle,
   FileText,
-  DollarSign,
   Briefcase,
   User,
   Calendar,
@@ -22,6 +21,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { formatCurrency } from "@/lib/currency";
 import type { Quotation, QuotationSection, Contact } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -39,7 +39,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
   const { id: quotationUuid } = React.use(params);
   const supabase = createClient();
   const { user, accountId } = useAuth();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, defaultCurrency } = useWorkspace();
   const workspaceId = activeWorkspace?.id || accountId;
 
   const [loading, setLoading] = useState(true);
@@ -661,7 +661,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
 
                       <div className="text-right shrink-0">
                         <p className="font-mono text-muted-foreground">
-                          {item.qty} x ${item.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          {item.qty} x {formatCurrency(item.price, defaultCurrency, { decimals: 2 })}
                         </p>
                         <p className="font-mono text-[10px] text-primary uppercase pt-0.5">
                           {item.pricing_type.replace("_", " ")}
@@ -670,7 +670,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
                           {item.is_free ? (
                             <span className="text-emerald-400 font-semibold uppercase">Free</span>
                           ) : (
-                            `$${(item.price * item.qty).toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+                            formatCurrency(item.price * item.qty, defaultCurrency, { decimals: 2 })
                           )}
                         </p>
                       </div>
@@ -688,21 +688,21 @@ export default function QuotationPreviewPage({ params }: PageProps) {
             <div className="flex justify-between">
               <span className="text-muted-foreground">One-time Services subtotal:</span>
               <span className="font-bold font-mono text-foreground">
-                ${totals.oneTime.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatCurrency(totals.oneTime, defaultCurrency, { decimals: 2 })}
               </span>
             </div>
 
             {totals.monthly > 0 && (
               <div className="flex justify-between text-xs text-primary font-medium">
                 <span>Monthly subscriptions subtotal:</span>
-                <span className="font-mono">${totals.monthly.toLocaleString()}/mo</span>
+                <span className="font-mono">{formatCurrency(totals.monthly, defaultCurrency, { decimals: 2 })}/mo</span>
               </div>
             )}
 
             {totals.yearly > 0 && (
               <div className="flex justify-between text-xs text-primary font-medium">
                 <span>Yearly subscriptions subtotal:</span>
-                <span className="font-mono">${totals.yearly.toLocaleString()}/yr</span>
+                <span className="font-mono">{formatCurrency(totals.yearly, defaultCurrency, { decimals: 2 })}/yr</span>
               </div>
             )}
 
@@ -711,7 +711,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
                 Total Proposal Value
               </span>
               <span className="text-primary font-mono text-lg">
-                ${(totals.oneTime + totals.recurring).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {formatCurrency(totals.oneTime + totals.recurring, defaultCurrency, { decimals: 2 })}
               </span>
             </div>
           </div>
