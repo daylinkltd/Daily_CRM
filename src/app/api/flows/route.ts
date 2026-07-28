@@ -49,23 +49,7 @@ export async function POST(request: Request) {
   if (!guard.ok) {
     return NextResponse.json(guard.body, { status: guard.status })
   }
-  const { userId, supabase } = guard
-
-  // Resolve the caller's account_id — `flows.account_id` is NOT NULL
-  // post-017, so an INSERT without it trips the not-null constraint
-  // even though the admin client below bypasses RLS.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('account_id')
-    .eq('user_id', userId)
-    .single()
-  const accountId = profile?.account_id as string | undefined
-  if (!accountId) {
-    return NextResponse.json(
-      { error: 'Your profile is not linked to an account.' },
-      { status: 403 },
-    )
-  }
+  const { userId } = guard
 
   const body = (await request.json().catch(() => null)) as
     | {
@@ -101,7 +85,6 @@ export async function POST(request: Request) {
       .from('flows')
       .insert({
         user_id: userId,
-        account_id: accountId,
         name: body.name?.trim() || template.name,
         description: template.description,
         status: 'draft',
@@ -150,7 +133,6 @@ export async function POST(request: Request) {
     .from('flows')
     .insert({
       user_id: userId,
-      account_id: accountId,
       name: body.name.trim(),
       description: body.description ?? null,
       status: 'draft',

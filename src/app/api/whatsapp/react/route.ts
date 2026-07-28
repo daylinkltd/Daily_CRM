@@ -36,21 +36,6 @@ export async function POST(request: Request) {
       return rateLimitResponse(limit);
     }
 
-    // Resolve the caller's account_id so conversation + whatsapp_config
-    // lookups work for teammates who didn't author the rows directly.
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    const accountId = profile?.account_id as string | undefined;
-    if (!accountId) {
-      return NextResponse.json(
-        { error: 'Your profile is not linked to an account.' },
-        { status: 403 },
-      );
-    }
-
     const body = await request.json();
     const { message_id, emoji } = body as {
       message_id?: string;
@@ -84,11 +69,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // RLS scopes this to conversations the caller's workspace can see;
+    // the row's workspace_id then drives the whatsapp_config lookup —
+    // same pattern as /api/whatsapp/send.
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
-      .select('id, account_id, contact:contacts(phone)')
+      .select('id, workspace_id, contact:contacts(phone)')
       .eq('id', targetMessage.conversation_id)
-      .eq('account_id', accountId)
       .maybeSingle();
 
     if (convError || !conversation) {
@@ -108,12 +95,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // WhatsApp config + access token. Account-scoped post-multi-user.
+    // WhatsApp config + access token, scoped to the conversation's
+    // workspace (whatsapp_config.workspace_id is UNIQUE per 011).
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
       .select('phone_number_id, access_token')
-      .eq('account_id', accountId)
-      .single();
+      .eq('workspace_id', conversation.workspace_id)
+      .maybeSingle();
 
     if (configError || !config) {
       return NextResponse.json(

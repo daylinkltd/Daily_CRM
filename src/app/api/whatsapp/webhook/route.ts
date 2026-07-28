@@ -7,6 +7,10 @@ import { verifyMetaWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { runAutomationsForTrigger } from '@/lib/automations/engine'
 import { dispatchInboundToFlows } from '@/lib/flows/engine'
 import {
+  buildParsedInbound,
+  extractInteractiveReplyId,
+} from '@/lib/flows/parse-inbound'
+import {
   handleTemplateWebhookChange,
   isTemplateWebhookField,
 } from '@/lib/whatsapp/template-webhook'
@@ -678,12 +682,18 @@ async function processMessage(
     ? new Date(msgTsMs).toISOString()
     : new Date().toISOString()
 
+  // Button/list taps carry the reply_id we stamped on the outgoing
+  // interactive message — persist it (messages.interactive_reply_id,
+  // migration 027) so the inbox can render which option was tapped.
+  const interactiveReplyId = extractInteractiveReplyId(message)
+
   const { error: msgError } = await supabaseAdmin().from('messages').insert({
     conversation_id: conversation.id,
     sender_type: 'customer',
     content_type: contentType,
     content_text: contentText,
     media_url: mediaUrl,
+    interactive_reply_id: interactiveReplyId,
     message_id: message.id,
     status: 'delivered',
     created_at: msgCreatedAt,
@@ -745,16 +755,15 @@ async function processMessage(
   // no active flows take the runner's early-exit "no_match" path
   // basically for free (one indexed SELECT for the active run).
   // ============================================================
+  // buildParsedInbound maps interactive button/list taps to
+  // kind:'interactive_reply' (with the reply_id the engine matches
+  // against send_buttons / send_list options); everything else goes
+  // through as kind:'text'.
   const flowResult = await dispatchInboundToFlows({
-    accountId: userId,
     userId,
     contactId: contactRecord.id,
     conversationId: conversation.id,
-    message: {
-      kind: 'text',
-      text: contentText ?? message.text?.body ?? '',
-      meta_message_id: message.id,
-    },
+    message: buildParsedInbound(message, contentText),
     isFirstInboundMessage,
   })
   const flowConsumed = flowResult.consumed

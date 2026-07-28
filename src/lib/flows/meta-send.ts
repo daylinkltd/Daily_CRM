@@ -27,56 +27,62 @@ import { checkMessageLimit } from '@/lib/limits'
 // phone-variant retry + DB persistence are obvious extraction
 // candidates into a shared base.
 //
-// PR #1 ships this in isolation: callers don't exist yet. PR #2
-// brings the flow runner online and wires it up. Shipping it now
-// keeps the foundation PR self-contained and unit-testable.
+// Tenancy: everything is workspace-scoped (migration 010 made
+// workspace_id NOT NULL on contacts / conversations /
+// whatsapp_config). The workspace is resolved from the conversation
+// row — the run's conversation is the source of truth for which
+// tenant is sending, same as /api/whatsapp/send.
 // ------------------------------------------------------------
 
-interface SendTextEngineArgs {
-  /** Account-level tenancy key. Drives contact + whatsapp_config
-   *  lookups so a flow authored by user A still sends through the
-   *  WhatsApp number user B saved on the same account. */
-  accountId: string
-  /** Original author of the flow — used for INSERT audit columns
-   *  and for resolving the agent's identity in logs. Not consulted
-   *  for tenancy. */
-  userId: string
-  conversationId: string
-  contactId: string
-  text: string
+type AdminClient = ReturnType<typeof supabaseAdmin>
+
+interface SendContext {
+  workspaceId: string
+  contact: { id: string; phone: string }
+  config: Record<string, unknown> & {
+    phone_number_id: string
+    access_token: string
+  }
+  accessToken: string
+  sanitizedPhone: string
 }
 
 /**
- * Send a plain-text WhatsApp message from the Flows engine.
+ * Shared lookup for every engine send:
+ *   conversation → workspace_id → plan-limit check → contact
+ *   (workspace-scoped, defense-in-depth) → whatsapp_config.
  *
- * Used by the runner's `send_message` and `collect_input` nodes —
- * both prompt the customer with text and either auto-advance (the
- * send_message case) or suspend awaiting a text reply (collect_input).
- *
- * Wraps the same phone-variant retry + DB persistence pattern as the
- * interactive senders; the duplication will be DRY'd into a shared
- * `engineSendBase` once the v2 features (templates with variables,
- * media sends) settle.
+ * Throws with a human-readable reason on any miss; the engine
+ * converts throws into a failed run + `error` event.
  */
-export async function engineSendText(
-  args: SendTextEngineArgs,
-): Promise<{ whatsapp_message_id: string }> {
-  // Check message limits
-  const limitCheck = await checkMessageLimit(args.accountId);
-  if (!limitCheck.allowed) {
-    throw new Error(limitCheck.error || 'Message limit reached. Please upgrade your plan.');
+async function resolveSendContext(
+  db: AdminClient,
+  conversationId: string,
+  contactId: string,
+): Promise<SendContext> {
+  const { data: conversation, error: convErr } = await db
+    .from('conversations')
+    .select('id, workspace_id')
+    .eq('id', conversationId)
+    .maybeSingle()
+  if (convErr || !conversation?.workspace_id) {
+    throw new Error('conversation not found or missing workspace')
   }
+  const workspaceId = conversation.workspace_id as string
 
-  const db = supabaseAdmin()
+  const limitCheck = await checkMessageLimit(workspaceId)
+  if (!limitCheck.allowed) {
+    throw new Error(limitCheck.error || 'Message limit reached. Please upgrade your plan.')
+  }
 
   const { data: contact, error: contactErr } = await db
     .from('contacts')
     .select('id, phone')
-    .eq('id', args.contactId)
-    .eq('account_id', args.accountId)
+    .eq('id', contactId)
+    .eq('workspace_id', workspaceId)
     .maybeSingle()
   if (contactErr || !contact?.phone) {
-    throw new Error('contact not found for this account')
+    throw new Error('contact not found for this workspace')
   }
 
   const sanitized = sanitizePhoneForMeta(contact.phone)
@@ -87,26 +93,33 @@ export async function engineSendText(
   const { data: config, error: configErr } = await db
     .from('whatsapp_config')
     .select('*')
-    .eq('account_id', args.accountId)
-    .single()
+    .eq('workspace_id', workspaceId)
+    .maybeSingle()
   if (configErr || !config) {
-    throw new Error('WhatsApp not configured for this account')
+    throw new Error('WhatsApp not configured for this workspace')
   }
 
-  const accessToken = decrypt(config.access_token)
-
-  const attempt = async (phone: string): Promise<string> => {
-    const r = await sendTextMessage({
-      phoneNumberId: config.phone_number_id,
-      accessToken,
-      to: phone,
-      text: args.text,
-    })
-    return r.messageId
+  return {
+    workspaceId,
+    contact: contact as { id: string; phone: string },
+    config,
+    accessToken: decrypt(config.access_token),
+    sanitizedPhone: sanitized,
   }
+}
 
-  const variants = phoneVariants(sanitized)
-  let workingPhone = sanitized
+/**
+ * Meta rejects some registered numbers unless a trunk-0 / country-code
+ * variant is used — try each until one lands, then persist the working
+ * variant back onto the contact so future sends skip the retries.
+ */
+async function sendWithPhoneVariants(
+  db: AdminClient,
+  ctx: SendContext,
+  attempt: (phone: string) => Promise<string>,
+): Promise<string> {
+  const variants = phoneVariants(ctx.sanitizedPhone)
+  let workingPhone = ctx.sanitizedPhone
   let waMessageId = ''
   let lastError: unknown = null
   for (const v of variants) {
@@ -123,16 +136,28 @@ export async function engineSendText(
   }
   if (lastError) throw lastError
 
-  if (workingPhone !== sanitized) {
-    await db.from('contacts').update({ phone: workingPhone }).eq('id', contact.id)
+  if (workingPhone !== ctx.sanitizedPhone) {
+    await db.from('contacts').update({ phone: workingPhone }).eq('id', ctx.contact.id)
   }
+  return waMessageId
+}
 
+async function persistOutbound(
+  db: AdminClient,
+  args: {
+    conversationId: string
+    contentType: string
+    contentText: string | null
+    preview: string
+    waMessageId: string
+  },
+): Promise<void> {
   const { error: msgErr } = await db.from('messages').insert({
     conversation_id: args.conversationId,
     sender_type: 'bot',
-    content_type: 'text',
-    content_text: args.text,
-    message_id: waMessageId,
+    content_type: args.contentType,
+    content_text: args.contentText,
+    message_id: args.waMessageId,
     status: 'sent',
   })
   if (msgErr) {
@@ -142,17 +167,57 @@ export async function engineSendText(
   await db
     .from('conversations')
     .update({
-      last_message_text: args.text,
+      last_message_text: args.preview,
       last_message_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq('id', args.conversationId)
+}
+
+interface SendTextEngineArgs {
+  /** Original author of the flow — used for log attribution only.
+   *  Tenancy comes from the conversation's workspace_id. */
+  userId: string
+  conversationId: string
+  contactId: string
+  text: string
+}
+
+/**
+ * Send a plain-text WhatsApp message from the Flows engine.
+ *
+ * Used by the runner's `send_message` and `collect_input` nodes —
+ * both prompt the customer with text and either auto-advance (the
+ * send_message case) or suspend awaiting a text reply (collect_input).
+ */
+export async function engineSendText(
+  args: SendTextEngineArgs,
+): Promise<{ whatsapp_message_id: string }> {
+  const db = supabaseAdmin()
+  const ctx = await resolveSendContext(db, args.conversationId, args.contactId)
+
+  const waMessageId = await sendWithPhoneVariants(db, ctx, async (phone) => {
+    const r = await sendTextMessage({
+      phoneNumberId: ctx.config.phone_number_id,
+      accessToken: ctx.accessToken,
+      to: phone,
+      text: args.text,
+    })
+    return r.messageId
+  })
+
+  await persistOutbound(db, {
+    conversationId: args.conversationId,
+    contentType: 'text',
+    contentText: args.text,
+    preview: args.text,
+    waMessageId,
+  })
 
   return { whatsapp_message_id: waMessageId }
 }
 
 interface SendMediaEngineArgs {
-  accountId: string
   userId: string
   conversationId: string
   contactId: string
@@ -168,52 +233,20 @@ interface SendMediaEngineArgs {
  * Send an image / video / document from the Flows engine.
  *
  * Used by the runner's `send_media` node. Auto-advances after the
- * send lands (same suspend semantics as send_message). Same
- * phone-variant retry + DB persistence as the text/interactive
- * senders; persists the outgoing message with `content_type` matching
- * the media kind so the inbox renders the right preview.
+ * send lands (same suspend semantics as send_message). Persists the
+ * outgoing message with `content_type` matching the media kind so the
+ * inbox renders the right preview.
  */
 export async function engineSendMedia(
   args: SendMediaEngineArgs,
 ): Promise<{ whatsapp_message_id: string }> {
-  // Check message limits
-  const limitCheck = await checkMessageLimit(args.accountId);
-  if (!limitCheck.allowed) {
-    throw new Error(limitCheck.error || 'Message limit reached. Please upgrade your plan.');
-  }
-
   const db = supabaseAdmin()
+  const ctx = await resolveSendContext(db, args.conversationId, args.contactId)
 
-  const { data: contact, error: contactErr } = await db
-    .from('contacts')
-    .select('id, phone')
-    .eq('id', args.contactId)
-    .eq('account_id', args.accountId)
-    .maybeSingle()
-  if (contactErr || !contact?.phone) {
-    throw new Error('contact not found for this account')
-  }
-
-  const sanitized = sanitizePhoneForMeta(contact.phone)
-  if (!isValidE164(sanitized)) {
-    throw new Error(`contact phone invalid: ${contact.phone}`)
-  }
-
-  const { data: config, error: configErr } = await db
-    .from('whatsapp_config')
-    .select('*')
-    .eq('account_id', args.accountId)
-    .single()
-  if (configErr || !config) {
-    throw new Error('WhatsApp not configured for this account')
-  }
-
-  const accessToken = decrypt(config.access_token)
-
-  const attempt = async (phone: string): Promise<string> => {
+  const waMessageId = await sendWithPhoneVariants(db, ctx, async (phone) => {
     const r = await sendMediaMessage({
-      phoneNumberId: config.phone_number_id,
-      accessToken,
+      phoneNumberId: ctx.config.phone_number_id,
+      accessToken: ctx.accessToken,
       to: phone,
       kind: args.kind,
       link: args.link,
@@ -221,61 +254,24 @@ export async function engineSendMedia(
       filename: args.filename,
     })
     return r.messageId
-  }
+  })
 
-  const variants = phoneVariants(sanitized)
-  let workingPhone = sanitized
-  let waMessageId = ''
-  let lastError: unknown = null
-  for (const v of variants) {
-    try {
-      waMessageId = await attempt(v)
-      workingPhone = v
-      lastError = null
-      break
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (!isRecipientNotAllowedError(msg)) throw err
-      lastError = err
-    }
-  }
-  if (lastError) throw lastError
-
-  if (workingPhone !== sanitized) {
-    await db.from('contacts').update({ phone: workingPhone }).eq('id', contact.id)
-  }
-
-  // content_type='image'|'video'|'document' — these are already in the
-  // messages_content_type_check constraint (migration 001 + 010).
+  // content_type='image'|'video'|'document' — allowed by the
+  // messages_content_type_check constraint (migrations 001 + 027).
   // content_text carries the caption (or empty) so the conversation
   // list preview shows something meaningful when the user glances at it.
-  const preview = args.caption?.trim() || `[${args.kind}]`
-  const { error: msgErr } = await db.from('messages').insert({
-    conversation_id: args.conversationId,
-    sender_type: 'bot',
-    content_type: args.kind,
-    content_text: args.caption ?? null,
-    message_id: waMessageId,
-    status: 'sent',
+  await persistOutbound(db, {
+    conversationId: args.conversationId,
+    contentType: args.kind,
+    contentText: args.caption ?? null,
+    preview: args.caption?.trim() || `[${args.kind}]`,
+    waMessageId,
   })
-  if (msgErr) {
-    throw new Error(`sent to Meta but DB insert failed: ${msgErr.message}`)
-  }
-
-  await db
-    .from('conversations')
-    .update({
-      last_message_text: preview,
-      last_message_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', args.conversationId)
 
   return { whatsapp_message_id: waMessageId }
 }
 
 interface SendInteractiveButtonsEngineArgs {
-  accountId: string
   userId: string
   conversationId: string
   contactId: string
@@ -286,7 +282,6 @@ interface SendInteractiveButtonsEngineArgs {
 }
 
 interface SendInteractiveListEngineArgs {
-  accountId: string
   userId: string
   conversationId: string
   contactId: string
@@ -331,48 +326,14 @@ type SendInput =
 async function sendInteractiveViaMeta(
   input: SendInput,
 ): Promise<{ whatsapp_message_id: string }> {
-  // Check message limits
-  const limitCheck = await checkMessageLimit(input.accountId);
-  if (!limitCheck.allowed) {
-    throw new Error(limitCheck.error || 'Message limit reached. Please upgrade your plan.');
-  }
-
   const db = supabaseAdmin()
+  const ctx = await resolveSendContext(db, input.conversationId, input.contactId)
 
-  // Scope the contact + whatsapp_config lookups by account_id —
-  // same defense-in-depth rationale as automations/meta-send.ts.
-  // Migration 017 moved both tables to account-scoped tenancy.
-  const { data: contact, error: contactErr } = await db
-    .from('contacts')
-    .select('id, phone')
-    .eq('id', input.contactId)
-    .eq('account_id', input.accountId)
-    .maybeSingle()
-  if (contactErr || !contact?.phone) {
-    throw new Error('contact not found for this account')
-  }
-
-  const sanitized = sanitizePhoneForMeta(contact.phone)
-  if (!isValidE164(sanitized)) {
-    throw new Error(`contact phone invalid: ${contact.phone}`)
-  }
-
-  const { data: config, error: configErr } = await db
-    .from('whatsapp_config')
-    .select('*')
-    .eq('account_id', input.accountId)
-    .single()
-  if (configErr || !config) {
-    throw new Error('WhatsApp not configured for this account')
-  }
-
-  const accessToken = decrypt(config.access_token)
-
-  const attempt = async (phone: string): Promise<string> => {
+  const waMessageId = await sendWithPhoneVariants(db, ctx, async (phone) => {
     if (input.kind === 'buttons') {
       const r = await sendInteractiveButtons({
-        phoneNumberId: config.phone_number_id,
-        accessToken,
+        phoneNumberId: ctx.config.phone_number_id,
+        accessToken: ctx.accessToken,
         to: phone,
         bodyText: input.bodyText,
         buttons: input.buttons,
@@ -382,8 +343,8 @@ async function sendInteractiveViaMeta(
       return r.messageId
     }
     const r = await sendInteractiveList({
-      phoneNumberId: config.phone_number_id,
-      accessToken,
+      phoneNumberId: ctx.config.phone_number_id,
+      accessToken: ctx.accessToken,
       to: phone,
       bodyText: input.bodyText,
       buttonLabel: input.buttonLabel,
@@ -392,62 +353,23 @@ async function sendInteractiveViaMeta(
       footerText: input.footerText,
     })
     return r.messageId
-  }
-
-  // Same phone-variant retry as automations/meta-send.ts. Numbers
-  // registered with/without a trunk 0 + Meta's sandbox quirks all
-  // need this to reliably land a message.
-  const variants = phoneVariants(sanitized)
-  let workingPhone = sanitized
-  let waMessageId = ''
-  let lastError: unknown = null
-  for (const v of variants) {
-    try {
-      waMessageId = await attempt(v)
-      workingPhone = v
-      lastError = null
-      break
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (!isRecipientNotAllowedError(msg)) throw err
-      lastError = err
-    }
-  }
-  if (lastError) throw lastError
-
-  if (workingPhone !== sanitized) {
-    await db.from('contacts').update({ phone: workingPhone }).eq('id', contact.id)
-  }
+  })
 
   // Persist the bot's prompt to the messages table so it appears in
-  // the inbox. content_type='interactive' is supported as of
-  // migration 010; sender_type='bot' distinguishes flow sends from
-  // manual agent sends (the conversation list preview will pick up
-  // last_message_text as a sensible summary).
+  // the inbox. content_type='interactive' is allowed by the widened
+  // CHECK constraint from migration 027; sender_type='bot'
+  // distinguishes flow sends from manual agent sends.
   //
   // We do NOT set interactive_reply_id here — that column is reserved
   // for the customer's tap on this message, populated by the webhook
   // when their reply arrives.
-  const { error: msgErr } = await db.from('messages').insert({
-    conversation_id: input.conversationId,
-    sender_type: 'bot',
-    content_type: 'interactive',
-    content_text: input.bodyText,
-    message_id: waMessageId,
-    status: 'sent',
+  await persistOutbound(db, {
+    conversationId: input.conversationId,
+    contentType: 'interactive',
+    contentText: input.bodyText,
+    preview: input.bodyText,
+    waMessageId,
   })
-  if (msgErr) {
-    throw new Error(`sent to Meta but DB insert failed: ${msgErr.message}`)
-  }
-
-  await db
-    .from('conversations')
-    .update({
-      last_message_text: input.bodyText,
-      last_message_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', input.conversationId)
 
   return { whatsapp_message_id: waMessageId }
 }

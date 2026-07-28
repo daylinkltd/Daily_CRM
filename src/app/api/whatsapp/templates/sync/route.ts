@@ -157,21 +157,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Resolve the caller's account_id — both whatsapp_config and
-    // the message_templates we sync into are account-scoped.
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    const accountId = profile?.account_id as string | undefined
-    if (!accountId) {
-      return NextResponse.json(
-        { error: 'Your profile is not linked to an account.' },
-        { status: 403 },
-      )
-    }
-
     // whatsapp_config holds waba_id + encrypted access_token.
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
@@ -256,10 +241,9 @@ export async function POST(request: Request) {
           : null
 
       const row = {
-        // Account tenancy + user audit, same split as the submit
-        // route. account_id is NOT NULL on message_templates
-        // post-017, so an INSERT without it errors.
-        account_id: accountId,
+        // Workspace tenancy + user audit, same split as the submit
+        // route (workspace_id is NOT NULL on message_templates per
+        // migration 010).
         user_id: user.id,
         workspace_id: workspaceId,
         name: t.name,
@@ -282,7 +266,6 @@ export async function POST(request: Request) {
         .from('message_templates')
         .select('id')
         .eq('workspace_id', workspaceId)
-        .eq('account_id', accountId)
         .eq('name', t.name)
         .eq('language', t.language)
         .maybeSingle()
