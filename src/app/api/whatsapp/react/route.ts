@@ -88,6 +88,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // RLS scopes this to conversations the caller's workspace can see;
+    // the row's workspace_id then drives the whatsapp_config lookup —
+    // same pattern as /api/whatsapp/send.
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
       .select('id, workspace_id, contact:contacts(phone)')
@@ -113,7 +116,8 @@ export async function POST(request: Request) {
     }
 
     // WhatsApp config + access token, scoped to the conversation's
-    // workspace so multi-workspace members react via the right number.
+    // workspace so multi-workspace members react via the right number
+    // (whatsapp_config.workspace_id is UNIQUE per 011).
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
       .select('phone_number_id, access_token')

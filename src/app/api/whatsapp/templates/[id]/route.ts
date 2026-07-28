@@ -65,10 +65,6 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Authorization is the workspace-membership gate below — the row
-    // is fetched by id and its workspace checked against the caller.
-    // (A previous profiles.account_id lookup here hit a nonexistent
-    // column and 403'd every request.)
     let payload: TemplatePayload
     try {
       payload = (await request.json()) as TemplatePayload
@@ -76,8 +72,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 })
     }
 
-    // RLS handles ownership, but we need the existing row to read
-    // meta_template_id and status — fetch explicitly.
+    // RLS handles visibility; the explicit workspace-membership gate
+    // below handles authorization. Fetch the row to read
+    // meta_template_id, status, and workspace_id.
     const { data: existing, error: lookupErr } = await supabase
       .from('message_templates')
       .select('id, name, status, meta_template_id, language, workspace_id')
