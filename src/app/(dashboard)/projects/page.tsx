@@ -97,6 +97,21 @@ export default function ProjectsListPage() {
     }
   };
 
+  const getTypeBadge = (type: string) => {
+    const t = (type || 'SCRUM').toUpperCase();
+    switch (t) {
+      case 'SCRUM':
+        return <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-200 text-[11px] font-medium">SCRUM</Badge>;
+      case 'KANBAN':
+        return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-200 text-[11px] font-medium">KANBAN</Badge>;
+      case 'WATERFALL':
+      case 'BASIC':
+        return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200 text-[11px] font-medium">WATERFALL</Badge>;
+      default:
+        return <Badge variant="outline" className="text-[11px]">{t}</Badge>;
+    }
+  };
+
   const getSourceBadge = (source: string) => {
     if (source === 'CRM') return <Badge variant="secondary" className="text-[10px] uppercase">CRM Deal</Badge>;
     if (source === 'AUTOMATION') return <Badge variant="secondary" className="text-[10px] uppercase bg-purple-500/15 text-purple-700">Automation</Badge>;
@@ -135,6 +150,7 @@ export default function ProjectsListPage() {
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
               <TableHead className="text-muted-foreground">Project Name</TableHead>
+              <TableHead className="text-muted-foreground hidden md:table-cell">Type</TableHead>
               <TableHead className="text-muted-foreground hidden md:table-cell">Client</TableHead>
               <TableHead className="text-muted-foreground hidden lg:table-cell">Manager</TableHead>
               <TableHead className="text-muted-foreground hidden sm:table-cell">Source</TableHead>
@@ -145,7 +161,7 @@ export default function ProjectsListPage() {
           <TableBody>
             {loading ? (
               <TableRow className="border-border">
-                <TableCell colSpan={6} className="text-center py-12">
+                <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="size-6 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">Loading projects...</p>
@@ -154,7 +170,7 @@ export default function ProjectsListPage() {
               </TableRow>
             ) : projects.length === 0 ? (
               <TableRow className="border-border">
-                <TableCell colSpan={6} className="text-center py-12">
+                <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <FolderKanban className="size-8 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
@@ -189,6 +205,9 @@ export default function ProjectsListPage() {
                           )}
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {getTypeBadge(project.project_type)}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
                       {project.client ? (project.client.company || project.client.name) : '-'}

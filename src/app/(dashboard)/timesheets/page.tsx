@@ -26,6 +26,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { TimeLogForm } from '@/components/timesheets/time-log-form';
 
+import { formatMemberName } from '@/components/tasks/task-form';
+
 export default function TimesheetsPage() {
   const supabase = createClient();
   const { activeWorkspace, activeMember, can } = useWorkspace();
@@ -63,57 +65,51 @@ export default function TimesheetsPage() {
   const fetchTeamTimesheets = useCallback(async () => {
     if (!activeWorkspace?.id || !canManageTimesheets) return;
 
-    // Fetch Attendance and Time Logs for the selected date
-    const [attRes, logsRes] = await Promise.all([
-      supabase.from('attendance').select(`
-        *,
-        workspace_members!inner ( id, user_id )
-      `).eq('workspace_id', activeWorkspace.id).eq('attendance_date', reportDate),
-      
-      supabase.from('time_logs').select('workspace_member_id, hours_logged')
-      .eq('workspace_id', activeWorkspace.id)
-      .eq('log_date', reportDate)
-    ]);
+    try {
+      const [membersRes, attRes, logsRes] = await Promise.all([
+        fetch('/api/account/members').then((r) => r.json()).catch(() => ({ members: [] })),
+        supabase.from('attendance').select('*').eq('workspace_id', activeWorkspace.id).eq('attendance_date', reportDate),
+        supabase.from('time_logs').select('workspace_member_id, hours_logged').eq('workspace_id', activeWorkspace.id).eq('log_date', reportDate)
+      ]);
 
-    if (attRes.error || logsRes.error) {
-      toast.error('Failed to generate timesheet report');
-      return;
+      const loadedMembers = membersRes?.members || [];
+      const attList = attRes.data || [];
+      const logList = logsRes.data || [];
+
+      // Map logs by workspace_member_id
+      const logMap: Record<string, number> = {};
+      logList.forEach((log: any) => {
+        if (!logMap[log.workspace_member_id]) logMap[log.workspace_member_id] = 0;
+        logMap[log.workspace_member_id] += Number(log.hours_logged) || 0;
+      });
+
+      // Map attendance by workspace_member_id
+      const attMap: Record<string, any> = {};
+      attList.forEach((att: any) => {
+        attMap[att.workspace_member_id] = att;
+      });
+
+      // Aggregate for all team members
+      const aggregated = loadedMembers.map((m: any) => {
+        const att = attMap[m.id];
+        const loggedTime = logMap[m.id] || 0;
+        const attendanceHours = att?.working_hours || 0;
+
+        return {
+          member_id: m.id,
+          name: formatMemberName(m),
+          avatar: m.avatar_url,
+          status: att?.status || 'OFF',
+          attendanceHours,
+          loggedTime,
+          discrepancy: loggedTime - attendanceHours
+        };
+      });
+
+      setTeamTimesheets(aggregated);
+    } catch (err) {
+      console.error('Team timesheets fetch error:', err);
     }
-
-    // Two-step: enrich workspace_members with profile data
-    const attList = attRes.data || [];
-    const memberUserIds = attList.map((a: any) => a.workspace_members?.user_id).filter(Boolean);
-    const profileMap: Record<string, any> = {};
-    if (memberUserIds.length > 0) {
-      const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', memberUserIds);
-      (profilesData || []).forEach((p: any) => { profileMap[p.user_id] = p; });
-    }
-
-    // Aggregate logs by member
-    const logMap: Record<string, number> = {};
-    (logsRes.data || []).forEach(log => {
-      if (!logMap[log.workspace_member_id]) logMap[log.workspace_member_id] = 0;
-      logMap[log.workspace_member_id] += Number(log.hours_logged) || 0;
-    });
-
-    // Combine with attendance
-    const aggregated = attList.map((att: any) => {
-      const loggedTime = logMap[att.workspace_member_id] || 0;
-      const attendanceHours = att.working_hours || 0;
-      const profile = att.workspace_members?.user_id ? profileMap[att.workspace_members.user_id] : null;
-      
-      return {
-        member_id: att.workspace_member_id,
-        name: profile?.full_name || 'Unknown',
-        avatar: profile?.avatar_url,
-        status: att.status,
-        attendanceHours,
-        loggedTime,
-        variance: parseFloat((attendanceHours - loggedTime).toFixed(2))
-      };
-    });
-
-    setTeamTimesheets(aggregated);
   }, [supabase, activeWorkspace?.id, canManageTimesheets, reportDate]);
 
   const loadAll = useCallback(async () => {

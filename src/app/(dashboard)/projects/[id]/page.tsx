@@ -23,6 +23,9 @@ import { ProjectTimesheet } from '@/components/projects/project-timesheet';
 import { AutomationsSettings } from '@/components/projects/automations-settings';
 import { ProjectInvoices } from '@/components/projects/project-invoices';
 import { ProjectTimeline } from '@/components/projects/project-timeline';
+import { ProjectTaskList } from '@/components/projects/project-task-list';
+import { ProjectActivityLog } from '@/components/projects/project-activity-log';
+import { ProjectReportsGallery } from '@/components/projects/project-reports-gallery';
 
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -162,24 +165,13 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         )}
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="bg-muted w-full justify-start overflow-x-auto h-auto p-1 rounded-lg">
-          <TabsTrigger value="overview" className="py-2">Overview</TabsTrigger>
-          <TabsTrigger value="planning" className="py-2">Planning</TabsTrigger>
-          <TabsTrigger value="timeline" className="py-2">Timeline</TabsTrigger>
-          <TabsTrigger value="board" className="py-2">Board</TabsTrigger>
-          <TabsTrigger value="list" className="py-2">List</TabsTrigger>
-          <TabsTrigger value="time" className="py-2">Time</TabsTrigger>
-          <TabsTrigger value="invoices" className="py-2">Invoices</TabsTrigger>
-          <TabsTrigger value="reports" className="py-2">Reports</TabsTrigger>
-          <TabsTrigger value="activity" className="py-2">Activity</TabsTrigger>
-          <TabsTrigger value="settings" className="py-2">Settings</TabsTrigger>
-        </TabsList>
+      {/* Dynamic Methodology Tabs */}
+      {(() => {
+        const type = (project?.project_type || 'SCRUM').toUpperCase();
 
-        <div className="mt-6">
-          <TabsContent value="overview" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+        const renderOverviewTab = () => (
+          <TabsContent value="overview" className="m-0 focus-visible:outline-none">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
               <div className="md:col-span-2 space-y-6">
                 <Card className="border-border bg-card shadow-sm">
                   <CardHeader>
@@ -247,53 +239,136 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                   </CardContent>
                 </Card>
               </div>
-              
             </div>
           </TabsContent>
-          <TabsContent value="planning" className="m-0 focus-visible:outline-none mt-6">
-            <PlanningView projectId={id} canManage={canManageProjects} />
-          </TabsContent>
-          <TabsContent value="timeline" className="m-0 focus-visible:outline-none mt-6">
-            <ProjectTimeline projectId={id} />
-          </TabsContent>
-          <TabsContent value="board" className="m-0 focus-visible:outline-none mt-6">
-            <ProjectKanban projectId={id} canManage={canManageProjects} />
-          </TabsContent>
-          <TabsContent value="list" className="m-0 focus-visible:outline-none mt-6">
-            <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-              Table view coming soon.
+        );
+
+        if (type === 'KANBAN') {
+          return (
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="bg-muted w-full justify-start overflow-x-auto h-auto p-1 rounded-lg">
+                <TabsTrigger value="overview" className="py-2">Overview</TabsTrigger>
+                <TabsTrigger value="board" className="py-2">Board</TabsTrigger>
+                <TabsTrigger value="list" className="py-2">List</TabsTrigger>
+                <TabsTrigger value="timeline" className="py-2">Timeline</TabsTrigger>
+                <TabsTrigger value="reports" className="py-2">Reports</TabsTrigger>
+                <TabsTrigger value="files" className="py-2">Files</TabsTrigger>
+                <TabsTrigger value="settings" className="py-2">Settings</TabsTrigger>
+              </TabsList>
+
+              <div className="mt-6">
+                {renderOverviewTab()}
+                <TabsContent value="board" className="m-0 focus-visible:outline-none">
+                  <ProjectKanban projectId={id} canManage={canManageProjects} />
+                </TabsContent>
+                <TabsContent value="list" className="m-0 focus-visible:outline-none">
+                  <ProjectTaskList projectId={id} canManage={canManageProjects} />
+                </TabsContent>
+                <TabsContent value="timeline" className="m-0 focus-visible:outline-none">
+                  <ProjectTimeline projectId={id} />
+                </TabsContent>
+                <TabsContent value="reports" className="m-0 focus-visible:outline-none">
+                  <ProjectReportsGallery projectId={id} projectType={project?.project_type} />
+                </TabsContent>
+                <TabsContent value="files" className="m-0 focus-visible:outline-none">
+                  <Card className="border-border bg-card p-6"><p className="text-sm text-muted-foreground">Project files & attachments</p></Card>
+                </TabsContent>
+                <TabsContent value="settings" className="m-0 focus-visible:outline-none space-y-8">
+                  <WorkflowSettings projectId={id} />
+                  <div className="border-t pt-8">
+                    <AutomationsSettings projectId={id} />
+                  </div>
+                </TabsContent>
+              </div>
+            </Tabs>
+          );
+        }
+
+        if (type === 'WATERFALL' || type === 'BASIC') {
+          return (
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="bg-muted w-full justify-start overflow-x-auto h-auto p-1 rounded-lg">
+                <TabsTrigger value="overview" className="py-2">Overview</TabsTrigger>
+                <TabsTrigger value="tasks" className="py-2">Tasks</TabsTrigger>
+                <TabsTrigger value="gantt" className="py-2">Gantt</TabsTrigger>
+                <TabsTrigger value="milestones" className="py-2">Milestones</TabsTrigger>
+                <TabsTrigger value="files" className="py-2">Files</TabsTrigger>
+                <TabsTrigger value="reports" className="py-2">Reports</TabsTrigger>
+                <TabsTrigger value="settings" className="py-2">Settings</TabsTrigger>
+              </TabsList>
+
+              <div className="mt-6">
+                {renderOverviewTab()}
+                <TabsContent value="tasks" className="m-0 focus-visible:outline-none">
+                  <ProjectTaskList projectId={id} canManage={canManageProjects} />
+                </TabsContent>
+                <TabsContent value="gantt" className="m-0 focus-visible:outline-none">
+                  <ProjectTimeline projectId={id} />
+                </TabsContent>
+                <TabsContent value="milestones" className="m-0 focus-visible:outline-none">
+                  <Card className="border-border bg-card p-6"><p className="text-sm text-muted-foreground">Project Milestones & Deliverables</p></Card>
+                </TabsContent>
+                <TabsContent value="files" className="m-0 focus-visible:outline-none">
+                  <Card className="border-border bg-card p-6"><p className="text-sm text-muted-foreground">Project files & attachments</p></Card>
+                </TabsContent>
+                <TabsContent value="reports" className="m-0 focus-visible:outline-none">
+                  <ProjectReportsGallery projectId={id} projectType={project?.project_type} />
+                </TabsContent>
+                <TabsContent value="settings" className="m-0 focus-visible:outline-none space-y-8">
+                  <WorkflowSettings projectId={id} />
+                  <div className="border-t pt-8">
+                    <AutomationsSettings projectId={id} />
+                  </div>
+                </TabsContent>
+              </div>
+            </Tabs>
+          );
+        }
+
+        // Default: SCRUM
+        return (
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="bg-muted w-full justify-start overflow-x-auto h-auto p-1 rounded-lg">
+              <TabsTrigger value="overview" className="py-2">Overview</TabsTrigger>
+              <TabsTrigger value="backlog" className="py-2">Backlog</TabsTrigger>
+              <TabsTrigger value="sprint" className="py-2">Sprint</TabsTrigger>
+              <TabsTrigger value="board" className="py-2">Board</TabsTrigger>
+              <TabsTrigger value="timeline" className="py-2">Timeline</TabsTrigger>
+              <TabsTrigger value="reports" className="py-2">Reports</TabsTrigger>
+              <TabsTrigger value="files" className="py-2">Files</TabsTrigger>
+              <TabsTrigger value="settings" className="py-2">Settings</TabsTrigger>
+            </TabsList>
+
+            <div className="mt-6">
+              {renderOverviewTab()}
+              <TabsContent value="backlog" className="m-0 focus-visible:outline-none">
+                <PlanningView projectId={id} canManage={canManageProjects} />
+              </TabsContent>
+              <TabsContent value="sprint" className="m-0 focus-visible:outline-none">
+                <ProjectKanban projectId={id} canManage={canManageProjects} />
+              </TabsContent>
+              <TabsContent value="board" className="m-0 focus-visible:outline-none">
+                <ProjectKanban projectId={id} canManage={canManageProjects} />
+              </TabsContent>
+              <TabsContent value="timeline" className="m-0 focus-visible:outline-none">
+                <ProjectTimeline projectId={id} />
+              </TabsContent>
+              <TabsContent value="reports" className="m-0 focus-visible:outline-none">
+                <ProjectReportsGallery projectId={id} projectType={project?.project_type} />
+              </TabsContent>
+              <TabsContent value="files" className="m-0 focus-visible:outline-none">
+                <Card className="border-border bg-card p-6"><p className="text-sm text-muted-foreground">Project files & attachments</p></Card>
+              </TabsContent>
+              <TabsContent value="settings" className="m-0 focus-visible:outline-none space-y-8">
+                <WorkflowSettings projectId={id} />
+                <div className="border-t pt-8">
+                  <AutomationsSettings projectId={id} />
+                </div>
+              </TabsContent>
             </div>
-          </TabsContent>
-          <TabsContent value="time" className="m-0 focus-visible:outline-none mt-6">
-            <ProjectTimesheet projectId={id} />
-          </TabsContent>
-          <TabsContent value="invoices" className="m-0 focus-visible:outline-none mt-6">
-            <ProjectInvoices projectId={id} />
-          </TabsContent>
-          <TabsContent value="reports" className="m-0 focus-visible:outline-none mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {project.project_type === 'SCRUM' && (
-                <>
-                  <SprintBurndown projectId={id} />
-                  <ProjectVelocity projectId={id} />
-                </>
-              )}
-              <TeamWorkload projectId={id} />
-            </div>
-          </TabsContent>
-          <TabsContent value="activity" className="m-0 focus-visible:outline-none mt-6">
-            <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-              Project level audit log coming soon.
-            </div>
-          </TabsContent>
-          <TabsContent value="settings" className="m-0 focus-visible:outline-none mt-6 space-y-8">
-            <WorkflowSettings projectId={id} />
-            <div className="border-t pt-8">
-              <AutomationsSettings projectId={id} />
-            </div>
-          </TabsContent>
-        </div>
-      </Tabs>
+          </Tabs>
+        );
+      })()}
     </div>
   );
 }

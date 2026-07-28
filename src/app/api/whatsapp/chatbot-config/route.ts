@@ -56,8 +56,8 @@ export async function GET(request: Request) {
       // Return a default blank config if none exists yet
       return NextResponse.json({
         is_enabled: false,
-        provider: "openai",
-        model: "gpt-4o-mini",
+        provider: "groq",
+        model: "llama-3.3-70b-versatile",
         system_prompt: "You are a helpful customer service assistant for our business.",
         business_context: "",
         auto_pause_duration: 60,
@@ -149,8 +149,8 @@ export async function POST(request: Request) {
 
     const updatePayload: Record<string, any> = {
       is_enabled: !!is_enabled,
-      provider: provider || "openai",
-      model: model || "gpt-4o-mini",
+      provider: provider || "groq",
+      model: model || "llama-3.3-70b-versatile",
       system_prompt: system_prompt || "You are a helpful customer service assistant for our business.",
       business_context: business_context || "",
       auto_pause_duration: auto_pause_duration !== undefined ? Number(auto_pause_duration) : 60,

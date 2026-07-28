@@ -53,8 +53,25 @@ export function ProjectKanban({ projectId, canManage }: ProjectKanbanProps) {
       supabase.from('tasks').select(`*, assignee:workspace_members!tasks_assigned_workspace_member_id_fkey ( id, user_id )`).eq('project_id', projectId).is('parent_id', null)
     ]);
 
-    if (statusesRes.error) toast.error('Failed to load workflow statuses');
-    else setColumns(statusesRes.data || []);
+    if (statusesRes.error) {
+      toast.error('Failed to load workflow statuses');
+    } else {
+      let fetchedStatuses = statusesRes.data || [];
+      if (fetchedStatuses.length === 0) {
+        const defaultStatuses = [
+          { project_id: projectId, name: 'To Do', category: 'TODO', sort_order: 1, color: 'slate' },
+          { project_id: projectId, name: 'In Progress', category: 'IN_PROGRESS', sort_order: 2, color: 'blue' },
+          { project_id: projectId, name: 'Done', category: 'DONE', sort_order: 3, color: 'emerald' },
+        ];
+        const { data: inserted, error: insErr } = await supabase.from('project_statuses').insert(defaultStatuses).select();
+        if (insErr) {
+          console.error('[ProjectKanban] error seeding default statuses:', insErr);
+        } else if (inserted) {
+          fetchedStatuses = inserted;
+        }
+      }
+      setColumns(fetchedStatuses);
+    }
 
     if (tasksRes.error) {
       toast.error('Failed to load tasks');
@@ -79,8 +96,31 @@ export function ProjectKanban({ projectId, canManage }: ProjectKanbanProps) {
   }, [fetchKanbanData]);
 
   const addColumn = async () => {
-    // Disabled: Statuses are now managed in Workflow Settings
-    toast.error('Please add new columns via the Workflow Settings tab.');
+    if (!newColumnName.trim()) return;
+    setAddingColumn(true);
+    try {
+      const sortOrder = columns.length + 1;
+      const { data, error } = await supabase
+        .from('project_statuses')
+        .insert({
+          project_id: projectId,
+          name: newColumnName.trim(),
+          category: 'IN_PROGRESS',
+          sort_order: sortOrder,
+          color: 'slate',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setColumns((prev) => [...prev, data]);
+      setNewColumnName('');
+      toast.success('Column added');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to add column');
+    } finally {
+      setAddingColumn(false);
+    }
   };
 
   const sensors = useSensors(
@@ -106,23 +146,52 @@ export function ProjectKanban({ projectId, canManage }: ProjectKanbanProps) {
 
     if (!over) return;
     const taskId = active.id as string;
-    const newColumnId = over.id as string;
+    const overId = over.id as string;
 
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // Handle backlog pseudo-column (over.id === 'backlog' means status_id = null)
-    const targetStatusId = newColumnId === 'backlog' ? null : newColumnId;
+    // Resolve target status ID correctly whether dropped on column or task card
+    let targetStatusId: string | null = null;
+    if (overId === 'backlog') {
+      targetStatusId = null;
+    } else if (columns.some(col => col.id === overId)) {
+      targetStatusId = overId;
+    } else {
+      const overTask = tasks.find(t => t.id === overId);
+      if (overTask) {
+        targetStatusId = overTask.status_id;
+      } else {
+        return;
+      }
+    }
 
     if (task.status_id === targetStatusId) return;
+
+    const targetStatusObj = columns.find(c => c.id === targetStatusId);
+    const legacyStatusText = targetStatusId === null ? 'backlog' : (targetStatusObj?.category?.toLowerCase() || 'in_progress');
 
     // Optimistic update
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status_id: targetStatusId } : t));
 
     try {
-      const { error } = await supabase.from('tasks').update({ status_id: targetStatusId }).eq('id', taskId);
-      if (error) throw error;
-    } catch (err) {
+      // Try updating both status_id and status string to satisfy any legacy triggers
+      const { error: err1 } = await supabase
+        .from('tasks')
+        .update({ status_id: targetStatusId, status: legacyStatusText })
+        .eq('id', taskId);
+
+      if (err1) {
+        // Fallback to status_id update only
+        const { error: err2 } = await supabase
+          .from('tasks')
+          .update({ status_id: targetStatusId })
+          .eq('id', taskId);
+
+        if (err2) throw err2;
+      }
+    } catch (err: any) {
+      console.error('Drag end error:', err);
       toast.error('Failed to move task');
       fetchKanbanData(); // revert on fail
     }
@@ -178,7 +247,30 @@ export function ProjectKanban({ projectId, canManage }: ProjectKanbanProps) {
           );
         })}
 
-        {/* Add Column Button removed in favor of Workflow Settings */}
+        {/* Add Column Input & Button */}
+        {canManage && (
+          <div className="w-72 shrink-0 bg-card border border-dashed border-border rounded-lg p-3 flex flex-col gap-2">
+            <Input
+              placeholder="New Column Name..."
+              value={newColumnName}
+              onChange={(e) => setNewColumnName(e.target.value)}
+              className="bg-background text-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addColumn();
+              }}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addColumn}
+              disabled={addingColumn || !newColumnName.trim()}
+              className="w-full text-xs"
+            >
+              {addingColumn ? <Loader2 className="size-3 animate-spin mr-1" /> : <Plus className="size-3 mr-1" />}
+              Add Column
+            </Button>
+          </div>
+        )}
       </div>
 
       <DragOverlay>

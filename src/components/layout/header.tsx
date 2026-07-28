@@ -25,20 +25,55 @@ const pageTitles: Record<string, string> = {
   "/pipelines": "Pipelines",
   "/broadcasts": "Broadcasts",
   "/automations": "Automations",
+  "/projects": "Projects",
+  "/planning": "Planning",
+  "/tasks": "Tasks",
+  "/workload": "Workload",
+  "/timesheets": "Timesheets",
+  "/invoices": "Invoices",
+  "/employees": "Employees",
+  "/documents": "Documents",
+  "/departments": "Departments",
+  "/designations": "Designations",
+  "/payroll": "Payroll",
+  "/performance": "Performance",
+  "/attendance": "Attendance",
+  "/leave": "Leave",
+  "/requests": "Requests",
+  "/expenses": "Expenses",
+  "/policies": "Policies",
+  "/holidays": "Holidays",
+  "/recruitment": "Recruitment",
+  "/assets": "Assets",
+  "/shifts": "Shifts",
+  "/reports": "Reports",
   "/settings": "Settings",
 };
 
-function getPageTitle(pathname: string): string {
-  if (pageTitles[pathname]) return pageTitles[pathname];
-  const match = Object.entries(pageTitles).find(([path]) =>
-    pathname.startsWith(path),
-  );
-  if (match) return match[1];
+const isUuid = (str: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
+function getPageTitle(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 0) return "Dashboard";
 
+  const exact = pageTitles[pathname];
+  if (exact) return exact;
+
+  const parentPath = "/" + segments[0];
+  const parentTitle = pageTitles[parentPath];
+
   const lastSegment = segments[segments.length - 1];
+  if (isUuid(lastSegment)) {
+    if (parentTitle) {
+      const singular = parentTitle.endsWith("s") ? parentTitle.slice(0, -1) : parentTitle;
+      return `${singular} Details`;
+    }
+    return "Details";
+  }
+
+  if (parentTitle) return parentTitle;
+
   return lastSegment
     .split("-")
     .map((word) => {

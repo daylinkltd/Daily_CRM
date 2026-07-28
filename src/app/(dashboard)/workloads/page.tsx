@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { addDays, endOfDay, isAfter, isBefore, parseISO, startOfDay, addMonths } from 'date-fns';
 
+import { formatMemberName } from '@/components/tasks/task-form';
+
 type TimeHorizon = '7' | '14' | '30' | '90';
 
 export default function WorkloadsPage() {
@@ -27,23 +29,28 @@ export default function WorkloadsPage() {
     setLoading(true);
 
     try {
-      // 1. Fetch all active members in the workspace with their capacity
-      const { data: rawMembers, error: membersError } = await supabase
-        .from('workspace_members')
-        .select('id, user_id, weekly_capacity')
-        .eq('workspace_id', activeWorkspace.id)
-        .eq('status', 'ACTIVE');
+      // 1. Fetch all members via API & workspace_members with capacity
+      const [membersRes, { data: rawMembers, error: membersError }] = await Promise.all([
+        fetch('/api/account/members').then(r => r.json()).catch(() => ({ members: [] })),
+        supabase
+          .from('workspace_members')
+          .select('id, user_id, weekly_capacity')
+          .eq('workspace_id', activeWorkspace.id)
+      ]);
 
       if (membersError) throw membersError;
 
-      // Two-step: enrich with profile data (workspace_members.user_id refs auth.users not public.profiles)
-      let members: any[] = rawMembers || [];
-      if (members.length > 0) {
-        const userIds = members.map((m: any) => m.user_id).filter(Boolean);
-        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', userIds);
-        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
-        members = members.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null }));
-      }
+      const loadedMembers = membersRes?.members || [];
+      const memberMapById = Object.fromEntries(loadedMembers.map((m: any) => [m.id, m]));
+
+      let members: any[] = (rawMembers || []).map((m: any) => {
+        const enriched = memberMapById[m.id] || m;
+        return {
+          ...m,
+          displayName: formatMemberName(enriched),
+          avatar: enriched.avatar_url || enriched.profiles?.avatar_url
+        };
+      });
 
       // 2. Fetch all active tasks across all projects
       const { data: tasks, error: tasksError } = await supabase
@@ -83,8 +90,8 @@ export default function WorkloadsPage() {
 
         memberMap.set(m.id, {
           id: m.id,
-          name: profile?.full_name || 'Unknown User',
-          avatar: profile?.avatar_url,
+          name: m.displayName || 'Team Member',
+          avatar: m.avatar,
           capacity: totalCapacity,
           assignedHours: 0,
           utilization: 0,
