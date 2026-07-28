@@ -25,7 +25,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, can, defaultCurrency } = useWorkspace();
-  const canManageProjects = can('projects_manage' as any);
+  const canManageProjects = can('projects_manage');
 
   const [project, setProject] = useState<any | null>(null);
   const [members, setMembers] = useState<any[]>([]);

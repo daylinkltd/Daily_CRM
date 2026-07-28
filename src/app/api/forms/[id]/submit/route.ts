@@ -329,7 +329,7 @@ export async function POST(
       const dealCurrency = wsCurrencyRow?.default_currency || 'USD';
       const finalNotes = (dealData.notes ? `${dealData.notes}\n` : '') + responsesSummary;
 
-      const { data: newDeal, error: dealError } = await supabase
+      const { error: dealError } = await supabase
         .from('deals')
         .insert({
           id: dealId,
@@ -380,7 +380,7 @@ export async function POST(
             insertData.deal_id = dealId;
           }
 
-          const { data: dbFile, error: dbErr } = await supabase
+          const { error: dbErr } = await supabase
             .from('media_files')
             .insert(insertData)
             .select()

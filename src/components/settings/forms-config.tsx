@@ -62,7 +62,7 @@ export function FormsConfig() {
               <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className="w-full h-10 rounded-md bg-slate-800 border-slate-700 text-foreground px-3">
                 <option value="Sales">Sales Pipeline</option>
                 <option value="Support">Support Tickets</option>
-                <option value="None">Don't create a deal</option>
+                <option value="None">Don&apos;t create a deal</option>
               </select>
             </div>
             <div className="space-y-2">

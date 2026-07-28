@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
@@ -28,7 +27,7 @@ import { PolicyEditorModal } from '@/components/policies/policy-editor-modal';
 export default function PoliciesDashboardPage() {
   const router = useRouter();
   const { activeWorkspace, can } = useWorkspace();
-  const canManage = can('people_manage' as any);
+  const canManage = can('people_manage');
 
   const [policies, setPolicies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -195,7 +194,7 @@ export default function PoliciesDashboardPage() {
             <Shield className="size-12 text-muted-foreground opacity-20 mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-1">No HR Policies Found</h3>
             <p className="text-sm text-muted-foreground max-w-sm mb-6">
-              Create your company's Code of Conduct, Leave Rules, and Terms & Conditions for employee digital sign-off.
+              Create your company&apos;s Code of Conduct, Leave Rules, and Terms & Conditions for employee digital sign-off.
             </p>
             {canManage && (
               <Button onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }}>

@@ -66,9 +66,9 @@ export function ProfileForm() {
         .single();
       
       if (!error && data) {
-        // @ts-ignore
+        // @ts-expect-error -- nested select returns an untyped relation shape
         if (data.workspace_roles && data.workspace_roles.name) {
-          // @ts-ignore
+          // @ts-expect-error -- nested select returns an untyped relation shape
           setWorkspaceRoleName(data.workspace_roles.name);
         } else {
           setWorkspaceRoleName(data.role);

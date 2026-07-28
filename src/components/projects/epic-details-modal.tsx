@@ -335,7 +335,6 @@ export function EpicDetailsModal({
                         ) : (
                           childTasks.map((ct) => {
                             const assigneeName = formatMemberName(ct.assignee_member);
-                            const currentStatusObj = ct.project_statuses;
 
                             return (
                               <TableRow key={ct.id} className="hover:bg-muted/30">

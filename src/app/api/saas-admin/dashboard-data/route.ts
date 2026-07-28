@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
  * Returns all workspaces, profiles, and prospects for the admin dashboard.
  * Requires super_admin session — uses admin client to bypass RLS.
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

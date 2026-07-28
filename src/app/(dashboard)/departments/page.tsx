@@ -37,7 +37,7 @@ import { DepartmentForm } from '@/components/departments/department-form';
 export default function DepartmentsPage() {
   const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
-  const canManagePeople = can('people_manage' as any); // Assuming added to WorkspacePermissions type
+  const canManagePeople = can('people_manage');
 
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

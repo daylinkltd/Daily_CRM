@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
  * Permanently deletes ALL non-super_admin users + their workspaces.
  * Requires: authenticated super_admin session.
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
   try {
     // 1. Verify caller is super_admin
     const supabase = await createServerClient();

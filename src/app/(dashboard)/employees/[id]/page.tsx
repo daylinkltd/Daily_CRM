@@ -19,7 +19,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, can } = useWorkspace();
-  const canManagePeople = can('people_manage' as any);
+  const canManagePeople = can('people_manage');
 
   const [employee, setEmployee] = useState<any | null>(null);
   const [departments, setDepartments] = useState<any[]>([]);

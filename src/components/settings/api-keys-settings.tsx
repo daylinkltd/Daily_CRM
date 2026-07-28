@@ -251,7 +251,7 @@ export function ApiKeysSettings() {
             <CardContent className="flex flex-col items-center justify-center py-8 text-center">
               <KeyRound className="size-10 text-muted-foreground/30" />
               <p className="mt-3 text-sm text-muted-foreground">
-                Click "Create API key" above to generate your first credential.
+                Click &quot;Create API key&quot; above to generate your first credential.
               </p>
             </CardContent>
           </Card>
@@ -504,7 +504,7 @@ export function ApiKeysSettings() {
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 flex items-start gap-2.5">
               <AlertTriangle className="size-4 text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs text-amber-300 leading-normal">
-                <strong>Warning:</strong> Treat this key like a password. Anyone who obtains this key will have access to call this workspace's APIs with the granted scopes.
+                <strong>Warning:</strong> Treat this key like a password. Anyone who obtains this key will have access to call this workspace&apos;s APIs with the granted scopes.
               </div>
             </div>
 
@@ -550,7 +550,7 @@ export function ApiKeysSettings() {
               Revoke API Key
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs leading-normal">
-              Are you sure you want to revoke the API key <strong>"{revokingKey?.name}"</strong> ({revokingKey?.key_prefix})?
+              Are you sure you want to revoke the API key <strong>&quot;{revokingKey?.name}&quot;</strong> ({revokingKey?.key_prefix})?
               <span className="block mt-2 text-red-400 font-semibold">
                 This action is immediate and cannot be undone. All scripts and integrations using this key will immediately start failing with 401 Unauthorized errors.
               </span>

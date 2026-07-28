@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 
-const MASKED_TOKEN = '••••••••••••••••';
 type ConnectionStatus = 'connected' | 'disconnected' | 'unknown';
 
 export function InstagramConfig() {
@@ -204,7 +203,7 @@ export function InstagramConfig() {
                   <ol className="list-decimal list-inside space-y-1 text-sm">
                     <li>Go to your Facebook Page Settings</li>
                     <li>Click &quot;Linked Accounts&quot;</li>
-                    <li>Select Instagram and connect your account. Make sure it's a Professional account.</li>
+                    <li>Select Instagram and connect your account. Make sure it&apos;s a Professional account.</li>
                   </ol>
                 </AccordionContent>
               </AccordionItem>

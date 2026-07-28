@@ -475,7 +475,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
               onChange={(e) => setShowRecommended(e.target.checked)}
               className="rounded border-border text-primary focus:ring-primary size-4"
             />
-            Show "Recommended" Badges
+            Show &quot;Recommended&quot; Badges
           </label>
           <label className="flex items-center gap-2 cursor-pointer font-medium text-foreground">
             <input

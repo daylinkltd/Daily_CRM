@@ -31,7 +31,6 @@ export function LogTimeModal({
   open,
   onOpenChange,
   taskId,
-  projectId,
   defaultBillable,
   onSaved,
 }: LogTimeModalProps) {

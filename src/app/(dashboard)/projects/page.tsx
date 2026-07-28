@@ -41,7 +41,7 @@ function ProjectsListPageContent() {
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, can } = useWorkspace();
-  const canManageProjects = can('projects_manage' as any); 
+  const canManageProjects = can('projects_manage'); 
 
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

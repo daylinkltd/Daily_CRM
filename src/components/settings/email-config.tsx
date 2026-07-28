@@ -100,7 +100,7 @@ export function EmailConfig() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-slate-400">
-              Ensure your From Email address is verified in your provider's dashboard to prevent emails from going to spam.
+              Ensure your From Email address is verified in your provider&apos;s dashboard to prevent emails from going to spam.
             </p>
           </CardContent>
         </Card>

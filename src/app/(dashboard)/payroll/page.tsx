@@ -23,7 +23,7 @@ import { format, subMonths } from 'date-fns';
 export default function PayrollAdminPage() {
   const supabase = createClient();
   const { activeWorkspace, can, defaultCurrency } = useWorkspace();
-  const canManagePeople = can('people_manage' as any);
+  const canManagePeople = can('people_manage');
 
   const [loading, setLoading] = useState(true);
   const [cycles, setCycles] = useState<any[]>([]);
@@ -154,7 +154,7 @@ export default function PayrollAdminPage() {
             ) : cycles.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
-                  No payroll cycles run yet. Click "Run Payroll Cycle" to start.
+                  No payroll cycles run yet. Click &quot;Run Payroll Cycle&quot; to start.
                 </TableCell>
               </TableRow>
             ) : (

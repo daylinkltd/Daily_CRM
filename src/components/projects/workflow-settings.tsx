@@ -422,7 +422,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
             {statuses.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">No statuses configured.</p>
             ) : (
-              statuses.map((status, index) => (
+              statuses.map((status) => (
                 <div key={status.id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-card">
                   <div className="flex items-center gap-3">
                     <GripVertical className="size-4 text-muted-foreground cursor-grab" />

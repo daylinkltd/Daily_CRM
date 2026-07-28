@@ -37,7 +37,7 @@ import { DesignationForm } from '@/components/designations/designation-form';
 export default function DesignationsPage() {
   const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
-  const canManagePeople = can('people_manage' as any); // Assuming added to WorkspacePermissions type
+  const canManagePeople = can('people_manage');
 
   const [designations, setDesignations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

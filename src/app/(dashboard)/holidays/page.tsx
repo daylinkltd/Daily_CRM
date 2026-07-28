@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -29,7 +28,7 @@ import { toast } from 'sonner';
 
 export default function HolidaysPage() {
   const { activeWorkspace, can } = useWorkspace();
-  const canManage = can('people_manage' as any);
+  const canManage = can('people_manage');
 
   const [holidays, setHolidays] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

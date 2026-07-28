@@ -86,7 +86,9 @@ export function ProjectForm({ open, onOpenChange, project, onSaved }: ProjectFor
         setIsPublic(false);
       }
     }
-  }, [open, project, activeWorkspace?.id]);
+    // `supabase` is the memoised browser singleton from createClient(), so its
+    // identity is stable and listing it cannot re-trigger this effect.
+  }, [open, project, activeWorkspace?.id, supabase]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

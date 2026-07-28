@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -25,7 +24,7 @@ const STAGES = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'HIRED', 'REJECTED
 
 export default function RecruitmentPage() {
   const { activeWorkspace, can } = useWorkspace();
-  const canManage = can('people_manage' as any);
+  const canManage = can('people_manage');
 
   const [jobs, setJobs] = useState<any[]>([]);
   const [, setCandidates] = useState<any[]>([]);

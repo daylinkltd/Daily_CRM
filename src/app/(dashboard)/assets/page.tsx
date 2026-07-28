@@ -21,7 +21,7 @@ import { AssignAssetForm } from '@/components/assets/assign-asset-form';
 export default function AssetsPage() {
   const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
-  const canManagePeople = can('people_manage' as any);
+  const canManagePeople = can('people_manage');
 
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<any[]>([]);

@@ -31,13 +31,12 @@ import {
 } from "@/components/ui/select";
 import { SettingsPanelHead } from "./settings-panel-head";
 
-type SettingType = 'ATTENDANCE_SHIFT' | 'LEAVE_RULES' | 'PAYROLL_CONFIG';
 type ScopeType = 'WORKSPACE_DEFAULT' | 'DEPARTMENT' | 'DESIGNATION';
 
 export function HRSettingsPanel() {
   const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
-  const canManage = can('settings_workspace' as any) || can('people_manage' as any);
+  const canManage = can('settings_workspace') || can('people_manage');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

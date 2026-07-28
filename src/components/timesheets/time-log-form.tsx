@@ -64,7 +64,9 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
       setDescription('');
       setIsBillable(false);
     }
-  }, [open, activeWorkspace?.id, activeMember?.id, defaultTaskId, defaultHours]);
+    // `supabase` is the memoised browser singleton from createClient(), so its
+    // identity is stable and listing it cannot re-trigger this effect.
+  }, [open, activeWorkspace?.id, activeMember?.id, defaultTaskId, defaultHours, supabase]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -16,7 +16,7 @@ import { ProjectForm } from '@/components/projects/project-form';
 export default function PlanningPage() {
   const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
-  const canManage = can('projects_manage' as any);
+  const canManage = can('projects_manage');
 
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -121,7 +121,7 @@ export default function PlanningPage() {
               </div>
               <h3 className="text-xl font-bold text-foreground">{selectedProject?.name} (Kanban Project)</h3>
               <p className="text-muted-foreground max-w-lg mx-auto text-sm">
-                Kanban projects operate on continuous flow without fixed Sprints or Sprint Burndown charts. Work items are managed directly on the project's Kanban Board.
+                Kanban projects operate on continuous flow without fixed Sprints or Sprint Burndown charts. Work items are managed directly on the project&apos;s Kanban Board.
               </p>
               <div className="pt-2">
                 <Button onClick={() => window.location.href = `/projects/${selectedProjectId}`} variant="outline" className="border-border">

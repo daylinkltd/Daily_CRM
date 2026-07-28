@@ -12,7 +12,7 @@ async function isSuperAdmin(userId: string) {
   return !!data?.is_super_admin;
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || !(await isSuperAdmin(user.id))) {

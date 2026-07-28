@@ -261,7 +261,7 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
             </div>
 
             <div className="space-y-2">
-              <Label>Change Summary ("What's New in this Version")</Label>
+              <Label>Change Summary (&quot;What&apos;s New in this Version&quot;)</Label>
               <Input
                 value={changeSummary}
                 onChange={(e) => setChangeSummary(e.target.value)}

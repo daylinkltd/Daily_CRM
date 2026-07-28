@@ -31,7 +31,7 @@ import { formatMemberName } from '@/components/tasks/task-form';
 export default function TimesheetsPage() {
   const supabase = createClient();
   const { activeWorkspace, activeMember, can } = useWorkspace();
-  const canManageTimesheets = can('attendance_manage' as any) || can('people_manage' as any); 
+  const canManageTimesheets = can('attendance_manage') || can('people_manage'); 
 
   const [myLogs, setMyLogs] = useState<any[]>([]);
   const [teamTimesheets, setTeamTimesheets] = useState<any[]>([]);
@@ -175,7 +175,7 @@ export default function TimesheetsPage() {
                       <TableCell colSpan={5} className="text-center py-12">
                         <div className="flex flex-col items-center gap-2">
                           <Clock className="size-8 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">You haven't logged any time yet.</p>
+                          <p className="text-sm text-muted-foreground">You haven&apos;t logged any time yet.</p>
                         </div>
                       </TableCell>
                     </TableRow>

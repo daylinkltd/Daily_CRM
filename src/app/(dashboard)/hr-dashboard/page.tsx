@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { RequireModule } from '@/components/auth/require-module';
 import { PageHeader } from '@/components/shared/page-header';
@@ -103,7 +102,7 @@ function HRDashboardPageContent() {
             <CardTitle className="text-2xl font-bold text-emerald-500">{metrics.presentToday}</CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">
-            Punched in for today's shift
+            Punched in for today&apos;s shift
           </CardContent>
         </Card>
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef, use } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -175,7 +174,7 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
           {activeVersion.change_summary && (
             <div className="mt-3 p-2.5 rounded bg-primary/5 border border-primary/20 text-xs flex items-center gap-2 text-primary">
               <Sparkles className="size-4 shrink-0" />
-              <span><strong>What's New in v{activeVersion.version_number}:</strong> {activeVersion.change_summary}</span>
+              <span><strong>What&apos;s New in v{activeVersion.version_number}:</strong> {activeVersion.change_summary}</span>
             </div>
           )}
         </CardHeader>

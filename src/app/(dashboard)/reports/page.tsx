@@ -43,7 +43,7 @@ type EmployeeStats = {
 export default function ReportsDashboard() {
   const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
-  const canManagePeople = can('people_manage' as any);
+  const canManagePeople = can('people_manage');
 
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<EmployeeStats[]>([]);

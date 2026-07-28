@@ -49,7 +49,7 @@ export async function evaluatePromotions(
   total_order_discount: number;
   applied_campaigns: AppliedPromotion[];
 }> {
-  const { workspace_id, customer_id, customer_type, items, coupon_code } = req;
+  const { workspace_id, customer_type, items, coupon_code } = req;
 
   // 1. Fetch Active Promotion Campaigns within Valid Date Range
   const now = new Date().toISOString();

@@ -29,7 +29,7 @@ import { LeaveRequestForm } from '@/components/leave/leave-request-form';
 export default function LeavePage() {
   const supabase = createClient();
   const { activeWorkspace, activeMember, can } = useWorkspace();
-  const canApproveLeave = can('leave_approve' as any) || can('people_manage' as any); 
+  const canApproveLeave = can('leave_approve') || can('people_manage'); 
 
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

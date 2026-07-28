@@ -21,7 +21,7 @@ import { UploadDocumentForm } from '@/components/documents/upload-document-form'
 export default function DocumentsPage() {
   const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
-  const canManagePeople = can('people_manage' as any);
+  const canManagePeople = can('people_manage');
 
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<any[]>([]);

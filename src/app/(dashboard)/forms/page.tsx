@@ -385,7 +385,7 @@ export default function FormsPage() {
           <DialogHeader>
             <DialogTitle className="text-foreground">Delete Form</DialogTitle>
             <DialogDescription className="text-slate-400 text-sm">
-              Are you sure you want to delete <span className="text-white font-medium">"{deleteTarget?.title}"</span>? All fields and submissions will be permanently removed. This action cannot be undone.
+              Are you sure you want to delete <span className="text-white font-medium">&quot;{deleteTarget?.title}&quot;</span>? All fields and submissions will be permanently removed. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
 

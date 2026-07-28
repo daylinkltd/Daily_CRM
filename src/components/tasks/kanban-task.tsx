@@ -34,7 +34,7 @@ export function KanbanTask({ task, onEdit, isOverlay }: KanbanTaskProps) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      onClick={(e) => {
+      onClick={() => {
         // Prevent edit click if we are dragging
         if (!isDragging) {
           onEdit();

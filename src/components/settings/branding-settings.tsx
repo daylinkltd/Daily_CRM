@@ -279,7 +279,7 @@ export function BrandingSettings() {
               </div>
               {pendingLogo && (
                 <p className="text-xs text-primary">
-                  ✓ {pendingLogo.name} staged — click "Save Branding" to apply.
+                  ✓ {pendingLogo.name} staged — click &quot;Save Branding&quot; to apply.
                 </p>
               )}
               {!canEditSettings && (

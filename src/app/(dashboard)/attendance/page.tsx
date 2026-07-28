@@ -35,7 +35,7 @@ import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
 export default function AttendancePage() {
   const supabase = createClient();
   const { activeWorkspace, activeMember, can } = useWorkspace();
-  const canManageAttendance = can('attendance_manage' as any); 
+  const canManageAttendance = can('attendance_manage'); 
 
   const [activeTab, setActiveTab] = useState<'LOGS' | 'APPROVALS' | 'ANALYTICS'>('LOGS');
   const [records, setRecords] = useState<any[]>([]);
