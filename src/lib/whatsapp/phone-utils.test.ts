@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isRecipientNotAllowedError,
+  isSamePhoneNumber,
   isValidE164,
   normalizePhone,
   phoneVariants,
@@ -162,3 +163,35 @@ describe("isRecipientNotAllowedError", () => {
     expect(isRecipientNotAllowedError("")).toBe(false);
   });
 });
+
+describe('isSamePhoneNumber', () => {
+  it('matches identical digit strings regardless of formatting', () => {
+    expect(isSamePhoneNumber('+91 9902319132', '919902319132')).toBe(true)
+    // Internal spaces are what broke the old raw-string suffix match.
+    expect(isSamePhoneNumber('+91 99023 19132', '9902319132')).toBe(true)
+    expect(isSamePhoneNumber('919902319132', '91 9902319132')).toBe(true)
+  })
+
+  it('matches a national number against its country-coded form', () => {
+    expect(isSamePhoneNumber('919902319132', '9902319132')).toBe(true)
+    expect(isSamePhoneNumber('9902319132', '09902319132')).toBe(true)
+    expect(isSamePhoneNumber('+1 415 555 2671', '4155552671')).toBe(true)
+  })
+
+  it('does NOT match different countries that share an 8-digit tail', () => {
+    // Real rows from the production contacts table — three distinct
+    // subscribers whose last 8 digits collide.
+    expect(isSamePhoneNumber('+255000000001', '+240000000001')).toBe(false)
+    expect(isSamePhoneNumber('+240000000001', '+270000000001')).toBe(false)
+    expect(isSamePhoneNumber('+255000000001', '+270000000001')).toBe(false)
+  })
+
+  it('refuses to match when the extra prefix is too long to be a country code', () => {
+    expect(isSamePhoneNumber('123456789902319132', '9902319132')).toBe(false)
+  })
+
+  it('refuses short/partial values', () => {
+    expect(isSamePhoneNumber('19132', '9902319132')).toBe(false)
+    expect(isSamePhoneNumber('', '9902319132')).toBe(false)
+  })
+})

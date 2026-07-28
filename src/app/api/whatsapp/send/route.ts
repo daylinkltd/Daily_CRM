@@ -342,27 +342,52 @@ export async function POST(request: Request) {
         .eq('id', contact.id)
     }
 
-    // Insert message into DB
-    const { data: messageRecord, error: msgError } = await supabase
-      .from('messages')
-      .insert({
-        conversation_id,
-        sender_type: 'agent',
-        content_type: message_type,
-        content_text: content_text || null,
-        media_url: media_url || null,
-        template_name: template_name || null,
-        reply_to_message_id: replyToMessageId,
-        message_id: waMessageId,
-        status: 'sent',
-      })
-      .select()
-      .single()
+    // Insert message into DB.
+    //
+    // At this point WhatsApp has ALREADY delivered the message, so a
+    // failed insert loses it from the CRM permanently. Optional columns
+    // (reply_to_message_id — migration 070) are therefore stripped and
+    // retried rather than failing the whole write: the reply-quote link
+    // is worth far less than the message itself.
+    const baseRow: Record<string, unknown> = {
+      conversation_id,
+      sender_type: 'agent',
+      content_type: message_type,
+      content_text: content_text || null,
+      media_url: media_url || null,
+      template_name: template_name || null,
+      message_id: waMessageId,
+      status: 'sent',
+    }
 
-    if (msgError) {
+    const insertMessage = async (row: Record<string, unknown>) =>
+      supabase.from('messages').insert(row).select().single()
+
+    let { data: messageRecord, error: msgError } = await insertMessage({
+      ...baseRow,
+      ...(replyToMessageId ? { reply_to_message_id: replyToMessageId } : {}),
+    })
+
+    const isMissingColumn = (e: { code?: string; message?: string } | null) =>
+      e?.code === 'PGRST204' ||
+      e?.code === '42703' ||
+      /could not find the .* column|column .* does not exist/i.test(e?.message ?? '')
+
+    if (msgError && replyToMessageId && isMissingColumn(msgError)) {
+      console.warn(
+        '[whatsapp/send] messages.reply_to_message_id is missing — run migration 070. Saving without the reply link.',
+      )
+      ;({ data: messageRecord, error: msgError } = await insertMessage(baseRow))
+    }
+
+    if (msgError || !messageRecord) {
       console.error('Error inserting sent message:', msgError)
       return NextResponse.json(
-        { error: `Message sent but failed to save to DB: ${msgError.message}` },
+        {
+          error: `The message was delivered on WhatsApp but could not be saved to the CRM: ${msgError?.message ?? 'unknown error'}`,
+          whatsapp_message_id: waMessageId,
+          delivered: true,
+        },
         { status: 500 }
       )
     }

@@ -33,6 +33,34 @@ export function phonesMatch(phone1: string, phone2: string): boolean {
 }
 
 /**
+ * Strict "is this the same subscriber?" test, for contact de-duplication.
+ *
+ * `phonesMatch` compares the last 8 digits, which is fine for retrying a
+ * send against trunk-prefix variants but WRONG for identity: real data
+ * contains distinct numbers that collide on 8 digits, e.g.
+ *   +255000000001 (Tanzania) / +240000000001 / +270000000001
+ * Treating those as one contact would merge different people's chats.
+ *
+ * Two numbers are the same subscriber when their digits are equal, or
+ * when one is a suffix of the other and the extra leading digits are a
+ * plausible country code (+ optional trunk 0) — at most 4 digits:
+ *   919902319132 vs 9902319132   → same (prefix "91")
+ *   9902319132   vs 09902319132  → same (trunk "0")
+ *   255000000001 vs 240000000001 → different (neither is a suffix)
+ */
+export function isSamePhoneNumber(a: string, b: string): boolean {
+  const x = normalizePhone(a)
+  const y = normalizePhone(b)
+  if (!x || !y) return false
+  if (x === y) return true
+  // Guard against short/partial values matching too eagerly.
+  if (Math.min(x.length, y.length) < 7) return false
+  const [shorter, longer] = x.length < y.length ? [x, y] : [y, x]
+  if (!longer.endsWith(shorter)) return false
+  return longer.length - shorter.length <= 4
+}
+
+/**
  * Validate phone number is E.164-like format (7-15 digits starting with non-zero).
  * Accepts with or without + prefix.
  */

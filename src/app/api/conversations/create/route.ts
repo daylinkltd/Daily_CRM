@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sanitizePhoneForMeta, isValidE164 } from '@/lib/whatsapp/phone-utils'
+import { findContactByPhoneDigits } from '@/lib/contacts/find-by-phone'
 
 export async function POST(request: Request) {
   try {
@@ -62,13 +63,15 @@ export async function POST(request: Request) {
         )
       }
 
-      // Check if contact already exists in workspace by phone
-      const { data: existing } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('workspace_id', workspace_id)
-        .eq('phone', sanitized)
-        .maybeSingle()
+      // Check if contact already exists in workspace, comparing digits
+      // only. An exact string match missed the same number stored in a
+      // different shape ("+91 9902319132" vs "919902319132") and created
+      // a duplicate contact, splitting the customer's history in two.
+      const existing = await findContactByPhoneDigits(
+        supabase,
+        workspace_id,
+        sanitized,
+      )
 
       if (existing) {
         targetContact = existing

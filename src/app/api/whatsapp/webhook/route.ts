@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { decrypt, encrypt, isLegacyFormat } from '@/lib/whatsapp/encryption'
 import { getMediaUrl, downloadMedia } from '@/lib/whatsapp/meta-api'
-import { normalizePhone, phonesMatch } from '@/lib/whatsapp/phone-utils'
+import { isSamePhoneNumber, normalizePhone } from '@/lib/whatsapp/phone-utils'
 import { verifyMetaWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { runAutomationsForTrigger } from '@/lib/automations/engine'
 import { dispatchInboundToFlows } from '@/lib/flows/engine'
@@ -988,17 +988,41 @@ async function findExistingContactByPhone(
   const normalized = normalizePhone(phone)
   if (!normalized) return null
 
+  // Preferred path: digit-normalized match in SQL (migration 070).
+  // Matching on the raw stored string missed numbers saved with
+  // internal spaces ("+91 99023 19132"), which made the webhook create
+  // a duplicate contact and drop the customer's reply into a new chat.
+  const rpc = await supabaseAdmin().rpc('find_contacts_by_phone_digits', {
+    p_workspace_id: workspaceId || null,
+    p_digits: normalized,
+  })
+  if (!rpc.error) {
+    // The RPC already orders exact-match-first, then oldest-first.
+    return (rpc.data as ContactRow[] | null)?.[0] ?? null
+  }
+
+  // Fallback for databases without migration 070: raw-suffix LIKE.
+  // Ordered by created_at so a workspace that already has duplicate
+  // rows for one number still resolves to the SAME contact every
+  // time, instead of whichever row Postgres happened to return first.
   const suffix = normalized.length >= 8 ? normalized.slice(-8) : normalized
 
   let query = supabaseAdmin().from('contacts').select('*')
   if (workspaceId) {
     query = query.eq('workspace_id', workspaceId)
   }
-  const { data, error } = await query.like('phone', `%${suffix}`)
+  const { data, error } = await query
+    .like('phone', `%${suffix}`)
+    .order('created_at', { ascending: true })
 
   if (error || !data) return null
 
-  return (data as ContactRow[]).find((c) => phonesMatch(c.phone, phone)) ?? null
+  const rows = data as ContactRow[]
+  return (
+    rows.find((c) => normalizePhone(c.phone) === normalized) ??
+    rows.find((c) => isSamePhoneNumber(c.phone, phone)) ??
+    null
+  )
 }
 
 async function findOrCreateContact(
