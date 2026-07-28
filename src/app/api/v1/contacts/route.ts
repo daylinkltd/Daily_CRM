@@ -1,6 +1,7 @@
 import { requireApiKey } from '@/lib/auth/api-context';
 import { ok, toApiErrorResponse, badRequest } from '@/lib/api/v1/respond';
-import { normalizePhone, phonesMatch } from '@/lib/whatsapp/phone-utils';
+import { normalizePhone } from '@/lib/whatsapp/phone-utils';
+import { findContactByPhoneDigits } from '@/lib/contacts/find-by-phone';
 import { resolveImportTagIds, assignImportedContactTags } from '@/lib/contacts/resolve-import-tags';
 
 export async function POST(request: Request) {
@@ -25,8 +26,6 @@ export async function POST(request: Request) {
       throw badRequest('Invalid phone number: must contain digits');
     }
 
-    const suffix = normalized.length >= 8 ? normalized.slice(-8) : normalized;
-
     // Resolve a valid user_id to use for creating tags or contacts if needed
     let userId = ctx.createdBy;
     if (!userId) {
@@ -42,17 +41,14 @@ export async function POST(request: Request) {
       throw badRequest('Could not attribute contact creation to any user in the workspace');
     }
 
-    const { data: contacts, error: searchError } = await ctx.supabase
-      .from('contacts')
-      .select('*')
-      .eq('workspace_id', ctx.accountId)
-      .like('phone', `%${suffix}`);
-
-    if (searchError) {
-      throw searchError;
-    }
-
-    const existing = contacts?.find((c: any) => phonesMatch(c.phone, phone)) ?? null;
+    // Digit-normalized match: an exact-string or raw-suffix comparison
+    // missed the same number stored in another format and created a
+    // duplicate contact (see src/lib/contacts/find-by-phone.ts).
+    const existing = await findContactByPhoneDigits(
+      ctx.supabase,
+      ctx.accountId,
+      phone,
+    );
 
     if (existing) {
       const { data: contact, error: updateError } = await ctx.supabase

@@ -1,0 +1,311 @@
+/* src/styles/marketing.css */
+/* ===========================================================================
+ * Marketing / auth surface system
+ *
+ * WHY THIS FILE EXISTS
+ * --------------------
+ * The app's neutral ramp (--slate-50 … --slate-950 in globals.css) is
+ * MODE-DEPENDENT: it INVERTS under html[data-mode="light"], which is the
+ * product default (see DEFAULT_MODE in src/lib/themes.ts). The landing and
+ * auth pages deliberately commit to a dark look, so every `bg-slate-900/20`
+ * / `border-slate-800` / `text-slate-400` on them resolved to a
+ * near-WHITE translucent slab and dark-grey-on-near-black text — the
+ * washed-out grey bands, seam lines and grey-on-grey copy we were seeing.
+ *
+ * `.marketing` pins the neutral ramp to its dark values so those utilities
+ * mean what their author intended, and adds a small set of opaque surface
+ * tokens (--mkt-*) so marketing sections can use real, layered surfaces
+ * instead of stacked translucency. The accent still comes from --primary,
+ * so html[data-theme="…"] theming keeps working.
+ * =========================================================================== */
+
+/* NOTE ON THE SELECTOR: `html[data-mode] .marketing` (specificity 0,2,1) is
+ * used instead of a bare `.marketing` (0,1,0) so that it outranks the
+ * `html[data-mode="light"]` block in globals.css (0,1,1). CSS `@import`
+ * must sit at the top of globals.css, so this file cannot simply be ordered
+ * after those blocks — it has to win on specificity. `html` always carries
+ * data-mode (set server-side in src/app/layout.tsx and again by the theme
+ * boot script), so this always matches. */
+html[data-mode] .marketing {
+  color-scheme: dark;
+
+  /* ---- Pinned neutral ramp (dark, mode-independent) ------------------- */
+  /* 300–500 are lifted slightly vs. the app's dark ramp so that body copy
+     and captions clear WCAG AA (>= 4.5:1) on the marketing canvas. */
+  --slate-50: oklch(0.98 0.005 264);
+  --slate-100: oklch(0.95 0.008 264);
+  --slate-200: oklch(0.9 0.01 264);
+  --slate-300: oklch(0.85 0.012 264);
+  --slate-400: oklch(0.76 0.015 264);
+  --slate-500: oklch(0.66 0.018 264);
+  --slate-600: oklch(0.5 0.018 264);
+  --slate-700: oklch(0.34 0.018 264);
+  --slate-800: oklch(0.245 0.018 264);
+  --slate-900: oklch(0.185 0.018 264);
+  --slate-950: oklch(0.13 0.018 264);
+
+  /* ---- Surfaces: opaque, layered, no glass stacking ------------------- */
+  --mkt-canvas: oklch(0.125 0.02 264);
+  --mkt-band: oklch(0.165 0.019 264);
+  --mkt-surface: oklch(0.2 0.018 264);
+  --mkt-surface-2: oklch(0.245 0.018 264);
+  --mkt-line: oklch(0.3 0.018 264);
+  --mkt-line-soft: oklch(0.245 0.018 264);
+
+  /* ---- Foreground ramp ----------------------------------------------- */
+  --mkt-fg: oklch(0.99 0 0);
+  --mkt-fg-muted: oklch(0.81 0.015 264); /* body copy      ~9:1 on canvas */
+  --mkt-fg-subtle: oklch(0.71 0.016 264); /* captions/labels ~6:1 on canvas */
+
+  /* ---- Accent (follows html[data-theme]) ------------------------------ */
+  /* --primary alone is only ~4.2:1 on the canvas, which fails AA for the
+     small bold eyebrow/kicker text — so tint it for text use. */
+  --mkt-accent-text: color-mix(in oklab, var(--primary) 42%, oklch(0.98 0 0));
+  --mkt-accent-soft: color-mix(in oklab, var(--primary) 12%, var(--mkt-canvas));
+  --mkt-accent-line: color-mix(in oklab, var(--primary) 40%, var(--mkt-line));
+
+  --mkt-shadow: 0 24px 60px -16px oklch(0 0 0 / 0.7);
+}
+
+/* ============================ Rhythm ====================================== */
+
+/* One vertical rhythm + one container width for every marketing section. */
+.mkt-section {
+  position: relative;
+  padding: 72px 24px;
+}
+
+@media (min-width: 640px) {
+  .mkt-section {
+    padding: 96px 24px;
+  }
+}
+
+.mkt-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1152px;
+  margin-inline: auto;
+}
+
+.mkt-container-narrow {
+  max-width: 768px;
+}
+
+/* A section band that steps up from the canvas WITHOUT a hard seam: the
+   surface fades back into the canvas at both edges, so there is no
+   full-width grey rectangle with visible top/bottom edges. */
+.mkt-band-surface {
+  background-image: linear-gradient(
+    to bottom,
+    var(--mkt-canvas) 0%,
+    var(--mkt-band) 14%,
+    var(--mkt-band) 86%,
+    var(--mkt-canvas) 100%
+  );
+}
+
+/* ============================ Typography ================================== */
+
+.mkt-h2 {
+  font-size: clamp(1.75rem, 1.15rem + 2.1vw, 2.625rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: var(--mkt-fg);
+}
+
+.mkt-lead {
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  line-height: 1.65;
+  color: var(--mkt-fg-muted);
+}
+
+/* Eyebrow / kicker — readable, not grey-on-grey. */
+.mkt-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--mkt-line);
+  background-color: var(--mkt-surface);
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--mkt-fg-muted);
+}
+
+/* ============================ Buttons ===================================== */
+
+.mkt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.mkt-btn:focus-visible {
+  outline: 2px solid var(--mkt-accent-text);
+  outline-offset: 2px;
+}
+
+.mkt-btn-sm {
+  padding: 8px 18px;
+  font-size: 0.875rem;
+}
+
+.mkt-btn-md {
+  padding: 12px 24px;
+  font-size: 0.9375rem;
+}
+
+.mkt-btn-lg {
+  padding: 14px 32px;
+  font-size: 1rem;
+}
+
+.mkt-btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 10px 24px -10px color-mix(in oklab, var(--primary) 60%, transparent);
+}
+
+.mkt-btn-primary:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 14px 30px -10px color-mix(in oklab, var(--primary) 75%, transparent);
+}
+
+.mkt-btn-secondary {
+  background-color: var(--mkt-surface);
+  border-color: var(--mkt-line);
+  color: var(--mkt-fg);
+}
+
+.mkt-btn-secondary:hover {
+  background-color: var(--mkt-surface-2);
+  border-color: var(--mkt-accent-line);
+}
+
+.mkt-link {
+  border-radius: var(--radius-sm);
+  color: var(--mkt-fg-muted);
+  transition: color var(--transition-fast);
+}
+
+.mkt-link:hover {
+  color: var(--mkt-fg);
+}
+
+.mkt-link:focus-visible {
+  outline: 2px solid var(--mkt-accent-text);
+  outline-offset: 3px;
+}
+
+/* ============================ Cards ======================================= */
+
+.mkt-card {
+  position: relative;
+  border-radius: var(--radius-modal);
+  border: 1px solid var(--mkt-line-soft);
+  background-color: var(--mkt-surface);
+  transition:
+    border-color var(--transition-normal),
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+
+.mkt-card-hover:hover {
+  border-color: var(--mkt-line);
+  transform: translateY(-3px);
+  box-shadow: var(--mkt-shadow);
+}
+
+/* ============================ Channel chips =============================== */
+
+/* --ch is set inline per channel (WhatsApp green, Instagram pink, …). The
+   chip body stays an opaque surface; the brand colour is used for the icon
+   tile and the hover border only, so labels stay high-contrast white. */
+.mkt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--mkt-line);
+  background-color: var(--mkt-surface);
+  padding: 8px 18px 8px 10px;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.mkt-chip:hover {
+  background-color: var(--mkt-surface-2);
+  border-color: color-mix(in oklab, var(--ch) 55%, var(--mkt-line));
+  transform: translateY(-2px);
+}
+
+.mkt-chip__icon {
+  display: flex;
+  height: 32px;
+  width: 32px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in oklab, var(--ch) 22%, var(--mkt-surface-2));
+  color: var(--ch);
+}
+
+.mkt-chip__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--mkt-fg);
+}
+
+/* ============================ Product mockup ============================== */
+
+/* Opaque panels with real steps between them so the illustration reads as a
+   finished product screenshot rather than a skeleton/loading state. */
+.mkt-mock {
+  border-radius: var(--radius-modal);
+  border: 1px solid var(--mkt-line);
+  background-color: var(--mkt-canvas);
+  box-shadow: var(--mkt-shadow);
+  overflow: hidden;
+}
+
+.mkt-mock__chrome {
+  background-color: var(--mkt-surface);
+  border-bottom: 1px solid var(--mkt-line);
+}
+
+.mkt-mock__rail {
+  background-color: var(--mkt-band);
+  border-right: 1px solid var(--mkt-line-soft);
+}
+
+.mkt-mock__list {
+  background-color: color-mix(in oklab, var(--mkt-band) 60%, var(--mkt-canvas));
+  border-right: 1px solid var(--mkt-line-soft);
+}
+
+.mkt-mock__thread {
+  background-color: var(--mkt-canvas);
+  border-right: 1px solid var(--mkt-line-soft);
+}
+
+.mkt-mock__aside {
+  background-color: color-mix(in oklab, var(--mkt-band) 60%, var(--mkt-canvas));
+}

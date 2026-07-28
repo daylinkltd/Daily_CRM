@@ -106,35 +106,35 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  WITH normalized AS (
-    SELECT c.*, regexp_replace(c.phone, '\D', '', 'g') AS digits
-    FROM public.contacts c
-    WHERE (p_workspace_id IS NULL OR c.workspace_id = p_workspace_id)
-  )
-  SELECT (n.*)::public.contacts
-  FROM normalized n
-  WHERE length(n.digits) >= 7
+  -- NB: selects c.* straight off the table. Wrapping this in a CTE that
+  -- adds a `digits` column and casting the row back to public.contacts
+  -- fails with "cannot cast type record to contacts / Input has too many
+  -- columns", so the expression is repeated inline instead.
+  SELECT c.*
+  FROM public.contacts c
+  WHERE (p_workspace_id IS NULL OR c.workspace_id = p_workspace_id)
     AND length(p_digits) >= 7
+    AND length(regexp_replace(c.phone, '\D', '', 'g')) >= 7
     AND (
-      n.digits = p_digits
+      regexp_replace(c.phone, '\D', '', 'g') = p_digits
       -- One is a suffix of the other and the extra leading digits are a
       -- plausible country code (+ optional trunk 0): at most 4 digits.
       -- A blanket "same last 8 digits" rule would merge genuinely
       -- different numbers — real data has +255000000001 / +240000000001
       -- / +270000000001, three countries, one 8-digit tail.
       OR (
-        length(n.digits) > length(p_digits)
-        AND right(n.digits, length(p_digits)) = p_digits
-        AND length(n.digits) - length(p_digits) <= 4
+        length(regexp_replace(c.phone, '\D', '', 'g')) > length(p_digits)
+        AND right(regexp_replace(c.phone, '\D', '', 'g'), length(p_digits)) = p_digits
+        AND length(regexp_replace(c.phone, '\D', '', 'g')) - length(p_digits) <= 4
       )
       OR (
-        length(p_digits) > length(n.digits)
-        AND right(p_digits, length(n.digits)) = n.digits
-        AND length(p_digits) - length(n.digits) <= 4
+        length(p_digits) > length(regexp_replace(c.phone, '\D', '', 'g'))
+        AND right(p_digits, length(regexp_replace(c.phone, '\D', '', 'g'))) = regexp_replace(c.phone, '\D', '', 'g')
+        AND length(p_digits) - length(regexp_replace(c.phone, '\D', '', 'g')) <= 4
       )
     )
   -- Exact matches first, then oldest — deterministic across replays.
-  ORDER BY (n.digits = p_digits) DESC, n.created_at ASC;
+  ORDER BY (regexp_replace(c.phone, '\D', '', 'g') = p_digits) DESC, c.created_at ASC;
 $$;
 
 REVOKE ALL ON FUNCTION public.find_contacts_by_phone_digits(UUID, TEXT) FROM PUBLIC;

@@ -26,7 +26,14 @@ export type ThemeId = (typeof THEME_IDS)[number];
 
 export const DEFAULT_THEME: ThemeId = "dailycrm";
 
-export const STORAGE_KEY = "wacrm.theme";
+export const STORAGE_KEY = "dailycrm.theme";
+
+/**
+ * The pre-rename key. Read as a fallback (and migrated forward) so a
+ * user's saved accent choice survives the rebrand instead of silently
+ * resetting to the default. See `readStoredValue` below.
+ */
+export const LEGACY_STORAGE_KEY = "wacrm.theme";
 
 /**
  * MODE — the light/dark dimension, orthogonal to the accent theme.
@@ -46,7 +53,37 @@ export type Mode = (typeof MODES)[number];
 
 export const DEFAULT_MODE: Mode = "light";
 
-export const MODE_STORAGE_KEY = "wacrm.mode";
+export const MODE_STORAGE_KEY = "dailycrm.mode";
+
+/** Pre-rename light/dark key — read as a fallback, then migrated. */
+export const LEGACY_MODE_STORAGE_KEY = "wacrm.mode";
+
+/**
+ * Read a persisted preference, falling back to its pre-rename key and
+ * migrating the value forward on first read. Returns null when neither
+ * key is set (caller applies the default).
+ *
+ * Safe to call during the inline boot script and from React — it
+ * swallows every storage error (private mode, disabled storage).
+ */
+export function readStoredPreference(
+  key: string,
+  legacyKey: string,
+): string | null {
+  try {
+    const current = window.localStorage.getItem(key);
+    if (current) return current;
+    const legacy = window.localStorage.getItem(legacyKey);
+    if (legacy) {
+      window.localStorage.setItem(key, legacy);
+      window.localStorage.removeItem(legacyKey);
+      return legacy;
+    }
+  } catch {
+    /* storage unavailable — fall through to the default */
+  }
+  return null;
+}
 
 export function isMode(value: unknown): value is Mode {
   return (

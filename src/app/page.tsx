@@ -354,12 +354,12 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020817] text-white overflow-x-hidden">
+    <div className="marketing min-h-screen bg-[var(--mkt-canvas)] text-[var(--mkt-fg)] overflow-x-hidden">
       <SalesModal open={modalOpen} onClose={() => setModalOpen(false)} defaultPlan={modalPlan} />
 
       {/* ── NAV ──────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-slate-800/50 bg-[#020817]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+      <header className="sticky top-0 z-50 border-b border-[var(--mkt-line-soft)] bg-[var(--mkt-canvas)]/95 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1152px] items-center justify-between px-6 py-3">
           <Link href="/" className="flex items-center">
             <Image
               src="/logolight.png"
@@ -371,32 +371,26 @@ export default function LandingPage() {
             />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm text-slate-400">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#channels" className="hover:text-white transition-colors">Channels</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-            <a href="#testimonials" className="hover:text-white transition-colors">Reviews</a>
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a href="#features" className="mkt-link">Features</a>
+            <a href="#channels" className="mkt-link">Channels</a>
+            <a href="#pricing" className="mkt-link">Pricing</a>
+            <a href="#testimonials" className="mkt-link">Reviews</a>
           </nav>
 
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105"
-              >
+              <Link href="/dashboard" className="mkt-btn mkt-btn-primary mkt-btn-sm">
                 Go to Dashboard <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-slate-300 hover:text-white transition-colors hidden sm:block"
-                >
+                <Link href="/login" className="mkt-link hidden sm:block text-sm font-medium">
                   Sign in
                 </Link>
                 <button
                   onClick={() => openModal("growth")}
-                  className="flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-105"
+                  className="mkt-btn mkt-btn-primary mkt-btn-sm"
                 >
                   Contact Sales <ChevronRight className="h-3.5 w-3.5" />
                 </button>
@@ -407,198 +401,279 @@ export default function LandingPage() {
       </header>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative flex flex-col items-center justify-center px-6 pt-24 pb-32 text-center overflow-hidden">
+      <section className="relative flex flex-col items-center justify-center px-6 pt-20 pb-24 sm:pt-24 sm:pb-28 text-center overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full bg-primary/10 blur-[120px]" />
-          <div className="absolute top-40 left-1/4 h-[400px] w-[400px] rounded-full bg-violet-600/8 blur-[100px]" />
-          <div className="absolute top-40 right-1/4 h-[300px] w-[300px] rounded-full bg-indigo-600/6 blur-[100px]" />
+          <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full bg-primary/12 blur-[130px]" />
+          <div className="absolute top-40 left-1/4 h-[400px] w-[400px] rounded-full bg-violet-600/10 blur-[110px]" />
           <div
-            className="absolute inset-0 opacity-[0.035]"
+            className="absolute inset-0 opacity-[0.05]"
             style={{
               backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
+                "linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)",
+              backgroundSize: "64px 64px",
+              maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 100%)",
+              WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 100%)",
             }}
           />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1.5 text-xs font-semibold text-primary mb-8 shadow-lg shadow-primary/5">
-            <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+        <div className="relative z-10 w-full max-w-[1152px] mx-auto">
+          <div className="mkt-eyebrow mb-8 border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent-text)]">
+            <Sparkles className="h-3.5 w-3.5" />
             Omni-Channel CRM — WhatsApp · Instagram · Email · Messenger
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.06] mb-6">
+          <h1 className="text-[2.5rem] sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.06] mb-6 text-[var(--mkt-fg)]">
             The CRM that{" "}
             <span className="relative inline-block">
               <span className="relative z-10 bg-gradient-to-r from-primary via-[#44c8ff] to-[#a78bfa] bg-clip-text text-transparent">
                 closes deals
               </span>
-              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-[#a78bfa] opacity-50 rounded-full" />
+              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-[#a78bfa] opacity-60 rounded-full" />
             </span>{" "}
-            <br />
+            <br className="hidden sm:block" />
             across every channel.
           </h1>
 
-          <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-400 mb-10 leading-relaxed">
+          <p className="mkt-lead max-w-2xl mx-auto mb-10 sm:text-xl">
             Unify WhatsApp, Instagram, Email &amp; Messenger into one intelligent inbox.
             Automate repetitive tasks, track pipelines, and give your team superpowers.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
             {isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-base font-bold text-white hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 hover:shadow-primary/35 hover:scale-105"
-              >
+              <Link href="/dashboard" className="mkt-btn mkt-btn-primary mkt-btn-lg">
                 Go to Dashboard <ArrowRight className="h-4 w-4" />
               </Link>
             ) : (
               <>
                 <button
                   onClick={() => openModal("growth")}
-                  className="flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-base font-bold text-white hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 hover:shadow-primary/35 hover:scale-105"
+                  className="mkt-btn mkt-btn-primary mkt-btn-lg"
                 >
                   Get Started Free <ArrowRight className="h-4 w-4" />
                 </button>
-                <Link
-                  href="/login"
-                  className="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-8 py-3.5 text-base font-semibold text-slate-200 hover:border-slate-600 hover:text-white transition-all"
-                >
+                <Link href="/login" className="mkt-btn mkt-btn-secondary mkt-btn-lg">
                   Sign In
                 </Link>
               </>
             )}
           </div>
 
-          <div className="flex flex-wrap justify-center gap-8 sm:gap-16">
+          <div className="grid grid-cols-2 gap-y-8 sm:flex sm:flex-wrap sm:justify-center sm:gap-16">
             {stats.map((s) => (
               <div key={s.label} className="text-center">
-                <div className="text-3xl font-extrabold text-white">{s.value}</div>
-                <div className="text-xs text-slate-500 mt-1">{s.label}</div>
+                <div className="text-3xl font-extrabold text-[var(--mkt-fg)]">{s.value}</div>
+                <div className="text-xs text-[var(--mkt-fg-subtle)] mt-1">{s.label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Dashboard mockup */}
-        <div className="relative z-10 mt-20 max-w-5xl mx-auto w-full">
-          <div className="relative rounded-2xl border border-slate-700/50 bg-slate-900/60 backdrop-blur-md shadow-2xl shadow-black/60 overflow-hidden">
-            <div className="flex items-center gap-2 border-b border-slate-800 bg-slate-950/80 px-4 py-3">
+        {/* Dashboard mockup — an opaque, high-contrast product screenshot */}
+        <div className="relative z-10 mt-16 sm:mt-20 max-w-[1024px] mx-auto w-full">
+          <div className="mkt-mock relative text-left">
+            {/* Window chrome */}
+            <div className="mkt-mock__chrome flex items-center gap-3 px-4 py-2.5">
               <div className="flex gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-rose-500/60" />
-                <div className="h-3 w-3 rounded-full bg-amber-500/60" />
-                <div className="h-3 w-3 rounded-full bg-emerald-500/60" />
+                <div className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+                <div className="h-3 w-3 rounded-full bg-[#febc2e]" />
+                <div className="h-3 w-3 rounded-full bg-[#28c840]" />
               </div>
-              <div className="flex-1 mx-4">
-                <div className="h-6 w-64 rounded-md bg-slate-800 flex items-center px-3">
-                  <span className="text-[10px] text-slate-500">app.daylink.in/dashboard</span>
+              <div className="flex-1 flex justify-center">
+                <div className="flex items-center gap-1.5 rounded-md border border-[var(--mkt-line-soft)] bg-[var(--mkt-canvas)] px-3 py-1">
+                  <Lock className="h-2.5 w-2.5 text-[var(--mkt-fg-subtle)]" />
+                  <span className="text-[10px] text-[var(--mkt-fg-muted)]">app.daylink.in/dashboard</span>
                 </div>
               </div>
+              <div className="w-12 hidden sm:block" />
             </div>
-            <div className="grid grid-cols-12 gap-0 min-h-[340px]">
-              <div className="col-span-2 border-r border-slate-800 bg-slate-950/50 p-4 space-y-3">
-                <div className="h-7 w-20 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <div className="h-2 w-12 bg-primary/60 rounded-full" />
-                </div>
-                {["Inbox", "Contacts", "Pipeline", "Automations"].map((item, i) => (
-                  <div key={item} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${i === 0 ? "bg-primary/15" : ""}`}>
-                    <div className={`h-3 w-3 rounded-sm ${i === 0 ? "bg-primary" : "bg-slate-700"}`} />
-                    <div className={`h-2 w-10 rounded-full ${i === 0 ? "bg-primary/60" : "bg-slate-700"}`} />
+
+            {/* App body */}
+            <div className="grid grid-cols-12 min-h-[300px] sm:min-h-[380px]">
+              {/* Rail */}
+              <div className="mkt-mock__rail hidden sm:flex sm:col-span-3 lg:col-span-2 flex-col gap-1 p-3">
+                <div className="flex items-center gap-2 px-1.5 pb-3">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-[11px] font-extrabold text-primary-foreground">
+                    D
                   </div>
-                ))}
-              </div>
-              <div className="col-span-3 border-r border-slate-800 p-3 space-y-2">
-                <div className="h-7 bg-slate-800/50 rounded-lg" />
+                  <span className="text-[11px] font-bold text-[var(--mkt-fg)] truncate">Daily CRM</span>
+                </div>
                 {[
-                  { color: "#25D366", name: "Riya S." },
-                  { color: "#E1306C", name: "Arjun M." },
-                  { color: "#0284C7", name: "Priya K." },
-                  { color: "#25D366", name: "Karan V." },
-                ].map((conv, i) => (
-                  <div key={i} className={`flex items-center gap-2 p-2 rounded-lg ${i === 0 ? "bg-slate-800/70" : ""}`}>
-                    <div className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                      style={{ background: conv.color + "22", color: conv.color }}>
-                      {conv.name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="h-2 w-14 bg-slate-600 rounded-full mb-1.5" />
-                      <div className="h-1.5 w-20 bg-slate-700 rounded-full" />
-                    </div>
-                    <div className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: conv.color }} />
+                  { label: "Inbox", icon: MessageSquare },
+                  { label: "Contacts", icon: Users },
+                  { label: "Pipeline", icon: TrendingUp },
+                  { label: "Automations", icon: Bot },
+                ].map((item, i) => (
+                  <div
+                    key={item.label}
+                    className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${
+                      i === 0 ? "bg-primary/20 text-[var(--mkt-fg)]" : "text-[var(--mkt-fg-subtle)]"
+                    }`}
+                  >
+                    <item.icon className={`h-3.5 w-3.5 shrink-0 ${i === 0 ? "text-[var(--mkt-accent-text)]" : ""}`} />
+                    <span className="text-[11px] font-medium truncate">{item.label}</span>
                   </div>
                 ))}
               </div>
-              <div className="col-span-4 border-r border-slate-800 p-4 space-y-3">
-                <div className="h-6 bg-slate-800/50 rounded-lg w-32" />
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <div className="h-6 w-6 rounded-full bg-[#25D366]/20 shrink-0" />
-                    <div className="bg-slate-800 rounded-xl px-3 py-2 max-w-[60%]">
-                      <div className="h-1.5 w-24 bg-slate-600 rounded-full mb-1" />
-                      <div className="h-1.5 w-16 bg-slate-700 rounded-full" />
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <div className="bg-primary/20 border border-primary/30 rounded-xl px-3 py-2 max-w-[55%]">
-                      <div className="h-1.5 w-20 bg-primary/60 rounded-full mb-1" />
-                      <div className="h-1.5 w-14 bg-primary/40 rounded-full" />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="h-6 w-6 rounded-full bg-[#25D366]/20 shrink-0" />
-                    <div className="bg-slate-800 rounded-xl px-3 py-2">
-                      <div className="h-1.5 w-32 bg-slate-600 rounded-full mb-1" />
-                      <div className="h-1.5 w-20 bg-slate-700 rounded-full" />
-                    </div>
-                  </div>
+
+              {/* Conversation list */}
+              <div className="mkt-mock__list col-span-5 sm:col-span-4 lg:col-span-3 p-2.5">
+                <div className="flex items-center justify-between px-1.5 pb-2">
+                  <span className="text-[11px] font-bold text-[var(--mkt-fg)]">Inbox</span>
+                  <span className="rounded-full bg-primary px-1.5 py-px text-[9px] font-bold text-primary-foreground">
+                    12
+                  </span>
                 </div>
-                <div className="h-8 rounded-xl bg-slate-800/60 border border-slate-700 mt-auto" />
-              </div>
-              <div className="col-span-3 p-4 space-y-3">
-                <div className="h-5 w-24 bg-slate-700 rounded-md" />
-                <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3 space-y-2">
-                  {["New Lead", "Proposal Sent", "Negotiating"].map((stage, i) => (
-                    <div key={stage} className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full shrink-0"
-                        style={{ background: ["#0284C7", "#a855f7", "#f59e0b"][i] }} />
-                      <div className="flex-1 h-5 bg-slate-800 rounded flex items-center px-2">
-                        <div className="h-1.5 rounded-full" style={{ width: [70, 45, 55][i] + "%", background: ["#0284C7", "#a855f7", "#f59e0b"][i] + "40" }} />
+                <div className="space-y-1">
+                  {[
+                    { color: "#25D366", name: "Riya S.", preview: "Can you share pricing?", time: "2m" },
+                    { color: "#E1306C", name: "Arjun M.", preview: "Loved the demo call", time: "18m" },
+                    { color: "#0284C7", name: "Priya K.", preview: "Invoice attached", time: "1h" },
+                    { color: "#25D366", name: "Karan V.", preview: "Thanks, sorted!", time: "3h" },
+                  ].map((conv, i) => (
+                    <div
+                      key={conv.name}
+                      className={`flex items-center gap-2 rounded-md p-1.5 ${
+                        i === 0 ? "bg-[var(--mkt-surface-2)]" : ""
+                      }`}
+                    >
+                      <div
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold"
+                        style={{ background: conv.color, color: "#06131f" }}
+                      >
+                        {conv.name.charAt(0)}
                       </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-1">
+                          <span className="text-[10px] font-semibold text-[var(--mkt-fg)] truncate">{conv.name}</span>
+                          <span className="text-[9px] text-[var(--mkt-fg-subtle)] shrink-0 hidden lg:inline">{conv.time}</span>
+                        </div>
+                        <div className="text-[9px] text-[var(--mkt-fg-subtle)] truncate">{conv.preview}</div>
+                      </div>
+                      {i < 2 && (
+                        <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                      )}
                     </div>
                   ))}
                 </div>
-                <div className="h-16 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2.5 space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <Zap className="h-3 w-3 text-emerald-400" />
-                    <div className="text-[10px] text-emerald-400 font-semibold">Automation Active</div>
+              </div>
+
+              {/* Thread */}
+              <div className="mkt-mock__thread col-span-7 sm:col-span-5 lg:col-span-4 flex flex-col p-3">
+                <div className="flex items-center gap-2 border-b border-[var(--mkt-line-soft)] pb-2.5">
+                  <div
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold"
+                    style={{ background: "#25D366", color: "#06131f" }}
+                  >
+                    R
                   </div>
-                  <div className="h-1.5 w-full bg-emerald-500/30 rounded-full" />
-                  <div className="h-1.5 w-3/4 bg-emerald-500/20 rounded-full" />
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-semibold text-[var(--mkt-fg)] truncate">Riya Sharma</div>
+                    <div className="flex items-center gap-1">
+                      <span className="h-1 w-1 rounded-full bg-[#25D366]" />
+                      <span className="text-[9px] text-[var(--mkt-fg-subtle)]">WhatsApp</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-2 py-3">
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] rounded-xl rounded-bl-sm bg-[var(--mkt-surface-2)] px-2.5 py-1.5">
+                      <p className="text-[10px] leading-snug text-[var(--mkt-fg)]">
+                        Hi! Can you share pricing for a 6-person team?
+                      </p>
+                      <span className="text-[8px] text-[var(--mkt-fg-subtle)]">10:24</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="max-w-[80%] rounded-xl rounded-br-sm bg-primary px-2.5 py-1.5">
+                      <p className="text-[10px] leading-snug text-primary-foreground">
+                        Sure — sending the Growth plan breakdown now.
+                      </p>
+                      <span className="text-[8px] text-primary-foreground/75">10:25</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] rounded-xl rounded-bl-sm bg-[var(--mkt-surface-2)] px-2.5 py-1.5">
+                      <p className="text-[10px] leading-snug text-[var(--mkt-fg)]">
+                        Perfect, that works. Let&apos;s get started.
+                      </p>
+                      <span className="text-[8px] text-[var(--mkt-fg-subtle)]">10:27</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-surface)] px-2.5 py-1.5">
+                  <span className="flex-1 text-[10px] text-[var(--mkt-fg-subtle)]">Type a reply…</span>
+                  <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary">
+                    <Send className="h-2.5 w-2.5 text-primary-foreground" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Aside */}
+              <div className="mkt-mock__aside hidden lg:flex lg:col-span-3 flex-col gap-3 p-3">
+                <div>
+                  <div className="mb-2 text-[11px] font-bold text-[var(--mkt-fg)]">Pipeline</div>
+                  <div className="space-y-1.5 rounded-lg border border-[var(--mkt-line-soft)] bg-[var(--mkt-surface)] p-2.5">
+                    {[
+                      { stage: "New Lead", value: "₹4.2L", pct: 70, color: "#0284C7" },
+                      { stage: "Proposal Sent", value: "₹2.8L", pct: 45, color: "#a855f7" },
+                      { stage: "Negotiating", value: "₹3.1L", pct: 55, color: "#f59e0b" },
+                    ].map((row) => (
+                      <div key={row.stage}>
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1.5 text-[9px] text-[var(--mkt-fg-muted)] truncate">
+                            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: row.color }} />
+                            {row.stage}
+                          </span>
+                          <span className="text-[9px] font-bold text-[var(--mkt-fg)] shrink-0">{row.value}</span>
+                        </div>
+                        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--mkt-surface-2)]">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: row.pct + "%", background: row.color }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-2.5">
+                  <div className="mb-1.5 flex items-center gap-1.5">
+                    <Zap className="h-3 w-3 text-emerald-300" />
+                    <span className="text-[10px] font-bold text-emerald-300">Automation active</span>
+                  </div>
+                  <p className="text-[9px] leading-snug text-[var(--mkt-fg-muted)]">
+                    Auto-reply + lead scoring running on 4 channels.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 h-24 w-3/4 bg-primary/10 blur-[60px] pointer-events-none rounded-full" />
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 h-24 w-3/4 bg-primary/15 blur-[70px] pointer-events-none rounded-full" />
         </div>
       </section>
 
       {/* ── CHANNEL LOGOS ─────────────────────────────────────────────────── */}
-      <section id="channels" className="border-y border-slate-800/50 bg-slate-900/20 py-12 px-6">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-slate-500 mb-8">
+      <section id="channels" className="mkt-band-surface px-6 py-16 sm:py-20">
+        <div className="mkt-container">
+          <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-[var(--mkt-fg-muted)] mb-8">
             Connect every channel you already use
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             {channels.map((ch) => (
               <div
                 key={ch.label}
-                className="flex items-center gap-3 rounded-2xl border px-6 py-3 transition-all hover:scale-105"
-                style={{ borderColor: ch.color + "30", background: ch.color + "08" }}
+                className="mkt-chip"
+                style={{ "--ch": ch.color } as React.CSSProperties}
               >
-                <ch.icon className="h-5 w-5" style={{ color: ch.color }} />
-                <span className="text-sm font-semibold text-slate-200">{ch.label}</span>
+                <span className="mkt-chip__icon">
+                  <ch.icon className="h-4 w-4" />
+                </span>
+                <span className="mkt-chip__label">{ch.label}</span>
               </div>
             ))}
           </div>
@@ -606,46 +681,39 @@ export default function LandingPage() {
       </section>
 
       {/* ── FEATURES ──────────────────────────────────────────────────────── */}
-      <section id="features" className="py-28 px-6 relative">
+      <section id="features" className="mkt-section">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-1/2 left-0 h-[500px] w-[500px] rounded-full bg-violet-600/5 blur-[120px]" />
-          <div className="absolute top-1/2 right-0 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[100px]" />
+          <div className="absolute top-1/2 left-0 h-[500px] w-[500px] rounded-full bg-violet-600/6 blur-[130px]" />
+          <div className="absolute top-1/2 right-0 h-[400px] w-[400px] rounded-full bg-primary/6 blur-[110px]" />
         </div>
 
-        <div className="mx-auto max-w-6xl relative z-10">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/8 px-4 py-1.5 text-xs font-semibold text-violet-400 mb-4">
-              <Sparkles className="h-3 w-3" /> Everything you need
+        <div className="mkt-container">
+          <div className="text-center mb-14">
+            <div className="mkt-eyebrow mb-4">
+              <Sparkles className="h-3 w-3 text-violet-300" /> Everything you need
             </div>
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+            <h2 className="mkt-h2 mb-4">
               Built for teams that{" "}
               <span className="bg-gradient-to-r from-primary to-[#a78bfa] bg-clip-text text-transparent">
                 move fast
               </span>
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className="mkt-lead max-w-2xl mx-auto">
               Every feature designed to reduce manual work, speed up responses, and give your team a competitive edge.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f) => (
-              <div
-                key={f.title}
-                className="group relative rounded-2xl border border-slate-800/60 bg-slate-900/40 p-7 backdrop-blur-sm hover:border-slate-700 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden"
-              >
-                <div
-                  className="absolute top-0 right-0 h-32 w-32 rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                  style={{ background: f.color + "08" }}
-                />
+              <div key={f.title} className="mkt-card mkt-card-hover p-6 sm:p-7">
                 <div
                   className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl border"
-                  style={{ background: f.color + "12", borderColor: f.color + "25" }}
+                  style={{ background: f.color + "22", borderColor: f.color + "4d" }}
                 >
                   <f.icon className="h-6 w-6" style={{ color: f.color }} />
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{f.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+                <h3 className="text-lg font-bold text-[var(--mkt-fg)] mb-2">{f.title}</h3>
+                <p className="text-sm text-[var(--mkt-fg-muted)] leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>

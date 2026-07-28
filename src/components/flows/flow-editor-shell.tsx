@@ -37,7 +37,8 @@ const MOBILE_BREAKPOINT = "(max-width: 767px)";
 
 type View = "canvas" | "list";
 
-const STORAGE_KEY = "wacrm.flowEditor.view";
+const STORAGE_KEY = "dailycrm.flowEditor.view";
+const LEGACY_STORAGE_KEY = "wacrm.flowEditor.view";
 
 interface Props {
   initialFlow: FlowRow;
@@ -52,7 +53,9 @@ export function FlowEditorShell({ initialFlow, initialNodes }: Props) {
   // Default to `canvas` (the new default) when nothing is saved.
   const [view, setView] = useState<View>(() => {
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
+      const saved =
+        window.localStorage.getItem(STORAGE_KEY) ??
+        window.localStorage.getItem(LEGACY_STORAGE_KEY);
       if (saved === "canvas" || saved === "list") return saved;
     } catch {
       // Private browsing / disabled storage — fall through to default.

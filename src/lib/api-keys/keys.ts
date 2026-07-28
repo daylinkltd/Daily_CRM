@@ -12,17 +12,37 @@
 //   only slow the per-request auth lookup. A fast hash with a UNIQUE
 //   index is the correct, indexable choice for opaque secrets.
 //
-// Why the `wacrm_live_` prefix
+// Why the `dailycrm_live_` prefix
 //   - Self-identifying: a leaked string is instantly recognisable as
-//     a wacrm key (handy for secret-scanners like GitGuardian).
-//   - Forward-compatible: leaves room for a `wacrm_test_` variant if
-//     a sandbox mode is ever added, without reshaping the format.
+//     a Daily CRM key (handy for secret-scanners like GitGuardian).
+//   - Forward-compatible: leaves room for a `dailycrm_test_` variant
+//     if a sandbox mode is ever added, without reshaping the format.
+//
+// Legacy `wacrm_live_` keys
+//   The prefix was inherited from the upstream open-source project
+//   this repo started from. Keys minted before the rename are still
+//   accepted (LEGACY_API_KEY_PREFIXES) so live integrations don't
+//   break; only newly generated keys carry the Daily CRM prefix.
+//   Nothing about the hash or lookup changes — the prefix is just
+//   part of the plaintext.
 // ============================================================
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
-/** Secret prefix on every key. Part of the plaintext, not a secret. */
-export const API_KEY_PREFIX = 'wacrm_live_';
+/** Secret prefix on every newly generated key. Not itself a secret. */
+export const API_KEY_PREFIX = 'dailycrm_live_';
+
+/**
+ * Prefixes retired by a rename but still honoured at auth time, so
+ * keys issued before the rename keep working indefinitely.
+ */
+export const LEGACY_API_KEY_PREFIXES = ['wacrm_live_'] as const;
+
+/** Every prefix accepted when authenticating a request. */
+export const ACCEPTED_API_KEY_PREFIXES = [
+  API_KEY_PREFIX,
+  ...LEGACY_API_KEY_PREFIXES,
+] as const;
 
 /**
  * Length of the non-secret display prefix stored in `key_prefix` and
@@ -71,10 +91,13 @@ export function hashApiKey(plaintext: string): string {
  * Structural check that a string looks like one of our keys before
  * we bother hashing + hitting the DB. Cheap reject for obviously
  * malformed `Authorization` headers (e.g. a stale invite token).
+ *
+ * Accepts the current prefix and every legacy prefix, so keys minted
+ * before the Daily CRM rename still authenticate.
  */
 export function looksLikeApiKey(value: string): boolean {
-  return (
-    value.startsWith(API_KEY_PREFIX) && value.length > API_KEY_PREFIX.length
+  return ACCEPTED_API_KEY_PREFIXES.some(
+    (prefix) => value.startsWith(prefix) && value.length > prefix.length
   );
 }
 
