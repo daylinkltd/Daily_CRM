@@ -8,6 +8,10 @@ import {
   rateLimitResponse,
   RATE_LIMITS,
 } from '@/lib/rate-limit';
+import {
+  describePostgresError,
+  isMissingOnConflictConstraint,
+} from '@/lib/supabase/pg-errors';
 
 /**
  * POST /api/whatsapp/react
@@ -162,30 +166,88 @@ export async function POST(request: Request) {
         .eq('actor_id', user.id);
 
       if (delError) {
-        console.error('[whatsapp/react] DB delete failed:', delError.message);
+        console.error('[whatsapp/react] DB delete failed:', delError);
         return NextResponse.json(
-          { error: 'Reaction sent to Meta but DB delete failed' },
+          {
+            error: `Reaction sent to WhatsApp, but removing it here failed: ${describePostgresError(delError)}`,
+          },
           { status: 500 },
         );
       }
     } else {
+      const row = {
+        message_id: targetMessage.id,
+        conversation_id: targetMessage.conversation_id,
+        actor_type: 'agent',
+        actor_id: user.id,
+        emoji,
+      };
+
       // Upsert. The unique constraint (message_id, actor_type, actor_id)
       // lets us swap emoji in a single statement.
-      const { error: upsertError } = await supabase.from('message_reactions').upsert(
-        {
-          message_id: targetMessage.id,
-          conversation_id: targetMessage.conversation_id,
-          actor_type: 'agent',
-          actor_id: user.id,
-          emoji,
-        },
-        { onConflict: 'message_id,actor_type,actor_id' },
-      );
+      const { error: upsertError } = await supabase
+        .from('message_reactions')
+        .upsert(row, { onConflict: 'message_id,actor_type,actor_id' });
+
+      if (upsertError && isMissingOnConflictConstraint(upsertError)) {
+        // The deployment's message_reactions predates the UNIQUE
+        // (message_id, actor_type, actor_id) constraint — ON CONFLICT has
+        // nothing to match (Postgres 42P10), so every reaction 500s.
+        // Migration 071_message_reactions_repair.sql adds it. Until it's
+        // applied, emulate the upsert: delete this actor's row, insert the
+        // new one. Racy only against the same user double-reacting, which
+        // 071 then de-duplicates.
+        console.warn(
+          '[whatsapp/react] message_reactions is missing UNIQUE (message_id, actor_type, actor_id) — ' +
+            'falling back to delete-then-insert. Apply migration 071_message_reactions_repair.sql to fix this properly.',
+        );
+
+        const { error: clearError } = await supabase
+          .from('message_reactions')
+          .delete()
+          .eq('message_id', targetMessage.id)
+          .eq('actor_type', 'agent')
+          .eq('actor_id', user.id);
+
+        if (clearError) {
+          console.error('[whatsapp/react] fallback delete failed:', clearError);
+          return NextResponse.json(
+            {
+              error: `Reaction sent to WhatsApp, but saving it here failed: ${describePostgresError(clearError)}`,
+            },
+            { status: 500 },
+          );
+        }
+
+        const { error: insertError } = await supabase
+          .from('message_reactions')
+          .insert(row);
+
+        if (insertError) {
+          console.error('[whatsapp/react] fallback insert failed:', insertError);
+          return NextResponse.json(
+            {
+              error: `Reaction sent to WhatsApp, but saving it here failed: ${describePostgresError(insertError)}`,
+            },
+            { status: 500 },
+          );
+        }
+
+        // Reaction is live on both sides; flag the schema drift so the UI
+        // (or support) can tell that a migration is pending.
+        return NextResponse.json({
+          success: true,
+          degraded: 'missing-unique-constraint',
+          migration: '071_message_reactions_repair.sql',
+        });
+      }
 
       if (upsertError) {
-        console.error('[whatsapp/react] DB upsert failed:', upsertError.message);
+        console.error('[whatsapp/react] DB upsert failed:', upsertError);
         return NextResponse.json(
-          { error: 'Reaction sent to Meta but DB upsert failed' },
+          {
+            error: `Reaction sent to WhatsApp, but saving it here failed: ${describePostgresError(upsertError)}`,
+          },
           { status: 500 },
         );
       }
@@ -194,8 +256,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error in WhatsApp react POST:', error);
+    // Surface the reason — the client toasts whatever `error` holds, and a
+    // bare "Failed to react to message" left users (and support) blind.
+    const detail = error instanceof Error ? error.message : '';
     return NextResponse.json(
-      { error: 'Failed to react to message' },
+      {
+        error: detail
+          ? `Failed to react to message: ${detail}`
+          : 'Failed to react to message',
+      },
       { status: 500 },
     );
   }

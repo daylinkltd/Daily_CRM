@@ -61,6 +61,7 @@ export function MessageReactions({
           aria-pressed={g.byCurrentUser}
           className={cn(
             "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[11px] leading-none transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
             g.byCurrentUser
               ? "border-primary/60 bg-primary/15 text-primary hover:bg-primary/25"
               : "border-border bg-muted/80 text-foreground hover:bg-muted",
