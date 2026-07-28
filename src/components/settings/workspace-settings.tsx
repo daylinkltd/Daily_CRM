@@ -28,7 +28,7 @@ interface ProfileDetail {
 interface MemberWithProfile {
   id: string;
   user_id: string;
-  role: "owner" | "admin" | "member";
+  role: "owner" | "admin" | "member" | "viewer";
   role_id: string | null;
   created_at: string;
   profile?: ProfileDetail;
@@ -86,7 +86,7 @@ export function WorkspaceSettings() {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserRoleId, setNewUserRoleId] = useState<string>("");
-  const [newUserWorkspaceRole, setNewUserWorkspaceRole] = useState<"admin" | "member">("member");
+  const [newUserWorkspaceRole, setNewUserWorkspaceRole] = useState<"admin" | "member" | "viewer">("member");
   const [showPassword, setShowPassword] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -151,10 +151,10 @@ export function WorkspaceSettings() {
   const members = useMemo(() => {
     const mapped: MemberWithProfile[] = rawMembers.map((m) => {
       const custom_role = roles.find((r) => r.id === m.role_id);
-      return { ...m, role: m.role as "owner" | "admin" | "member", profile: m.profile, custom_role };
+      return { ...m, role: m.role as "owner" | "admin" | "member" | "viewer", profile: m.profile, custom_role };
     });
 
-    const order = { owner: 0, admin: 1, member: 2 };
+    const order = { owner: 0, admin: 1, member: 2, viewer: 3 };
     const sorted = [...mapped].sort((a, b) => order[a.role] - order[b.role]);
     return sorted;
   }, [rawMembers, roles]);
@@ -243,7 +243,7 @@ export function WorkspaceSettings() {
   };
 
   // ── Change role ────────────────────────────────────────────────────────────
-  const handleChangeRole = async (memberId: string, newRole: "admin" | "member", roleId?: string) => {
+  const handleChangeRole = async (memberId: string, newRole: "admin" | "member" | "viewer", roleId?: string) => {
     if (!canManageUsers || !activeWorkspace?.id) return;
     const res = await fetch("/api/workspace/users", {
       method: "PATCH",
@@ -514,7 +514,7 @@ export function WorkspaceSettings() {
                               const foundRole = roles.find((r) => r.id === val);
                               const workspaceRole = foundRole
                                 ? (foundRole.is_system && foundRole.name === "Admin" ? "admin" : "member")
-                                : (val as "admin" | "member");
+                                : (val as "admin" | "member" | "viewer");
                               handleChangeRole(member.id, workspaceRole, foundRole?.id);
                             }}
                           >
@@ -524,6 +524,7 @@ export function WorkspaceSettings() {
                             <SelectContent className="bg-slate-900 border-slate-800 text-foreground">
                               <SelectItem value="admin" className="text-xs">Admin</SelectItem>
                               <SelectItem value="member" className="text-xs">Member</SelectItem>
+                              <SelectItem value="viewer" className="text-xs">Viewer (read-only)</SelectItem>
                               {selectableRoles.map((r) => (
                                 <SelectItem key={r.id} value={r.id} className="text-xs">{r.name}</SelectItem>
                               ))}
@@ -636,13 +637,14 @@ export function WorkspaceSettings() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium text-slate-300">Workspace Role</Label>
-                    <Select value={newUserWorkspaceRole} onValueChange={(v) => setNewUserWorkspaceRole(v as "admin" | "member")}>
+                    <Select value={newUserWorkspaceRole} onValueChange={(v) => setNewUserWorkspaceRole(v as "admin" | "member" | "viewer")}>
                       <SelectTrigger className="bg-slate-950 border-slate-800 focus:ring-primary text-foreground">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-900 border-slate-800 text-foreground">
                         <SelectItem value="admin">Admin</SelectItem>
                         <SelectItem value="member">Member</SelectItem>
+                        <SelectItem value="viewer">Viewer (read-only)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentAccount, toErrorResponse } from "@/lib/auth/account";
-import { canManageMembers } from "@/lib/auth/roles";
-import type { AccountRole } from "@/lib/auth/roles";
+import { canManageMembers, fromDbRole } from "@/lib/auth/roles";
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,17 +49,12 @@ export async function GET(request: NextRequest) {
     const members = memberRows.map((row) => {
       const profile = profilesMap.get(row.user_id);
       
-      let role: AccountRole = 'agent';
-      if (row.role === 'owner') role = 'owner';
-      else if (row.role === 'admin') role = 'admin';
-      else if (row.role === 'member') role = 'agent';
-
       return {
         user_id: row.user_id,
         full_name: profile?.full_name ?? "User",
         email: canSeeEmails ? (profile?.email ?? null) : null,
         avatar_url: profile?.avatar_url ?? null,
-        role,
+        role: fromDbRole(row.role),
         joined_at: row.created_at,
       };
     });

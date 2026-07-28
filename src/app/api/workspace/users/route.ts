@@ -28,7 +28,7 @@ async function verifyWorkspaceAdmin(workspaceId: string) {
  * Body: {
  *   workspace_id, full_name, email, password?,
  *   role_id, role_name (display only),
- *   workspace_role: 'admin' | 'member'  (enum fallback)
+ *   workspace_role: 'admin' | 'member' | 'viewer'  (enum fallback)
  * }
  */
 export async function POST(request: NextRequest) {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       email?: string;
       password?: string;
       role_id?: string;
-      workspace_role?: 'admin' | 'member';
+      workspace_role?: 'admin' | 'member' | 'viewer';
     };
 
     if (!workspace_id) {
@@ -151,12 +151,12 @@ export async function POST(request: NextRequest) {
     }
 
     // --- Insert workspace_members row ---
-    // Only 'admin' and 'member' are assignable. The DB enum also
-    // accepts 'owner' — without this whitelist an admin could mint
-    // new owners (privilege escalation).
-    if (workspace_role && !['admin', 'member'].includes(workspace_role)) {
+    // Only 'admin', 'member', and 'viewer' are assignable. The DB
+    // enum also accepts 'owner' — without this whitelist an admin
+    // could mint new owners (privilege escalation).
+    if (workspace_role && !['admin', 'member', 'viewer'].includes(workspace_role)) {
       return NextResponse.json(
-        { error: 'workspace_role must be "admin" or "member"' },
+        { error: 'workspace_role must be "admin", "member", or "viewer"' },
         { status: 400 }
       );
     }
@@ -203,7 +203,7 @@ export async function PATCH(request: NextRequest) {
       workspace_id?: string;
       member_id?: string;
       role_id?: string | null;
-      workspace_role?: 'admin' | 'member';
+      workspace_role?: 'admin' | 'member' | 'viewer';
     };
 
     if (!workspace_id || !member_id) {
@@ -223,9 +223,9 @@ export async function PATCH(request: NextRequest) {
     // Whitelist — the DB enum also accepts 'owner', so an unchecked
     // value would let an admin promote themselves to owner.
     if (workspace_role) {
-      if (!['admin', 'member'].includes(workspace_role)) {
+      if (!['admin', 'member', 'viewer'].includes(workspace_role)) {
         return NextResponse.json(
-          { error: 'workspace_role must be "admin" or "member"' },
+          { error: 'workspace_role must be "admin", "member", or "viewer"' },
           { status: 400 }
         );
       }

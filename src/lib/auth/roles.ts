@@ -59,6 +59,47 @@ export function isAccountRole(value: unknown): value is AccountRole {
 }
 
 // ============================================================
+// DB <-> app role mapping
+//
+// The `workspace_members.role` column uses the `workspace_role`
+// Postgres enum: 'owner' | 'admin' | 'member' | 'viewer'
+// (migration 009, 'viewer' added in 062). The app-level
+// `AccountRole` calls the write-capable non-admin role 'agent'
+// where the DB calls it 'member'; every other role maps 1:1.
+//
+// These two functions are the ONLY place that translation may
+// happen. Open-coding the mapping at call sites is how 'viewer'
+// silently collapsed onto 'member' (full agent permissions) —
+// don't reintroduce that.
+// ============================================================
+
+/** The `workspace_role` Postgres enum, as stored in `workspace_members.role`. */
+export type WorkspaceDbRole = "owner" | "admin" | "member" | "viewer";
+
+/** App role → DB enum value, for writes to `workspace_members.role`. */
+export function toDbRole(role: AccountRole): WorkspaceDbRole {
+  return role === "agent" ? "member" : role;
+}
+
+/**
+ * DB enum value → app role, for reads of `workspace_members.role`.
+ * Unknown values fall back to 'agent' (matches the historical
+ * behaviour for rows written before the enum grew).
+ */
+export function fromDbRole(dbRole: string | null | undefined): AccountRole {
+  switch (dbRole) {
+    case "owner":
+      return "owner";
+    case "admin":
+      return "admin";
+    case "viewer":
+      return "viewer";
+    default:
+      return "agent";
+  }
+}
+
+// ============================================================
 // Capability predicates
 //
 // Every UI gate and API route guard should call one of these

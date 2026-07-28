@@ -16,7 +16,7 @@ import {
   canEditSettings as canEditSettingsFor,
   canManageMembers as canManageMembersFor,
   canSendMessages as canSendMessagesFor,
-  isAccountRole,
+  fromDbRole,
   type AccountRole,
 } from "@/lib/auth/roles";
 
@@ -196,12 +196,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           : null;
 
         // Map workspace role to AccountRole ('owner', 'admin', 'agent', 'viewer')
-        let accountRole: AccountRole | null = null;
-        if (activeMem) {
-          if (activeMem.role === "owner") accountRole = "owner";
-          else if (activeMem.role === "admin") accountRole = "admin";
-          else if (activeMem.role === "member") accountRole = "agent";
-        }
+        const accountRole: AccountRole | null = activeMem
+          ? fromDbRole(activeMem.role)
+          : null;
 
         setProfile({
           id: profileData.id,
