@@ -22,7 +22,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Tags, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Tags, Eye, EyeOff, CheckSquare, Sparkles, Bookmark, Bug } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { TaskComments } from '@/components/tasks/task-comments';
 import { TaskAttachments } from '@/components/tasks/task-attachments';
@@ -43,10 +43,41 @@ interface TaskFormProps {
   defaultProjectId?: string;
   defaultColumnId?: string;
   defaultParentId?: string;
+  defaultEpicId?: string;
+  defaultTaskType?: string;
   onSaved: () => void;
 }
 
-export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultColumnId, defaultParentId, onSaved }: TaskFormProps) {
+export function formatMemberName(m: any): string {
+  if (!m) return 'Unassigned';
+  if (typeof m.full_name === 'string' && m.full_name.trim() && m.full_name.trim() !== 'Member') {
+    return m.full_name.trim();
+  }
+  const emp = m.employee_profiles;
+  if (emp?.first_name || emp?.last_name) {
+    const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
+    if (fullName) return fullName;
+  }
+  const prof = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+  if (prof?.full_name?.trim()) {
+    return prof.full_name.trim();
+  }
+  const rawEmail = m.email || prof?.email || emp?.email || m.invited_email;
+  if (rawEmail && typeof rawEmail === 'string') {
+    const handle = rawEmail.split('@')[0].trim();
+    if (handle) {
+      const formatted = handle
+        .split(/[._-]/)
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+      if (formatted) return formatted;
+    }
+  }
+  return 'Member';
+}
+
+export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultColumnId, defaultParentId, defaultEpicId, defaultTaskType, onSaved }: TaskFormProps) {
   const supabase = createClient();
   const { activeWorkspace, activeMember } = useWorkspace();
   
@@ -87,18 +118,75 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
 
   // Time Logging State
   const [showLogTime, setShowLogTime] = useState(false);
-  const [timeLogsKey, setTimeLogsKey] = useState(0); // Used to force refresh TaskTimeLogs
+  const [timeLogsKey, setTimeLogsKey] = useState(0);
+
+  // Quick Epic Creation State
+  const [showQuickEpicModal, setShowQuickEpicModal] = useState(false);
+  const [newEpicNameQuick, setNewEpicNameQuick] = useState('');
+  const [isCreatingEpicQuick, setIsCreatingEpicQuick] = useState(false);
+
+  const handleCreateEpicQuick = async () => {
+    if (!newEpicNameQuick.trim() || projectId === 'none') return;
+    setIsCreatingEpicQuick(true);
+    try {
+      const { data, error } = await supabase
+        .from('epics')
+        .insert({ project_id: projectId, name: newEpicNameQuick.trim() })
+        .select()
+        .single();
+      if (error) throw error;
+      setEpics((prev) => [...prev, data]);
+      setEpicId(data.id);
+      setNewEpicNameQuick('');
+      setShowQuickEpicModal(false);
+      toast.success('Epic created!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create epic');
+    } finally {
+      setIsCreatingEpicQuick(false);
+    }
+  };
+
+  // Quick Component Creation State
+  const [showQuickComponentModal, setShowQuickComponentModal] = useState(false);
+  const [newComponentNameQuick, setNewComponentNameQuick] = useState('');
+  const [isCreatingComponentQuick, setIsCreatingComponentQuick] = useState(false);
+
+  const handleCreateComponentQuick = async () => {
+    if (!newComponentNameQuick.trim() || projectId === 'none') return;
+    setIsCreatingComponentQuick(true);
+    try {
+      const { data, error } = await supabase
+        .from('project_components')
+        .insert({ project_id: projectId, name: newComponentNameQuick.trim() })
+        .select()
+        .single();
+      if (error) throw error;
+      setAllComponents((prev) => [...prev, data]);
+      setSelectedComponents((prev) => [...prev, data.id]);
+      setNewComponentNameQuick('');
+      setShowQuickComponentModal(false);
+      toast.success('Component created!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create component');
+    } finally {
+      setIsCreatingComponentQuick(false);
+    }
+  };
 
   useEffect(() => {
     if (open && activeWorkspace?.id) {
       supabase.from('projects').select('id, name').eq('workspace_id', activeWorkspace.id).eq('status', 'active').then(({ data }) => setProjects(data || []));
-      supabase.from('workspace_members').select('id, user_id').eq('workspace_id', activeWorkspace.id).then(async ({ data: members }) => {
-        if (!members || members.length === 0) { setMembers([]); return; }
-        const userIds = members.map((m: any) => m.user_id);
-        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds);
-        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
-        setMembers(members.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null })));
-      });
+      fetch(`/api/account/members?workspace_id=${activeWorkspace.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.members) {
+            setMembers(data.members);
+          }
+        })
+        .catch((err) => {
+          console.error('[TaskForm] member fetch error:', err);
+        });
       supabase.from('workspace_labels').select('id, name, color').eq('workspace_id', activeWorkspace.id).then(({ data }) => setAllLabels(data || []));
 
       if (task) {
@@ -127,12 +215,13 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
         setStartDate('');
         setDueDate('');
         setSprintId('none');
-        setEpicId('none');
+        setEpicId('none'); // Will be set after epics load (see effect below)
         setEstimatedHours('');
         setSelectedLabels([]);
         setSelectedComponents([]);
         setIsWatching(true); // Watch tasks you create
         setSubtasks([]);
+        if (defaultTaskType) setTaskType(defaultTaskType);
       }
     }
   }, [open, task, activeWorkspace?.id, activeMember?.id, defaultProjectId]);
@@ -152,7 +241,15 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
   useEffect(() => {
     if (projectId && projectId !== 'none') {
       supabase.from('sprints').select('id, name').eq('project_id', projectId).then(({ data }) => setSprints(data || []));
-      supabase.from('epics').select('id, name').eq('project_id', projectId).then(({ data }) => setEpics(data || []));
+      supabase.from('epics').select('id, name, title').eq('project_id', projectId).then(({ data }) => {
+        const loaded = data || [];
+        setEpics(loaded);
+        // Apply defaultEpicId only after epics are loaded so SelectItem exists
+        if (!task?.id && defaultEpicId && defaultEpicId !== 'none') {
+          const found = loaded.find(e => e.id === defaultEpicId);
+          if (found) setEpicId(defaultEpicId);
+        }
+      });
       supabase.from('project_components').select('id, name').eq('project_id', projectId).then(({ data }) => setAllComponents(data || []));
       supabase.from('projects').select('default_billable_time').eq('id', projectId).single().then(({ data }) => {
         if (data && data.default_billable_time !== undefined) {
@@ -162,7 +259,6 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
       supabase.from('project_statuses').select('*').eq('project_id', projectId).order('sort_order', { ascending: true }).then(({ data }) => {
         setProjectStatuses(data || []);
         if (!task?.id && data && data.length > 0 && statusId === 'none') {
-          // Default to first status (usually To Do) if not editing an existing task
           setStatusId(data[0].id);
         }
       });
@@ -173,7 +269,7 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
       setProjectStatuses([]);
       setStatusId('none');
     }
-  }, [projectId, supabase, task?.id]);
+  }, [projectId, supabase, task?.id, defaultEpicId]);
 
   const fetchSubtasks = async (parentId: string) => {
     setLoadingSubtasks(true);
@@ -189,12 +285,14 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
     setSaving(true);
     
     try {
+      const currentStatusObj = projectStatuses.find(s => s.id === statusId);
       const payload: any = {
         title: title.trim(),
         description: description.trim() || null,
         priority,
         status_id: statusId === 'none' ? null : statusId,
-        task_type: projectId !== 'none' ? 'PROJECT' : 'GENERAL',
+        status: currentStatusObj?.category?.toLowerCase() || 'todo',
+        task_type: taskType || 'TASK',
         project_id: projectId === 'none' ? null : projectId,
         assigned_workspace_member_id: assigneeId === 'none' ? null : assigneeId,
         start_date: startDate || null,
@@ -214,7 +312,6 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
       let returnedTaskId = task?.id;
 
       if (task?.id) {
-        payload.updated_at = new Date().toISOString();
         // Since custom statuses don't have hardcoded 'completed', we check if category is DONE
         const currentStatus = projectStatuses.find(s => s.id === statusId);
         if (currentStatus?.category === 'DONE' && task.status_id !== statusId) {
@@ -266,16 +363,52 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
   }
 
   const renderDetails = () => (
-    <form id="task-form" onSubmit={handleSubmit} className="space-y-4 py-4">
+    <form id="task-form" onSubmit={handleSubmit} className="space-y-3 py-2">
       
-      <div className="flex justify-between items-start gap-4">
-        <div className="flex-1 space-y-2">
-          <Label>Task Title <span className="text-red-500">*</span></Label>
+      <div className="flex justify-between items-start gap-3">
+        <div className="w-[130px] space-y-1.5 shrink-0">
+          <Label className="text-xs">Issue Type</Label>
+          <Select value={taskType} onValueChange={(val) => setTaskType(val as string)}>
+            <SelectTrigger className="bg-card border-border h-9">
+              <SelectValue>
+                {(() => {
+                  switch (taskType) {
+                    case 'FEATURE':
+                      return <span className="flex items-center gap-1.5 font-medium text-xs"><Sparkles className="size-3.5 text-emerald-500 shrink-0" /> Feature</span>;
+                    case 'STORY':
+                      return <span className="flex items-center gap-1.5 font-medium text-xs"><Bookmark className="size-3.5 text-green-600 shrink-0" /> Story</span>;
+                    case 'BUG':
+                      return <span className="flex items-center gap-1.5 font-medium text-xs"><Bug className="size-3.5 text-red-500 shrink-0" /> Bug</span>;
+                    default:
+                      return <span className="flex items-center gap-1.5 font-medium text-xs"><CheckSquare className="size-3.5 text-blue-500 shrink-0" /> Task</span>;
+                  }
+                })()}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TASK" label="Task">
+                <span className="flex items-center gap-2 text-xs"><CheckSquare className="size-4 text-blue-500" /> Task</span>
+              </SelectItem>
+              <SelectItem value="FEATURE" label="Feature">
+                <span className="flex items-center gap-2 text-xs"><Sparkles className="size-4 text-emerald-500" /> Feature</span>
+              </SelectItem>
+              <SelectItem value="STORY" label="Story">
+                <span className="flex items-center gap-2 text-xs"><Bookmark className="size-4 text-green-600" /> Story</span>
+              </SelectItem>
+              <SelectItem value="BUG" label="Bug">
+                <span className="flex items-center gap-2 text-xs"><Bug className="size-4 text-red-500" /> Bug</span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex-1 space-y-1.5">
+          <Label className="text-xs">Task Title <span className="text-red-500">*</span></Label>
           <Input 
             value={title} 
             onChange={(e) => setTitle(e.target.value)} 
             placeholder="e.g. Design Landing Page" 
-            className="bg-card border-border text-foreground"
+            className="bg-card border-border text-foreground h-9"
             required 
           />
         </div>
@@ -306,7 +439,11 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
         <div className="space-y-2">
           <Label>Status</Label>
           <Select value={statusId} onValueChange={(val) => setStatusId(val || '')} disabled={projectStatuses.length === 0}>
-            <SelectTrigger className="bg-card border-border"><SelectValue placeholder="Select Status" /></SelectTrigger>
+            <SelectTrigger className="bg-card border-border">
+              <SelectValue placeholder="Select Status">
+                {statusId === 'none' ? 'No statuses' : projectStatuses.find(s => s.id === statusId)?.name}
+              </SelectValue>
+            </SelectTrigger>
             <SelectContent>
               {projectStatuses.length === 0 ? (
                  <SelectItem value="none">No statuses</SelectItem>
@@ -336,16 +473,40 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
         <div className="space-y-2">
           <Label>Assignee</Label>
           <Select value={assigneeId} onValueChange={(val) => setAssigneeId(val as string)}>
-            <SelectTrigger className="bg-card border-border"><SelectValue placeholder="Unassigned" /></SelectTrigger>
+            <SelectTrigger className="bg-card border-border">
+              <SelectValue placeholder="Unassigned">
+                {assigneeId === 'none' || !assigneeId
+                  ? '-- Unassigned --'
+                  : formatMemberName(members.find((mem) => mem.id === assigneeId))}
+              </SelectValue>
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">-- Unassigned --</SelectItem>
               {members.map(m => {
-                const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
-                return <SelectItem key={m.id} value={m.id}>{profile?.full_name || 'Unknown'}</SelectItem>;
+                const name = formatMemberName(m);
+                return <SelectItem key={m.id} value={m.id} label={name}>{name}</SelectItem>;
               })}
             </SelectContent>
           </Select>
         </div>
+
+        {/* Epic Selector */}
+        {projectId && projectId !== 'none' && (
+          <div className="space-y-2">
+            <Label>Epic</Label>
+            <Select value={epicId} onValueChange={(val) => setEpicId(val)}>
+              <SelectTrigger className="bg-card border-border">
+                <SelectValue placeholder="-- No Epic --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-- No Epic --</SelectItem>
+                {epics.map(e => (
+                  <SelectItem key={e.id} value={e.id}>{e.title || e.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -419,7 +580,18 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
         
         {projectId !== 'none' && (
           <div className="space-y-2">
-            <Label>Components</Label>
+            <div className="flex items-center justify-between">
+              <Label>Components</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-4 px-1 text-[11px] text-primary hover:text-primary/80 font-medium"
+                onClick={() => setShowQuickComponentModal(true)}
+              >
+                + New Component
+              </Button>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -456,7 +628,11 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
           <div className="space-y-2">
             <Label>Project Context</Label>
             <Select value={projectId} onValueChange={(val) => setProjectId(val as string)}>
-              <SelectTrigger className="bg-card border-border"><SelectValue placeholder="General Task (No Project)" /></SelectTrigger>
+              <SelectTrigger className="bg-card border-border">
+                <SelectValue placeholder="General Task (No Project)">
+                  {projectId === 'none' ? '-- General Task --' : projects.find(p => p.id === projectId)?.name}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">-- General Task --</SelectItem>
                 {projects.map(p => (
@@ -469,9 +645,24 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
           {projectId !== 'none' && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Epic</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Epic</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 px-1 text-[11px] text-primary hover:text-primary/80 font-medium"
+                    onClick={() => setShowQuickEpicModal(true)}
+                  >
+                    + New Epic
+                  </Button>
+                </div>
                 <Select value={epicId} onValueChange={(val) => setEpicId(val as string)}>
-                  <SelectTrigger className="bg-card border-border"><SelectValue placeholder="No Epic" /></SelectTrigger>
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="No Epic">
+                      {epicId === 'none' ? '-- No Epic --' : epics.find(e => e.id === epicId)?.name}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">-- No Epic --</SelectItem>
                     {epics.map(e => (
@@ -483,7 +674,11 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
               <div className="space-y-2">
                 <Label>Sprint</Label>
                 <Select value={sprintId} onValueChange={(val) => setSprintId(val as string)}>
-                  <SelectTrigger className="bg-card border-border"><SelectValue placeholder="No Sprint" /></SelectTrigger>
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="No Sprint">
+                      {sprintId === 'none' ? '-- No Sprint --' : sprints.find(s => s.id === sprintId)?.name}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">-- No Sprint --</SelectItem>
                     {sprints.map(s => (
@@ -501,7 +696,7 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-popover border-border text-popover-foreground sm:max-w-2xl min-h-[500px] flex flex-col">
+      <DialogContent className="bg-popover border-border text-popover-foreground sm:max-w-xl w-full max-h-[85vh] flex flex-col p-6 overflow-y-auto overflow-x-hidden">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-popover-foreground text-lg">
             {task ? title || 'Edit Task' : (defaultParentId ? 'Create Subtask' : 'Create Task')}
@@ -595,6 +790,72 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
           onSaved={() => setTimeLogsKey(prev => prev + 1)}
         />
       )}
+
+      <Dialog open={showQuickEpicModal} onOpenChange={setShowQuickEpicModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Epic</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label>Epic Name</Label>
+              <Input
+                value={newEpicNameQuick}
+                onChange={(e) => setNewEpicNameQuick(e.target.value)}
+                placeholder="e.g. User Authentication Q3"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCreateEpicQuick();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowQuickEpicModal(false)} disabled={isCreatingEpicQuick}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateEpicQuick} disabled={isCreatingEpicQuick || !newEpicNameQuick.trim()}>
+              {isCreatingEpicQuick && <Loader2 className="size-4 animate-spin mr-2" />}
+              Create Epic
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showQuickComponentModal} onOpenChange={setShowQuickComponentModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Project Component</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label>Component Name</Label>
+              <Input
+                value={newComponentNameQuick}
+                onChange={(e) => setNewComponentNameQuick(e.target.value)}
+                placeholder="e.g. Frontend, API Engine, Auth Module"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCreateComponentQuick();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowQuickComponentModal(false)} disabled={isCreatingComponentQuick}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateComponentQuick} disabled={isCreatingComponentQuick || !newComponentNameQuick.trim()}>
+              {isCreatingComponentQuick && <Loader2 className="size-4 animate-spin mr-2" />}
+              Create Component
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

@@ -113,8 +113,24 @@ export function ProjectForm({ open, onOpenChange, project, onSaved }: ProjectFor
         if (error) throw error;
         toast.success('Project updated successfully');
       } else {
-        const { error } = await supabase.from('projects').insert({ ...payload, workspace_id: activeWorkspace.id });
+        const { data: newProj, error } = await supabase
+          .from('projects')
+          .insert({ ...payload, workspace_id: activeWorkspace.id })
+          .select('id')
+          .single();
+          
         if (error) throw error;
+
+        // Seed default workflow statuses for the new project
+        if (newProj?.id) {
+          await supabase.from('project_statuses').insert([
+            { project_id: newProj.id, name: 'To Do', category: 'TODO', color: 'slate', sort_order: 1 },
+            { project_id: newProj.id, name: 'In Progress', category: 'IN_PROGRESS', color: 'blue', sort_order: 2 },
+            { project_id: newProj.id, name: 'Review', category: 'IN_PROGRESS', color: 'orange', sort_order: 3 },
+            { project_id: newProj.id, name: 'Done', category: 'DONE', color: 'emerald', sort_order: 4 },
+          ]);
+        }
+
         toast.success('Project created successfully');
       }
       

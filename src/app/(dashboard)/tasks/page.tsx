@@ -104,8 +104,9 @@ export default function GlobalTasksPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
+  const getStatusColor = (status?: string) => {
+    const s = (status || 'todo').toLowerCase();
+    switch (s) {
       case 'completed': return 'bg-emerald-500/15 text-emerald-700 border-emerald-200';
       case 'in_progress': return 'bg-blue-500/15 text-blue-700 border-blue-200';
       case 'review': return 'bg-purple-500/15 text-purple-700 border-purple-200';
@@ -196,7 +197,7 @@ export default function GlobalTasksPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getStatusColor(task.status)}>
-                        {task.status.replace('_', ' ').toUpperCase()}
+                        {(task.status || 'todo').replace('_', ' ').toUpperCase()}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">

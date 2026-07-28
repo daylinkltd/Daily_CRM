@@ -6,7 +6,33 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+interface SelectContextType {
+  labelsMap: Map<string, string>;
+  registerLabel: (value: string, label: string) => void;
+}
+
+const SelectContext = React.createContext<SelectContextType | null>(null);
+
+function Select({ children, ...props }: SelectPrimitive.Root.Props<any>) {
+  const [labelsMap, setLabelsMap] = React.useState<Map<string, string>>(() => new Map());
+
+  const registerLabel = React.useCallback((value: string, label: string) => {
+    setLabelsMap((prev) => {
+      if (prev.get(value) === label) return prev;
+      const next = new Map(prev);
+      next.set(value, label);
+      return next;
+    });
+  }, []);
+
+  return (
+    <SelectContext.Provider value={{ labelsMap, registerLabel }}>
+      <SelectPrimitive.Root {...props}>
+        {children}
+      </SelectPrimitive.Root>
+    </SelectContext.Provider>
+  );
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -18,13 +44,38 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+function SelectValue({
+  className,
+  placeholder,
+  children,
+  ...props
+}: SelectPrimitive.Value.Props & { placeholder?: string }) {
+  const ctx = React.useContext(SelectContext);
+
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
       className={cn("flex flex-1 text-left", className)}
       {...props}
-    />
+    >
+      {(val: any) => {
+        if (children) {
+          if (typeof children === "function") {
+            return (children as any)(val);
+          }
+          return children;
+        }
+        if (val === undefined || val === null || val === "" || val === "none") {
+          if (val === "none" && ctx?.labelsMap.has("none")) {
+            return ctx.labelsMap.get("none");
+          }
+          return placeholder;
+        }
+        const valStr = String(val);
+        const mappedLabel = ctx?.labelsMap.get(valStr);
+        return mappedLabel || valStr;
+      }}
+    </SelectPrimitive.Value>
   )
 }
 
@@ -47,11 +98,7 @@ function SelectTrigger({
       {...props}
     >
       {children}
-      <SelectPrimitive.Icon
-        render={
-          <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
-        }
-      />
+      <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground shrink-0 opacity-70" />
     </SelectPrimitive.Trigger>
   )
 }
@@ -61,9 +108,9 @@ function SelectContent({
   children,
   side = "bottom",
   sideOffset = 4,
-  align = "center",
+  align = "start",
   alignOffset = 0,
-  alignItemWithTrigger = true,
+  alignItemWithTrigger = false,
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<
@@ -108,14 +155,38 @@ function SelectLabel({
   )
 }
 
+function getLabelFromChildren(children: React.ReactNode): string | undefined {
+  if (typeof children === "string" || typeof children === "number") {
+    return String(children);
+  }
+  if (Array.isArray(children)) {
+    const text = children.map(getLabelFromChildren).filter(Boolean).join(" ").trim();
+    return text || undefined;
+  }
+  return undefined;
+}
+
 function SelectItem({
   className,
   children,
+  value,
+  label,
   ...props
-}: SelectPrimitive.Item.Props) {
+}: SelectPrimitive.Item.Props & { label?: string }) {
+  const ctx = React.useContext(SelectContext);
+  const itemLabel = label ?? getLabelFromChildren(children);
+
+  React.useEffect(() => {
+    if (ctx && value !== undefined && itemLabel) {
+      ctx.registerLabel(String(value), itemLabel);
+    }
+  }, [ctx, value, itemLabel]);
+
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
+      value={value}
+      label={itemLabel}
       className={cn(
         "relative flex w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className

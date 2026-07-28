@@ -170,13 +170,23 @@ export function PlanningView({ projectId, canManage }: PlanningViewProps) {
 
     if (!over) return;
     const taskId = active.id as string;
-    const newSprintId = over.id as string;
+    const overId = over.id as string;
 
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // 'backlog' means sprint_id = null
-    const targetSprintId = newSprintId === 'backlog' ? null : newSprintId;
+    let targetSprintId: string | null = null;
+    if (overId === 'backlog') {
+      targetSprintId = null;
+    } else {
+      const isSprintContainer = sprints.some(s => s.id === overId);
+      if (isSprintContainer) {
+        targetSprintId = overId;
+      } else {
+        const overTask = tasks.find(t => t.id === overId);
+        targetSprintId = overTask ? (overTask.sprint_id || null) : null;
+      }
+    }
 
     if (task.sprint_id === targetSprintId) return;
 
@@ -184,9 +194,21 @@ export function PlanningView({ projectId, canManage }: PlanningViewProps) {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, sprint_id: targetSprintId } : t));
 
     try {
-      const { error } = await supabase.from('tasks').update({ sprint_id: targetSprintId }).eq('id', taskId);
-      if (error) throw error;
-    } catch (err) {
+      const { error: err1 } = await supabase
+        .from('tasks')
+        .update({ sprint_id: targetSprintId, status: task.status || 'todo' })
+        .eq('id', taskId);
+
+      if (err1) {
+        const { error: err2 } = await supabase
+          .from('tasks')
+          .update({ sprint_id: targetSprintId })
+          .eq('id', taskId);
+
+        if (err2) throw err2;
+      }
+    } catch (err: any) {
+      console.error('Drag end error:', err);
       toast.error('Failed to move task');
       fetchPlanningData(); // revert
     }

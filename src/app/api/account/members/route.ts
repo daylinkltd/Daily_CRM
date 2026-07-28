@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     // 1. Get all member memberships for this workspace
     const { data: memberRows, error: memberError } = await ctx.supabase
       .from("workspace_members")
-      .select("user_id, role, created_at")
+      .select("id, user_id, role, created_at")
       .eq("workspace_id", ctx.accountId)
       .order("created_at", { ascending: true });
 
@@ -118,6 +118,7 @@ export async function GET(request: NextRequest) {
       const email = profile?.email || authUser?.email || null;
 
       return {
+        id: row.id,
         user_id: row.user_id,
         full_name: displayNameFrom(profile?.full_name, authUser?.metaName, email),
         email: canSeeEmails ? email : null,

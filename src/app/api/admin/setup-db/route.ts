@@ -32,6 +32,9 @@ export async function GET(request: Request) {
         status TEXT NOT NULL DEFAULT 'online' CHECK (status IN ('online', 'away')),
         last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
+      ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'todo';
+      DROP TRIGGER IF EXISTS tr_tasks_audit_status ON public.tasks;
+      DROP TRIGGER IF EXISTS tasks_status_audit_trigger ON public.tasks;
     `;
 
     // Attempt RPC execution if exec_sql is available
