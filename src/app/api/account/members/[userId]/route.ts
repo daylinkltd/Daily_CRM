@@ -18,7 +18,7 @@ import { NextResponse } from "next/server";
 import type { PostgrestError } from "@supabase/supabase-js";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
-import { isAccountRole } from "@/lib/auth/roles";
+import { isAccountRole, toDbRole } from "@/lib/auth/roles";
 import {
   checkRateLimit,
   rateLimitResponse,
@@ -81,9 +81,9 @@ export async function PATCH(
       );
     }
 
-    // Map AccountRole ('admin' | 'agent' | 'viewer') back to workspace_role ('admin' | 'member')
-    let dbRole: 'owner' | 'admin' | 'member' = 'member';
-    if (role === 'admin') dbRole = 'admin';
+    // Map AccountRole ('admin' | 'agent' | 'viewer') back to
+    // workspace_role — 'viewer' persists distinctly (migration 062).
+    const dbRole = toDbRole(role);
 
     // Prevent demoting the owner
     const { data: targetMember } = await ctx.supabase
