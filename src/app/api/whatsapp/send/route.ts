@@ -15,6 +15,7 @@ import {
   RATE_LIMITS,
 } from '@/lib/rate-limit'
 import { checkMessageLimit } from '@/lib/limits'
+import type { MessageTemplate } from '@/types'
 
 export async function POST(request: Request) {
   try {
@@ -45,13 +46,28 @@ export async function POST(request: Request) {
       message_type,
       content_text,
       media_url,
+      filename,
       template_name,
+      template_language,
       template_params,
+      template_message_params,
+      reply_to_message_id,
     } = body
 
     if (!conversation_id || !message_type) {
       return NextResponse.json(
         { error: 'conversation_id and message_type are required' },
+        { status: 400 }
+      )
+    }
+
+    const MEDIA_KINDS = ['image', 'video', 'document', 'audio'] as const
+    type MediaKind = (typeof MEDIA_KINDS)[number]
+    const isMediaSend = (MEDIA_KINDS as readonly string[]).includes(message_type)
+
+    if (!isMediaSend && message_type !== 'text' && message_type !== 'template') {
+      return NextResponse.json(
+        { error: `Unsupported message_type "${message_type}"` },
         { status: 400 }
       )
     }
@@ -66,6 +82,22 @@ export async function POST(request: Request) {
     if (message_type === 'template' && !template_name) {
       return NextResponse.json(
         { error: 'template_name is required for template messages' },
+        { status: 400 }
+      )
+    }
+
+    if (isMediaSend && !media_url) {
+      return NextResponse.json(
+        { error: `media_url is required for ${message_type} messages` },
+        { status: 400 }
+      )
+    }
+
+    // Meta caps media captions at 1024 chars — mirror the composer's limit
+    // here so direct API callers get a clear error instead of a Meta 400.
+    if (isMediaSend && typeof content_text === 'string' && content_text.length > 1024) {
+      return NextResponse.json(
+        { error: 'Media captions are limited to 1024 characters' },
         { status: 400 }
       )
     }
@@ -147,6 +179,80 @@ export async function POST(request: Request) {
     // Resolve the correct provider driver
     const provider = getWhatsAppProvider(config.provider || 'meta')
 
+    if (isMediaSend && typeof provider.sendMedia !== 'function') {
+      return NextResponse.json(
+        { error: `Media messages are not supported for the "${config.provider || 'meta'}" provider` },
+        { status: 400 }
+      )
+    }
+
+    // Quoted reply — resolve the parent message's provider (Meta) id so
+    // the send carries a `context` and renders as a reply on the
+    // recipient's phone. Scoped to the same conversation so a client
+    // can't quote across threads/workspaces. Missing/unsent parents are
+    // ignored rather than failing the send.
+    let contextMessageId: string | undefined
+    let replyToMessageId: string | null = null
+    if (reply_to_message_id) {
+      const { data: parentMsg } = await supabase
+        .from('messages')
+        .select('id, message_id')
+        .eq('id', reply_to_message_id)
+        .eq('conversation_id', conversation_id)
+        .maybeSingle()
+      if (parentMsg) {
+        replyToMessageId = parentMsg.id
+        if (parentMsg.message_id) contextMessageId = parentMsg.message_id
+      }
+    }
+
+    // Template sends: load the workspace's template row so the structured
+    // send-builder path (media headers, URL-button variables) is used and
+    // the correct language code is sent — Meta rejects a template when the
+    // language doesn't match an approved translation.
+    let templateRow: MessageTemplate | undefined
+    let templateLanguage: string | undefined =
+      typeof template_language === 'string' && template_language
+        ? template_language
+        : undefined
+    if (message_type === 'template') {
+      let templateQuery = supabase
+        .from('message_templates')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .eq('name', template_name)
+      if (templateLanguage) {
+        templateQuery = templateQuery.eq('language', templateLanguage)
+      }
+      const { data: rows } = await templateQuery.limit(1)
+      if (rows && rows.length > 0) {
+        templateRow = rows[0] as MessageTemplate
+        templateLanguage = templateLanguage || templateRow.language
+      }
+    }
+
+    // Structured per-send template values (body/header/button params).
+    // Whitelisted so arbitrary client JSON can't reach the send builder.
+    const messageParams =
+      message_type === 'template' &&
+      template_message_params &&
+      typeof template_message_params === 'object'
+        ? {
+            body: Array.isArray(template_message_params.body)
+              ? template_message_params.body
+              : undefined,
+            headerText:
+              typeof template_message_params.headerText === 'string'
+                ? template_message_params.headerText
+                : undefined,
+            buttonParams:
+              template_message_params.buttonParams &&
+              typeof template_message_params.buttonParams === 'object'
+                ? template_message_params.buttonParams
+                : undefined,
+          }
+        : undefined
+
     // Build a unified send function using the driver
     const attempt = async (phone: string): Promise<string> => {
       if (message_type === 'template') {
@@ -157,6 +263,24 @@ export async function POST(request: Request) {
           to: phone,
           templateName: template_name,
           params: template_params || [],
+          language: templateLanguage,
+          template: templateRow,
+          messageParams,
+          contextMessageId,
+        })
+        return result.messageId
+      }
+      if (isMediaSend) {
+        const result = await provider.sendMedia!({
+          phoneId: config.phone_number_id,
+          wabaId: config.waba_id,
+          token: accessToken,
+          to: phone,
+          kind: message_type as MediaKind,
+          link: media_url,
+          caption: content_text || undefined,
+          filename: typeof filename === 'string' ? filename : undefined,
+          contextMessageId,
         })
         return result.messageId
       }
@@ -166,6 +290,7 @@ export async function POST(request: Request) {
         token: accessToken,
         to: phone,
         text: content_text,
+        contextMessageId,
       })
       return result.messageId
     }
@@ -227,6 +352,7 @@ export async function POST(request: Request) {
         content_text: content_text || null,
         media_url: media_url || null,
         template_name: template_name || null,
+        reply_to_message_id: replyToMessageId,
         message_id: waMessageId,
         status: 'sent',
       })

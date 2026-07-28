@@ -19,6 +19,7 @@ import {
   X,
   Loader2,
   Sparkles,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GatedButton } from "@/components/ui/gated-button";
@@ -448,7 +449,8 @@ export function MessageComposer({
             <button
               type="button"
               onClick={() => setSuggestedDraft(null)}
-              className="text-muted-foreground hover:text-foreground"
+              aria-label="Dismiss suggestion"
+              className="rounded-md p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -478,19 +480,31 @@ export function MessageComposer({
       )}
 
       {sessionExpired && (
-        <div className="mb-2 flex items-center justify-between rounded-lg bg-amber-500/10 px-3 py-2">
-          <p className="text-xs text-amber-400">
-            24-hour session expired. Use a template to re-engage.
-          </p>
-          <Button
-            variant="ghost"
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-foreground">
+                Session window closed
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                WhatsApp only allows freeform replies within 24 hours of the
+                customer&apos;s last message — send a template to re-engage.
+              </p>
+            </div>
+          </div>
+          <GatedButton
             size="sm"
-            className="h-7 text-xs text-amber-400 hover:text-amber-300"
+            canAct={!readOnly}
+            gateReason="send messages"
+            className="h-8 shrink-0 bg-primary text-xs text-primary-foreground hover:bg-primary/90"
             onClick={onOpenTemplates}
           >
-            <LayoutTemplate className="mr-1 h-3 w-3" />
-            Templates
-          </Button>
+            <LayoutTemplate className="mr-1.5 h-3.5 w-3.5" />
+            Send template
+          </GatedButton>
         </div>
       )}
 
@@ -546,14 +560,14 @@ export function MessageComposer({
           <button
             type="button"
             onClick={cancelRecording}
-            className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-card hover:text-foreground"
+            className="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             Cancel
           </button>
           <Button
             size="sm"
             onClick={stopRecording}
-            className="h-9 w-9 shrink-0 bg-primary p-0 hover:bg-primary/90"
+            className="h-9 w-9 shrink-0 rounded-full bg-primary p-0 hover:bg-primary/90"
             title="Stop and attach"
           >
             <Square className="h-4 w-4" />
@@ -572,7 +586,7 @@ export function MessageComposer({
                     ? undefined
                     : "Attach media"
               }
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md p-0 text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full p-0 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -606,7 +620,7 @@ export function MessageComposer({
             canAct={!readOnly}
             gateReason="send messages"
             title={readOnly ? undefined : "Send template"}
-            className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 shrink-0 rounded-full p-0 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={onOpenTemplates}
           >
             <LayoutTemplate className="h-4 w-4" />
@@ -621,7 +635,7 @@ export function MessageComposer({
               readOnly
                 ? "Read-only — viewers can browse but not reply"
                 : sessionExpired
-                  ? "Session expired - use a template"
+                  ? "Session window closed — send a template to re-engage"
                   : "Type a message... (Shift+Enter for new line)"
             }
             disabled={sessionExpired || readOnly}
@@ -631,7 +645,7 @@ export function MessageComposer({
             // The placeholder text also surfaces the read-only state.
             title={readOnly ? "Read-only — your role can't send messages" : undefined}
             className={cn(
-              "flex-1 resize-none rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary/50",
+              "flex-1 resize-none rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-[color,border-color,box-shadow] focus:border-primary/50 focus:ring-2 focus:ring-primary/15",
               (sessionExpired || readOnly) && "cursor-not-allowed opacity-50"
             )}
           />
@@ -642,7 +656,7 @@ export function MessageComposer({
             gateReason="send messages"
             disabled={!text.trim() || sessionExpired || sending}
             onClick={handleSend}
-            className="h-9 w-9 shrink-0 bg-primary p-0 hover:bg-primary/90 disabled:opacity-40"
+            className="h-9 w-9 shrink-0 rounded-full bg-primary p-0 hover:bg-primary/90 disabled:opacity-40"
           >
             <Send className="h-4 w-4" />
           </GatedButton>
@@ -711,7 +725,7 @@ function MediaDraftPreview({
           type="button"
           onClick={onDiscard}
           aria-label="Remove attachment"
-          className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
           <X className="h-4 w-4" />
         </button>
@@ -730,7 +744,7 @@ function MediaDraftPreview({
               }
             }}
             placeholder="Add a caption…"
-            className="flex-1 rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-colors focus:border-primary/50"
+            className="flex-1 rounded-xl border border-border bg-muted px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition-[color,border-color,box-shadow] focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
           />
         )}
         <GatedButton
@@ -740,7 +754,7 @@ function MediaDraftPreview({
           disabled={busy}
           onClick={onSend}
           className={cn(
-            "h-9 w-9 shrink-0 bg-primary p-0 hover:bg-primary/90 disabled:opacity-40",
+            "h-9 w-9 shrink-0 rounded-full bg-primary p-0 hover:bg-primary/90 disabled:opacity-40",
             draft.kind === "audio" && "ml-auto",
           )}
         >

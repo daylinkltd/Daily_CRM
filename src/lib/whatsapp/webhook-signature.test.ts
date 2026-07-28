@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { verifyMetaWebhookSignature } from "./webhook-signature";
+import { appSecretVariants, verifyMetaWebhookSignature } from "./webhook-signature";
 
 const SECRET = process.env.META_APP_SECRET!;
 
@@ -67,3 +67,44 @@ describe("verifyMetaWebhookSignature", () => {
     });
   });
 });
+
+describe('appSecretVariants', () => {
+  it('returns the raw value first', () => {
+    expect(appSecretVariants('abc123')[0]).toBe('abc123')
+  })
+
+  it('includes a trimmed variant for values with trailing newline', () => {
+    expect(appSecretVariants('abc123\n')).toContain('abc123')
+  })
+
+  it('strips a single layer of surrounding quotes', () => {
+    expect(appSecretVariants('"abc123"')).toContain('abc123')
+    expect(appSecretVariants("'abc123'")).toContain('abc123')
+  })
+
+  it('includes a whitespace-stripped variant for line-wrapped values', () => {
+    expect(appSecretVariants('abc 123\n456')).toContain('abc123456')
+  })
+
+  it('does not duplicate variants for an already-clean value', () => {
+    expect(appSecretVariants('abc123')).toEqual(['abc123'])
+  })
+})
+
+describe('verifyMetaWebhookSignature with a whitespace-padded env secret', () => {
+  it('accepts a signature made with the clean secret', () => {
+    const secret = 'f'.repeat(32)
+    const body = '{"entry":[]}'
+    const sig =
+      'sha256=' +
+      crypto.createHmac('sha256', secret).update(body).digest('hex')
+    const prev = process.env.META_APP_SECRET
+    process.env.META_APP_SECRET = `"${secret}"\n`
+    try {
+      expect(verifyMetaWebhookSignature(body, sig, [])).toBe(true)
+    } finally {
+      if (prev === undefined) delete process.env.META_APP_SECRET
+      else process.env.META_APP_SECRET = prev
+    }
+  })
+})

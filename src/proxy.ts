@@ -43,7 +43,17 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname === '/forgot-password'
   )) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    // An authenticated user following an invite link must keep the
+    // invite intent. Previously `url.search = ''` silently dropped
+    // `?invite=<token>` and bounced them to /dashboard, which (with
+    // no workspace yet) forwarded them into onboarding/plan
+    // selection instead of the workspace-join confirmation.
+    const inviteToken = request.nextUrl.searchParams.get('invite')
+    if (inviteToken) {
+      url.pathname = `/join/${encodeURIComponent(inviteToken)}`
+    } else {
+      url.pathname = '/dashboard'
+    }
     url.search = ''
     return withRefreshedCookies(NextResponse.redirect(url))
   }

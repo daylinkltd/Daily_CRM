@@ -1,8 +1,11 @@
-import { WhatsAppProvider } from "../provider-interface";
+import { WhatsAppProvider, ProviderMediaKind } from "../provider-interface";
+import type { MessageTemplate } from "@/types";
+import type { SendTimeParams } from "../template-send-builder";
 import {
   verifyPhoneNumber,
   sendTextMessage,
   sendTemplateMessage,
+  sendMediaMessage,
 } from "../meta-api";
 
 export class MetaProvider implements WhatsAppProvider {
@@ -26,12 +29,14 @@ export class MetaProvider implements WhatsAppProvider {
     token: string;
     to: string;
     text: string;
+    contextMessageId?: string;
   }): Promise<{ messageId: string }> {
     return sendTextMessage({
       phoneNumberId: args.phoneId,
       accessToken: args.token,
       to: args.to,
       text: args.text,
+      contextMessageId: args.contextMessageId,
     });
   }
 
@@ -41,6 +46,10 @@ export class MetaProvider implements WhatsAppProvider {
     to: string;
     templateName: string;
     params?: string[];
+    language?: string;
+    template?: MessageTemplate;
+    messageParams?: SendTimeParams;
+    contextMessageId?: string;
   }): Promise<{ messageId: string }> {
     return sendTemplateMessage({
       phoneNumberId: args.phoneId,
@@ -48,6 +57,32 @@ export class MetaProvider implements WhatsAppProvider {
       to: args.to,
       templateName: args.templateName,
       params: args.params,
+      language: args.language,
+      template: args.template,
+      messageParams: args.messageParams,
+      contextMessageId: args.contextMessageId,
+    });
+  }
+
+  async sendMedia(args: {
+    phoneId: string;
+    token: string;
+    to: string;
+    kind: ProviderMediaKind;
+    link: string;
+    caption?: string;
+    filename?: string;
+    contextMessageId?: string;
+  }): Promise<{ messageId: string }> {
+    return sendMediaMessage({
+      phoneNumberId: args.phoneId,
+      accessToken: args.token,
+      to: args.to,
+      kind: args.kind,
+      link: args.link,
+      caption: args.caption,
+      filename: args.filename,
+      contextMessageId: args.contextMessageId,
     });
   }
 }

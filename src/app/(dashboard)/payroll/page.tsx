@@ -16,12 +16,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Banknote, Plus, Loader2, Play, Download, IndianRupee, Receipt } from 'lucide-react';
+import { Banknote, Plus, Loader2, Play, Download, Receipt } from 'lucide-react';
+import { formatCurrency } from '@/lib/currency';
 import { format, subMonths } from 'date-fns';
 
 export default function PayrollAdminPage() {
   const supabase = createClient();
-  const { activeWorkspace, can } = useWorkspace();
+  const { activeWorkspace, can, defaultCurrency } = useWorkspace();
   const canManagePeople = can('people_manage' as any);
 
   const [loading, setLoading] = useState(true);
@@ -109,11 +110,11 @@ export default function PayrollAdminPage() {
         <Card className="bg-card border-border shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Payout (YTD)</CardTitle>
-            <IndianRupee className="h-4 w-4 text-emerald-500" />
+            <Banknote className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {loading ? <Loader2 className="size-4 animate-spin" /> : '₹ 0.00'}
+              {loading ? <Loader2 className="size-4 animate-spin" /> : formatCurrency(0, defaultCurrency, { decimals: 2 })}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Processed in {new Date().getFullYear()}</p>
           </CardContent>
@@ -165,7 +166,7 @@ export default function PayrollAdminPage() {
                       {format(date, 'MMMM yyyy')}
                     </TableCell>
                     <TableCell className="font-mono text-muted-foreground">
-                      ₹ {Number(cycle.total_payout).toLocaleString()}
+                      {formatCurrency(Number(cycle.total_payout), defaultCurrency, { decimals: 2 })}
                     </TableCell>
                     <TableCell>
                       {cycle.status === 'draft' && (

@@ -255,9 +255,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Same rationale as the PATCH handler above — RLS handles
-    // visibility, the workspace-membership gate below handles
-    // authorization for teammates operating on shared templates.
+    // Authorization is the workspace-membership gate below, same as
+    // the PATCH handler.
     const { data: existing, error: lookupErr } = await supabase
       .from('message_templates')
       .select('id, name, meta_template_id, workspace_id')

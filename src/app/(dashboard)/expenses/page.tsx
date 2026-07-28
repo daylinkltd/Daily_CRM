@@ -15,12 +15,13 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Receipt, Plus, Loader2, IndianRupee } from 'lucide-react';
+import { Receipt, Plus, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatCurrency } from '@/lib/currency';
 
 export default function ExpensesPage() {
   const supabase = createClient();
-  const { activeWorkspace, activeMember } = useWorkspace();
+  const { activeWorkspace, activeMember, defaultCurrency } = useWorkspace();
 
   const [loading, setLoading] = useState(true);
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -100,7 +101,7 @@ export default function ExpensesPage() {
                       )}
                     </TableCell>
                     <TableCell className="font-mono">
-                      ₹ {Number(expense.amount).toLocaleString()}
+                      {formatCurrency(Number(expense.amount), defaultCurrency, { decimals: 2 })}
                     </TableCell>
                     <TableCell>
                       {expense.status === 'pending' && (

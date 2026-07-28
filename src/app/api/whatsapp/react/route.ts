@@ -36,6 +36,25 @@ export async function POST(request: Request) {
       return rateLimitResponse(limit);
     }
 
+    // Resolve the caller's workspace memberships so conversation +
+    // whatsapp_config lookups work for teammates who didn't author the
+    // rows directly. (The schema is workspace_id-based — the previous
+    // profiles.account_id lookup hit a nonexistent column and made
+    // this route 403 for every caller.)
+    const { data: memberships } = await supabase
+      .from('workspace_members')
+      .select('workspace_id')
+      .eq('user_id', user.id);
+    const workspaceIds = (memberships ?? [])
+      .map((m: { workspace_id: string | null }) => m.workspace_id)
+      .filter(Boolean) as string[];
+    if (workspaceIds.length === 0) {
+      return NextResponse.json(
+        { error: 'Your profile is not linked to a workspace.' },
+        { status: 403 },
+      );
+    }
+
     const body = await request.json();
     const { message_id, emoji } = body as {
       message_id?: string;
@@ -76,6 +95,7 @@ export async function POST(request: Request) {
       .from('conversations')
       .select('id, workspace_id, contact:contacts(phone)')
       .eq('id', targetMessage.conversation_id)
+      .in('workspace_id', workspaceIds)
       .maybeSingle();
 
     if (convError || !conversation) {
@@ -96,7 +116,8 @@ export async function POST(request: Request) {
     }
 
     // WhatsApp config + access token, scoped to the conversation's
-    // workspace (whatsapp_config.workspace_id is UNIQUE per 011).
+    // workspace so multi-workspace members react via the right number
+    // (whatsapp_config.workspace_id is UNIQUE per 011).
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
       .select('phone_number_id, access_token')

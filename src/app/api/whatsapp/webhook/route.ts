@@ -324,6 +324,18 @@ export async function POST(request: Request) {
 
   if (requiresSignature && !verifyMetaWebhookSignature(rawBody, signature, dbConfigs ?? [])) {
     console.warn('[webhook] rejected request with invalid signature. Body preview:', rawBody.slice(0, 200))
+    // Record the rejection so /api/admin/webhook-status makes this
+    // failure mode visible — a wrong META_APP_SECRET / app_secret
+    // otherwise looks like "Meta just never calls us".
+    recordWebhookLog({
+      method: 'POST',
+      signature,
+      userAgent,
+      rawBody: rawBody.slice(0, 1000),
+      status: 401,
+      error:
+        'Invalid x-hub-signature-256 — the configured Meta App Secret does not match this app. Fix META_APP_SECRET (or the App Secret in Settings → WhatsApp) with the value from Meta App Dashboard → App settings → Basic.',
+    })
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 

@@ -14,6 +14,7 @@ import {
   RATE_LIMITS,
 } from '@/lib/rate-limit'
 import { withMetaErrorHint } from '@/lib/whatsapp/meta-error-hints'
+import type { MessageTemplate } from '@/types'
 
 interface BroadcastResult {
   phone: string
@@ -156,6 +157,31 @@ export async function POST(request: Request) {
     const accessToken = decrypt(config.access_token)
     const provider = getWhatsAppProvider(config.provider || 'meta')
 
+    // Load the template row so the structured send path (media headers,
+    // URL buttons) and the template's real language code reach Meta.
+    // Without this, broadcasts always went out as body-params-only en_US
+    // — non-English templates and media-header templates misfired.
+    let templateRow: MessageTemplate | undefined
+    let templateLanguage: string | undefined =
+      typeof template_language === 'string' && template_language
+        ? template_language
+        : undefined
+    {
+      let templateQuery = supabase
+        .from('message_templates')
+        .select('*')
+        .eq('workspace_id', config.workspace_id)
+        .eq('name', template_name)
+      if (templateLanguage) {
+        templateQuery = templateQuery.eq('language', templateLanguage)
+      }
+      const { data: rows } = await templateQuery.limit(1)
+      if (rows && rows.length > 0) {
+        templateRow = rows[0] as MessageTemplate
+        templateLanguage = templateLanguage || templateRow.language
+      }
+    }
+
     const results: BroadcastResult[] = []
     let sentCount = 0
     let failedCount = 0
@@ -188,6 +214,8 @@ export async function POST(request: Request) {
             to: variant,
             templateName: template_name,
             params: recipient.params ?? [],
+            language: templateLanguage,
+            template: templateRow,
           })
           sentMessageId = result.messageId
           lastError = null

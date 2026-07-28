@@ -16,6 +16,23 @@ import { Label } from "@/components/ui/label";
 import { Search, Loader2, UserPlus, MessageSquare, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  contactDisplayName,
+  contactInitial,
+} from "@/lib/contact-display";
+import { sanitizePhoneForMeta, isValidE164 } from "@/lib/whatsapp/phone-utils";
+
+/** Contacts fetched per query — keeps the modal snappy on big workspaces. */
+const CONTACT_FETCH_LIMIT = 100;
+
+/**
+ * PostgREST `.or()` filters are comma-separated and ilike patterns treat
+ * % and _ as wildcards — strip/escape those so a search term can't break
+ * the filter syntax or match unexpectedly.
+ */
+function sanitizeSearchTerm(term: string): string {
+  return term.replace(/[,()]/g, " ").replace(/[%_]/g, "\\$&").trim();
+}
 
 interface NewChatModalProps {
   open: boolean;
@@ -32,6 +49,10 @@ export function NewChatModal({
 }: NewChatModalProps) {
   const [tab, setTab] = useState<"existing" | "new">("existing");
   const [search, setSearch] = useState("");
+  // Debounced copy of `search` — the contact fetch below queries the
+  // server per term (the workspace may hold far more contacts than the
+  // fetch limit, so client-only filtering would miss matches).
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -40,6 +61,12 @@ export function NewChatModal({
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     if (!open || !workspaceId) return;
@@ -48,12 +75,21 @@ export function NewChatModal({
     const fetchContacts = async () => {
       setLoadingContacts(true);
       const supabase = createClient();
-      const { data, error } = await supabase
+      let query = supabase
         .from("contacts")
         .select("*")
-        .eq("workspace_id", workspaceId)
+        .eq("workspace_id", workspaceId);
+
+      // Server-side search across name AND phone so matches beyond the
+      // first page of contacts are still found.
+      const term = sanitizeSearchTerm(debouncedSearch);
+      if (term) {
+        query = query.or(`name.ilike.%${term}%,phone.ilike.%${term}%`);
+      }
+
+      const { data, error } = await query
         .order("name", { ascending: true })
-        .limit(100);
+        .limit(CONTACT_FETCH_LIMIT);
 
       if (cancelled) return;
       if (error) {
@@ -69,8 +105,10 @@ export function NewChatModal({
     return () => {
       cancelled = true;
     };
-  }, [open, workspaceId]);
+  }, [open, workspaceId, debouncedSearch]);
 
+  // Client-side narrowing on top of the server search keeps typing
+  // responsive between debounce ticks (and adds email matching).
   const filteredContacts = contacts.filter((c) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -124,9 +162,18 @@ export function NewChatModal({
       return;
     }
     if (!newPhone.trim()) {
-      toast.error("Phone number is required");
+      setPhoneError("Phone number is required");
       return;
     }
+    // Mirror the server's validation (sanitize → E.164 check) so the user
+    // gets instant inline feedback instead of a round-trip error.
+    if (!isValidE164(sanitizePhoneForMeta(newPhone))) {
+      setPhoneError(
+        "Enter a valid phone number with country code, e.g. +919876543210"
+      );
+      return;
+    }
+    setPhoneError(null);
 
     try {
       setSubmitting(true);
@@ -252,11 +299,11 @@ export function NewChatModal({
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                        {(c.name || c.phone || "C").charAt(0).toUpperCase()}
+                        {contactInitial(c.name, c.phone)}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium text-foreground truncate">
-                          {c.name || c.phone}
+                          {contactDisplayName(c.name, c.phone)}
                         </p>
                         <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1 mt-0.5">
                           <Phone className="h-3 w-3 shrink-0 text-muted-foreground/70" />
@@ -286,13 +333,25 @@ export function NewChatModal({
                 type="tel"
                 placeholder="e.g. +919876543210 or +14155552671"
                 value={newPhone}
-                onChange={(e) => setNewPhone(e.target.value)}
+                onChange={(e) => {
+                  setNewPhone(e.target.value);
+                  if (phoneError) setPhoneError(null);
+                }}
                 required
-                className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9 focus-visible:ring-1 focus-visible:ring-primary"
+                aria-invalid={!!phoneError}
+                className={cn(
+                  "bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9 focus-visible:ring-1 focus-visible:ring-primary",
+                  phoneError &&
+                    "border-destructive focus-visible:ring-destructive"
+                )}
               />
-              <p className="text-[11px] text-muted-foreground">
-                Must include country code (e.g. +91 for India, +1 for US/Canada).
-              </p>
+              {phoneError ? (
+                <p className="text-[11px] text-destructive">{phoneError}</p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">
+                  Must include country code (e.g. +91 for India, +1 for US/Canada).
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">

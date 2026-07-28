@@ -52,6 +52,11 @@ import {
   extractVariableIndices,
   TEMPLATE_LIMITS,
 } from '@/lib/whatsapp/template-validators';
+import {
+  TEMPLATE_LIBRARY,
+  fillTemplateVariables,
+  type LibraryTemplate,
+} from '@/lib/whatsapp/template-library';
 
 const CATEGORIES = ['Marketing', 'Utility', 'Authentication'] as const;
 type HeaderFormat = 'none' | 'text' | 'image' | 'video' | 'document';
@@ -131,6 +136,11 @@ export function TemplateManager() {
 
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+  // Which panel is showing: the workspace's own templates, or the
+  // prebuilt library of Meta-ready starting points.
+  const [activeTab, setActiveTab] = useState<'templates' | 'library'>(
+    'templates',
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -254,6 +264,29 @@ export function TemplateManager() {
   function openCreate() {
     setEditingId(null);
     setForm(emptyForm);
+    setDialogOpen(true);
+  }
+
+  /**
+   * "Use this template" — copy a prebuilt library entry into the
+   * create dialog so the user can adjust copy/samples and submit it
+   * to Meta through the existing flow.
+   */
+  function openFromLibrary(t: LibraryTemplate) {
+    setEditingId(null);
+    setForm({
+      name: t.name,
+      category: t.category,
+      language: t.language,
+      header_format: t.header ? 'text' : 'none',
+      header_content: t.header ?? '',
+      header_media_url: '',
+      header_sample: t.header_sample ?? '',
+      body_text: t.body,
+      body_samples: [...t.body_samples],
+      footer_text: t.footer ?? '',
+      buttons: t.buttons ? t.buttons.map((b) => ({ ...b })) : [],
+    });
     setDialogOpen(true);
   }
 
@@ -519,13 +552,135 @@ export function TemplateManager() {
         }
       />
 
-      {templates.length === 0 ? (
+      {/* Tab bar: workspace templates vs. the prebuilt library */}
+      <div
+        role="tablist"
+        aria-label="Template views"
+        className="flex items-center gap-1 border-b border-border"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'templates'}
+          onClick={() => setActiveTab('templates')}
+          className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'templates'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          My templates
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'library'}
+          onClick={() => setActiveTab('library')}
+          className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'library'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Library
+          <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            {TEMPLATE_LIBRARY.length}
+          </span>
+        </button>
+      </div>
+
+      {activeTab === 'library' ? (
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Prebuilt, Meta-ready templates for the messages every business
+            sends. &quot;Use this template&quot; opens the editor prefilled —
+            adjust the copy, then submit it to Meta for approval.
+          </p>
+          <div className="grid gap-3 xl:grid-cols-2">
+            {TEMPLATE_LIBRARY.map((t) => (
+              <Card key={t.id} className="flex flex-col">
+                <CardContent className="flex flex-1 flex-col gap-3 pt-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="font-medium text-foreground">{t.label}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {t.description}
+                      </p>
+                    </div>
+                    <Badge
+                      className={`shrink-0 text-xs border ${categoryColors[t.category] || ''}`}
+                    >
+                      {t.category}
+                    </Badge>
+                  </div>
+
+                  {/* WhatsApp-style bubble preview with sample values */}
+                  <div className="rounded-lg bg-muted/60 p-3">
+                    <div className="max-w-md rounded-lg rounded-tl-none border border-border bg-card p-3 shadow-sm">
+                      {t.header && (
+                        <p className="text-sm font-semibold text-foreground">
+                          {fillTemplateVariables(
+                            t.header,
+                            t.header_sample ? [t.header_sample] : [],
+                          )}
+                        </p>
+                      )}
+                      <p className="mt-1 whitespace-pre-line text-sm text-foreground">
+                        {fillTemplateVariables(t.body, t.body_samples)}
+                      </p>
+                      {t.footer && (
+                        <p className="mt-1.5 text-[11px] text-muted-foreground">
+                          {t.footer}
+                        </p>
+                      )}
+                      {t.buttons && t.buttons.length > 0 && (
+                        <div className="mt-2 border-t border-border pt-1">
+                          {t.buttons.map((btn, i) => (
+                            <div
+                              key={i}
+                              className="py-1.5 text-center text-sm font-medium text-primary"
+                            >
+                              {btn.text}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-auto flex items-center justify-between gap-2">
+                    <span className="truncate font-mono text-[11px] text-muted-foreground">
+                      {t.name} · {t.language}
+                    </span>
+                    <Button
+                      size="sm"
+                      onClick={() => openFromLibrary(t)}
+                      className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      Use this template
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ) : templates.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <p className="text-muted-foreground text-sm">No templates yet.</p>
             <p className="text-muted-foreground text-xs mt-1">
-              Create your first message template to get started.
+              Create your first message template, or pick a prebuilt one from
+              the Library tab.
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={() => setActiveTab('library')}
+            >
+              Browse the library
+            </Button>
           </CardContent>
         </Card>
       ) : (

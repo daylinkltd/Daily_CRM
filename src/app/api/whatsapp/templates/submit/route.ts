@@ -27,12 +27,13 @@ function buildUpsertRow(
   },
 ) {
   return {
+    // Tenancy is workspace-based: message_templates.workspace_id is
+    // NOT NULL (migration 010) and there is no account_id column —
+    // the caller's membership in `workspace_id` is enforced below.
     // Original author — kept as audit only. The unique index is
     // still on (user_id, name, language) — see the upsert helper
     // for the cross-teammate dedup follow-up.
     user_id: userId,
-    // Workspace tenancy — NOT NULL on message_templates per
-    // migration 010.
     workspace_id: workspaceId,
     name: payload.name,
     category: payload.category,

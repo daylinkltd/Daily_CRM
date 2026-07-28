@@ -6,6 +6,7 @@ import { Coins, Loader2 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { CURRENCIES } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -36,6 +37,7 @@ export function DealsSettings() {
     profileLoading,
     refreshProfile,
   } = useAuth();
+  const { refreshWorkspaces } = useWorkspace();
 
   const [selected, setSelected] = useState(defaultCurrency);
   const [saving, setSaving] = useState(false);
@@ -60,9 +62,9 @@ export function DealsSettings() {
       setSaving(false);
       return;
     }
-    // Pull the new value back into the auth context so the deal form
+    // Pull the new value back into both contexts so the deal form
     // and every total pick it up without a full reload.
-    await refreshProfile();
+    await Promise.all([refreshProfile(), refreshWorkspaces()]);
     setSaving(false);
     toast.success("Default currency updated");
   }

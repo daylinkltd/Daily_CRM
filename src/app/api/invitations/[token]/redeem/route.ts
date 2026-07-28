@@ -87,5 +87,46 @@ export async function POST(
 
   if (error) return rpcErrorToResponse(error);
 
+  // Backfill the accepter's profile so the Members roster has a real
+  // display name. The signup trigger inserts full_name = '' when auth
+  // user_metadata lacks it (and the trigger's EXCEPTION guard can
+  // swallow the insert entirely), which used to surface as a literal
+  // "User" row in Settings → Members. Chain: existing profile name →
+  // auth user_metadata.full_name → email local part. Best-effort —
+  // membership is already committed, so never fail the redeem.
+  // RLS-safe: the user-scoped client can only touch its own row.
+  try {
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const existingName = existingProfile?.full_name?.trim() ?? "";
+    if (!existingName) {
+      const metaName =
+        typeof user.user_metadata?.full_name === "string"
+          ? user.user_metadata.full_name.trim()
+          : "";
+      const fallbackName =
+        metaName || (user.email ? user.email.split("@")[0] : "");
+      if (fallbackName) {
+        const { error: profileError } = await supabase.from("profiles").upsert(
+          {
+            user_id: user.id,
+            full_name: fallbackName,
+            email: user.email ?? "",
+          },
+          { onConflict: "user_id" },
+        );
+        if (profileError) {
+          console.warn("[redeem] profile name backfill failed:", profileError);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[redeem] profile name backfill threw:", err);
+  }
+
   return NextResponse.json({ ok: true, accountId });
 }

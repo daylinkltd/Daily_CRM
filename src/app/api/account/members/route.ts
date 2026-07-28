@@ -3,6 +3,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAccount, toErrorResponse } from "@/lib/auth/account";
 import { canManageMembers } from "@/lib/auth/roles";
 import type { AccountRole } from "@/lib/auth/roles";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+// Display-name fallback chain for a member row:
+//   profiles.full_name → auth user_metadata.full_name → email local part.
+// Never the literal "User" — invited members whose profile row was
+// created by the signup trigger with full_name = '' (or not at all)
+// used to render as a bare "User" in Settings → Members.
+function displayNameFrom(
+  profileName: string | null | undefined,
+  metaName: string | null | undefined,
+  email: string | null | undefined,
+): string {
+  const fromProfile = profileName?.trim();
+  if (fromProfile) return fromProfile;
+  const fromMeta = metaName?.trim();
+  if (fromMeta) return fromMeta;
+  const localPart = email?.split("@")[0]?.trim();
+  if (localPart) return localPart;
+  return "Member";
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,9 +67,57 @@ export async function GET(request: NextRequest) {
     const profilesMap = new Map(profileRows?.map((p) => [p.user_id, p]) ?? []);
     const canSeeEmails = canManageMembers(ctx.role);
 
+    // 3. For members whose profile row is missing or has an empty
+    //    full_name, resolve auth user_metadata.full_name / email via
+    //    the service-role client. Server-only enrichment — the member
+    //    set was already workspace-scoped + membership-checked above,
+    //    so this never leaks data across tenants.
+    const needsAuthLookup = memberRows
+      .map((r) => r.user_id)
+      .filter((id) => {
+        const p = profilesMap.get(id);
+        return !p?.full_name?.trim() || !p?.email;
+      });
+
+    const authUsersMap = new Map<
+      string,
+      { metaName: string | null; email: string | null }
+    >();
+    if (needsAuthLookup.length > 0) {
+      try {
+        const admin = createAdminClient();
+        const lookups = await Promise.all(
+          needsAuthLookup.map(async (id) => {
+            const { data, error } = await admin.auth.admin.getUserById(id);
+            if (error || !data?.user) return null;
+            const metaName = data.user.user_metadata?.full_name;
+            return {
+              id,
+              metaName: typeof metaName === "string" ? metaName : null,
+              email: data.user.email ?? null,
+            };
+          }),
+        );
+        for (const entry of lookups) {
+          if (entry) {
+            authUsersMap.set(entry.id, {
+              metaName: entry.metaName,
+              email: entry.email,
+            });
+          }
+        }
+      } catch (err) {
+        // Missing SUPABASE_SERVICE_ROLE_KEY or auth API hiccup —
+        // degrade to the profile/email-local-part chain.
+        console.warn("[GET /api/account/members] auth enrichment skipped:", err);
+      }
+    }
+
     const members = memberRows.map((row) => {
       const profile = profilesMap.get(row.user_id);
-      
+      const authUser = authUsersMap.get(row.user_id);
+      const email = profile?.email || authUser?.email || null;
+
       let role: AccountRole = 'agent';
       if (row.role === 'owner') role = 'owner';
       else if (row.role === 'admin') role = 'admin';
@@ -57,8 +125,8 @@ export async function GET(request: NextRequest) {
 
       return {
         user_id: row.user_id,
-        full_name: profile?.full_name ?? "User",
-        email: canSeeEmails ? (profile?.email ?? null) : null,
+        full_name: displayNameFrom(profile?.full_name, authUser?.metaName, email),
+        email: canSeeEmails ? email : null,
         avatar_url: profile?.avatar_url ?? null,
         role,
         joined_at: row.created_at,

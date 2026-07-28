@@ -157,6 +157,11 @@ export async function POST(request: Request) {
       )
     }
 
+    // Tenancy is workspace-based — the membership gate above is the
+    // authorization boundary. (A previous profiles.account_id lookup
+    // here hit a nonexistent column and made this route 403 with
+    // "profile not linked to an account" for every caller.)
+
     // whatsapp_config holds waba_id + encrypted access_token.
     const { data: config, error: configError } = await supabase
       .from('whatsapp_config')
