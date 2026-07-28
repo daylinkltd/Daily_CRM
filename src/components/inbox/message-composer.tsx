@@ -649,55 +649,6 @@ export function MessageComposer({
         }}
       />
 
-      {/* AI Draft Suggestion Banner */}
-      {!sessionExpired && !readOnly && (loadingDraft || suggestedDraft) && (
-        <div className="flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          <div className="min-w-0 flex-1">
-            {loadingDraft ? (
-              <span className="flex items-center gap-2 text-muted-foreground text-xs">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Generating AI draft…
-              </span>
-            ) : (
-              <>
-                <p className="line-clamp-2 text-xs text-foreground/80 leading-relaxed">
-                  {suggestedDraft}
-                </p>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setText(suggestedDraft ?? "");
-                      setSuggestedDraft(null);
-                      textareaRef.current?.focus();
-                    }}
-                    className="rounded-md bg-primary px-2.5 py-0.5 text-[11px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                  >
-                    Use draft
-                  </button>
-                  <button
-                    type="button"
-                    onClick={fetchDraft}
-                    className="rounded-md px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    Regenerate
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSuggestedDraft(null)}
-                    className="ml-auto rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label="Dismiss draft"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {draft ? (
         <MediaDraftPreview
           draft={draft}
