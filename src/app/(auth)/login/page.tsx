@@ -13,7 +13,7 @@ import { Eye, EyeOff, AlertCircle } from "lucide-react";
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#020817] flex flex-col items-center justify-center text-slate-400 text-sm">
+      <div className="marketing min-h-screen bg-[var(--mkt-canvas)] flex flex-col items-center justify-center text-[var(--mkt-fg-muted)] text-sm">
         Loading login...
       </div>
     }>
@@ -61,7 +61,7 @@ function LoginPageInner() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#020817] px-4 relative overflow-hidden">
+    <div className="marketing flex min-h-screen items-center justify-center bg-[var(--mkt-canvas)] px-4 relative overflow-hidden">
       {/* Ambient glows */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/3 left-1/4 h-[500px] w-[500px] rounded-full bg-primary/5 blur-[160px]" />
@@ -82,40 +82,26 @@ function LoginPageInner() {
         </div>
 
         {/* Card */}
-        <div 
-          className="rounded-2xl border backdrop-blur-2xl shadow-2xl p-8"
-          style={{ 
-            backgroundColor: 'rgba(15, 23, 42, 0.75)', 
-            borderColor: '#1e293b',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)' 
-          }}
-        >
+        <div className="rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[var(--mkt-shadow)] p-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#ffffff' }}>
+            <h1 className="text-2xl font-extrabold tracking-tight text-[var(--mkt-fg)]">
               Welcome back
             </h1>
-            <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>
+            <p className="text-sm mt-1 text-[var(--mkt-fg-muted)]">
               Sign in to your Daily CRM workspace
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
             {error && (
-              <div 
-                className="rounded-xl border px-4 py-3 text-sm flex items-center gap-2.5"
-                style={{ 
-                  backgroundColor: 'rgba(244, 63, 94, 0.1)', 
-                  borderColor: 'rgba(244, 63, 94, 0.25)', 
-                  color: '#fb7185' 
-                }}
-              >
+              <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-300 flex items-center gap-2.5">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>
             )}
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email" className="text-sm font-medium" style={{ color: '#cbd5e1' }}>
+              <Label htmlFor="email" className="text-sm font-medium text-[var(--mkt-fg-muted)]">
                 Email address
               </Label>
               <Input
@@ -125,24 +111,18 @@ function LoginPageInner() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-11 rounded-xl placeholder:text-[#64748b] focus-visible:ring-primary/20"
-                style={{ 
-                  backgroundColor: 'rgba(2, 8, 23, 0.85)', 
-                  borderColor: '#1e293b', 
-                  color: '#ffffff' 
-                }}
+                className="mkt-field h-11 border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] text-[var(--mkt-fg)]"
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium" style={{ color: '#cbd5e1' }}>
+                <Label htmlFor="password" className="text-sm font-medium text-[var(--mkt-fg-muted)]">
                   Password
                 </Label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs transition-colors hover:underline"
-                  style={{ color: '#0284C7' }}
+                  className="text-xs font-medium text-[var(--mkt-accent-text)] transition-colors hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -155,18 +135,13 @@ function LoginPageInner() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="h-11 rounded-xl pr-11 placeholder:text-[#64748b] focus-visible:ring-primary/20"
-                  style={{ 
-                    backgroundColor: 'rgba(2, 8, 23, 0.85)', 
-                    borderColor: '#1e293b', 
-                    color: '#ffffff' 
-                  }}
+                  className="mkt-field h-11 pr-11 border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] text-[var(--mkt-fg)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: '#64748b' }}
+                  aria-label={showPass ? "Hide password" : "Show password"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm text-[var(--mkt-fg-subtle)] transition-colors hover:text-[var(--mkt-fg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mkt-accent-text)]"
                 >
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -176,12 +151,7 @@ function LoginPageInner() {
             <Button
               type="submit"
               disabled={loading}
-              className="mt-1 h-12 w-full font-bold rounded-xl transition-all disabled:opacity-50"
-              style={{ 
-                backgroundColor: '#0284C7', 
-                color: '#ffffff',
-                boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.3)' 
-              }}
+              className="mkt-btn mkt-btn-primary mt-1 h-12 w-full text-sm disabled:opacity-50"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -198,13 +168,12 @@ function LoginPageInner() {
           </form>
 
           {/* Invite-only note instead of signup link */}
-          <div className="mt-7 pt-6 border-t text-center" style={{ borderColor: '#1e293b' }}>
-            <p className="text-xs" style={{ color: '#64748b' }}>
+          <div className="mt-7 pt-6 border-t border-[var(--mkt-line-soft)] text-center">
+            <p className="text-xs text-[var(--mkt-fg-subtle)]">
               Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
-                className="underline underline-offset-4 transition-colors hover:text-white"
-                style={{ color: '#94a3b8' }}
+                className="font-medium text-[var(--mkt-fg-muted)] underline underline-offset-4 transition-colors hover:text-[var(--mkt-fg)]"
               >
                 Request access
               </Link>
@@ -212,7 +181,7 @@ function LoginPageInner() {
           </div>
         </div>
 
-        <p className="mt-5 text-center text-xs" style={{ color: '#475569' }}>
+        <p className="mt-5 text-center text-xs text-[var(--mkt-fg-subtle)]">
           © {new Date().getFullYear()} Daylink. All rights reserved.
         </p>
       </div>
