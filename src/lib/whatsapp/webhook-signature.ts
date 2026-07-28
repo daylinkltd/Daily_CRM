@@ -7,6 +7,30 @@ import { decrypt } from '@/lib/whatsapp/encryption'
  * Meta signs the raw request body with your App Secret and sends the
  * result in the `x-hub-signature-256: sha256=<hex>` header.
  */
+/**
+ * Expand a configured secret into the plausible variants an operator
+ * may have actually stored. Env vars pasted into a hosting dashboard
+ * (Coolify, Docker `--env-file`, etc.) routinely arrive with a
+ * trailing newline or wrapped in quotes — the HMAC then never matches
+ * even though the secret itself is correct, which is indistinguishable
+ * from "Meta never called us".
+ */
+export function appSecretVariants(raw: string): string[] {
+  const out: string[] = []
+  const push = (v: string) => {
+    if (v && !out.includes(v)) out.push(v)
+  }
+  push(raw)
+  const trimmed = raw.trim()
+  push(trimmed)
+  // Strip a single layer of matching surrounding quotes.
+  const unquoted = trimmed.replace(/^(['"])([\s\S]*)\1$/, '$2').trim()
+  push(unquoted)
+  // Drop all internal whitespace — covers a secret that got line-wrapped.
+  push(trimmed.replace(/\s+/g, ''))
+  return out
+}
+
 export function verifyMetaWebhookSignature(
   rawBody: string,
   signatureHeader: string | null,
@@ -14,17 +38,20 @@ export function verifyMetaWebhookSignature(
 ): boolean {
   // Collect candidate secrets from environment and DB configurations
   const candidateSecrets: string[] = []
-  const envSecret = process.env.META_APP_SECRET
-  if (envSecret) candidateSecrets.push(envSecret)
+  const addCandidate = (raw: string | null | undefined) => {
+    if (!raw) return
+    for (const variant of appSecretVariants(raw)) {
+      if (!candidateSecrets.includes(variant)) candidateSecrets.push(variant)
+    }
+  }
+
+  addCandidate(process.env.META_APP_SECRET)
 
   if (configs && configs.length > 0) {
     for (const c of configs) {
       if (c.app_secret) {
         try {
-          const secret = decrypt(c.app_secret)
-          if (secret && !candidateSecrets.includes(secret)) {
-            candidateSecrets.push(secret)
-          }
+          addCandidate(decrypt(c.app_secret))
         } catch {
           // ignore decrypt failure
         }

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { Conversation, ConversationStatus } from "@/types";
 import { Search, ChevronDown, Bot, Trash2 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { format, isToday, isYesterday } from "date-fns";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -49,6 +49,18 @@ const STATUS_COLORS: Record<ConversationStatus, string> = {
 };
 
 type InboxFilter = ConversationStatus | "all" | "unread";
+
+/**
+ * WhatsApp-style row timestamp: clock time today, "Yesterday", then a
+ * compact date — tighter and more scannable than the previous
+ * "about 3 hours" relative phrasing.
+ */
+function formatRowTimestamp(dateStr: string): string {
+  const date = new Date(dateStr);
+  if (isToday(date)) return format(date, "HH:mm");
+  if (isYesterday(date)) return "Yesterday";
+  return format(date, "dd/MM/yyyy");
+}
 
 const FILTER_OPTIONS: { label: string; value: InboxFilter }[] = [
   { label: "All", value: "all" },
@@ -198,7 +210,7 @@ export function ConversationList({
         </div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex items-center justify-center h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground rounded-md hover:bg-muted">
+          <DropdownMenuTrigger className="inline-flex items-center justify-center h-7 gap-1 px-2 text-xs text-muted-foreground transition-colors hover:text-foreground rounded-md hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
               {activeFilter?.label ?? "All"}
               <ChevronDown className="h-3 w-3" />
           </DropdownMenuTrigger>
@@ -304,21 +316,22 @@ function ConversationItem({
   );
 
   const timeAgo = conversation.last_message_at
-    ? formatDistanceToNow(new Date(conversation.last_message_at), {
-        addSuffix: false,
-      })
+    ? formatRowTimestamp(conversation.last_message_at)
     : "";
+  const hasUnread = conversation.unread_count > 0;
 
   return (
+    // A transparent left accent is always present so the active state's
+    // primary accent doesn't shift the row content 2px to the right.
     <div
       onClick={handleClick}
       className={cn(
-        "group relative flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/50 cursor-pointer border-b border-border/40",
-        isActive && "border-l-2 border-primary bg-muted/70"
+        "group relative flex w-full items-start gap-3 border-b border-l-2 border-border/40 border-l-transparent px-3 py-3 text-left transition-colors hover:bg-muted/50 cursor-pointer",
+        isActive && "border-l-primary bg-muted/70"
       )}
     >
       {/* Avatar */}
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-foreground">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
         {contact?.avatar_url ? (
           <img
             src={contact.avatar_url}
@@ -334,7 +347,13 @@ function ConversationItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="truncate text-sm font-medium text-foreground">
+            {/* Unread rows get heavier type — same cue WhatsApp uses. */}
+            <span
+              className={cn(
+                "truncate text-sm text-foreground",
+                hasUnread ? "font-semibold" : "font-medium",
+              )}
+            >
               {displayName}
             </span>
             {chatbotEnabled && (
@@ -357,15 +376,29 @@ function ConversationItem({
               </span>
             )}
           </div>
-          <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo}</span>
+          <span
+            className={cn(
+              "shrink-0 text-[10px]",
+              hasUnread ? "font-medium text-primary" : "text-muted-foreground",
+            )}
+          >
+            {timeAgo}
+          </span>
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-muted-foreground">
+          <p
+            className={cn(
+              "truncate text-xs",
+              hasUnread
+                ? "font-medium text-foreground/90"
+                : "text-muted-foreground",
+            )}
+          >
             {conversation.last_message_text || "No messages yet"}
           </p>
           <div className="flex shrink-0 items-center gap-1.5">
-            {conversation.unread_count > 0 && (
-              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+            {hasUnread && (
+              <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold leading-none text-primary-foreground">
                 {conversation.unread_count}
               </span>
             )}
@@ -386,7 +419,7 @@ function ConversationItem({
               <button
                 type="button"
                 onClick={handleDelete}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 title="Delete Chat"
               >
                 <Trash2 className="h-3.5 w-3.5" />

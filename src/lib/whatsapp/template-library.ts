@@ -243,6 +243,139 @@ export const TEMPLATE_LIBRARY: LibraryTemplate[] = [
       { type: 'QUICK_REPLY', text: 'Still need help' },
     ],
   },
+
+  // ── Templates tied to Daily CRM features ─────────────────────────
+  // Quotations module
+  {
+    id: 'quotation_sent',
+    name: 'quotation_sent',
+    label: 'Quotation sent',
+    description: 'Share a new quotation from the Quotations module with its total.',
+    category: 'Utility',
+    language: 'en_US',
+    header: 'Your quotation is ready',
+    body:
+      'Hi {{1}}, your quotation {{2}} from {{3}} is ready. ' +
+      'Total: {{4}}, valid until {{5}}. Reply here if you would like ' +
+      'any changes — we can revise it right away.',
+    body_samples: ['Priya', '#QT-1042', 'Acme Traders', 'INR 45,000', '15 Aug 2026'],
+    footer: 'Prices include all applicable taxes.',
+    buttons: [
+      { type: 'QUICK_REPLY', text: 'Approve quotation' },
+      { type: 'QUICK_REPLY', text: 'Request changes' },
+    ],
+  },
+  {
+    id: 'quotation_follow_up',
+    name: 'quotation_follow_up',
+    label: 'Quotation follow-up',
+    description: 'Follow up on a quotation the customer has not responded to.',
+    category: 'Marketing',
+    language: 'en_US',
+    header: 'Still thinking it over?',
+    body:
+      'Hi {{1}}, just checking in on quotation {{2}} we sent on {{3}}. ' +
+      'It stays valid until {{4}}. Happy to walk you through it or ' +
+      'adjust anything that does not fit your needs.',
+    body_samples: ['Priya', '#QT-1042', '28 Jul', '15 Aug 2026'],
+    footer: 'Reply STOP to unsubscribe',
+    buttons: [
+      { type: 'QUICK_REPLY', text: 'Let’s proceed' },
+      { type: 'QUICK_REPLY', text: 'I have questions' },
+    ],
+  },
+  // Pipelines / deals module
+  {
+    id: 'deal_won_welcome',
+    name: 'deal_won_welcome',
+    label: 'Deal won — onboarding',
+    description: 'Thank a customer after a deal closes and set next steps.',
+    category: 'Utility',
+    language: 'en_US',
+    header: 'Welcome aboard!',
+    body:
+      'Hi {{1}}, thank you for choosing {{2}}! Your onboarding begins on ' +
+      '{{3}} and {{4}} will be your point of contact. We are excited to ' +
+      'get started.',
+    body_samples: ['Priya', 'Acme Traders', 'Mon, 4 Aug', 'Rahul'],
+    footer: 'Save this number for anything you need.',
+    buttons: [{ type: 'QUICK_REPLY', text: 'View next steps' }],
+  },
+  // Forms module
+  {
+    id: 'form_received',
+    name: 'form_received',
+    label: 'Form received',
+    description: 'Confirm a form submission (lead capture, inquiry, application).',
+    category: 'Utility',
+    language: 'en_US',
+    header: 'We received your details',
+    body:
+      'Hi {{1}}, thanks for filling in the {{2}} form. Our team will ' +
+      'review your submission and get back to you within {{3}}. ' +
+      'You can reply here with anything you would like to add.',
+    body_samples: ['Priya', 'Project Inquiry', '24 hours'],
+    footer: 'Daily CRM by Daylink',
+  },
+  // Broadcasts / catalog
+  {
+    id: 'new_catalog_item',
+    name: 'new_catalog_item',
+    label: 'New product / service launch',
+    description: 'Announce a new catalog item or service to opted-in customers.',
+    category: 'Marketing',
+    language: 'en_US',
+    header: 'Something new for you',
+    body:
+      'Hi {{1}}! We just launched {{2}} — {{3}}. As one of our valued ' +
+      'customers you get first access. Reply here and we will share the ' +
+      'full details.',
+    body_samples: ['Priya', 'Premium Care Plan', 'priority support with same-day response'],
+    footer: 'Reply STOP to unsubscribe',
+    buttons: [
+      { type: 'QUICK_REPLY', text: 'Tell me more' },
+      { type: 'QUICK_REPLY', text: 'Not interested' },
+    ],
+  },
+  // Appointments / meetings booked via pipeline or forms
+  {
+    id: 'meeting_link',
+    name: 'meeting_link',
+    label: 'Meeting scheduled',
+    description: 'Send a scheduled meeting confirmation with date, time and agenda.',
+    category: 'Utility',
+    language: 'en_US',
+    header: 'Meeting confirmed',
+    body:
+      'Hi {{1}}, your meeting with {{2}} is confirmed for {{3}} at {{4}}. ' +
+      'Agenda: {{5}}. Reply here if you need to reschedule.',
+    body_samples: ['Priya', 'Rahul from Acme', 'Tue, 5 Aug', '3:00 PM IST', 'Requirements walkthrough'],
+    footer: 'We look forward to speaking with you.',
+    buttons: [
+      { type: 'QUICK_REPLY', text: 'Confirm' },
+      { type: 'QUICK_REPLY', text: 'Reschedule' },
+    ],
+  },
+  // Billing / subscription renewals for service businesses
+  {
+    id: 'renewal_reminder',
+    name: 'renewal_reminder',
+    label: 'Renewal reminder',
+    description: 'Remind a customer their plan or service expires soon.',
+    category: 'Utility',
+    language: 'en_US',
+    header: 'Renewal coming up',
+    body:
+      'Hi {{1}}, your {{2}} with {{3}} expires on {{4}}. ' +
+      'Renew before then to avoid any interruption. Reply here and we ' +
+      'will take care of it in minutes.',
+    body_samples: ['Priya', 'Annual Maintenance Plan', 'Acme Traders', '10 Aug 2026'],
+    footer: 'Thank you for staying with us.',
+    buttons: [
+      { type: 'QUICK_REPLY', text: 'Renew now' },
+      { type: 'QUICK_REPLY', text: 'Talk to us first' },
+    ],
+  },
 ];
 
 /**

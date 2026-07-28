@@ -195,6 +195,17 @@ export default function JoinPage() {
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("pending_invite_token");
       }
+      // Also clear the token stashed in auth user_metadata at signup
+      // so the dashboard/onboarding guards stop diverting to /join.
+      // Best-effort: membership now exists, so even if this write
+      // fails the guards route on workspaces.length > 0 first.
+      try {
+        await createClient().auth.updateUser({
+          data: { invite_token: null },
+        });
+      } catch (err) {
+        console.warn('[join] failed to clear invite_token metadata:', err);
+      }
       // Full reload (not router.push) so AuthProvider re-fetches
       // the profile with the new account_id and account_role.
       window.location.href = '/dashboard';
@@ -204,6 +215,25 @@ export default function JoinPage() {
       setAccepting(false);
     }
   }, [token]);
+
+  // Stale-token cleanup — if the invite is terminally dead
+  // (not_found / used / expired) while the visitor is signed in,
+  // drop the stashed token from sessionStorage AND user_metadata.
+  // Without this, the onboarding/dashboard guards keep bouncing the
+  // user back to this dead-invite page forever. `server_error` is
+  // transient, so the token is kept for retry.
+  useEffect(() => {
+    if (!token || !authedUserId) return;
+    if (!peek || peek.ok || peek.reason === 'server_error') return;
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('pending_invite_token');
+    }
+    void createClient()
+      .auth.updateUser({ data: { invite_token: null } })
+      .catch((err) => {
+        console.warn('[join] failed to clear stale invite_token:', err);
+      });
+  }, [token, authedUserId, peek]);
 
   const handleSignOutAndRetry = useCallback(async () => {
     setSigningOut(true);

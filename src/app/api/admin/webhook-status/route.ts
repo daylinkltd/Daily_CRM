@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { recentWebhookLogs } from '@/app/api/whatsapp/webhook/route';
-import { registerPhoneNumber } from '@/lib/whatsapp/meta-api';
+import { registerPhoneNumber, validateAppSecret } from '@/lib/whatsapp/meta-api';
+import { appSecretVariants } from '@/lib/whatsapp/webhook-signature';
 import { ensureWabaSubscribed } from '@/lib/whatsapp/webhook-subscribe';
 import { decrypt } from '@/lib/whatsapp/encryption';
 import { isAuthorizedAdminRequest } from '@/lib/auth/admin-gate';
@@ -89,6 +90,77 @@ export async function GET(request: Request) {
       }
     }
 
+    // 1b. App Secret diagnosis — the #1 cause of "outbound works but
+    // no inbound": Meta signs every webhook with the app's App Secret,
+    // and a mismatched value makes us 401 every event. Report exactly
+    // which configured secret (env or DB) is valid for the app the
+    // access token belongs to, plus formatting red flags.
+    const appSecretChecks: Array<Record<string, unknown>> = [];
+    if (configs && configs.length > 0) {
+      for (const config of configs) {
+        if (config.provider !== 'meta' || !config.access_token) continue;
+        let token: string;
+        try {
+          token = decrypt(config.access_token);
+        } catch {
+          continue;
+        }
+
+        let dbSecret: string | null = null;
+        if (config.app_secret) {
+          try {
+            dbSecret = decrypt(config.app_secret);
+          } catch {
+            dbSecret = null;
+          }
+        }
+
+        for (const [source, raw] of [
+          ['env META_APP_SECRET', process.env.META_APP_SECRET ?? null],
+          ['workspace app_secret', dbSecret],
+        ] as Array<[string, string | null]>) {
+          if (!raw) {
+            appSecretChecks.push({
+              workspace_id: config.workspace_id,
+              source,
+              configured: false,
+            });
+            continue;
+          }
+          // Try each normalization variant so a stray newline/quote is
+          // reported as "valid but needs trimming" rather than "wrong".
+          let validVariant: string | null = null;
+          for (const variant of appSecretVariants(raw)) {
+            const res = await validateAppSecret({
+              accessToken: token,
+              appSecret: variant,
+            });
+            if (res.valid) {
+              validVariant = variant;
+              break;
+            }
+          }
+          appSecretChecks.push({
+            workspace_id: config.workspace_id,
+            source,
+            configured: true,
+            length: raw.length,
+            trimmed_length: raw.trim().length,
+            has_surrounding_whitespace: raw !== raw.trim(),
+            has_quotes: /^['"]|['"]$/.test(raw.trim()),
+            valid_for_app: validVariant !== null,
+            needs_normalization: validVariant !== null && validVariant !== raw,
+            hint:
+              validVariant === null
+                ? 'This value is NOT the App Secret of the Meta app this access token belongs to. Copy it from Meta App Dashboard → App settings → Basic → App Secret (Show) for the SAME app that issued the token, then update it here.'
+                : validVariant !== raw
+                  ? 'Valid, but the stored value has extra whitespace/quotes — inbound now works via normalization, but clean the value up.'
+                  : 'Valid for this app.',
+          });
+        }
+      }
+    }
+
     // 2. Fetch counts
     const { count: contactsCount } = await supabase
       .from('contacts')
@@ -137,6 +209,7 @@ export async function GET(request: Request) {
       },
       wabaSubscriptions: subscriptionResults,
       phoneRegistrations: registrationResults,
+      appSecretChecks,
       recentConversations: recentConversations ?? [],
       recentMessages: recentMessages ?? [],
       webhookLogs: recentWebhookLogs ?? [],

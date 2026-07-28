@@ -25,18 +25,30 @@ interface MessageBubbleProps {
   reactions?: MessageReaction[];
   currentUserId?: string;
   onToggleReaction?: (emoji: string) => void;
+  /**
+   * WhatsApp-style tail corner: only the last bubble of a same-sender
+   * run gets the sharp corner, so tight runs read as one visual group.
+   * Defaults to true so standalone renders keep the tail.
+   */
+  withTail?: boolean;
 }
 
+/**
+ * Delivery ticks — always rendered inside an outbound (primary-filled)
+ * bubble, so every state must read against the primary fill, not the
+ * neutral foreground. "Read" goes full-strength (vs 70% for sent/
+ * delivered), mirroring WhatsApp's brighter read ticks.
+ */
 function StatusIcon({ status }: { status: Message["status"] }) {
   switch (status) {
     case "sending":
-      return <Clock className="h-3 w-3 text-muted-foreground" />;
+      return <Clock className="h-3 w-3 text-primary-foreground/70" />;
     case "sent":
-      return <Check className="h-3 w-3 text-muted-foreground" />;
+      return <Check className="h-3 w-3 text-primary-foreground/70" />;
     case "delivered":
-      return <CheckCheck className="h-3 w-3 text-muted-foreground" />;
+      return <CheckCheck className="h-3 w-3 text-primary-foreground/70" />;
     case "read":
-      return <CheckCheck className="h-3 w-3 text-blue-400" />;
+      return <CheckCheck className="h-3 w-3 text-primary-foreground" />;
     case "failed":
       return <XCircle className="h-3 w-3 text-red-400" />;
     default:
@@ -181,7 +193,7 @@ function MessageContent({ message }: { message: Message }) {
           href={message.media_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-sm hover:bg-muted"
+          className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
           <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
           <span className="truncate">
@@ -191,9 +203,12 @@ function MessageContent({ message }: { message: Message }) {
       );
 
     case "template":
+      // Templates are always outbound, so the badge sits on the primary
+      // fill — it must use primary-foreground (primary-on-primary was
+      // unreadable).
       return (
         <div>
-          <span className="mb-1 inline-flex items-center gap-1 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+          <span className="mb-1 inline-flex items-center gap-1 rounded bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
             <LayoutTemplate className="h-3 w-3" />
             Template
           </span>
@@ -247,6 +262,7 @@ export function MessageBubble({
   reactions,
   currentUserId,
   onToggleReaction,
+  withTail = true,
 }: MessageBubbleProps) {
   const isAgent = message.sender_type === "agent" || message.sender_type === "bot";
   const time = format(new Date(message.created_at), "HH:mm");
@@ -260,12 +276,17 @@ export function MessageBubble({
         isAgent ? "items-end" : "items-start",
       )}
     >
+      {/* Outbound: primary fill. Inbound: solid card surface with a
+          hairline border + soft shadow so it lifts off the doodle
+          wallpaper in both modes — like WhatsApp's white-on-wallpaper
+          bubbles. Tail corner (rounded-*-sm) marks the end of a run. */}
       <div
         className={cn(
-          "relative rounded-2xl px-3 py-2",
+          "relative rounded-lg px-3 py-2 shadow-sm",
           isAgent
-            ? "rounded-br-md bg-primary text-primary-foreground"
-            : "rounded-bl-md bg-muted text-foreground",
+            ? "bg-primary text-primary-foreground"
+            : "border border-border/60 bg-card text-card-foreground",
+          withTail && (isAgent ? "rounded-br-sm" : "rounded-bl-sm"),
         )}
       >
         {reply && (
@@ -276,19 +297,18 @@ export function MessageBubble({
           />
         )}
         <MessageContent message={message} />
-        <div
-          className={cn(
-            "mt-1 flex items-center gap-1",
-            isAgent ? "justify-end" : "justify-start",
-          )}
-        >
+        {/* Timestamp + ticks — bottom-right inside the bubble on both
+            sides, WhatsApp-style. Slight negative bottom margin tucks
+            the meta row into the bubble's padding so it reads as a
+            footnote, not a second line of content. */}
+        <div className="-mb-0.5 mt-0.5 flex items-center justify-end gap-1">
           <span
             className={cn(
-              "text-[10px]",
+              "text-[10px] leading-4",
               // Outbound bubbles sit on the primary fill, so the
               // timestamp must read against that (not the neutral
               // foreground) — otherwise it goes low-contrast in light
-              // mode. Inbound bubbles use the muted surface.
+              // mode. Inbound bubbles use the card surface.
               isAgent ? "text-primary-foreground/70" : "text-muted-foreground",
             )}
           >

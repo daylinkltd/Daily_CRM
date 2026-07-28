@@ -36,7 +36,9 @@ export function ReplyQuote({
           ? "rounded-md bg-muted/80"
           : onPrimary
             ? "mb-1.5 rounded-md bg-primary-foreground/15"
-            : "mb-1.5 rounded-md bg-background/20",
+            : // Inbound bubbles are a solid card surface, so the quote
+              // needs the muted tone (background/20 vanished on card).
+              "mb-1.5 rounded-md bg-muted/60",
       )}
     >
       <div className="min-w-0 flex-1 overflow-hidden">
@@ -55,7 +57,14 @@ export function ReplyQuote({
          *  layout wider, shoving the contact sidebar off-screen.
          *  `break-words` also wraps long URLs that have no whitespace
          *  to break on. Issue #165. */}
-        <div className="whitespace-pre-wrap break-words text-xs text-foreground/80">
+        <div
+          className={cn(
+            "whitespace-pre-wrap break-words text-xs",
+            // Preview must read against the surface it sits on: the
+            // primary fill for outbound bubbles, neutral otherwise.
+            onPrimary ? "text-primary-foreground/85" : "text-foreground/80",
+          )}
+        >
           {preview}
         </div>
       </div>
@@ -64,7 +73,7 @@ export function ReplyQuote({
           type="button"
           onClick={onDismiss}
           aria-label="Cancel reply"
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
           <X className="h-3.5 w-3.5" />
         </button>

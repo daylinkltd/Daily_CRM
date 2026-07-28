@@ -60,7 +60,15 @@ function SignupPageInner() {
       password,
       options: {
         data: {
-          full_name: fullName,
+          full_name: fullName.trim(),
+          // Persist the invite token on the auth user itself.
+          // sessionStorage alone is per-tab: the email-confirmation
+          // link usually opens in a NEW tab (or another device),
+          // where sessionStorage is empty — which used to dump
+          // invited users into the onboarding/plan-selection flow.
+          // user_metadata travels with the session everywhere, so
+          // the dashboard/onboarding guards can always find it.
+          ...(inviteToken ? { invite_token: inviteToken } : {}),
         },
         ...(emailRedirectTo ? { emailRedirectTo } : {}),
       },

@@ -65,21 +65,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Resolve the caller's account_id so template + whatsapp_config
-    // lookups work for teammates who didn't author the row.
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    const accountId = profile?.account_id as string | undefined
-    if (!accountId) {
-      return NextResponse.json(
-        { error: 'Your profile is not linked to an account.' },
-        { status: 403 },
-      )
-    }
-
+    // Authorization is the workspace-membership gate below — the row
+    // is fetched by id and its workspace checked against the caller.
+    // (A previous profiles.account_id lookup here hit a nonexistent
+    // column and 403'd every request.)
     let payload: TemplatePayload
     try {
       payload = (await request.json()) as TemplatePayload
@@ -93,7 +82,6 @@ export async function PATCH(
       .from('message_templates')
       .select('id, name, status, meta_template_id, language, workspace_id')
       .eq('id', id)
-      .eq('account_id', accountId)
       .maybeSingle()
     if (lookupErr || !existing) {
       return NextResponse.json({ error: 'Template not found.' }, { status: 404 })
@@ -270,27 +258,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Same account-scoping rationale as the PATCH handler above —
-    // teammates need to be able to operate on shared templates +
-    // the shared whatsapp_config.
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('account_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-    const accountId = profile?.account_id as string | undefined
-    if (!accountId) {
-      return NextResponse.json(
-        { error: 'Your profile is not linked to an account.' },
-        { status: 403 },
-      )
-    }
-
+    // Authorization is the workspace-membership gate below, same as
+    // the PATCH handler.
     const { data: existing, error: lookupErr } = await supabase
       .from('message_templates')
       .select('id, name, meta_template_id, workspace_id')
       .eq('id', id)
-      .eq('account_id', accountId)
       .maybeSingle()
     if (lookupErr || !existing) {
       return NextResponse.json({ error: 'Template not found.' }, { status: 404 })
