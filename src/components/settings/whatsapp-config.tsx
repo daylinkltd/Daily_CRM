@@ -118,6 +118,44 @@ export function WhatsAppConfig() {
       ? `${window.location.origin}/api/whatsapp/webhook`
       : '';
 
+  /**
+   * Reveal a stored credential so the eye toggle actually shows the
+   * real value. The form only holds a bullet placeholder (the secret
+   * never ships to the browser on load), so "show" has to fetch it on
+   * demand from the owner/admin-gated reveal endpoint.
+   *
+   * Returns true when the field now holds a real value.
+   */
+  const [revealing, setRevealing] = useState<string | null>(null);
+
+  async function revealCredential(
+    field: 'access_token' | 'app_secret',
+    current: string,
+    apply: (value: string) => void,
+  ): Promise<boolean> {
+    // Already showing a real value (user typed it, or we fetched it).
+    if (current && current !== MASKED_TOKEN) return true;
+    if (!activeWorkspace?.id) return false;
+    try {
+      setRevealing(field);
+      const res = await fetch(
+        `/api/whatsapp/config/reveal?workspace_id=${activeWorkspace.id}&field=${field}`,
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Could not reveal this credential.');
+        return false;
+      }
+      apply(data.value);
+      return true;
+    } catch {
+      toast.error('Could not reveal this credential.');
+      return false;
+    } finally {
+      setRevealing(null);
+    }
+  }
+
   function generateVerifyToken() {
     const rand = Array.from(crypto.getRandomValues(new Uint8Array(12)))
       .map((b) => b.toString(16).padStart(2, '0'))
@@ -599,8 +637,16 @@ export function WhatsAppConfig() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowToken(!showToken)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showToken ? 'Hide access token' : 'Show access token'}
+                      disabled={revealing === 'access_token'}
+                      onClick={async () => {
+                        if (!showToken) {
+                          const ok = await revealCredential('access_token', metaToken, setMetaToken);
+                          if (!ok) return;
+                        }
+                        setShowToken(!showToken);
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm disabled:opacity-50"
                     >
                       {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
@@ -631,8 +677,20 @@ export function WhatsAppConfig() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowAppSecret(!showAppSecret)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showAppSecret ? 'Hide app secret' : 'Show app secret'}
+                      disabled={revealing === 'app_secret'}
+                      onClick={async () => {
+                        if (!showAppSecret) {
+                          const ok = await revealCredential(
+                            'app_secret',
+                            metaAppSecret,
+                            setMetaAppSecret,
+                          );
+                          if (!ok) return;
+                        }
+                        setShowAppSecret(!showAppSecret);
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm disabled:opacity-50"
                     >
                       {showAppSecret ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
@@ -689,8 +747,16 @@ export function WhatsAppConfig() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowToken(!showToken)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showToken ? 'Hide auth token' : 'Show auth token'}
+                      disabled={revealing === 'access_token'}
+                      onClick={async () => {
+                        if (!showToken) {
+                          const ok = await revealCredential('access_token', twilioAuthToken, setTwilioAuthToken);
+                          if (!ok) return;
+                        }
+                        setShowToken(!showToken);
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm disabled:opacity-50"
                     >
                       {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
@@ -733,8 +799,16 @@ export function WhatsAppConfig() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowToken(!showToken)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showToken ? 'Hide API key' : 'Show API key'}
+                      disabled={revealing === 'access_token'}
+                      onClick={async () => {
+                        if (!showToken) {
+                          const ok = await revealCredential('access_token', apiautoApiKey, setApiautoApiKey);
+                          if (!ok) return;
+                        }
+                        setShowToken(!showToken);
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 rounded-sm disabled:opacity-50"
                     >
                       {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
