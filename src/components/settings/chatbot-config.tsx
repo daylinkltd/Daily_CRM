@@ -57,8 +57,8 @@ export function ChatbotConfig() {
 
   // Chatbot State Fields
   const [isEnabled, setIsEnabled] = useState(false);
-  const [provider, setProvider] = useState<AIProvider>("openai");
-  const [model, setModel] = useState("gpt-4o-mini");
+  const [provider, setProvider] = useState<AIProvider>("groq");
+  const [model, setModel] = useState("llama-3.3-70b-versatile");
   const [apiKey, setApiKey] = useState("");
   const [systemPrompt, setSystemPrompt] = useState(
     "You are a helpful customer service assistant for our business."
@@ -100,7 +100,7 @@ export function ChatbotConfig() {
       const data: ChatbotConfigPayload = await res.json();
 
       setIsEnabled(data.is_enabled);
-      setProvider(data.provider || "openai");
+      setProvider(data.provider || "groq");
       setModel(data.model || "gpt-4o-mini");
       setSystemPrompt(data.system_prompt || "You are a helpful customer service assistant for our business.");
       setBusinessContext(data.business_context || "");

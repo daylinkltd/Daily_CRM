@@ -113,16 +113,23 @@ CRITICAL INSTRUCTIONS FOR AI COPILOT DRAFT SUGGESTIONS:
 
     const systemPrompt = `${config.system_prompt}\n${copilotInstructions}\n\nBusiness Context:\n${config.business_context || ""}`;
 
-    const draft = await generateChatbotResponse({
-      provider: config.provider,
-      apiKey: decryptedKey,
-      model: config.model,
-      systemPrompt,
-      history,
-      userMessage,
-    });
+    try {
+      const draft = await generateChatbotResponse({
+        provider: config.provider,
+        apiKey: decryptedKey,
+        model: config.model,
+        systemPrompt,
+        history,
+        userMessage,
+      });
 
-    return NextResponse.json({ draft: draft?.trim() || null });
+      return NextResponse.json({ draft: draft?.trim() || null });
+    } catch (err: any) {
+      if (err?.message?.includes('API key is missing')) {
+        return NextResponse.json({ draft: null, warning: err.message });
+      }
+      throw err;
+    }
   } catch (error) {
     console.error("Error in suggest-draft route:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
