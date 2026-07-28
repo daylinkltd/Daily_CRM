@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  useVisibleInterval,
+  REALTIME_BACKUP_POLL_MS,
+} from "@/hooks/use-visible-interval";
 import { useAuth } from "@/hooks/use-auth";
 import { usePresence } from "@/hooks/use-presence";
 import { PresenceDot } from "@/components/presence/presence-dot";
@@ -334,61 +338,51 @@ export function MessageThread({
   // separate from the unread-reset effect so that incoming messages
   // arriving while the thread is open don't trigger a full refetch —
   // they only flip hasUnread, which only the reset effect listens to.
-  useEffect(() => {
+  const fetchMsgs = useCallback(async () => {
     if (!conversationId) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/messages`);
+      const payload = await res.json();
 
-    let cancelled = false;
-
-    const fetchMsgs = async () => {
-      try {
-        const res = await fetch(`/api/conversations/${conversationId}/messages`);
-        const payload = await res.json();
-
-        if (cancelled) return;
-
-        if (res.ok && Array.isArray(payload.messages)) {
-          onMessagesLoadedRef.current(payload.messages);
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.warn("[MessageThread] API messages fetch failed, trying direct query:", err);
+      if (res.ok && Array.isArray(payload.messages)) {
+        onMessagesLoadedRef.current(payload.messages);
+        setLoading(false);
+        return;
       }
+    } catch (err) {
+      console.warn("[MessageThread] API messages fetch failed, trying direct query:", err);
+    }
 
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: true });
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
 
-      if (cancelled) return;
-
-      if (error) {
-        console.error("Failed to fetch messages:", error);
-      } else {
-        onMessagesLoadedRef.current(data ?? []);
-      }
-
-      if (!cancelled) setLoading(false);
-    };
-
-    setLoading(true);
-    void fetchMsgs();
-
-    const interval = setInterval(() => {
-      void fetchMsgs();
-    }, 4000);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-    // `resyncToken` is included so the parent can force a refetch when
-    // the realtime channel reconnects or the tab regains focus —
-    // realtime is best-effort and any message events sent while the WS
-    // was disconnected or throttled are otherwise lost.
+    if (error) {
+      console.error("Failed to fetch messages:", error);
+    } else {
+      onMessagesLoadedRef.current(data ?? []);
+    }
+    setLoading(false);
+    // `resyncToken` is a dependency so the parent can force a refetch
+    // when the realtime channel reconnects — realtime is best-effort
+    // and events sent while the socket was down are otherwise lost.
   }, [conversationId, resyncToken]);
+
+  // Show the spinner only when switching threads, not on every poll.
+  useEffect(() => {
+    if (conversationId) setLoading(true);
+  }, [conversationId]);
+
+  // Realtime delivers new messages instantly; this is the catch-up net.
+  // Paused while the tab is hidden, and re-run on focus — the old 4s
+  // interval also fought with optimistic sends, which is what made a
+  // just-sent bubble blink out and back (see handleMessagesLoaded).
+  useVisibleInterval(fetchMsgs, REALTIME_BACKUP_POLL_MS, {
+    enabled: Boolean(conversationId),
+  });
 
   // Reactions fetch — pulls the current state from the DB. Kept separate
   // from the channel subscription below so a `resyncToken` bump just

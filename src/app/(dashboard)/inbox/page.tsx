@@ -11,6 +11,7 @@ import { MessageThread } from "@/components/inbox/message-thread";
 import { ContactSidebar } from "@/components/inbox/contact-sidebar";
 import { NewChatModal } from "@/components/inbox/new-chat-modal";
 import { toast } from "sonner";
+import { useMessageNotifications } from "@/hooks/use-message-notifications";
 import { WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +70,36 @@ export default function InboxPage() {
   // elsewhere.
   const autoSelectedForDeepLinkRef = useRef<string | null>(null);
 
+  // Mirror of `conversations` for callbacks that must not be recreated
+  // when the list changes (the notification click handler).
+  const conversationsRef = useRef<Conversation[]>([]);
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  });
+
+  /** Open a thread by id — used when a desktop notification is clicked. */
+  const openConversationById = useCallback(
+    (conversationId: string) => {
+      const match = conversationsRef.current.find(
+        (c) => c.id === conversationId
+      );
+      if (!match) return;
+      setActiveConversation(match);
+      setActiveContact(match.contact ?? null);
+      setMessages([]);
+      autoSelectedForDeepLinkRef.current = conversationId;
+      router.replace(`/inbox?c=${conversationId}`, { scroll: false });
+    },
+    [router]
+  );
+
+  const {
+    enabled: notificationsEnabled,
+    permission: notificationPermission,
+    toggle: toggleNotifications,
+    notify,
+  } = useMessageNotifications({ onOpenConversation: openConversationById });
+
   // Check WhatsApp connection status on mount
   useEffect(() => {
     const checkConnection = async () => {
@@ -108,11 +139,36 @@ export default function InboxPage() {
           setMessages((prev) => {
             // Avoid duplicates
             if (prev.some((m) => m.id === newMsg.id)) return prev;
-            // Replace optimistic message if it exists
+            // Drop only the optimistic bubble this message replaces —
+            // clearing every temp- row would delete other in-flight
+            // sends (and failed ones the user still needs to see).
             const withoutOptimistic = prev.filter(
-              (m) => !m.id.startsWith("temp-")
+              (m) =>
+                !m.id.startsWith("temp-") ||
+                m.content_type !== newMsg.content_type ||
+                (m.content_text ?? "") !== (newMsg.content_text ?? "")
             );
             return [...withoutOptimistic, newMsg];
+          });
+        }
+
+        // Alert on inbound customer messages. Skipped when the user is
+        // already looking at that thread in a focused tab — they can
+        // see it arrive.
+        const isInbound = newMsg.sender_type === "customer";
+        const isViewingThread =
+          activeConversation?.id === newMsg.conversation_id &&
+          typeof document !== "undefined" &&
+          !document.hidden;
+        if (isInbound && !isViewingThread) {
+          const contactName =
+            conversations.find((c) => c.id === newMsg.conversation_id)?.contact
+              ?.name ?? "New message";
+          notify({
+            id: newMsg.id,
+            title: contactName,
+            body: newMsg.content_text?.slice(0, 140) || "Sent an attachment",
+            conversationId: newMsg.conversation_id,
           });
         }
 
@@ -141,7 +197,7 @@ export default function InboxPage() {
         );
       }
     },
-    [activeConversation]
+    [activeConversation, conversations, notify]
   );
 
   // Handle realtime conversation events
@@ -183,28 +239,41 @@ export default function InboxPage() {
 
   const handleConversationsLoaded = useCallback(
     (loaded: Conversation[]) => {
-      setConversations(loaded);
+      // The thread the user is reading is read by definition. Without
+      // this, a poll that lands before the server-side unread reset is
+      // visible re-shows the badge on the conversation they're looking
+      // at, so it blinks back on every refresh.
+      const activeId = activeConversation?.id;
+      setConversations(
+        activeId
+          ? loaded.map((c) =>
+              c.id === activeId && c.unread_count > 0
+                ? { ...c, unread_count: 0 }
+                : c,
+            )
+          : loaded,
+      );
       // Resolve a pending deep-link here rather than in an effect — this
       // is an event handler, so the setState calls below are allowed by
       // react-hooks/set-state-in-effect. Runs once per ?c=<id> URL value
       // via the ref, so realtime refreshes of the list can't snap the
       // user back to the deep-linked thread after they've navigated.
+      // Only ever auto-select when NOTHING is open yet — i.e. on arrival
+      // via a ?c=<id> link. Previously this fired whenever the ref
+      // didn't match `deepLinkConvId`, which broke starting a new chat:
+      // selecting it calls router.replace(?c=<new>), but `deepLinkConvId`
+      // still reads the OLD id for a tick, so the next list poll saw
+      // ref(new) !== deepLink(old) and yanked the user back into the
+      // previous conversation.
       if (
         deepLinkConvId &&
+        !activeConversation &&
         autoSelectedForDeepLinkRef.current !== deepLinkConvId &&
         loaded.length > 0
       ) {
         autoSelectedForDeepLinkRef.current = deepLinkConvId;
-        // If the deep-linked conversation is already the active one
-        // (e.g. because the user clicked it in the list and we
-        // router.replace()'d the URL, which made the ConversationList
-        // refetch and land us back here), do NOT re-apply it. Doing so
-        // would setMessages([]) on a thread whose messages have
-        // already been loaded by MessageThread — and because
-        // conversationId didn't change, MessageThread wouldn't
-        // refetch. The thread would read "No messages yet" until a
-        // full page reload rehydrated state from scratch.
-        if (activeConversation?.id === deepLinkConvId) return;
+        // Nothing is open at this point (guarded above), so applying the
+        // deep link can't clobber an already-loaded thread's messages.
         const match = loaded.find((c) => c.id === deepLinkConvId);
         if (match) {
           setActiveConversation(match);
@@ -265,8 +334,33 @@ export default function InboxPage() {
   }, [router]);
 
 
+  /**
+   * Merge a freshly-fetched server list with any optimistic messages
+   * still in flight.
+   *
+   * A plain `setMessages(loaded)` was why a just-sent (or just-received)
+   * bubble appeared, vanished for a second, then came back: the send
+   * inserts a `temp-…` bubble immediately, a poll that lands before the
+   * row is readable returns a list without it, and replacing the array
+   * wholesale deleted the bubble until the next poll saw the real row.
+   *
+   * Optimistic bubbles are kept until the server list contains an
+   * equivalent message (same kind + text), so a failed send also stays
+   * put with its error state instead of silently disappearing.
+   */
   const handleMessagesLoaded = useCallback((loaded: Message[]) => {
-    setMessages(loaded);
+    setMessages((prev) => {
+      const pending = prev.filter((m) => m.id.startsWith("temp-"));
+      if (pending.length === 0) return loaded;
+
+      const serverKeys = new Set(
+        loaded.map((m) => `${m.content_type}|${m.content_text ?? ""}`),
+      );
+      const stillPending = pending.filter(
+        (m) => !serverKeys.has(`${m.content_type}|${m.content_text ?? ""}`),
+      );
+      return stillPending.length > 0 ? [...loaded, ...stillPending] : loaded;
+    });
   }, []);
 
   const handleNewMessage = useCallback((msg: Message) => {
@@ -399,6 +493,9 @@ export default function InboxPage() {
             onOpenNewChat={() => setNewChatModalOpen(true)}
             onDeleteConversation={handleDeleteConversation}
             chatbotEnabled={chatbotEnabled}
+            notificationsEnabled={notificationsEnabled}
+            notificationPermission={notificationPermission}
+            onToggleNotifications={toggleNotifications}
           />
         </div>
 

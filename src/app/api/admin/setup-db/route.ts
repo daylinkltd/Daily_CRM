@@ -15,6 +15,12 @@ export async function GET(request: Request) {
 
     // Try executing table creation SQL
     const sql = `
+      -- The UNIQUE constraint is REQUIRED: the reaction upsert uses
+      -- ON CONFLICT (message_id, actor_type, actor_id). An earlier
+      -- version of this DDL omitted it, the table got created here
+      -- first, and migration 028's CREATE TABLE IF NOT EXISTS then
+      -- skipped the constraint — so every reaction failed in
+      -- production until migration 071 repaired it. Keep them in sync.
       CREATE TABLE IF NOT EXISTS public.message_reactions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
@@ -22,7 +28,8 @@ export async function GET(request: Request) {
         actor_type TEXT NOT NULL CHECK (actor_type IN ('agent', 'customer')),
         actor_id UUID NOT NULL,
         emoji TEXT NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (message_id, actor_type, actor_id)
       );
 
       CREATE TABLE IF NOT EXISTS public.member_presence (
