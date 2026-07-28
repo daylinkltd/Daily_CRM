@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Receipt, Search, RefreshCw, ShoppingCart, Calendar, CheckCircle2, QrCode, Banknote, CreditCard } from "lucide-react";
+import { Receipt, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SalesPage() {
@@ -18,7 +17,7 @@ export default function SalesPage() {
     try {
       // In production, fetch sales orders from API
       setOrders([]);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load sales orders");
     } finally {
       setLoading(false);

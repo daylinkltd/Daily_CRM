@@ -105,7 +105,7 @@ export function EmployeeAssetsTab({ employeeId, canEdit }: EmployeeAssetsTabProp
       if (error) throw error;
       toast.success('Asset marked as returned');
       fetchAssets();
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to return asset');
     }
   };

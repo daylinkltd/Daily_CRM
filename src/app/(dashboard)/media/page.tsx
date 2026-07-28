@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Folder, Image as ImageIcon, File, Upload, Trash2, ArrowLeft, Plus } from "lucide-react";
+import { Folder, File, Upload, Trash2, ArrowLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,

@@ -38,8 +38,6 @@ import {
   Settings2,
   Database,
   FileText,
-  MessageSquare,
-  Sparkles,
 } from 'lucide-react';
 import type {
   CustomForm,

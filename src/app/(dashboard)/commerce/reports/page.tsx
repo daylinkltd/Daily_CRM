@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
-import { BarChart3, FileSpreadsheet, Download, RefreshCw, TrendingUp, PieChart, Landmark, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { toast } from "sonner";
+import { BarChart3, Download, Landmark, ArrowUpRight } from "lucide-react";
 
 export default function ReportsHubPage() {
-  const { activeWorkspace } = useWorkspace();
+  useWorkspace();
   const [activeTab, setActiveTab] = useState<"TRIAL_BALANCE" | "PL_STATEMENT" | "BALANCE_SHEET" | "AGING">("TRIAL_BALANCE");
 
   return (

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, use } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
-import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +11,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   ShieldCheck,
   CheckCircle2,
-  Lock,
   Loader2,
   ArrowLeft,
   FileCode,
-  Calendar,
-  Layers,
   Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,7 +21,6 @@ import { useRouter } from 'next/navigation';
 
 export default function PolicyReadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, activeMember } = useWorkspace();
 
@@ -65,7 +60,7 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
             setExistingAck(ack || null);
           }
         }
-      } catch (err) {
+      } catch {
         toast.error('Failed to load policy document');
       } finally {
         setLoading(false);

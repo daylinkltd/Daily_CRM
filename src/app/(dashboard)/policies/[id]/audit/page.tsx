@@ -8,14 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  FileCode2,
   Download,
   ArrowLeft,
-  ShieldCheck,
-  CheckCircle2,
-  Clock,
   Loader2,
-  Lock,
   UserCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,7 +18,6 @@ import { useRouter } from 'next/navigation';
 
 export default function PolicyAuditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace } = useWorkspace();
 
@@ -41,7 +35,7 @@ export default function PolicyAuditPage({ params }: { params: Promise<{ id: stri
         if (json.policy) {
           setPolicy(json.policy);
         }
-      } catch (err) {
+      } catch {
         toast.error('Failed to load compliance audit logs');
       } finally {
         setLoading(false);

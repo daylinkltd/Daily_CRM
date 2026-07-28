@@ -5,7 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Check, Store, Landmark, Plus, Trash2, QrCode } from "lucide-react";
+import { Sparkles, Check, Landmark, Plus, Trash2, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { SettingsPanelHead } from "@/components/settings/settings-panel-head";
 
@@ -72,7 +72,7 @@ export default function RetailSettingsPage() {
       localStorage.setItem(`retail_template_${activeWorkspace.id}`, templateId);
       localStorage.setItem('retail_template_active', templateId);
       toast.success(`Workspace Industry Template set to "${templateId}"!`);
-    } catch (err: any) {
+    } catch {
       toast.error("Failed to apply preset");
     } finally {
       setSaving(false);

@@ -10,12 +10,7 @@ import {
   Search, 
   Download, 
   QrCode, 
-  CheckCircle2, 
-  ShieldCheck, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  Sparkles,
-  Printer
+  ShieldCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";

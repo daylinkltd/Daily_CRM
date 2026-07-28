@@ -65,7 +65,7 @@ interface ContactWithTags extends Contact {
 
 export default function ContactsPage() {
   const supabase = createClient();
-  const { activeWorkspace, loading: workspaceLoading, can } = useWorkspace();
+  const { activeWorkspace, can } = useWorkspace();
   const canEdit = can('contacts');
   const canEditSettings = can('settings_workspace');
 

@@ -7,7 +7,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
@@ -25,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { FileCheck, Plus, Loader2, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { FileCheck, Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const REQUEST_TYPES = [
@@ -38,9 +37,7 @@ const REQUEST_TYPES = [
 ];
 
 export default function EmployeeRequestsPage() {
-  const supabase = createClient();
-  const { activeWorkspace, activeMember, can } = useWorkspace();
-  const canManage = can('people_manage' as any);
+  const { activeWorkspace, activeMember } = useWorkspace();
 
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +56,7 @@ export default function EmployeeRequestsPage() {
       const res = await fetch(`/api/hr/requests?workspaceId=${activeWorkspace.id}`);
       const json = await res.json();
       setRequests(json.requests || []);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load employee requests');
     } finally {
       setLoading(false);

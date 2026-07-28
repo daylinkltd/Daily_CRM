@@ -11,10 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Shield,
-  FileText,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
   Plus,
   Download,
   Search,
@@ -22,8 +18,7 @@ import {
   FileCode2,
   Send,
   Loader2,
-  Layers,
-  ChevronRight
+  Layers
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -31,7 +26,6 @@ import { ComplianceBanner } from '@/components/policies/compliance-banner';
 import { PolicyEditorModal } from '@/components/policies/policy-editor-modal';
 
 export default function PoliciesDashboardPage() {
-  const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, can } = useWorkspace();
   const canManage = can('people_manage' as any);

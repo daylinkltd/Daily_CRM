@@ -3,17 +3,15 @@
 import { useState, useEffect } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { BookOpen, RefreshCw, Search, Landmark, Banknote, QrCode, CreditCard, ArrowUpRight, ArrowDownRight, Layers } from "lucide-react";
+import { BookOpen, RefreshCw, Landmark, Banknote, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AccountingLedgerPage() {
   const { activeWorkspace } = useWorkspace();
   const [activeTab, setActiveTab] = useState<"ACCOUNTS" | "DAYBOOK">("DAYBOOK");
   const [accounts, setAccounts] = useState<any[]>([]);
-  const [journals, setJournals] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
+  const [, setJournals] = useState<any[]>([]);
+  const [, setLoading] = useState(true);
 
   const fetchData = async () => {
     if (!activeWorkspace?.id) return;
@@ -29,7 +27,7 @@ export default function AccountingLedgerPage() {
         { code: "4010", name: "Sales Revenue Account", type: "REVENUE", category: "SALES", balance: 109000 },
       ]);
       setJournals([]);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load accounting ledger");
     } finally {
       setLoading(false);

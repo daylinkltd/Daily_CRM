@@ -18,11 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { TrendingUp, Plus, Loader2, Award, Target, Star, Calendar } from 'lucide-react';
+import { Plus, Loader2, Award } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PerformancePage() {
-  const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
   const canManage = can('people_manage' as any);
 
@@ -48,7 +47,7 @@ export default function PerformancePage() {
       setCycles(json.cycles || []);
       setGoals(json.goals || []);
       setPromotions(json.promotions || []);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load performance data');
     } finally {
       setLoading(false);

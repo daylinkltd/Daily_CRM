@@ -46,5 +46,15 @@ next-env.d.ts
 # WhatsApp import folders
 /WhatsApp Chat with */
 
+# Claude Code agent worktrees — throwaway copies of this repo created by
+# background agent sessions. Never source, never committed, and they were
+# inflating lint output by ~5000 problems.
+/.claude/worktrees/
 
+# graphify knowledge-graph output — generated artifact (~23 MB), rebuilt
+# on demand by the graphify skill. Kept on disk, out of git.
+/graphify-out/
+
+# local scratch space for one-off debug scripts
+/scratch/
 

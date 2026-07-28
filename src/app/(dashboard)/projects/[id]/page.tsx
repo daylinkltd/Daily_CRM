@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronLeft, Loader2, Briefcase, Calendar, Banknote, Target, Users, Settings } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
-import { StatusBadge } from '@/components/shared/status-badge';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
@@ -16,15 +15,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectKanban } from '@/components/tasks/project-kanban';
 import { PlanningView } from '@/components/projects/planning-view';
 import { WorkflowSettings } from '@/components/projects/workflow-settings';
-import { SprintBurndown } from '@/components/projects/sprint-burndown';
-import { ProjectVelocity } from '@/components/projects/project-velocity';
-import { TeamWorkload } from '@/components/projects/team-workload';
-import { ProjectTimesheet } from '@/components/projects/project-timesheet';
 import { AutomationsSettings } from '@/components/projects/automations-settings';
-import { ProjectInvoices } from '@/components/projects/project-invoices';
 import { ProjectTimeline } from '@/components/projects/project-timeline';
 import { ProjectTaskList } from '@/components/projects/project-task-list';
-import { ProjectActivityLog } from '@/components/projects/project-activity-log';
 import { ProjectReportsGallery } from '@/components/projects/project-reports-gallery';
 
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {

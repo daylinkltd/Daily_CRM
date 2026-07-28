@@ -12,7 +12,6 @@ import {
   Copy,
   Trash2,
   Loader2,
-  FileSpreadsheet,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -232,7 +231,7 @@ export default function QuotationsPage() {
       if (error) throw error;
       toast.success("Quotation deleted");
       fetchQuotations();
-    } catch (err: any) {
+    } catch {
       toast.error("Failed to delete quotation");
     }
   };

@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Loader2, Activity, ChevronDown, ChevronRight, Briefcase } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { addDays, endOfDay, isAfter, isBefore, parseISO, startOfDay, addMonths } from 'date-fns';
@@ -43,7 +42,7 @@ export default function WorkloadsPage() {
       const loadedMembers = membersRes?.members || [];
       const memberMapById = Object.fromEntries(loadedMembers.map((m: any) => [m.id, m]));
 
-      let members: any[] = (rawMembers || []).map((m: any) => {
+      const members: any[] = (rawMembers || []).map((m: any) => {
         const enriched = memberMapById[m.id] || m;
         return {
           ...m,
@@ -79,7 +78,6 @@ export default function WorkloadsPage() {
 
       // Initialize map
       members?.forEach(m => {
-        const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
         // Default capacity to 40 if not set. Calculate capacity for the chosen horizon.
         // Formula: (Weekly Capacity / 5 working days) * horizon days
         const baseWeekly = m.weekly_capacity || 40;

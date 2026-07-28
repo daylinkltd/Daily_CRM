@@ -17,16 +17,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Clock, Plus, Loader2, Users, Calendar } from 'lucide-react';
+import { Clock, Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ShiftsPage() {
-  const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
   const canManage = can('people_manage' as any);
 
   const [shifts, setShifts] = useState<any[]>([]);
-  const [assignments, setAssignments] = useState<any[]>([]);
+  const [, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -47,7 +46,7 @@ export default function ShiftsPage() {
       const json = await res.json();
       setShifts(json.shifts || []);
       setAssignments(json.assignments || []);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load shifts');
     } finally {
       setLoading(false);

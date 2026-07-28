@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Receipt, Search, FileText, Download, HandCoins } from 'lucide-react';
+import { Loader2, Receipt, Search, FileText, HandCoins } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -60,7 +60,7 @@ export default function InvoicesPage() {
 
       if (error) throw error;
       setInvoices(data || []);
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to load invoices');
     } finally {
       setLoading(false);

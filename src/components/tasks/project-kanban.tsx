@@ -5,8 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, LayoutGrid, AlertCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Loader2, Plus } from 'lucide-react';
 import { TaskForm } from '@/components/tasks/task-form';
 import { KanbanColumn } from './kanban-column';
 import { KanbanTask } from './kanban-task';
@@ -40,7 +39,7 @@ export function ProjectKanban({ projectId, canManage }: ProjectKanbanProps) {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editTask, setEditTask] = useState<any | null>(null);
-  const [defaultStatusId, setDefaultStatusId] = useState<string | undefined>(undefined);
+  const [, setDefaultStatusId] = useState<string | undefined>(undefined);
   
   const [activeDragTask, setActiveDragTask] = useState<any | null>(null);
 

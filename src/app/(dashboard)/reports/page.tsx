@@ -112,7 +112,7 @@ export default function ReportsDashboard() {
 
       // Calculate working days in current month so far (excluding weekends roughly for expected days)
       let expectedDays = 0;
-      let d = startOfMonth(new Date());
+      const d = startOfMonth(new Date());
       const today = new Date();
       while (d <= today && d <= endOfMonth(new Date())) {
         if (d.getDay() !== 0 && d.getDay() !== 6) expectedDays++;
@@ -164,7 +164,7 @@ export default function ReportsDashboard() {
       setTotalCompletedTasks(totalCT);
       setOverallAttendance(totalEmp > 0 ? (totalAtt / (expectedDays * totalEmp)) * 100 : 0);
 
-    } catch (error: any) {
+    } catch {
       toast.error('Failed to load report data');
     } finally {
       setLoading(false);

@@ -24,7 +24,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { TaskForm } from '@/components/tasks/task-form';
 
 export default function GlobalTasksPage() {
@@ -89,7 +88,7 @@ export default function GlobalTasksPage() {
       if (error) throw error;
       toast.success('Task status updated');
       fetchTasks();
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to update status');
     }
   };

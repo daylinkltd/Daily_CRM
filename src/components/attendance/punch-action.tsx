@@ -9,8 +9,6 @@ import {
   Fingerprint, 
   Coffee, 
   Play, 
-  Pause, 
-  MapPin, 
   Clock,
   Building2,
   Home,

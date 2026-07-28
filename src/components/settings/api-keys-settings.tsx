@@ -4,12 +4,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
-  Calendar,
   Check,
   Copy,
   KeyRound,
   Loader2,
-  Lock,
   Plus,
   ShieldAlert,
   Trash2,
@@ -59,7 +57,7 @@ export function ApiKeysSettings() {
 
   // Reveal key dialog states
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
-  const [revealedPrefix, setRevealedPrefix] = useState<string | null>(null);
+  const [, setRevealedPrefix] = useState<string | null>(null);
   const [revealedName, setRevealedName] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 

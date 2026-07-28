@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Truck, Plus, RefreshCw, Package } from "lucide-react";
+import { Truck, Plus, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function PurchasesPage() {

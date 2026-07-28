@@ -12,29 +12,15 @@ import {
   Trash2, 
   Plus, 
   Minus, 
-  CreditCard, 
-  QrCode, 
-  Banknote, 
-  Printer, 
-  Send, 
-  User,
-  Barcode,
   Landmark,
-  FileSpreadsheet,
-  PieChart,
   PauseCircle,
   PlayCircle,
-  Tag,
-  ShieldCheck,
-  Building,
   X,
   Calculator,
-  Lock,
-  Clock,
   Split
 } from "lucide-react";
 import { toast } from "sonner";
-import { extractCleanSku, sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
+import { extractCleanSku } from "@/lib/commerce/barcode-utils";
 
 interface CartItem {
   product_id: string;
@@ -61,16 +47,16 @@ function POSTerminalPageContent() {
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [, setLoadingProducts] = useState(false);
   
   // Customer & Pricing State
   const [customerType, setCustomerType] = useState<"RETAIL" | "WHOLESALE" | "DISTRIBUTOR">("RETAIL");
   const [customerMobile, setCustomerMobile] = useState("");
-  const [customerGstin, setCustomerGstin] = useState("");
+  const [customerGstin] = useState("");
   const [promoCode, setPromoCode] = useState("");
 
   // Payment States
-  const [isGstBill, setIsGstBill] = useState(true);
+  const [isGstBill] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState<"CASH" | "UPI" | "CARD" | "SPLIT">("CASH");
   const [upiBankAccount, setUpiBankAccount] = useState("");
   const [bankAccountsList, setBankAccountsList] = useState<any[]>([]);

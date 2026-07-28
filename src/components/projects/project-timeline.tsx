@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Calendar, ChevronDown, ChevronRight, Activity } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, ChevronDown, ChevronRight, Activity } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format, parseISO, addDays, startOfWeek, addWeeks, startOfMonth, addMonths, differenceInDays, isSameDay, isBefore, isAfter, eachDayOfInterval } from 'date-fns';
+import { format, parseISO, addDays, startOfWeek, addWeeks, startOfMonth, addMonths, differenceInDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';

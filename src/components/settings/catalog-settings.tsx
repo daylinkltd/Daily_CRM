@@ -227,7 +227,7 @@ export function CatalogSettings() {
 
       if (error) throw error;
       toast.success("Default quotation terms saved");
-    } catch (err: any) {
+    } catch {
       toast.error("Failed to save terms");
     } finally {
       setTermsSaving(false);

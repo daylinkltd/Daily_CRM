@@ -20,7 +20,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
-  Calculator,
   Plus,
   Trash2,
   GripVertical,
@@ -30,7 +29,6 @@ import {
   Search,
   Sparkles,
   FileSpreadsheet,
-  Check,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -38,7 +36,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { formatCurrency } from "@/lib/currency";
 import type {
-  Quotation,
   QuotationSection,
   QuotationLineItem,
   ServiceCatalogItem,
@@ -907,7 +904,6 @@ export default function EditQuotationPage({ params }: PageProps) {
 /* Sortable Section component */
 function SortableSectionCard({
   section,
-  sIdx,
   onRename,
   onDelete,
   onAddItem,
@@ -999,7 +995,7 @@ function SortableSectionCard({
                 No items in this section. Add items using the buttons above.
               </div>
             ) : (
-              section.items.map((item, itemIdx) => (
+              section.items.map((item) => (
                 <SortableLineItemRow
                   key={item.id}
                   item={item}

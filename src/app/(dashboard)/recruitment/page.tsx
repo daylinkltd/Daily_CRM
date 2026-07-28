@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/shared/page-header';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -18,18 +18,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Briefcase, Plus, Loader2, UserCheck, FileText, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Plus, Loader2, UserCheck, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STAGES = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'HIRED', 'REJECTED'];
 
 export default function RecruitmentPage() {
-  const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
   const canManage = can('people_manage' as any);
 
   const [jobs, setJobs] = useState<any[]>([]);
-  const [candidates, setCandidates] = useState<any[]>([]);
+  const [, setCandidates] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -60,7 +59,7 @@ export default function RecruitmentPage() {
       if (json.jobs?.length > 0 && !selectedJobId) {
         setSelectedJobId(json.jobs[0].id);
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to load recruitment data');
     } finally {
       setLoading(false);

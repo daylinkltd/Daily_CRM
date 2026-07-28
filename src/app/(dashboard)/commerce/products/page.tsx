@@ -5,7 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Package, Plus, Search, Barcode, Tag, Layers, RefreshCw, Printer, X, ShieldCheck, Layers3, Banknote, Warehouse, Sliders, Sparkles, Stethoscope, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2 } from "lucide-react";
+import { Package, Plus, Search, Barcode, Tag, RefreshCw, Printer, X, ShieldCheck, Banknote, Warehouse, Sliders, Sparkles, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { BarcodeTagModal } from "@/components/commerce/barcode-tag-modal";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
@@ -38,12 +38,12 @@ export default function ProductsPage() {
   const [barcode, setBarcode] = useState("");
   const [aliasName, setAliasName] = useState("");
   const [manufacturer, setManufacturer] = useState("");
-  const [department, setDepartment] = useState("");
-  const [brandName, setBrandName] = useState("");
-  const [categoryName, setCategoryName] = useState("");
-  const [subCategoryName, setSubCategoryName] = useState("");
-  const [preferredSupplier, setPreferredSupplier] = useState("");
-  const [productStatus, setProductStatus] = useState("ACTIVE");
+  const [department] = useState("");
+  const [brandName] = useState("");
+  const [categoryName] = useState("");
+  const [subCategoryName] = useState("");
+  const [preferredSupplier] = useState("");
+  const [productStatus] = useState("ACTIVE");
 
   const [baseUnit, setBaseUnit] = useState("PCS");
   const [purchaseUnit, setPurchaseUnit] = useState("BOX");
@@ -51,21 +51,21 @@ export default function ProductsPage() {
   const [purchasePrice, setPurchasePrice] = useState("");
   const [sellingPrice, setSellingPrice] = useState("");
   const [wholesaleRate, setWholesaleRate] = useState("");
-  const [distributorRate, setDistributorRate] = useState("");
-  const [onlineRate, setOnlineRate] = useState("");
+  const [distributorRate] = useState("");
+  const [onlineRate] = useState("");
   const [mrp, setMrp] = useState("");
-  const [minSellingPrice, setMinSellingPrice] = useState("");
+  const [minSellingPrice] = useState("");
 
   const [hsnSacCode, setHsnSacCode] = useState("6203");
   const [taxRate, setTaxRate] = useState("5");
-  const [cessRate, setCessRate] = useState("0");
+  const [cessRate] = useState("0");
   const [isTaxInclusive, setIsTaxInclusive] = useState(true);
 
   const [initialStock, setInitialStock] = useState("0");
   const [reorderLevel, setReorderLevel] = useState("10");
-  const [reorderQuantity, setReorderQuantity] = useState("50");
-  const [minStockLevel, setMinStockLevel] = useState("5");
-  const [maxStockLevel, setMaxStockLevel] = useState("1000");
+  const [reorderQuantity] = useState("50");
+  const [minStockLevel] = useState("5");
+  const [maxStockLevel] = useState("1000");
   const [shelfNumber, setShelfNumber] = useState("");
   const [binLocation, setBinLocation] = useState("");
 
@@ -77,35 +77,35 @@ export default function ProductsPage() {
   // 19 Industry Template Fields
   // Grocery
   const [packSize, setPackSize] = useState("");
-  const [netWeight, setNetWeight] = useState("");
-  const [grossWeight, setGrossWeight] = useState("");
-  const [storageCondition, setStorageCondition] = useState("");
-  const [bestBeforeDate, setBestBeforeDate] = useState("");
-  const [isOrganic, setIsOrganic] = useState(false);
-  const [isFrozen, setIsFrozen] = useState(false);
-  const [countryOfOrigin, setCountryOfOrigin] = useState("India");
+  const [netWeight] = useState("");
+  const [grossWeight] = useState("");
+  const [storageCondition] = useState("");
+  const [bestBeforeDate] = useState("");
+  const [isOrganic] = useState(false);
+  const [isFrozen] = useState(false);
+  const [countryOfOrigin] = useState("India");
 
   // Pharmacy
-  const [saltComposition, setSaltComposition] = useState("");
-  const [medicineType, setMedicineType] = useState("TABLET");
-  const [dosageForm, setDosageForm] = useState("");
-  const [strength, setStrength] = useState("");
-  const [mfgLicense, setMfgLicense] = useState("");
-  const [isScheduleDrug, setIsScheduleDrug] = useState(false);
-  const [isControlledDrug, setIsControlledDrug] = useState(false);
-  const [expiryAlertDays, setExpiryAlertDays] = useState("60");
+  const [saltComposition] = useState("");
+  const [medicineType] = useState("TABLET");
+  const [dosageForm] = useState("");
+  const [strength] = useState("");
+  const [mfgLicense] = useState("");
+  const [isScheduleDrug] = useState(false);
+  const [isControlledDrug] = useState(false);
+  const [expiryAlertDays] = useState("60");
 
   // Garments & Apparel
   const [apparelSize, setApparelSize] = useState("");
   const [apparelColor, setApparelColor] = useState("");
   const [apparelFabric, setApparelFabric] = useState("");
   const [apparelFit, setApparelFit] = useState("");
-  const [genderTarget, setGenderTarget] = useState("UNISEX");
-  const [seasonCode, setSeasonCode] = useState("");
-  const [sleeveType, setSleeveType] = useState("");
-  const [neckType, setNeckType] = useState("");
-  const [pattern, setPattern] = useState("");
-  const [styleCode, setStyleCode] = useState("");
+  const [genderTarget] = useState("UNISEX");
+  const [seasonCode] = useState("");
+  const [sleeveType] = useState("");
+  const [neckType] = useState("");
+  const [pattern] = useState("");
+  const [styleCode] = useState("");
 
   // Footwear
   const [heelHeight, setHeelHeight] = useState("");
@@ -118,7 +118,7 @@ export default function ProductsPage() {
   const [warrantyMonths, setWarrantyMonths] = useState("12");
   const [processor, setProcessor] = useState("");
   const [ramSize, setRamSize] = useState("");
-  const [storageCapacity, setStorageCapacity] = useState("");
+  const [storageCapacity] = useState("");
   const [displaySize, setDisplaySize] = useState("");
   const [batteryCapacity, setBatteryCapacity] = useState("");
 
@@ -129,7 +129,7 @@ export default function ProductsPage() {
   const [stoneWeightGrams, setStoneWeightGrams] = useState("");
   const [diamondWeightCarat, setDiamondWeightCarat] = useState("");
   const [makingCharge, setMakingCharge] = useState("");
-  const [makingChargeType, setMakingChargeType] = useState("FIXED_PER_GRAM");
+  const [makingChargeType] = useState("FIXED_PER_GRAM");
   const [wastagePercent, setWastagePercent] = useState("");
   const [hallmarkNumber, setHallmarkNumber] = useState("");
 
@@ -138,15 +138,15 @@ export default function ProductsPage() {
   const [vehicleFitment, setVehicleFitment] = useState("");
   const [engineType, setEngineType] = useState("");
   const [vehicleYear, setVehicleYear] = useState("");
-  const [partPosition, setPartPosition] = useState("FRONT_LEFT");
+  const [partPosition] = useState("FRONT_LEFT");
 
   // Books
   const [isbnNumber, setIsbnNumber] = useState("");
   const [authorName, setAuthorName] = useState("");
   const [publisher, setPublisher] = useState("");
   const [edition, setEdition] = useState("");
-  const [language, setLanguage] = useState("English");
-  const [bindingType, setBindingType] = useState("PAPERBACK");
+  const [language] = useState("English");
+  const [bindingType] = useState("PAPERBACK");
 
   // Hardware & Furniture
   const [materialGrade, setMaterialGrade] = useState("");
@@ -166,26 +166,26 @@ export default function ProductsPage() {
 
   // Optical
   const [frameSize, setFrameSize] = useState("");
-  const [lensType, setLensType] = useState("SINGLE_VISION");
+  const [lensType] = useState("SINGLE_VISION");
   const [lensPowerSph, setLensPowerSph] = useState("");
-  const [lensCylinderCyl, setLensCylinderCyl] = useState("");
-  const [lensAxis, setLensAxis] = useState("");
+  const [lensCylinderCyl] = useState("");
+  const [lensAxis] = useState("");
 
   // Cosmetics
   const [shadeCode, setShadeCode] = useState("");
-  const [skinType, setSkinType] = useState("ALL_SKIN_TYPES");
-  const [spfRating, setSpfRating] = useState("");
+  const [skinType] = useState("ALL_SKIN_TYPES");
+  const [spfRating] = useState("");
   const [volumeMl, setVolumeMl] = useState("");
 
   // Pet Store & Agriculture & Baby
-  const [petType, setPetType] = useState("DOG");
+  const [petType] = useState("DOG");
   const [petBreed, setPetBreed] = useState("");
   const [seedVariety, setSeedVariety] = useState("");
   const [cropType, setCropType] = useState("");
   const [hazardClass, setHazardClass] = useState("");
-  const [unNumber, setUnNumber] = useState("");
+  const [unNumber] = useState("");
   const [babyAgeGroup, setBabyAgeGroup] = useState("");
-  const [isBpaFree, setIsBpaFree] = useState(true);
+  const [isBpaFree] = useState(true);
 
   // Interactive Ad-Hoc Custom Fields Builder
   const [customFields, setCustomFields] = useState<CustomFieldDef[]>([]);
@@ -330,7 +330,7 @@ export default function ProductsPage() {
       if (res.ok && json.products) {
         setProducts(json.products);
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to load product catalog");
     } finally {
       setLoading(false);

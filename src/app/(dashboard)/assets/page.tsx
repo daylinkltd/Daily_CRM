@@ -55,7 +55,7 @@ export default function AssetsPage() {
         }
       }
       setAssets(data);
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to load assets');
     } finally {
       setLoading(false);

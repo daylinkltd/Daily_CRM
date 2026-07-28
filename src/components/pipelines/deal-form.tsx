@@ -88,9 +88,7 @@ export function DealForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset the form fields every time the sheet opens or its input
-  // props change. This is a legitimate prop-driven sync; the rule is
-  // over-cautious here, hence the block-level disable.
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // props change. This is a legitimate prop-driven sync.
   useEffect(() => {
     if (!open) return;
     setConfirmDelete(false);
@@ -120,7 +118,6 @@ export function DealForm({
       setLostReasonId("");
     }
   }, [open, deal, defaultStageId, stages, defaultCurrency]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Load supporting data once the sheet is open
   useEffect(() => {
@@ -153,7 +150,6 @@ export function DealForm({
   // case runs setLinkedConversation inside the async fetch callback.
   useEffect(() => {
     if (!open || !contactId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLinkedConversation(null);
       return;
     }

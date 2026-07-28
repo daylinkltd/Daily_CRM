@@ -15,7 +15,6 @@ import {
   useSensors,
   DragStartEvent,
   DragEndEvent,
-  useDraggable,
   useDroppable
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
@@ -130,7 +129,7 @@ export function PlanningView({ projectId, canManage }: PlanningViewProps) {
       if (error) throw error;
       toast.success('Sprint created');
       fetchPlanningData();
-    } catch (err) {
+    } catch {
       toast.error('Failed to create sprint');
     }
   };
@@ -148,7 +147,7 @@ export function PlanningView({ projectId, canManage }: PlanningViewProps) {
       if (error) throw error;
       toast.success('Sprint started!');
       fetchPlanningData();
-    } catch (err) {
+    } catch {
       toast.error('Failed to start sprint');
     }
   };

@@ -73,7 +73,7 @@ export function AssignAssetForm({ open, onOpenChange, onSaved }: AssignAssetForm
       } else {
         setEmployees([]);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to load employees');
     } finally {
       setLoadingDeps(false);

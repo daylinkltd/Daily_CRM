@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { PLANS } from "@/config/plans";
-import { toast } from "sonner";
 import {
   ArrowRight, MessageSquare, Zap, BarChart3, Users,
   Bot, Globe, Shield, CheckCircle2, ChevronRight, Sparkles,

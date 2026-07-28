@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Not project source: agent worktrees are throwaway repo copies and
+    // graphify-out is generated. Linting them produced ~5000 phantom
+    // problems that buried the real ones.
+    ".claude/worktrees/**",
+    "graphify-out/**",
+    "scratch/**",
   ]),
 ]);
 

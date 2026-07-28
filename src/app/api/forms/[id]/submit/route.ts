@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { normalizePhone, phonesMatch } from '@/lib/whatsapp/phone-utils';
+import { phonesMatch } from '@/lib/whatsapp/phone-utils';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import crypto from 'crypto';

@@ -24,11 +24,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Calendar, Plus, Loader2, RefreshCw, Sun } from 'lucide-react';
+import { Calendar, Plus, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function HolidaysPage() {
-  const supabase = createClient();
   const { activeWorkspace, can } = useWorkspace();
   const canManage = can('people_manage' as any);
 
@@ -42,7 +41,7 @@ export default function HolidaysPage() {
   const [date, setDate] = useState('');
   const [holidayType, setHolidayType] = useState('COMPANY');
   const [recurrenceType, setRecurrenceType] = useState('YEARLY');
-  const [description, setDescription] = useState('');
+  const [description] = useState('');
 
   const fetchHolidays = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -52,7 +51,7 @@ export default function HolidaysPage() {
       const res = await fetch(`/api/hr/holidays?workspaceId=${activeWorkspace.id}`);
       const json = await res.json();
       setHolidays(json.holidays || []);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load holidays');
     } finally {
       setLoading(false);

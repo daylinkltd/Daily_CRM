@@ -7,18 +7,15 @@ import { RequireModule } from '@/components/auth/require-module';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Users,
   CalendarClock,
   Briefcase,
-  Gift,
   CheckCircle2,
   Clock,
   AlertCircle,
   FileCheck,
   TrendingUp,
-  UserPlus,
   Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -32,7 +29,6 @@ export default function HRDashboardPage() {
 }
 
 function HRDashboardPageContent() {
-  const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace } = useWorkspace();
 

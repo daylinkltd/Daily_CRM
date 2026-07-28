@@ -108,7 +108,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
       if (error) throw error;
       toast.success('Attachment deleted');
       fetchFiles();
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete attachment');
     }
   };

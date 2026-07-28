@@ -6,8 +6,6 @@ import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,14 +31,12 @@ import {
   Plus,
   Eye,
   Share2,
-  Maximize2,
   X,
   CheckSquare,
   Sparkles,
   Bookmark,
   Bug,
   ChevronDown,
-  ChevronRight,
   Zap
 } from 'lucide-react';
 import { formatMemberName } from '@/components/tasks/task-form';
@@ -62,9 +58,9 @@ export function EpicDetailsModal({
 }: EpicDetailsModalProps) {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [epic, setEpic] = useState<any | null>(null);
+  const [, setEpic] = useState<any | null>(null);
   const [childTasks, setChildTasks] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
+  const [, setMembers] = useState<any[]>([]);
   const [statuses, setStatuses] = useState<any[]>([]);
 
   // Form states

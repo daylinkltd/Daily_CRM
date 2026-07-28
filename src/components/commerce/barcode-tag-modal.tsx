@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Printer, X, Barcode as BarcodeIcon, Tag } from "lucide-react";
+import { Printer, X, Barcode as BarcodeIcon } from "lucide-react";
 import { toast } from "sonner";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
 
@@ -31,7 +31,7 @@ export function BarcodeTagModal({
   product,
   workspaceName = "Daily CRM Store",
 }: BarcodeTagModalProps) {
-  const [printCopies, setPrintCopies] = useState(1);
+  const [printCopies] = useState(1);
   const [tagWidth, setTagWidth] = useState(50); // mm
   const [tagHeight, setTagHeight] = useState(30); // mm (Optimized for 32px barcode height)
 

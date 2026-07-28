@@ -5,7 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Layers, Plus, ArrowDownRight, ArrowUpRight, RefreshCw, Search, AlertTriangle, Package, Barcode, CheckCircle2 } from "lucide-react";
+import { Layers, Plus, ArrowUpRight, RefreshCw, Search, AlertTriangle, Barcode, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function InventoryPage() {
@@ -40,7 +40,7 @@ export default function InventoryPage() {
       if (res.ok && json.inventory) {
         setInventory(json.inventory);
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to load inventory levels");
     } finally {
       setLoading(false);

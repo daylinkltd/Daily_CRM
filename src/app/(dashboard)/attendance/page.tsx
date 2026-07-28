@@ -16,18 +16,13 @@ import {
   Loader2, 
   CalendarClock, 
   MapPin, 
-  Coffee, 
   Building2, 
   Home, 
   Briefcase, 
-  CheckCircle2, 
-  XCircle, 
   FileCheck2, 
-  Award,
   Clock,
   Plus
 } from 'lucide-react';
-import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -79,6 +74,7 @@ export default function AttendancePage() {
         query = query.eq('workspace_member_id', activeMember.id);
       }
 
+      // eslint-disable-next-line prefer-const -- `data` is reassigned in the fallback path below
       let { data, error } = await query;
 
       if (error || !data) {
@@ -94,7 +90,7 @@ export default function AttendancePage() {
 
         const { data: directData } = await directQuery;
         const memberIds = Array.from(new Set((directData || []).map((r) => r.workspace_member_id)));
-        let memberProfilesMap: Record<string, any> = {};
+        const memberProfilesMap: Record<string, any> = {};
 
         if (memberIds.length > 0) {
           const { data: members } = await supabase

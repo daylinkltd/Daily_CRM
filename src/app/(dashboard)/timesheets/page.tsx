@@ -18,7 +18,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Search, Loader2, Clock, Plus, AlertCircle, BarChart3 } from 'lucide-react';
+import { Loader2, Clock, Plus, AlertCircle, BarChart3 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,6 @@ export default function TimesheetsPage() {
   const [teamTimesheets, setTeamTimesheets] = useState<any[]>([]);
   
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
 
   // Date filters for team aggregation (Default to today)

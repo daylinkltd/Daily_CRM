@@ -84,7 +84,7 @@ export function UploadDocumentForm({ open, onOpenChange, onSaved }: UploadDocume
       } else {
         setEmployees([]);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to load employees');
     } finally {
       setLoadingDeps(false);

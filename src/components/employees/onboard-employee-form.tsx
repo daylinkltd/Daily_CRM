@@ -100,7 +100,7 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
       setDepartments(deps || []);
       setDesignations(desigs || []);
       setAvailableMembers(unassigned);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load form requirements');
     } finally {
       setLoadingDeps(false);

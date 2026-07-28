@@ -14,7 +14,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { format, differenceInDays, addDays, parseISO, startOfDay, isBefore, isAfter } from 'date-fns';
+import { format, differenceInDays, addDays, parseISO, startOfDay, isAfter } from 'date-fns';
 
 interface SprintBurndownProps {
   projectId: string;

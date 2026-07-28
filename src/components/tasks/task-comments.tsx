@@ -89,7 +89,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
       }
       setComments((prev) => [...prev, enrichedComment]);
       setNewComment('');
-    } catch (err) {
+    } catch {
       toast.error('Failed to add comment');
     } finally {
       setSubmitting(false);

@@ -10,14 +10,9 @@ import {
   Clock, 
   Rocket, 
   ChevronRight, 
-  Loader2, 
-  X,
-  FileSpreadsheet,
-  CheckCircle2,
-  AlertCircle
+  CheckCircle2
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SprintBurndown } from './sprint-burndown';
@@ -32,7 +27,7 @@ interface ProjectReportsGalleryProps {
 export function ProjectReportsGallery({ projectId, projectType: initialProjectType }: ProjectReportsGalleryProps) {
   const supabase = createClient();
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [projectType, setProjectType] = useState<string>(initialProjectType || 'SCRUM');
 
   useEffect(() => {

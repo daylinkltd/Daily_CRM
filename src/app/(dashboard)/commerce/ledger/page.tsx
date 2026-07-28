@@ -5,8 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Wallet, Search, Plus, Send, RefreshCw, User, CheckCircle2, ArrowDownRight, ShieldCheck } from "lucide-react";
+import { Wallet, Search, Send, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CustomerLedgerPage() {

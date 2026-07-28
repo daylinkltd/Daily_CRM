@@ -25,7 +25,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
   // New status form state
   const [newStatusName, setNewStatusName] = useState('');
   const [newStatusCategory, setNewStatusCategory] = useState('TODO');
-  const [newStatusColor, setNewStatusColor] = useState('slate');
+  const [newStatusColor] = useState('slate');
   const [isAdding, setIsAdding] = useState(false);
   const [hourlyRate, setHourlyRate] = useState<string>('0');
   const [isSavingRate, setIsSavingRate] = useState(false);
@@ -124,7 +124,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
       if (error) throw error;
       toast.success('Status deleted');
       fetchStatuses();
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to delete status. It might be in use.');
     }
   };
@@ -145,7 +145,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
         
       if (error) throw error;
       toast.success('Hourly rate saved');
-    } catch (err) {
+    } catch {
       toast.error('Failed to save hourly rate');
     } finally {
       setIsSavingRate(false);
@@ -162,7 +162,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
         
       if (error) throw error;
       toast.success('Portal settings updated');
-    } catch (err) {
+    } catch {
       toast.error('Failed to update portal settings');
     } finally {
       setIsSavingPortal(false);

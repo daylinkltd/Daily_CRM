@@ -5,8 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronLeft, Loader2, Save } from 'lucide-react';
-import { PageHeader } from '@/components/shared/page-header';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,7 +13,6 @@ import { useRouter } from 'next/navigation';
 import { EmployeeProfileOverview } from '@/components/employees/employee-profile-overview';
 import { EmployeeAssetsTab } from '@/components/employees/employee-assets-tab';
 import { EmployeeDocumentsTab } from '@/components/employees/employee-documents-tab';
-import type { EmployeeProfile } from '@/types';
 
 export default function EmployeeProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

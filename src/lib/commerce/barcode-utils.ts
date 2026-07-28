@@ -4,7 +4,7 @@
  */
 export function extractCleanSku(input: string): string {
   if (!input) return "";
-  let str = input.trim().replace(/[\r\n]+/g, "");
+  const str = input.trim().replace(/[\r\n]+/g, "");
 
   // Parse JSON if scanned
   if (str.includes("{") && str.includes("}")) {

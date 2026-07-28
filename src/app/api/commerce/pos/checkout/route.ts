@@ -109,7 +109,7 @@ export async function POST(request: Request) {
       p_document_type: invoice_type || "INVOICE",
     });
     if (rpcNum) orderNumber = rpcNum;
-  } catch (e) {
+  } catch {
     console.error("Document number fallback used");
   }
 

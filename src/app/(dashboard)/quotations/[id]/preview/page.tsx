@@ -13,7 +13,6 @@ import {
   XCircle,
   FileText,
   Briefcase,
-  User,
   Calendar,
   Sparkles,
 } from "lucide-react";
@@ -24,7 +23,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { formatCurrency } from "@/lib/currency";
 import type { Quotation, QuotationSection, Contact } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -38,7 +37,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
   const router = useRouter();
   const { id: quotationUuid } = React.use(params);
   const supabase = createClient();
-  const { user, accountId } = useAuth();
+  const { accountId } = useAuth();
   const { activeWorkspace, defaultCurrency } = useWorkspace();
   const workspaceId = activeWorkspace?.id || accountId;
 
@@ -337,7 +336,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
 
       toast.success("Quotation marked as Rejected");
       loadQuotation();
-    } catch (err: any) {
+    } catch {
       toast.error("Failed to reject quotation");
     } finally {
       setActionLoading(false);
@@ -610,7 +609,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
               No proposal lines configured.
             </p>
           ) : (
-            sections.map((section, sIdx) => (
+            sections.map((section) => (
               <div key={section.id} className="space-y-2 line-item-row">
                 <div className="flex items-center gap-2 border-b border-border/40 pb-1 mt-6">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-primary">

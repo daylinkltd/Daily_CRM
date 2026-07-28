@@ -2,7 +2,7 @@
 
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Shield, LayoutDashboard, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

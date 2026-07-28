@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Banknote, Plus, Loader2, Play, Download, Receipt } from 'lucide-react';
+import { Banknote, Loader2, Play, Download, Receipt } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
 import { format, subMonths } from 'date-fns';
 
@@ -41,7 +41,7 @@ export default function PayrollAdminPage() {
 
       if (error) throw error;
       setCycles(data || []);
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to load payroll cycles');
     } finally {
       setLoading(false);

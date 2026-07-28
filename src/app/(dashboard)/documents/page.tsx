@@ -14,7 +14,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ShieldCheck, UploadCloud, Loader2, Download, FileText, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { UploadDocumentForm } from '@/components/documents/upload-document-form';
@@ -56,7 +55,7 @@ export default function DocumentsPage() {
         }
       }
       setDocuments(data);
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to load documents');
     } finally {
       setLoading(false);

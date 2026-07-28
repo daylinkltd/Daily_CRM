@@ -39,7 +39,7 @@ export default function ExpensesPage() {
 
       if (error) throw error;
       setExpenses(data || []);
-    } catch (err: any) {
+    } catch {
       toast.error('Failed to load expenses');
     } finally {
       setLoading(false);

@@ -3,12 +3,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  ShieldAlert, Users, Building, Activity, Search,
+  ShieldAlert, Users, Building, Search,
   UserCheck, UserX, Trash2, Check, RefreshCw, Shield,
   Plus, Eye, EyeOff, UserCog, Ban, AlertTriangle,
   Mail, Phone, MessageSquare, ChevronDown, ChevronUp,
-  Inbox, TrendingUp, Building2, Clock, CheckCircle2,
-  Star, ArrowUpRight, Filter, Tag, Flag
+  Inbox, TrendingUp, Clock, Star, ArrowUpRight, Tag, Flag
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, FileText, Sparkles, Shield, Layers } from 'lucide-react';
+import { Loader2, Shield } from 'lucide-react';
 
 const CATEGORIES = [
   { value: 'CODE_OF_CONDUCT', label: 'Code of Conduct' },
@@ -55,7 +55,7 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
   const [effectiveAt, setEffectiveAt] = useState('');
   const [linkedModule, setLinkedModule] = useState('NONE');
 
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [, setDepartments] = useState<any[]>([]);
   const [selectedDeptIds, setSelectedDeptIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
           const targetDepts = (p.targets || []).filter((t: any) => t.target_type === 'DEPARTMENT').map((t: any) => t.target_id);
           setSelectedDeptIds(targetDepts);
         }
-      } catch (err) {
+      } catch {
         toast.error('Failed to load policy details');
       } finally {
         setLoading(false);

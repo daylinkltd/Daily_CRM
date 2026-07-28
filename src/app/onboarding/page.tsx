@@ -7,7 +7,7 @@ import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
-import { PLANS, Plan } from "@/config/plans";
+import { PLANS } from "@/config/plans";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,8 +20,7 @@ import {
   Check,
   Loader2,
   LogOut,
-  ChevronRight,
-  AlertTriangle
+  ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { INDUSTRY_TEMPLATES } from "@/app/(dashboard)/settings/retail/page";
@@ -53,7 +52,7 @@ function OnboardingInner() {
       setFullName(profile.full_name);
     }
   }, [profile, fullName]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [, setIsUploading] = useState(false);
 
   // Load pre-selected plan preference from signup step
   useEffect(() => {

@@ -221,6 +221,14 @@ w(`-- ---------------------------------------------------------------
 --
 --    to_regclass guards mean a table from an unapplied module
 --    migration is skipped rather than aborting the run.
+--
+--    CRITICAL: a RESTRICTIVE policy only ever subtracts. Postgres
+--    grants nothing unless at least one PERMISSIVE policy matches, so
+--    enabling RLS on a table that has none would return ZERO rows for
+--    every non-service-role caller — including owners. Any table
+--    without a permissive policy therefore gets a baseline
+--    workspace-membership one first, preserving the access it has
+--    today (and closing the tenant hole where RLS was simply off).
 -- ---------------------------------------------------------------`);
 
 const direct = [];
@@ -245,6 +253,21 @@ w(`    ) AS t(tbl, resource, module)
   LOOP
     IF to_regclass('public.'||r.tbl) IS NULL THEN CONTINUE; END IF;
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', r.tbl);
+
+    -- Guarantee a permissive baseline so enabling RLS can't black the
+    -- table out. Only added when the table has no permissive policy of
+    -- its own; existing ones are left exactly as they are.
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies
+      WHERE schemaname = 'public' AND tablename = r.tbl AND permissive = 'PERMISSIVE'
+    ) THEN
+      EXECUTE format(
+        'CREATE POLICY %I ON public.%I FOR ALL '
+        'USING (public.is_active_workspace_member(workspace_id, auth.uid())) '
+        'WITH CHECK (public.is_active_workspace_member(workspace_id, auth.uid()))',
+        'members_baseline', r.tbl);
+    END IF;
+
     FOR act IN
       SELECT * FROM (VALUES ${ACTIONS.map(
         (a) => `('${a}','${ACTION_SQL[a]}')`,
@@ -294,6 +317,20 @@ w(`    ) AS t(tbl, parent, fk, resource, module)
       CONTINUE;
     END IF;
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', r.tbl);
+
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_policies
+      WHERE schemaname = 'public' AND tablename = r.tbl AND permissive = 'PERMISSIVE'
+    ) THEN
+      EXECUTE format(
+        'CREATE POLICY %I ON public.%I FOR ALL '
+        'USING (EXISTS (SELECT 1 FROM public.%I p WHERE p.id = %I.%I '
+        '  AND public.is_active_workspace_member(p.workspace_id, auth.uid()))) '
+        'WITH CHECK (EXISTS (SELECT 1 FROM public.%I p WHERE p.id = %I.%I '
+        '  AND public.is_active_workspace_member(p.workspace_id, auth.uid())))',
+        'members_baseline', r.tbl, r.parent, r.tbl, r.fk, r.parent, r.tbl, r.fk);
+    END IF;
+
     FOR act IN
       SELECT * FROM (VALUES ${ACTIONS.map(
         (a) => `('${a}','${ACTION_SQL[a]}')`,

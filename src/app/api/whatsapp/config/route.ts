@@ -212,7 +212,7 @@ export async function POST(request: Request) {
       try {
         effectiveAccessToken = decrypt(existing.access_token);
         isNewToken = false;
-      } catch (err) {
+      } catch {
         return NextResponse.json(
           { error: "Existing stored access token could not be decrypted. Please re-enter a new access token." },
           { status: 400 }
