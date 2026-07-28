@@ -55,7 +55,8 @@ html[data-mode] .marketing {
   /* ---- Foreground ramp ----------------------------------------------- */
   --mkt-fg: oklch(0.99 0 0);
   --mkt-fg-muted: oklch(0.81 0.015 264); /* body copy      ~9:1 on canvas */
-  --mkt-fg-subtle: oklch(0.71 0.016 264); /* captions/labels ~6:1 on canvas */
+  --mkt-fg-subtle: oklch(0.75 0.016 264); /* captions/labels — clears AA even
+                                             on the lightest surface (--mkt-surface-2) */
 
   /* ---- Accent (follows html[data-theme]) ------------------------------ */
   /* --primary alone is only ~4.2:1 on the canvas, which fails AA for the
@@ -210,6 +211,34 @@ html[data-mode] .marketing {
 .mkt-link:focus-visible {
   outline: 2px solid var(--mkt-accent-text);
   outline-offset: 3px;
+}
+
+/* ============================ Fields ====================================== */
+
+.mkt-field {
+  border-radius: var(--radius-input);
+  border: 1px solid var(--mkt-line);
+  background-color: var(--mkt-surface-2);
+  color: var(--mkt-fg);
+  font-size: 0.875rem;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.mkt-field::placeholder {
+  color: var(--mkt-fg-subtle);
+}
+
+.mkt-field:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft-2);
+}
+
+.mkt-field option {
+  background-color: var(--mkt-surface-2);
+  color: var(--mkt-fg);
 }
 
 /* ============================ Cards ======================================= */

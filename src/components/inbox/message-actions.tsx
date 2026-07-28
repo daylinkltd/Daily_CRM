@@ -103,7 +103,7 @@ export function MessageActions({
       >
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
           <PopoverTrigger
-            className="flex h-5 w-5 items-center justify-center rounded-full text-popover-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="flex h-5 w-5 items-center justify-center rounded-full text-popover-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring data-[popup-open]:bg-muted data-[popup-open]:text-foreground"
             aria-label="React"
           >
             <SmilePlus className="h-3.5 w-3.5" />
@@ -117,7 +117,10 @@ export function MessageActions({
                 key={e}
                 type="button"
                 onClick={() => handlePickEmoji(e)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none transition-transform hover:scale-125 hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                // `transition-transform` alone left the hover/focus
+                // background snapping in with no fade, and keyboard users
+                // got no highlight at all beyond the ring.
+                className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none transition-[transform,background-color] hover:scale-125 hover:bg-muted focus-visible:scale-125 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 aria-label={`React with ${e}`}
               >
                 {e}

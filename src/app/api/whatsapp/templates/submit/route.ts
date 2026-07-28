@@ -56,6 +56,26 @@ function buildUpsertRow(
   }
 }
 
+// Columns added by migration 072 that older databases may not have
+// yet. The template is already live on Meta by the time we persist, so
+// a missing column must not lose the row — we strip these and retry.
+const OPTIONAL_TEMPLATE_COLUMNS = [
+  'header_media_url',
+  'submission_error',
+  'rejection_reason',
+  'last_submitted_at',
+] as const
+
+function isMissingColumnError(e: { code?: string; message?: string } | null) {
+  return (
+    e?.code === 'PGRST204' ||
+    e?.code === '42703' ||
+    /could not find the .* column|column .* does not exist/i.test(
+      e?.message ?? '',
+    )
+  )
+}
+
 async function upsertTemplateRow(
   supabase: SupabaseClient,
   row: ReturnType<typeof buildUpsertRow>,
@@ -65,11 +85,24 @@ async function upsertTemplateRow(
   // index on (user_id, name, language) and adds (workspace_id,
   // name, language), switch `onConflict` here so two teammates
   // can't shadow each other's same-named template.
-  return supabase
-    .from('message_templates')
-    .upsert(row, { onConflict: 'user_id,name,language' })
-    .select()
-    .single()
+  const doUpsert = (payload: Record<string, unknown>) =>
+    supabase
+      .from('message_templates')
+      .upsert(payload, { onConflict: 'user_id,name,language' })
+      .select()
+      .single()
+
+  const first = await doUpsert(row)
+  if (!first.error || !isMissingColumnError(first.error)) return first
+
+  // Retry without the migration-072 columns so the template still
+  // saves (minus the extra metadata) on a not-yet-migrated database.
+  console.warn(
+    '[templates/submit] message_templates is missing optional columns — run migration 072. Saving without them.',
+  )
+  const stripped: Record<string, unknown> = { ...row }
+  for (const col of OPTIONAL_TEMPLATE_COLUMNS) delete stripped[col]
+  return doUpsert(stripped)
 }
 
 /**

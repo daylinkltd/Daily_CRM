@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 export default function SignupPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 text-sm">
+      <div className="marketing min-h-screen bg-[var(--mkt-canvas)] flex flex-col items-center justify-center text-[var(--mkt-fg-muted)] text-sm">
         Loading signup...
       </div>
     }>
@@ -101,19 +101,19 @@ function SignupPageInner() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 text-center relative overflow-hidden">
-        <div className="relative z-10 w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/70 backdrop-blur-2xl p-8">
+      <div className="marketing min-h-screen bg-[var(--mkt-canvas)] flex flex-col items-center justify-center px-4 text-center relative overflow-hidden">
+        <div className="relative z-10 w-full max-w-md rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[var(--mkt-shadow)] p-8">
           <div className="flex justify-center mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <CheckCircle className="h-6 w-6 text-primary" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)]">
+              <CheckCircle className="h-6 w-6 text-[var(--mkt-accent-text)]" />
             </div>
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">Check your email</h2>
-          <p className="text-slate-400 text-sm mb-6">
-            We&apos;ve sent a confirmation link to <span className="text-white font-medium">{email}</span>. Please check your inbox and click the link to verify your account.
+          <h2 className="text-xl font-bold text-[var(--mkt-fg)] mb-2">Check your email</h2>
+          <p className="text-[var(--mkt-fg-muted)] text-sm mb-6">
+            We&apos;ve sent a confirmation link to <span className="text-[var(--mkt-fg)] font-medium">{email}</span>. Please check your inbox and click the link to verify your account.
           </p>
           <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"}>
-            <Button variant="outline" className="w-full border-slate-800 text-slate-300 hover:bg-slate-800">
+            <Button variant="outline" className="mkt-btn mkt-btn-secondary h-11 w-full text-sm">
               Back to sign in
             </Button>
           </Link>
@@ -123,48 +123,41 @@ function SignupPageInner() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center relative overflow-hidden" style={{ backgroundColor: '#020817' }}>
+    <div className="marketing min-h-screen flex flex-col items-center justify-center px-4 text-center relative overflow-hidden bg-[var(--mkt-canvas)]">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/10 blur-[140px]" />
 
-      <div 
-        className="relative z-10 w-full max-w-md rounded-3xl border backdrop-blur-2xl p-8 text-left shadow-2xl"
-        style={{ 
-          backgroundColor: 'rgba(15, 23, 42, 0.75)', 
-          borderColor: '#1e293b',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)' 
-        }}
-      >
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[var(--mkt-shadow)] p-8 text-left">
         <div className="flex justify-center mb-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ backgroundColor: 'rgba(2, 132, 199, 0.12)' }}>
-            <UsersRound className="h-6 w-6" style={{ color: '#0284C7' }} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)]">
+            <UsersRound className="h-6 w-6 text-[var(--mkt-accent-text)]" />
           </div>
         </div>
         
-        <h2 className="text-xl font-bold text-center mb-1" style={{ color: '#ffffff' }}>
+        <h2 className="text-xl font-bold text-center mb-1 text-[var(--mkt-fg)]">
           {inviteToken ? "Create account & join" : "Create your Daily CRM account"}
         </h2>
-        <p className="text-xs text-center mb-6" style={{ color: '#94a3b8' }}>
+        <p className="text-xs text-center mb-6 text-[var(--mkt-fg-muted)]">
           {inviteToken 
             ? "Verify your email, then accept the invitation to join your team."
             : "Get started with your dedicated omni-channel workspace today."}
         </p>
 
         {plan && (
-          <div className="mb-4 rounded-lg px-3 py-2 text-center text-xs font-semibold capitalize border" style={{ backgroundColor: 'rgba(2, 132, 199, 0.1)', borderColor: 'rgba(2, 132, 199, 0.25)', color: '#0284C7' }}>
+          <div className="mb-4 rounded-lg px-3 py-2 text-center text-xs font-semibold capitalize border border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent-text)]">
             Registering for {plan} plan ({cycle || "monthly"})
           </div>
         )}
 
         <form onSubmit={handleSignup} className="space-y-4">
           {error && (
-            <div className="rounded-lg border px-4 py-3 text-xs" style={{ backgroundColor: 'rgba(244, 63, 94, 0.1)', borderColor: 'rgba(244, 63, 94, 0.25)', color: '#fb7185' }}>
+            <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-xs text-rose-300">
               {error}
             </div>
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="fullName" className="text-xs font-medium" style={{ color: '#cbd5e1' }}>Full name</Label>
+            <Label htmlFor="fullName" className="text-xs font-medium text-[var(--mkt-fg-muted)]">Full name</Label>
             <Input
               id="fullName"
               type="text"
@@ -172,13 +165,12 @@ function SignupPageInner() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-primary"
-              style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
+              className="mkt-field h-10 border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] text-[var(--mkt-fg)]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-xs font-medium" style={{ color: '#cbd5e1' }}>Email</Label>
+            <Label htmlFor="email" className="text-xs font-medium text-[var(--mkt-fg-muted)]">Email</Label>
             <Input
               id="email"
               type="email"
@@ -186,13 +178,12 @@ function SignupPageInner() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-primary"
-              style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
+              className="mkt-field h-10 border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] text-[var(--mkt-fg)]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-xs font-medium" style={{ color: '#cbd5e1' }}>Password</Label>
+            <Label htmlFor="password" className="text-xs font-medium text-[var(--mkt-fg-muted)]">Password</Label>
             <Input
               id="password"
               type="password"
@@ -200,13 +191,12 @@ function SignupPageInner() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-primary"
-              style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
+              className="mkt-field h-10 border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] text-[var(--mkt-fg)]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="confirmPassword" className="text-xs font-medium" style={{ color: '#cbd5e1' }}>Confirm password</Label>
+            <Label htmlFor="confirmPassword" className="text-xs font-medium text-[var(--mkt-fg-muted)]">Confirm password</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -214,24 +204,22 @@ function SignupPageInner() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="h-10 rounded-xl placeholder:text-[#64748b] focus:border-primary"
-              style={{ backgroundColor: 'rgba(2, 8, 23, 0.85)', borderColor: '#1e293b', color: '#ffffff' }}
+              className="mkt-field h-10 border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] text-[var(--mkt-fg)]"
             />
           </div>
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-10 rounded-xl mt-2 font-semibold transition-all disabled:opacity-50"
-            style={{ backgroundColor: '#0284C7', color: '#ffffff', boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.3)' }}
+            className="mkt-btn mkt-btn-primary mt-2 h-11 w-full text-sm disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Create account"}
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs" style={{ color: '#64748b' }}>
+        <p className="mt-6 text-center text-xs text-[var(--mkt-fg-subtle)]">
           Already have an account?{" "}
-          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"} className="hover:underline font-medium" style={{ color: '#0284C7' }}>
+          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"} className="hover:underline font-medium text-[var(--mkt-accent-text)]">
             Sign in
           </Link>
         </p>

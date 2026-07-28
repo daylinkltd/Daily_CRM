@@ -154,19 +154,20 @@ function SalesModal({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/75" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-slate-700/60 bg-[#020817] shadow-2xl shadow-black/80 animate-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[var(--mkt-shadow)] animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 p-6 pb-5">
+        <div className="flex items-center justify-between border-b border-[var(--mkt-line-soft)] p-6 pb-5">
           <div>
-            <h2 className="text-xl font-extrabold text-white">Talk to Sales</h2>
-            <p className="text-sm text-slate-400 mt-0.5">We&apos;ll get back to you within 24 hours</p>
+            <h2 className="text-xl font-extrabold text-[var(--mkt-fg)]">Talk to Sales</h2>
+            <p className="text-sm text-[var(--mkt-fg-muted)] mt-0.5">We&apos;ll get back to you within 24 hours</p>
           </div>
           <button
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 hover:bg-slate-800 transition-all"
+            aria-label="Close"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mkt-accent-text)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -174,94 +175,91 @@ function SalesModal({
 
         {submitted ? (
           <div className="p-8 text-center">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30 mb-5">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/40 mb-5">
               <CheckCircle2 className="h-8 w-8 text-emerald-400" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Request Submitted!</h3>
-            <p className="text-slate-400 text-sm mb-6">
-              Thanks, <strong className="text-white">{form.full_name.split(" ")[0]}</strong>! Our team will reach out to{" "}
-              <strong className="text-primary">{form.email}</strong> within 24 hours.
+            <h3 className="text-xl font-bold text-[var(--mkt-fg)] mb-2">Request Submitted!</h3>
+            <p className="text-[var(--mkt-fg-muted)] text-sm mb-6">
+              Thanks, <strong className="text-[var(--mkt-fg)]">{form.full_name.split(" ")[0]}</strong>! Our team will reach out to{" "}
+              <strong className="text-[var(--mkt-accent-text)]">{form.email}</strong> within 24 hours.
             </p>
-            <button
-              onClick={onClose}
-              className="rounded-xl bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 text-sm font-semibold transition-all"
-            >
+            <button onClick={onClose} className="mkt-btn mkt-btn-secondary mkt-btn-md">
               Close
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {error && (
-              <div className="rounded-xl border border-rose-500/20 bg-rose-500/8 px-4 py-3 text-sm text-rose-400">
+              <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
                 {error}
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name *</label>
+                <label className="text-xs font-bold text-[var(--mkt-fg-muted)] uppercase tracking-wider">Full Name *</label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--mkt-fg-subtle)]" />
                   <input
                     required
                     placeholder="Jane Smith"
                     value={form.full_name}
                     onChange={e => set("full_name", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
+                    className="mkt-field w-full pl-9 pr-3 py-2.5"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Company *</label>
+                <label className="text-xs font-bold text-[var(--mkt-fg-muted)] uppercase tracking-wider">Company *</label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--mkt-fg-subtle)]" />
                   <input
                     required
                     placeholder="Acme Corp"
                     value={form.company_name}
                     onChange={e => set("company_name", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
+                    className="mkt-field w-full pl-9 pr-3 py-2.5"
                   />
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Work Email *</label>
+              <label className="text-xs font-bold text-[var(--mkt-fg-muted)] uppercase tracking-wider">Work Email *</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--mkt-fg-subtle)]" />
                 <input
                   required
                   type="email"
                   placeholder="you@company.com"
                   value={form.email}
                   onChange={e => set("email", e.target.value)}
-                  className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
+                  className="mkt-field w-full pl-9 pr-3 py-2.5"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone</label>
+                <label className="text-xs font-bold text-[var(--mkt-fg-muted)] uppercase tracking-wider">Phone</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--mkt-fg-subtle)]" />
                   <input
                     placeholder="+91 98765 43210"
                     value={form.phone}
                     onChange={e => set("phone", e.target.value)}
-                    className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
+                    className="mkt-field w-full pl-9 pr-3 py-2.5"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Team Size</label>
+                <label className="text-xs font-bold text-[var(--mkt-fg-muted)] uppercase tracking-wider">Team Size</label>
                 <div className="relative">
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--mkt-fg-subtle)] pointer-events-none" />
                   <select
                     value={form.team_size}
                     onChange={e => set("team_size", e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-slate-700/60 bg-slate-900/60 px-3 py-2.5 text-sm text-white focus:border-primary focus:outline-none transition-colors"
+                    className="mkt-field w-full appearance-none px-3 py-2.5"
                   >
                     <option value="">Select...</option>
                     <option value="1-5">1–5</option>
@@ -274,17 +272,17 @@ function SalesModal({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Plan Interest</label>
+              <label className="text-xs font-bold text-[var(--mkt-fg-muted)] uppercase tracking-wider">Plan Interest</label>
               <div className="grid grid-cols-2 gap-2">
                 {(["growth", "custom"] as const).map(p => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => set("plan_interest", p)}
-                    className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all text-left ${
+                    className={`rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mkt-accent-text)] ${
                       form.plan_interest === p
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-slate-700 text-slate-400 hover:border-slate-600"
+                        ? "border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent-text)]"
+                        : "border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]"
                     }`}
                   >
                     {p === "growth" ? "Growth — $20/mo" : "Custom Solution"}
@@ -294,20 +292,20 @@ function SalesModal({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Message</label>
+              <label className="text-xs font-bold text-[var(--mkt-fg-muted)] uppercase tracking-wider">Message</label>
               <textarea
                 rows={3}
                 placeholder="Tell us about your use case, current tools, or any specific requirements..."
                 value={form.message}
                 onChange={e => set("message", e.target.value)}
-                className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors resize-none"
+                className="mkt-field w-full px-4 py-3 resize-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold py-3 text-sm transition-all shadow-lg shadow-primary/20 hover:shadow-primary/35 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="mkt-btn mkt-btn-primary mkt-btn-md w-full text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
@@ -577,7 +575,7 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className="flex-1 space-y-2 py-3">
+                <div className="flex flex-1 flex-col justify-end space-y-2 py-3">
                   <div className="flex justify-start">
                     <div className="max-w-[80%] rounded-xl rounded-bl-sm bg-[var(--mkt-surface-2)] px-2.5 py-1.5">
                       <p className="text-[10px] leading-snug text-[var(--mkt-fg)]">
@@ -721,20 +719,20 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS ──────────────────────────────────────────────────── */}
-      <section className="py-24 px-6 bg-slate-900/20 border-y border-slate-800/50">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold tracking-tight mb-3">
+      <section className="mkt-section mkt-band-surface">
+        <div className="mkt-container">
+          <div className="text-center mb-14">
+            <h2 className="mkt-h2 mb-3">
               Up and running in{" "}
-              <span className="text-primary">minutes</span>
+              <span className="text-[var(--mkt-accent-text)]">minutes</span>
             </h2>
-            <p className="text-slate-400 text-lg">
+            <p className="mkt-lead">
               No complex setup. Connect, configure, and start closing.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            <div className="hidden md:block absolute top-14 left-1/3 right-1/3 h-px border-t border-dashed border-slate-700" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 relative">
+            <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-[var(--mkt-line)] to-transparent" />
             {[
               { step: "01", icon: Globe, title: "Connect Channels", desc: "Link your WhatsApp Business API, Instagram, Facebook Page, and email in one click.", color: "#0284C7" },
               { step: "02", icon: Zap, title: "Configure Automations", desc: "Set up lead qualification, auto-responses, and team routing with our visual builder.", color: "#a855f7" },
@@ -742,14 +740,14 @@ export default function LandingPage() {
             ].map((item) => (
               <div key={item.step} className="relative text-center group">
                 <div
-                  className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border shadow-lg transition-transform group-hover:scale-110"
-                  style={{ background: item.color + "15", borderColor: item.color + "30", boxShadow: `0 0 30px ${item.color}15` }}
+                  className="relative z-10 mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border bg-[var(--mkt-surface)] transition-transform group-hover:scale-105"
+                  style={{ borderColor: item.color + "59" }}
                 >
-                  <item.icon className="h-8 w-8" style={{ color: item.color }} />
+                  <item.icon className="h-7 w-7" style={{ color: item.color }} />
                 </div>
-                <div className="text-xs font-extrabold tracking-widest mb-2" style={{ color: item.color }}>{item.step}</div>
-                <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
+                <div className="text-xs font-extrabold tracking-[0.2em] mb-2" style={{ color: item.color }}>{item.step}</div>
+                <h3 className="text-lg font-bold text-[var(--mkt-fg)] mb-2">{item.title}</h3>
+                <p className="text-sm text-[var(--mkt-fg-muted)] leading-relaxed max-w-xs mx-auto">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -757,37 +755,34 @@ export default function LandingPage() {
       </section>
 
       {/* ── TESTIMONIALS ──────────────────────────────────────────────────── */}
-      <section id="testimonials" className="py-28 px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/8 px-4 py-1.5 text-xs font-semibold text-amber-400 mb-4">
-              <Star className="h-3 w-3 fill-current" /> Loved by teams
+      <section id="testimonials" className="mkt-section">
+        <div className="mkt-container">
+          <div className="text-center mb-14">
+            <div className="mkt-eyebrow mb-4">
+              <Star className="h-3 w-3 fill-current text-amber-300" /> Loved by teams
             </div>
-            <h2 className="text-4xl font-extrabold tracking-tight">Real results, real teams</h2>
+            <h2 className="mkt-h2">Real results, real teams</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {testimonials.map((t) => (
-              <div
-                key={t.name}
-                className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-7 backdrop-blur-sm hover:border-slate-700 transition-all hover:-translate-y-1 hover:shadow-xl group"
-              >
+              <div key={t.name} className="mkt-card mkt-card-hover flex flex-col p-6 sm:p-7">
                 <div className="flex mb-4">
                   {Array.from({ length: t.stars }).map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <p className="text-slate-300 text-sm leading-relaxed mb-6 italic">&ldquo;{t.text}&rdquo;</p>
-                <div className="flex items-center gap-3">
+                <p className="text-[var(--mkt-fg-muted)] text-sm leading-relaxed mb-6 flex-1">&ldquo;{t.text}&rdquo;</p>
+                <div className="flex items-center gap-3 border-t border-[var(--mkt-line-soft)] pt-4">
                   <div
                     className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold shrink-0"
-                    style={{ background: t.color + "20", color: t.color }}
+                    style={{ background: t.color + "33", color: t.color }}
                   >
                     {t.avatar}
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-white">{t.name}</div>
-                    <div className="text-xs text-slate-500">{t.title}</div>
+                    <div className="text-sm font-semibold text-[var(--mkt-fg)]">{t.name}</div>
+                    <div className="text-xs text-[var(--mkt-fg-subtle)]">{t.title}</div>
                   </div>
                 </div>
               </div>
@@ -797,28 +792,28 @@ export default function LandingPage() {
       </section>
 
       {/* ── PRICING ───────────────────────────────────────────────────────── */}
-      <section id="pricing" className="py-28 px-6 bg-slate-900/20 border-y border-slate-800/50 relative">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[140px]" />
+      <section id="pricing" className="mkt-section mkt-band-surface">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/6 blur-[150px]" />
         </div>
 
-        <div className="mx-auto max-w-7xl relative z-10">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 text-xs font-semibold text-primary mb-4">
+        <div className="mkt-container">
+          <div className="text-center mb-14">
+            <div className="mkt-eyebrow mb-4 border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent-text)]">
               <Lock className="h-3 w-3" /> Flat-Fee CRM Plans
             </div>
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-3">Simple, transparent pricing</h2>
-            <p className="text-slate-400 text-lg">Flat rate per team. No seat pricing. Prices exclude GST.</p>
-            
+            <h2 className="mkt-h2 mb-3">Simple, transparent pricing</h2>
+            <p className="mkt-lead">Flat rate per team. No seat pricing. Prices exclude GST.</p>
+
             {/* Monthly/Annual Toggle */}
-            <div className="flex items-center justify-center gap-4 mt-8">
+            <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-1">
               <button
                 type="button"
                 onClick={() => setBillingCycle('monthly')}
-                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${
+                className={`mkt-btn mkt-btn-sm ${
                   billingCycle === 'monthly'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-slate-400 hover:text-white bg-slate-950/40 border border-slate-800'
+                    ? 'mkt-btn-primary'
+                    : 'text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]'
                 }`}
               >
                 Monthly
@@ -826,21 +821,21 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={() => setBillingCycle('annual')}
-                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors relative ${
+                className={`mkt-btn mkt-btn-sm relative ${
                   billingCycle === 'annual'
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-slate-400 hover:text-white bg-slate-950/40 border border-slate-800'
+                    ? 'mkt-btn-primary'
+                    : 'text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]'
                 }`}
               >
                 Annual
-                <span className="absolute -top-3 -right-6 px-1.5 py-0.5 bg-emerald-500 text-white text-[9px] font-bold rounded-full uppercase tracking-wider">
+                <span className="absolute -top-3.5 -right-5 px-1.5 py-0.5 bg-emerald-500 text-[#06131f] text-[9px] font-bold rounded-full uppercase tracking-wider">
                   2 Months Free
                 </span>
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-5 mx-auto justify-center">
             {PLANS.map((plan) => {
               const isFree = plan.priceMonthly === 0;
               const isCustom = plan.priceMonthly === -1;
@@ -880,40 +875,40 @@ export default function LandingPage() {
               return (
                 <div
                   key={plan.id}
-                  className={`relative flex flex-col rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-2xl ${
+                  className={`mkt-card flex flex-col p-6 ${
                     plan.isRecommended
-                      ? "border-2 border-primary/50 bg-gradient-to-b from-primary/10 to-slate-900/80 shadow-xl shadow-primary/10 lg:scale-105"
-                      : "border border-slate-800/60 bg-slate-900/40"
+                      ? "border-[var(--mkt-accent-line)] bg-[linear-gradient(to_bottom,var(--mkt-accent-soft),var(--mkt-surface))] shadow-[var(--mkt-shadow)]"
+                      : "mkt-card-hover"
                   }`}
                 >
                   {plan.isRecommended && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-lg shadow-primary/30 whitespace-nowrap">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-primary text-primary-foreground text-[11px] font-bold tracking-wide rounded-full whitespace-nowrap">
                       RECOMMENDED
                     </div>
                   )}
 
                   <div className="mb-6">
-                    <h3 className="text-lg font-extrabold text-white mb-1">{plan.name}</h3>
+                    <h3 className="text-base font-extrabold text-[var(--mkt-fg)] mb-2">{plan.name}</h3>
                     <div className="flex items-end gap-1 mb-2">
-                      <span className="text-3xl font-extrabold text-white">{displayPrice}</span>
-                      <span className="text-slate-400 text-xs pb-1">{periodLabel}</span>
+                      <span className="text-3xl font-extrabold text-[var(--mkt-fg)]">{displayPrice}</span>
+                      <span className="text-[var(--mkt-fg-subtle)] text-xs pb-1.5">{periodLabel}</span>
                     </div>
                     {!isFree && !isCustom && (
-                      <p className="text-[11px] text-slate-500 mb-2">
-                        {billingCycle === "annual" 
+                      <p className="text-[11px] text-[var(--mkt-fg-subtle)]">
+                        {billingCycle === "annual"
                           ? `Equivalent to ₹${Math.round(plan.priceYearly / 12).toLocaleString()}/mo`
                           : `Equivalent to ₹${(plan.priceMonthly * 12).toLocaleString()}/yr`}
                         {" (excl. GST)"}
                       </p>
                     )}
-                    {isFree && <p className="text-[11px] text-primary mb-2">14-day free trial</p>}
-                    {isCustom && <p className="text-[11px] text-slate-500 mb-2">Tailored for large operations</p>}
+                    {isFree && <p className="text-[11px] font-semibold text-[var(--mkt-accent-text)]">14-day free trial</p>}
+                    {isCustom && <p className="text-[11px] text-[var(--mkt-fg-subtle)]">Tailored for large operations</p>}
                   </div>
 
                   <ul className="space-y-2.5 mb-6 flex-1">
                     {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-xs text-slate-300">
-                        <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${plan.isRecommended ? "text-primary" : "text-emerald-400"}`} />
+                      <li key={f} className="flex items-start gap-2 text-xs leading-relaxed text-[var(--mkt-fg-muted)]">
+                        <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${plan.isRecommended ? "text-[var(--mkt-accent-text)]" : "text-emerald-400"}`} />
                         <span>{f}</span>
                       </li>
                     ))}
@@ -922,10 +917,8 @@ export default function LandingPage() {
                   <button
                     type="button"
                     onClick={handleAction}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition-all ${
-                      plan.isRecommended
-                        ? "bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg shadow-primary/20 hover:shadow-primary/35 hover:scale-105"
-                        : "border border-slate-700 text-slate-200 hover:border-slate-600 hover:text-white hover:bg-slate-800/60"
+                    className={`mkt-btn mkt-btn-md w-full text-sm ${
+                      plan.isRecommended ? "mkt-btn-primary" : "mkt-btn-secondary"
                     }`}
                   >
                     {plan.ctaType === 'trial' ? 'Start Free Trial' : plan.ctaType === 'contact' ? 'Contact Sales' : 'Subscribe Now'}
@@ -936,13 +929,16 @@ export default function LandingPage() {
             })}
           </div>
 
-          <div className="text-center text-slate-500 text-xs mt-12 space-y-2">
+          <div className="mx-auto max-w-2xl text-center text-[var(--mkt-fg-subtle)] text-xs leading-relaxed mt-12 space-y-2">
             <p>
               * WhatsApp message allowance covers outbound system messages. Meta Cloud API per-message templates charges are billed separately.
             </p>
             <p>
               All plans include an onboarding setup call. Questions?{" "}
-              <button onClick={() => openModal("growth")} className="text-primary hover:text-primary/80 transition-colors">
+              <button
+                onClick={() => openModal("growth")}
+                className="mkt-link font-semibold text-[var(--mkt-accent-text)] underline underline-offset-2"
+              >
                 Talk to us
               </button>
             </p>
@@ -951,9 +947,9 @@ export default function LandingPage() {
       </section>
 
       {/* ── TRUST BAR ─────────────────────────────────────────────────────── */}
-      <section className="py-20 px-6">
-        <div className="mx-auto max-w-4xl">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+      <section className="mkt-section">
+        <div className="mkt-container max-w-[896px]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-8 text-center">
             {[
               { icon: Shield, title: "Enterprise Security", desc: "Row-level security, encrypted data at rest, SOC2-ready infrastructure.", color: "#0284C7" },
               { icon: Clock, title: "99.9% Uptime SLA", desc: "Built on Supabase + Vercel with global edge distribution.", color: "#10b981" },
@@ -961,14 +957,14 @@ export default function LandingPage() {
             ].map((item) => (
               <div key={item.title} className="flex flex-col items-center gap-4">
                 <div
-                  className="flex h-14 w-14 items-center justify-center rounded-2xl border"
-                  style={{ background: item.color + "12", borderColor: item.color + "25" }}
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl border bg-[var(--mkt-surface)]"
+                  style={{ borderColor: item.color + "59" }}
                 >
-                  <item.icon className="h-7 w-7" style={{ color: item.color }} />
+                  <item.icon className="h-6 w-6" style={{ color: item.color }} />
                 </div>
                 <div>
-                  <div className="font-bold text-white mb-1">{item.title}</div>
-                  <div className="text-sm text-slate-400 leading-relaxed">{item.desc}</div>
+                  <div className="font-bold text-[var(--mkt-fg)] mb-1">{item.title}</div>
+                  <div className="text-sm text-[var(--mkt-fg-muted)] leading-relaxed">{item.desc}</div>
                 </div>
               </div>
             ))}
@@ -977,26 +973,25 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA BANNER ────────────────────────────────────────────────────── */}
-      <section className="py-24 px-6 relative overflow-hidden">
+      <section className="mkt-section overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-[#a78bfa]/8" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-[#a78bfa]/10" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-3xl text-center">
-          <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+        <div className="mkt-container mkt-container-narrow text-center">
+          <h2 className="mkt-h2 mb-4">
             Ready to transform your{" "}
             <span className="bg-gradient-to-r from-primary to-[#a78bfa] bg-clip-text text-transparent">
               customer experience?
             </span>
           </h2>
-          <p className="text-slate-400 text-lg mb-10">
+          <p className="mkt-lead mb-10">
             Join teams using Daily CRM to close faster, respond smarter, and grow without limits.
           </p>
           <button
             onClick={() => openModal("growth")}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-10 py-4 text-base font-bold text-white hover:bg-primary-hover transition-all shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-105"
+            className="mkt-btn mkt-btn-primary mkt-btn-lg"
           >
             Get Started Today <ArrowRight className="h-5 w-5" />
           </button>
@@ -1004,8 +999,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-slate-800/50 bg-slate-950/80 py-10 px-6">
-        <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      <footer className="border-t border-[var(--mkt-line-soft)] bg-[var(--mkt-band)] py-10 px-6">
+        <div className="mx-auto max-w-[1152px] flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <Image
               src="/logolight.png"
@@ -1016,14 +1011,14 @@ export default function LandingPage() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
-            <a href="#features" className="hover:text-slate-300 transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-slate-300 transition-colors">Pricing</a>
-            <Link href="/login" className="hover:text-slate-300 transition-colors">Sign in</Link>
-            <button onClick={() => openModal("growth")} className="hover:text-slate-300 transition-colors">Contact</button>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+            <a href="#features" className="mkt-link">Features</a>
+            <a href="#pricing" className="mkt-link">Pricing</a>
+            <Link href="/login" className="mkt-link">Sign in</Link>
+            <button onClick={() => openModal("growth")} className="mkt-link">Contact</button>
           </div>
 
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-[var(--mkt-fg-subtle)]">
             © {new Date().getFullYear()} Daylink. All rights reserved.
           </p>
         </div>

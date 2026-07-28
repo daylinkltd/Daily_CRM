@@ -2,9 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  useVisibleInterval,
+  REALTIME_BACKUP_POLL_MS,
+} from "@/hooks/use-visible-interval";
 import { cn } from "@/lib/utils";
 import type { Conversation, ConversationStatus } from "@/types";
-import { Search, ChevronDown, Bot, Trash2 } from "lucide-react";
+import { Search, ChevronDown, Bot, Trash2, Bell, BellOff } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +31,10 @@ interface ConversationListProps {
   onConversationsLoaded: (conversations: Conversation[]) => void;
   workspaceId?: string;
   onOpenNewChat?: () => void;
+  /** Message-alert controls (sound + desktop notifications). */
+  notificationsEnabled?: boolean;
+  notificationPermission?: string;
+  onToggleNotifications?: () => void | Promise<void>;
   onDeleteConversation?: (conversationId: string) => void;
   /**
    * Increment to force the fetch effect below to refire. The parent
@@ -77,6 +85,9 @@ export function ConversationList({
   onConversationsLoaded,
   workspaceId,
   onOpenNewChat,
+  notificationsEnabled = false,
+  notificationPermission,
+  onToggleNotifications,
   onDeleteConversation,
   resyncToken = 0,
   chatbotEnabled = false,
@@ -90,60 +101,49 @@ export function ConversationList({
     onConversationsLoadedRef.current = onConversationsLoaded;
   });
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchConvs = async () => {
-      if (!workspaceId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await fetch(`/api/conversations?workspace_id=${workspaceId}`);
-        const payload = await res.json();
-
-        if (cancelled) return;
-
-        if (res.ok && Array.isArray(payload.conversations)) {
-          onConversationsLoadedRef.current(payload.conversations);
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.warn("[ConversationList] API fetch failed, trying direct query:", err);
-      }
-
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("conversations")
-        .select("*, contact:contacts(*)")
-        .eq("workspace_id", workspaceId)
-        .order("last_message_at", { ascending: false });
-
-      if (cancelled) return;
-
-      if (error) {
-        console.error("Failed to fetch conversations:", error);
-        setLoading(false);
-        return;
-      }
-
-      onConversationsLoadedRef.current(data ?? []);
+  const fetchConvs = useCallback(async () => {
+    if (!workspaceId) {
       setLoading(false);
-    };
+      return;
+    }
 
-    void fetchConvs();
+    try {
+      const res = await fetch(`/api/conversations?workspace_id=${workspaceId}`);
+      const payload = await res.json();
 
-    const interval = setInterval(() => {
-      void fetchConvs();
-    }, 4000);
+      if (res.ok && Array.isArray(payload.conversations)) {
+        onConversationsLoadedRef.current(payload.conversations);
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.warn("[ConversationList] API fetch failed, trying direct query:", err);
+    }
 
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("conversations")
+      .select("*, contact:contacts(*)")
+      .eq("workspace_id", workspaceId)
+      .order("last_message_at", { ascending: false });
+
+    if (error) {
+      console.error("Failed to fetch conversations:", error);
+      setLoading(false);
+      return;
+    }
+
+    onConversationsLoadedRef.current(data ?? []);
+    setLoading(false);
+    // resyncToken is a deliberate dependency: bumping it forces a refetch.
   }, [workspaceId, resyncToken]);
+
+  // Realtime carries the live updates; this is the catch-up net. Paused
+  // while the tab is hidden and re-run the moment it's focused again,
+  // so an idle tab costs nothing (it used to poll every 4s forever).
+  useVisibleInterval(fetchConvs, REALTIME_BACKUP_POLL_MS, {
+    enabled: Boolean(workspaceId),
+  });
 
   const filtered = useMemo(() => {
     let result = conversations;
@@ -197,6 +197,38 @@ export function ConversationList({
               className="border-border bg-muted pl-9 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 h-9"
             />
           </div>
+          {onToggleNotifications && (
+            <button
+              type="button"
+              onClick={() => void onToggleNotifications()}
+              aria-pressed={notificationsEnabled}
+              title={
+                notificationPermission === "denied"
+                  ? "Notifications are blocked for this site — re-enable them in your browser's site settings"
+                  : notificationsEnabled
+                    ? "Message alerts on — click to mute"
+                    : "Message alerts off — click to enable sound and desktop notifications"
+              }
+              className={cn(
+                "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+                notificationsEnabled
+                  ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+                  : "border-border bg-muted text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {notificationsEnabled ? (
+                <Bell className="h-4 w-4" />
+              ) : (
+                <BellOff className="h-4 w-4" />
+              )}
+              <span className="sr-only">
+                {notificationsEnabled
+                  ? "Mute message alerts"
+                  : "Enable message alerts"}
+              </span>
+            </button>
+          )}
           {onOpenNewChat && (
             <Button
               onClick={onOpenNewChat}

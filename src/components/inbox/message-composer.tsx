@@ -37,6 +37,13 @@ import {
   deleteAccountMedia,
   MEDIA_MAX_BYTES_BY_KIND,
 } from "@/lib/storage/upload-media";
+import {
+  describeMicError,
+  describeRecordingSupport,
+  getAudioContextConstructor,
+  readMicPermissionState,
+  readRecordingEnv,
+} from "@/lib/media/mic-support";
 import { ReplyQuote } from "./reply-quote";
 
 /** Media content types an agent can send from the composer. */
@@ -184,6 +191,15 @@ export function MessageComposer({
   const recorderRef = useRef<import("opus-recorder").default | null>(null);
   const cancelledRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // We own the mic stream and the AudioContext (see startRecording) —
+  // opus-recorder only tears down resources it opened itself, so both are
+  // released here or the browser keeps showing its "recording" indicator.
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  // Re-entry guard for the window between the click and `recording` going
+  // true (permission prompt + encoder import) — the menu item is still
+  // clickable there, and a second run would open a second mic stream.
+  const startingRef = useRef(false);
 
   // Viewers (read-only role) can browse the inbox but never send.
   // For solo users this is always true — single-owner accounts pass
@@ -200,6 +216,24 @@ export function MessageComposer({
     }
   }, []);
 
+  // Stop the mic tracks. Done as its own step (and as early as possible)
+  // because it's what clears the browser tab's red "recording" indicator.
+  const releaseMic = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
+  // Full audio teardown: mic tracks + the AudioContext we created for the
+  // encoder. Safe to call twice.
+  const releaseAudio = useCallback(() => {
+    releaseMic();
+    const context = audioContextRef.current;
+    audioContextRef.current = null;
+    if (context && context.state !== "closed") {
+      void context.close().catch(() => {});
+    }
+  }, [releaseMic]);
+
   // Tear down any live recording + timer on unmount so a mid-record
   // navigation doesn't leak the mic, and GC a staged-but-unsent
   // attachment so it doesn't orphan in the bucket.
@@ -207,11 +241,12 @@ export function MessageComposer({
     return () => {
       clearTimer();
       cancelledRef.current = true;
-      // stop() releases the mic stream + audio context inside opus-recorder.
       void recorderRef.current?.stop().catch(() => {});
+      recorderRef.current = null;
+      releaseAudio();
       removeStaged(draftRef.current?.path);
     };
-  }, [clearTimer, removeStaged]);
+  }, [clearTimer, releaseAudio, removeStaged]);
 
   const adjustHeight = useCallback(() => {
     const el = textareaRef.current;
@@ -333,51 +368,125 @@ export function MessageComposer({
   );
 
   const startRecording = useCallback(async () => {
-    if (inputsDisabled || busy || recording) return;
-    if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === "undefined") {
-      toast.error("Voice recording isn't supported in this browser.");
+    if (inputsDisabled || busy || recording || startingRef.current) return;
+
+    // Capability gate first: over plain http `navigator.mediaDevices` is
+    // undefined *because the context isn't secure*, which must not be
+    // reported as a permission problem (see lib/media/mic-support).
+    const support = describeRecordingSupport(readRecordingEnv());
+    if (!support.ok) {
+      toast.error(support.message);
       return;
     }
+
+    startingRef.current = true;
     try {
-      // Lazy-load the encoder (≈400 KB worker) only when the user records,
-      // keeping it out of the main bundle.
-      const { default: Recorder } = await import("opus-recorder");
-      const recorder = new Recorder({
-        encoderPath: OPUS_ENCODER_PATH,
-        numberOfChannels: 1,
-        encoderApplication: 2048, // VOIP — tuned for speech
-        encoderSampleRate: 48000,
-        streamPages: false, // one callback with the complete file on stop
-      });
-      cancelledRef.current = false;
-      recorder.ondataavailable = (bytes) => {
-        if (cancelledRef.current) return;
-        void finalizeRecording(bytes);
-      };
-      recorderRef.current = recorder;
-      await recorder.start();
-      setRecording(true);
-      setRecordSeconds(0);
-      timerRef.current = setInterval(() => setRecordSeconds((s) => s + 1), 1000);
-    } catch {
-      void recorderRef.current?.stop().catch(() => {});
-      recorderRef.current = null;
-      toast.error("Microphone access denied or unavailable.");
+      // Request the mic FIRST, as the first await in the click handler.
+      // opus-recorder would otherwise call getUserMedia itself from inside
+      // start() — after the ~400 KB encoder import has been awaited, by
+      // which point Safari/Firefox may no longer treat the call as
+      // user-initiated and refuse to show the "Allow microphone?" prompt.
+      // Doing it here also means we see the real rejection reason.
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+      } catch (err) {
+        // permissions.query distinguishes "blocked in site settings" from
+        // "prompt dismissed" — both reject with NotAllowedError.
+        const permission = await readMicPermissionState();
+        toast.error(describeMicError(err, permission));
+        return;
+      }
+      streamRef.current = stream;
+
+      try {
+        // Lazy-load the encoder (≈400 KB worker) only when the user records,
+        // keeping it out of the main bundle.
+        const { default: Recorder } = await import("opus-recorder");
+        // Mid-flight cancel/unmount already released the stream — don't
+        // spin the encoder up against dead tracks.
+        if (streamRef.current !== stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        const AudioContextCtor = getAudioContextConstructor();
+        if (!AudioContextCtor) throw new Error("Web Audio is unavailable");
+        const context = new AudioContextCtor();
+        audioContextRef.current = context;
+        const recorder = new Recorder({
+          encoderPath: OPUS_ENCODER_PATH,
+          numberOfChannels: 1,
+          encoderApplication: 2048, // VOIP — tuned for speech
+          encoderSampleRate: 48000,
+          streamPages: false, // one callback with the complete file on stop
+          // Our stream/context, so the recorder skips its own getUserMedia.
+          sourceNode: context.createMediaStreamSource(stream),
+        });
+        cancelledRef.current = false;
+        recorder.ondataavailable = (bytes) => {
+          if (cancelledRef.current) return;
+          void finalizeRecording(bytes);
+        };
+        recorderRef.current = recorder;
+        await recorder.start();
+        setRecording(true);
+        setRecordSeconds(0);
+        timerRef.current = setInterval(
+          () => setRecordSeconds((s) => s + 1),
+          1000,
+        );
+      } catch (err) {
+        // The encoder failed, not the mic — say so, and always hand the mic
+        // back so the tab's recording indicator clears.
+        void recorderRef.current?.stop().catch(() => {});
+        recorderRef.current = null;
+        releaseAudio();
+        const detail = err instanceof Error ? err.message : "";
+        toast.error(
+          detail
+            ? `Couldn't start the recorder: ${detail}`
+            : "Couldn't start the recorder. Please try again.",
+        );
+      }
+    } finally {
+      startingRef.current = false;
     }
-  }, [inputsDisabled, busy, recording, finalizeRecording]);
+  }, [inputsDisabled, busy, recording, finalizeRecording, releaseAudio]);
 
-  const stopRecording = useCallback(() => {
-    clearTimer();
-    setRecording(false);
-    void recorderRef.current?.stop().catch(() => {});
-  }, [clearTimer]);
+  // Shared teardown for stop + cancel. `stop()` flushes the encoder and
+  // (unless cancelled) fires ondataavailable, so the AudioContext is only
+  // closed once that promise settles.
+  const endRecording = useCallback(
+    (cancelled: boolean) => {
+      cancelledRef.current = cancelled;
+      clearTimer();
+      setRecording(false);
+      // Release the mic immediately — the encoder no longer needs input,
+      // and this is what clears the browser's recording indicator.
+      releaseMic();
+      const recorder = recorderRef.current;
+      recorderRef.current = null;
+      if (!recorder) {
+        releaseAudio();
+        return;
+      }
+      void recorder
+        .stop()
+        .catch(() => {})
+        .finally(() => releaseAudio());
+    },
+    [clearTimer, releaseAudio, releaseMic],
+  );
 
-  const cancelRecording = useCallback(() => {
-    cancelledRef.current = true;
-    clearTimer();
-    setRecording(false);
-    void recorderRef.current?.stop().catch(() => {});
-  }, [clearTimer]);
+  const stopRecording = useCallback(() => endRecording(false), [endRecording]);
+
+  const cancelRecording = useCallback(() => endRecording(true), [endRecording]);
 
   // Auto-stop at the cap so a forgotten recording can't blow the
   // upload size limit.
@@ -552,7 +661,7 @@ export function MessageComposer({
       ) : recording ? (
         // Recording bar — replaces the composer while the mic is live.
         <div className="flex items-center gap-3 rounded-xl border border-border bg-muted px-4 py-2.5">
-          <span className="flex h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-red-500" />
+          <span className="flex h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-destructive" />
           <span className="flex-1 text-sm text-foreground">
             Recording… {formatDuration(recordSeconds)} /{" "}
             {formatDuration(MAX_RECORDING_SECONDS)}
