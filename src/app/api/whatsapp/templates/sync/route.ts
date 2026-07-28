@@ -246,6 +246,9 @@ export async function POST(request: Request) {
           : null
 
       const row = {
+        // Workspace tenancy + user audit, same split as the submit
+        // route (workspace_id is NOT NULL on message_templates per
+        // migration 010).
         user_id: user.id,
         workspace_id: workspaceId,
         name: t.name,

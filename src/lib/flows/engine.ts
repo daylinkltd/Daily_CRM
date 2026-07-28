@@ -2,8 +2,8 @@
  * Flow runner.
  *
  * The single entry point `dispatchInboundToFlows` is called by the
- * WhatsApp webhook on every inbound message *for an account that has
- * opted into the Flows beta*. It decides whether the message belongs
+ * WhatsApp webhook on every inbound message. It decides whether the
+ * message belongs
  * to an active conversation flow (advance it) or matches the entry
  * trigger of an active flow (start a new run) — and reports back to
  * the webhook so the webhook knows whether to also fire automations.
@@ -173,21 +173,20 @@ type AdminClient = ReturnType<typeof supabaseAdmin>;
 
 async function loadActiveRunForContact(
   db: AdminClient,
-  accountId: string,
+  userId: string,
   contactId: string,
 ): Promise<FlowRunRow | null> {
-  // The partial unique index `idx_one_active_run_per_contact` was
-  // rebuilt in migration 017 over `(account_id, contact_id)` — so
-  // "two active runs for one contact in one account" is impossible
-  // by design. But a future migration glitch or manual SQL could
-  // create one, and .maybeSingle() throws on >1 row — which would
-  // kill dispatch for that contact's webhook entirely. .limit(1) is
-  // forgiving: pick the newest, let the cron sweep clean up the
-  // stale one.
+  // The partial unique index `idx_one_active_run_per_contact`
+  // (migration 027) is over `(user_id, contact_id)` — so "two active
+  // runs for one contact under one owner" is impossible by design.
+  // But a future migration glitch or manual SQL could create one,
+  // and .maybeSingle() throws on >1 row — which would kill dispatch
+  // for that contact's webhook entirely. .limit(1) is forgiving:
+  // pick the newest, let the cron sweep clean up the stale one.
   const { data, error } = await db
     .from("flow_runs")
     .select("*")
-    .eq("account_id", accountId)
+    .eq("user_id", userId)
     .eq("contact_id", contactId)
     .eq("status", "active")
     .order("started_at", { ascending: false })
@@ -284,17 +283,17 @@ async function logEvent(
  */
 async function isDuplicateInbound(
   db: AdminClient,
-  accountId: string,
+  userId: string,
   contactId: string,
   metaMessageId: string,
 ): Promise<boolean> {
-  // Fetch ALL run ids for this contact in this account (active +
+  // Fetch ALL run ids for this contact under this owner (active +
   // historical). Bounded by how many flows the customer has been
   // through — small.
   const { data: runs } = await db
     .from("flow_runs")
     .select("id")
-    .eq("account_id", accountId)
+    .eq("user_id", userId)
     .eq("contact_id", contactId);
   if (!runs?.length) return false;
   const runIds = runs.map((r) => (r as { id: string }).id);
@@ -310,7 +309,7 @@ async function isDuplicateInbound(
 
 async function findEntryFlow(
   db: AdminClient,
-  accountId: string,
+  userId: string,
   message: ParsedInbound,
   isFirstInbound: boolean,
 ): Promise<FlowRow | null> {
@@ -318,13 +317,13 @@ async function findEntryFlow(
   // are responses to existing prompts; they never start a new flow.
   if (message.kind !== "text") return null;
 
-  // Pull all active flows for this account. Active set is bounded
-  // (the builder discourages double-trigger overlap; partial index
-  // makes the lookup index-supported).
+  // Pull all active flows for this owner. Active set is bounded
+  // (the builder discourages double-trigger overlap; the partial
+  // index idx_flows_active_trigger makes the lookup index-supported).
   const { data: flows, error } = await db
     .from("flows")
     .select("*")
-    .eq("account_id", accountId)
+    .eq("user_id", userId)
     .eq("status", "active")
     .order("created_at", { ascending: true });
   if (error || !flows) return null;
@@ -359,7 +358,6 @@ async function sendButtonsAndSuspend(
 ): Promise<{ outcome: "advanced"; node_key: string }> {
   const cfg = node.config as unknown as SendButtonsNodeConfig;
   const { whatsapp_message_id } = await engineSendInteractiveButtons({
-    accountId: run.account_id,
     userId: run.user_id,
     conversationId: run.conversation_id!,
     contactId: run.contact_id!,
@@ -395,7 +393,6 @@ async function sendListAndSuspend(
 ): Promise<{ outcome: "advanced"; node_key: string }> {
   const cfg = node.config as unknown as SendListNodeConfig;
   const { whatsapp_message_id } = await engineSendInteractiveList({
-    accountId: run.account_id,
     userId: run.user_id,
     conversationId: run.conversation_id!,
     contactId: run.contact_id!,
@@ -581,8 +578,7 @@ async function advanceFromNodeKey(
       const cfg = node.config as unknown as SendMessageNodeConfig;
       try {
         const { whatsapp_message_id } = await engineSendText({
-          accountId: run.account_id,
-    userId: run.user_id,
+          userId: run.user_id,
           conversationId: run.conversation_id!,
           contactId: run.contact_id!,
           text: interpolateVars(cfg.text, run.vars),
@@ -606,8 +602,7 @@ async function advanceFromNodeKey(
       const cfg = node.config as unknown as SendMediaNodeConfig;
       try {
         const { whatsapp_message_id } = await engineSendMedia({
-          accountId: run.account_id,
-    userId: run.user_id,
+          userId: run.user_id,
           conversationId: run.conversation_id!,
           contactId: run.contact_id!,
           kind: cfg.media_type,
@@ -639,8 +634,7 @@ async function advanceFromNodeKey(
       const cfg = node.config as unknown as CollectInputNodeConfig;
       try {
         const { whatsapp_message_id } = await engineSendText({
-          accountId: run.account_id,
-    userId: run.user_id,
+          userId: run.user_id,
           conversationId: run.conversation_id!,
           contactId: run.contact_id!,
           text: interpolateVars(cfg.prompt_text, run.vars),
@@ -833,7 +827,7 @@ export async function dispatchInboundToFlows(
   try {
     const activeRun = await loadActiveRunForContact(
       db,
-      input.accountId,
+      input.userId,
       input.contactId,
     );
 
@@ -843,7 +837,7 @@ export async function dispatchInboundToFlows(
     if (activeRun) {
       const dupe = await isDuplicateInbound(
         db,
-        input.accountId,
+        input.userId,
         input.contactId,
         input.message.meta_message_id,
       );
@@ -863,7 +857,7 @@ export async function dispatchInboundToFlows(
     // No active run → look for a flow whose entry trigger matches.
     const flow = await findEntryFlow(
       db,
-      input.accountId,
+      input.userId,
       input.message,
       input.isFirstInboundMessage,
     );
@@ -1015,8 +1009,7 @@ async function handleReplyForActiveRun(
       const cfg = currentNode.config as unknown as CollectInputNodeConfig;
       try {
         await engineSendText({
-          accountId: run.account_id,
-    userId: run.user_id,
+          userId: run.user_id,
           conversationId: run.conversation_id!,
           contactId: run.contact_id!,
           text: interpolateVars(cfg.prompt_text, run.vars),
@@ -1061,13 +1054,10 @@ async function startNewRun(
     .from("flow_runs")
     .insert({
       flow_id: flow.id,
-      // Tenancy: NOT NULL post-017. The partial unique index
-      // `idx_one_active_run_per_contact` is over (account_id,
-      // contact_id) WHERE status='active', so two accounts sharing
-      // a contact phone number each run their own flows independently.
-      account_id: flow.account_id,
-      // Audit: preserves the flow's author on the run row for log
-      // attribution.
+      // Owner + tenancy: NOT NULL (migration 027). The partial unique
+      // index `idx_one_active_run_per_contact` is over (user_id,
+      // contact_id) WHERE status='active', so two owners sharing a
+      // contact phone number each run their own flows independently.
       user_id: flow.user_id,
       contact_id: input.contactId,
       conversation_id: input.conversationId,

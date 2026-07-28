@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/server";
-import { hasMinRole, isAccountRole, type AccountRole } from "./roles";
+import { fromDbRole, hasMinRole, type AccountRole } from "./roles";
 
 export class UnauthorizedError extends Error {
   readonly status = 401 as const;
@@ -85,11 +85,7 @@ export async function getCurrentAccount(workspaceId?: string): Promise<AccountCo
 
   const workspaceRow = Array.isArray(member.workspaces) ? member.workspaces[0] : member.workspaces;
 
-  // Map workspace roles ('owner', 'admin', 'member') to AccountRole ('owner', 'admin', 'agent', 'viewer')
-  let role: AccountRole = 'agent';
-  if (member.role === 'owner') role = 'owner';
-  else if (member.role === 'admin') role = 'admin';
-  else if (member.role === 'member') role = 'agent';
+  const role: AccountRole = fromDbRole(member.role);
 
   return {
     supabase,

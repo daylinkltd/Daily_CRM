@@ -36,7 +36,7 @@ export interface WorkspaceMember {
   id: string;
   workspace_id: string;
   user_id: string;
-  role: "owner" | "admin" | "member";
+  role: "owner" | "admin" | "member" | "viewer";
   role_id: string | null;
   created_at: string;
   profile?: {
@@ -121,7 +121,7 @@ interface WorkspaceContextValue {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
   activeMember: { id: string } | null;
-  activeRole: "owner" | "admin" | "member" | null;
+  activeRole: "owner" | "admin" | "member" | "viewer" | null;
   permissions: WorkspacePermissions;
   /** Active workspace's default currency (ISO-4217, falls back to USD). */
   defaultCurrency: string;
@@ -140,7 +140,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
   const [activeMember, setActiveMember] = useState<{ id: string } | null>(null);
-  const [activeRole, setActiveRole] = useState<"owner" | "admin" | "member" | null>(null);
+  const [activeRole, setActiveRole] = useState<"owner" | "admin" | "member" | "viewer" | null>(null);
   const [permissions, setPermissions] = useState<WorkspacePermissions>(DEFAULT_MEMBER_PERMISSIONS);
   const [loading, setLoading] = useState(true);
 
@@ -187,7 +187,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
       if (memberData && memberData.length > 0) {
         const fetchedWorkspaces: Workspace[] = [];
-        const roleMap: Record<string, "owner" | "admin" | "member"> = {};
+        const roleMap: Record<string, "owner" | "admin" | "member" | "viewer"> = {};
         const roleIdMap: Record<string, string | null> = {};
         const memberMap: Record<string, { id: string }> = {};
 
@@ -238,7 +238,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const loadPermissions = async (
     supabase: ReturnType<typeof createClient>,
     workspaceId: string,
-    role: "owner" | "admin" | "member" | null
+    role: "owner" | "admin" | "member" | "viewer" | null
   ) => {
     // Owners & Admins always get all permissions — no DB call needed
     if (role === "owner" || role === "admin") {

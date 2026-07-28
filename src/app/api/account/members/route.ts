@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentAccount, toErrorResponse } from "@/lib/auth/account";
-import { canManageMembers } from "@/lib/auth/roles";
-import type { AccountRole } from "@/lib/auth/roles";
+import { canManageMembers, fromDbRole } from "@/lib/auth/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Display-name fallback chain for a member row:
@@ -118,17 +117,12 @@ export async function GET(request: NextRequest) {
       const authUser = authUsersMap.get(row.user_id);
       const email = profile?.email || authUser?.email || null;
 
-      let role: AccountRole = 'agent';
-      if (row.role === 'owner') role = 'owner';
-      else if (row.role === 'admin') role = 'admin';
-      else if (row.role === 'member') role = 'agent';
-
       return {
         user_id: row.user_id,
         full_name: displayNameFrom(profile?.full_name, authUser?.metaName, email),
         email: canSeeEmails ? email : null,
         avatar_url: profile?.avatar_url ?? null,
-        role,
+        role: fromDbRole(row.role),
         joined_at: row.created_at,
       };
     });
