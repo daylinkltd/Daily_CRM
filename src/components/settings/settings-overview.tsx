@@ -191,6 +191,11 @@ export function SettingsOverview({
             }`,
     },
     {
+      section: 'roles',
+      loading: false,
+      subtitle: 'Per-resource create / read / update / delete access',
+    },
+    {
       section: 'templates',
       loading: countsLoading,
       subtitle:

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     // 1. Get all member memberships for this workspace
     const { data: memberRows, error: memberError } = await ctx.supabase
       .from("workspace_members")
-      .select("id, user_id, role, created_at")
+      .select("id, user_id, role, role_id, created_at")
       .eq("workspace_id", ctx.accountId)
       .order("created_at", { ascending: true });
 
@@ -112,6 +112,27 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 4. Resolve the assigned per-resource role's display name. Scoped to
+    //    this workspace, so a role_id from another tenant (impossible via
+    //    the API, but cheap to guarantee) resolves to null rather than
+    //    leaking a foreign role name.
+    const roleNames = new Map<string, string>();
+    const assignedRoleIds = Array.from(
+      new Set(
+        memberRows
+          .map((r) => (r as { role_id: string | null }).role_id)
+          .filter((id): id is string => !!id),
+      ),
+    );
+    if (assignedRoleIds.length > 0) {
+      const { data: roleRows } = await ctx.supabase
+        .from("workspace_roles")
+        .select("id, name")
+        .eq("workspace_id", ctx.accountId)
+        .in("id", assignedRoleIds);
+      for (const r of roleRows ?? []) roleNames.set(r.id, r.name);
+    }
+
     const members = memberRows.map((row) => {
       const profile = profilesMap.get(row.user_id);
       const authUser = authUsersMap.get(row.user_id);
@@ -124,6 +145,10 @@ export async function GET(request: NextRequest) {
         email: canSeeEmails ? email : null,
         avatar_url: profile?.avatar_url ?? null,
         role: fromDbRole(row.role),
+        role_id: (row as { role_id: string | null }).role_id ?? null,
+        role_name:
+          roleNames.get((row as { role_id: string | null }).role_id ?? "") ??
+          null,
         joined_at: row.created_at,
       };
     });

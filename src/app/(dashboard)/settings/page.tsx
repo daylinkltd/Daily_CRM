@@ -16,6 +16,7 @@ import { TemplateManager } from '@/components/settings/template-manager';
 import { FieldsAndTagsPanel } from '@/components/settings/fields-and-tags-panel';
 import { DealsSettings } from '@/components/settings/deals-settings';
 import { MembersTab } from '@/components/settings/members-tab';
+import { RolesPanel } from '@/components/settings/roles-panel';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { CatalogSettings } from '@/components/settings/catalog-settings';
 import { BrandingSettings } from '@/components/settings/branding-settings';
@@ -82,6 +83,8 @@ export default function SettingsPage() {
         return <DealsSettings />;
       case 'members':
         return <MembersTab />;
+      case 'roles':
+        return <RolesPanel />;
       case 'billing':
         return <BillingPanel />;
       case 'api':

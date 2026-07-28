@@ -80,9 +80,19 @@ export async function POST(request: NextRequest) {
 
 /**
  * PATCH /api/workspace/roles
- * Owner updates a custom role's name, description, or permissions.
+ * Owner updates a role's name, description, or permissions.
  *
  * Body: { workspace_id, role_id, name?, description?, permissions? }
+ *
+ * System roles (`is_system = true`) used to be rejected outright, which
+ * made the built-in Viewer un-narrowable — an admin who wanted a
+ * "CRM-only viewer" had to invent a parallel custom role. They are now
+ * editable, but ONLY their `permissions` map: the name and description
+ * are dropped from the update so Owner / Admin / Viewer can never be
+ * renamed out from under the code that looks them up by name (migration
+ * 074's seeding, `DEFAULT_ROLE_NAMES`, the members-tab enum mapping).
+ * DELETE still refuses system roles entirely, and the owner gate is
+ * unchanged.
  */
 export async function PATCH(request: NextRequest) {
   try {
@@ -107,22 +117,48 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
+    const adminClient = createAdminClient();
+
+    // Is this a built-in role? Decides which fields may be written.
+    const { data: existing, error: lookupError } = await adminClient
+      .from('workspace_roles')
+      .select('id, is_system')
+      .eq('id', role_id)
+      .eq('workspace_id', workspace_id)
+      .maybeSingle();
+
+    if (lookupError) {
+      return NextResponse.json({ error: lookupError.message }, { status: 500 });
+    }
+    if (!existing) {
+      return NextResponse.json({ error: 'Role not found' }, { status: 404 });
+    }
+
     const updates: Record<string, unknown> = {};
-    if (name?.trim()) updates.name = name.trim();
-    if (description !== undefined) updates.description = description;
     if (permissions) updates.permissions = permissions;
+    if (!existing.is_system) {
+      if (name?.trim()) updates.name = name.trim();
+      if (description !== undefined) updates.description = description;
+    } else if (name !== undefined || description !== undefined) {
+      // Be explicit rather than silently ignoring a rename attempt.
+      return NextResponse.json(
+        {
+          error:
+            'Built-in roles cannot be renamed or re-described — only their permissions can be changed.',
+        },
+        { status: 400 }
+      );
+    }
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No updates provided' }, { status: 400 });
     }
 
-    const adminClient = createAdminClient();
     const { data, error } = await adminClient
       .from('workspace_roles')
       .update(updates)
       .eq('id', role_id)
       .eq('workspace_id', workspace_id)
-      .eq('is_system', false) // never touch system roles via API
       .select()
       .single();
 
@@ -165,10 +201,28 @@ export async function DELETE(request: NextRequest) {
 
     const adminClient = createAdminClient();
 
+    // Built-ins are permanent. The `.eq('is_system', false)` filter below
+    // would already no-op, but a silent 200 reads as a successful delete
+    // in the UI — say so instead.
+    const { data: existing } = await adminClient
+      .from('workspace_roles')
+      .select('is_system')
+      .eq('id', role_id)
+      .eq('workspace_id', workspace_id)
+      .maybeSingle();
+
+    if (existing?.is_system) {
+      return NextResponse.json(
+        { error: 'Built-in roles cannot be deleted.' },
+        { status: 400 }
+      );
+    }
+
     // Check: no members assigned this role
     const { count } = await adminClient
       .from('workspace_members')
       .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', workspace_id)
       .eq('role_id', role_id);
 
     if ((count ?? 0) > 0) {

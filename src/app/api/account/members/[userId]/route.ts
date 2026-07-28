@@ -60,9 +60,26 @@ export async function PATCH(
     const { userId } = await params;
 
     const body = (await request.json().catch(() => null)) as
-      | { role?: unknown }
+      | { role?: unknown; role_id?: unknown }
       | null;
     const role = body?.role;
+    // Optional per-resource role (a `workspace_roles` row). The legacy
+    // enum `role` is still required and still written, so nothing that
+    // reads the enum has to change; `role_id` is what the CRUD matrix
+    // in migration 074 actually consults.
+    const roleIdRaw = body?.role_id;
+    const hasRoleId = roleIdRaw !== undefined;
+    if (
+      hasRoleId &&
+      roleIdRaw !== null &&
+      typeof roleIdRaw !== "string"
+    ) {
+      return NextResponse.json(
+        { error: "'role_id' must be a workspace_roles id or null" },
+        { status: 400 },
+      );
+    }
+    const roleId = (roleIdRaw as string | null | undefined) ?? null;
 
     if (!isAccountRole(role)) {
       return NextResponse.json(
@@ -100,9 +117,40 @@ export async function PATCH(
       );
     }
 
+    // Validate role_id belongs to THIS workspace before writing it —
+    // otherwise an admin could paste another tenant's role id and grant
+    // their member a foreign permission matrix.
+    if (hasRoleId && roleId) {
+      const { data: roleRow } = await ctx.supabase
+        .from("workspace_roles")
+        .select("id, name, is_system")
+        .eq("id", roleId)
+        .eq("workspace_id", ctx.accountId)
+        .maybeSingle();
+
+      if (!roleRow) {
+        return NextResponse.json(
+          { error: "That role doesn't belong to this workspace" },
+          { status: 400 },
+        );
+      }
+      if (roleRow.is_system && roleRow.name === "Owner") {
+        return NextResponse.json(
+          {
+            error:
+              "The built-in Owner role can't be assigned — use transfer-ownership instead",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    const updatePayload: Record<string, unknown> = { role: dbRole };
+    if (hasRoleId) updatePayload.role_id = roleId;
+
     const { error } = await ctx.supabase
       .from("workspace_members")
-      .update({ role: dbRole })
+      .update(updatePayload)
       .eq("user_id", userId)
       .eq("workspace_id", ctx.accountId);
 

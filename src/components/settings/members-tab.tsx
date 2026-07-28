@@ -21,7 +21,7 @@
 //   the role anyway.
 // ============================================================
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
@@ -71,16 +71,28 @@ import {
   PRESENCE_DOT_CLASS,
   PresenceDot,
 } from '@/components/presence/presence-dot';
+import { createClient } from '@/lib/supabase/client';
 import { InviteMemberDialog } from './invite-member-dialog';
 import { SettingsPanelHead } from './settings-panel-head';
 import { ROLE_META } from './role-meta';
+import {
+  builtInRoleNameForEnum,
+  enumRoleForRoleName,
+  sortRoles,
+  WORKSPACE_ROLE_COLUMNS,
+  type WorkspaceRoleRow,
+} from './workspace-role';
 
 interface Member {
   user_id: string;
   full_name: string;
   email: string | null;
   avatar_url: string | null;
+  /** Legacy enum role — still written for compatibility. */
   role: AccountRole;
+  /** The assigned `workspace_roles` row, or null for the enum default. */
+  role_id: string | null;
+  role_name: string | null;
   joined_at: string;
 }
 
@@ -92,14 +104,11 @@ interface Invitation {
   expires_at: string;
 }
 
-// Editable roles in the inline dropdown. Owner is never an option —
-// promotions go through the (deferred) Transfer Ownership flow.
-const EDITABLE_ROLES: { value: AccountRole; label: string; hint: string }[] = [
-  { value: 'admin', label: 'Admin', hint: 'Manage members + everything' },
-  { value: 'agent', label: 'Agent', hint: 'Use features; no settings' },
-  { value: 'viewer', label: 'Viewer', hint: 'Read-only across the app' },
-];
-
+// The inline dropdown lists every `workspace_roles` row for the active
+// workspace (built-ins + custom), not the old hardcoded enum. The built-in
+// Owner row is excluded — promotions go through the (deferred) Transfer
+// Ownership flow, and the API refuses to assign it anyway.
+//
 // Per-role chip metadata (icon / label / colour) lives in the shared
 // ROLE_META module so this roster and the Overview identity chip can't
 // drift. The colour scale runs amber (owner — scarce, immutable) →
@@ -125,11 +134,13 @@ function fmtExpiresIn(iso: string): string {
 }
 
 export function MembersTab() {
-  const { user, canManageMembers } = useAuth();
+  const { user, accountId, canManageMembers } = useAuth();
   const { getPresence, getRow, now } = usePresence();
+  const supabase = createClient();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [roles, setRoles] = useState<WorkspaceRoleRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -140,12 +151,25 @@ export function MembersTab() {
 
   const loadEverything = useCallback(async () => {
     try {
-      const [mres, ires] = await Promise.all([
+      const [mres, ires, rolesRes] = await Promise.all([
         fetch('/api/account/members', { cache: 'no-store' }),
         canManageMembers
           ? fetch('/api/account/invitations', { cache: 'no-store' })
           : Promise.resolve(null),
+        // Roles for the ACTIVE workspace only — RLS scopes the table and
+        // the filter makes it explicit, so another tenant's roles can
+        // never reach the dropdown.
+        accountId
+          ? supabase
+              .from('workspace_roles')
+              .select(WORKSPACE_ROLE_COLUMNS)
+              .eq('workspace_id', accountId)
+          : Promise.resolve({ data: [], error: null }),
       ]);
+
+      if (rolesRes && !rolesRes.error) {
+        setRoles(sortRoles((rolesRes.data ?? []) as WorkspaceRoleRow[]));
+      }
 
       if (!mres.ok) {
         const payload = await mres.json().catch(() => ({}));
@@ -172,29 +196,58 @@ export function MembersTab() {
     } finally {
       setLoading(false);
     }
-  }, [canManageMembers]);
+  }, [canManageMembers, accountId, supabase]);
 
   useEffect(() => {
     void loadEverything();
   }, [loadEverything]);
 
-  async function handleRoleChange(member: Member, nextRole: AccountRole) {
-    if (member.role === nextRole) return;
+  // Every workspace role except the built-in Owner — assigning that one
+  // would hand out the owner bypass, so promotions stay in the
+  // transfer-ownership flow (the API rejects it too).
+  const assignableRoles = useMemo(
+    () => roles.filter((r) => !(r.is_system && r.name === 'Owner')),
+    [roles],
+  );
+
+  /**
+   * Assign a `workspace_roles` row to a member. We send BOTH the new
+   * `role_id` (what the CRUD matrix consults) and the matching legacy
+   * enum `role`, so everything still reading the enum — the sidebar
+   * gates, `RequireRole`, the owner/admin DB bypass — stays coherent.
+   */
+  async function handleRoleChange(member: Member, nextRoleId: string) {
+    if (member.role_id === nextRoleId) return;
+    const target = roles.find((r) => r.id === nextRoleId);
+    if (!target) return;
+    const nextRole = enumRoleForRoleName(target.name);
+
     // Optimistic update — flip the dropdown immediately so the UI
     // feels snappy. If the server PATCH fails we revert below so
     // the dropdown doesn't lie about the persisted state.
-    const previousRole = member.role;
+    const previous = {
+      role: member.role,
+      role_id: member.role_id,
+      role_name: member.role_name,
+    };
     setPendingMemberAction(member.user_id);
     setMembers((prev) =>
       prev.map((m) =>
-        m.user_id === member.user_id ? { ...m, role: nextRole } : m,
+        m.user_id === member.user_id
+          ? {
+              ...m,
+              role: nextRole,
+              role_id: target.id,
+              role_name: target.name,
+            }
+          : m,
       ),
     );
     try {
       const res = await fetch(`/api/account/members/${member.user_id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: nextRole }),
+        body: JSON.stringify({ role: nextRole, role_id: target.id }),
       });
       if (!res.ok) {
         // Revert the optimistic flip. The toast on its own wasn't
@@ -204,19 +257,19 @@ export function MembersTab() {
         // `member.role === nextRole` guard at the top).
         setMembers((prev) =>
           prev.map((m) =>
-            m.user_id === member.user_id ? { ...m, role: previousRole } : m,
+            m.user_id === member.user_id ? { ...m, ...previous } : m,
           ),
         );
         const payload = await res.json().catch(() => ({}));
         toast.error(payload.error || 'Failed to update role');
         return;
       }
-      toast.success(`Updated ${member.full_name || 'member'} to ${nextRole}`);
+      toast.success(`Updated ${member.full_name || 'member'} to ${target.name}`);
     } catch (err) {
       // Same revert on network failure.
       setMembers((prev) =>
         prev.map((m) =>
-          m.user_id === member.user_id ? { ...m, role: previousRole } : m,
+          m.user_id === member.user_id ? { ...m, ...previous } : m,
         ),
       );
       console.error('[MembersTab] role change error:', err);
@@ -337,6 +390,17 @@ export function MembersTab() {
                 now,
               );
 
+              // Members created before `role_id` existed fall back to the
+              // built-in role their enum value maps to, so the dropdown
+              // isn't blank for them.
+              const fallbackName = builtInRoleNameForEnum(member.role);
+              const selectedRoleId =
+                member.role_id ??
+                roles.find((r) => r.is_system && r.name === fallbackName)?.id ??
+                '';
+              const displayRoleName =
+                member.role_name ?? fallbackName ?? roleMeta.label;
+
               return (
                 <li
                   key={member.user_id}
@@ -410,28 +474,34 @@ export function MembersTab() {
                   <div className="flex items-center gap-2 sm:gap-3">
                     {/* Role display / editor. Inline Select is admin+
                         only AND not allowed on the owner row (owner
-                        changes go through transfer, which lands later). */}
-                    {canManageMembers && !isOwnerRow && !isSelf ? (
+                        changes go through transfer, which lands later).
+                        Options come from `workspace_roles`, so a custom
+                        role created in Settings → Roles is assignable
+                        here immediately. */}
+                    {canManageMembers &&
+                    !isOwnerRow &&
+                    !isSelf &&
+                    assignableRoles.length > 0 ? (
                       <Select
-                        value={member.role}
+                        value={selectedRoleId}
                         onValueChange={(v) =>
                           // Base UI Select can emit null on clear. We
                           // don't expose a clear affordance, so the
                           // guard is defensive — but the typed
                           // signature requires it.
-                          v && handleRoleChange(member, v as AccountRole)
+                          v && handleRoleChange(member, v as string)
                         }
                       >
                         <SelectTrigger
-                          className="w-32 bg-muted border-border text-foreground"
+                          className="w-40 bg-muted border-border text-foreground"
                           disabled={isBusy}
                         >
-                          <SelectValue />
+                          <SelectValue placeholder="No role assigned" />
                         </SelectTrigger>
                         <SelectContent>
-                          {EDITABLE_ROLES.map((r) => (
-                            <SelectItem key={r.value} value={r.value}>
-                              {r.label}
+                          {assignableRoles.map((r) => (
+                            <SelectItem key={r.id} value={r.id}>
+                              {r.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -441,7 +511,7 @@ export function MembersTab() {
                         className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium ${roleMeta.className}`}
                       >
                         <RoleIcon className="size-3.5" />
-                        {roleMeta.label}
+                        {displayRoleName}
                       </span>
                     )}
 
