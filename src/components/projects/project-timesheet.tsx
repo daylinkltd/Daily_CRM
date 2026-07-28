@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Loader2, Clock, CheckCircle, AlertCircle, DollarSign } from 'lucide-react';
+import { Loader2, Clock, CheckCircle, AlertCircle, Banknote } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 
@@ -127,7 +127,7 @@ export function ProjectTimesheet({ projectId }: ProjectTimesheetProps) {
 
         <Card className="border-border shadow-sm">
           <CardContent className="p-6 flex flex-col items-center text-center space-y-2">
-            <DollarSign className="size-5 text-blue-500" />
+            <Banknote className="size-5 text-blue-500" />
             <p className="text-sm font-medium text-muted-foreground">Billable</p>
             <p className="text-2xl font-bold text-blue-600">{totalBillable.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">hrs</span></p>
           </CardContent>

@@ -36,6 +36,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { formatCurrency } from "@/lib/currency";
 import type {
   Quotation,
   QuotationSection,
@@ -72,7 +73,7 @@ export default function EditQuotationPage({ params }: PageProps) {
   const { id: quotationUuid } = React.use(params);
   const supabase = createClient();
   const { user, accountId } = useAuth();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, defaultCurrency } = useWorkspace();
   const workspaceId = activeWorkspace?.id || accountId;
 
   // Loading & Action states
@@ -747,25 +748,25 @@ export default function EditQuotationPage({ params }: PageProps) {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">One-time Subtotal:</span>
                 <span className="font-semibold text-foreground">
-                  ${totals.oneTime.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  {formatCurrency(totals.oneTime, defaultCurrency, { decimals: 2 })}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Monthly Recurring:</span>
                 <span className="font-semibold text-foreground">
-                  ${totals.monthly.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  {formatCurrency(totals.monthly, defaultCurrency, { decimals: 2 })}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Yearly Recurring:</span>
                 <span className="font-semibold text-foreground">
-                  ${totals.yearly.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  {formatCurrency(totals.yearly, defaultCurrency, { decimals: 2 })}
                 </span>
               </div>
               <div className="border-t border-border/40 pt-2 flex justify-between text-sm font-bold">
                 <span className="text-foreground">Total (One-time + Monthly/yr):</span>
                 <span className="text-primary text-base">
-                  ${(totals.oneTime + totals.recurring).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  {formatCurrency(totals.oneTime + totals.recurring, defaultCurrency, { decimals: 2 })}
                 </span>
               </div>
             </CardContent>
@@ -891,7 +892,7 @@ export default function EditQuotationPage({ params }: PageProps) {
                     </p>
                   )}
                   <p className="text-xs font-bold text-foreground pt-1">
-                    ${item.default_price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    {formatCurrency(item.default_price, defaultCurrency, { decimals: 2 })}
                   </p>
                 </div>
               ))
@@ -1027,6 +1028,7 @@ function SortableLineItemRow({
   onUpdate: (sId: string, iId: string, f: keyof LocalLineItem, v: any) => void;
   onDelete: (sId: string, iId: string) => void;
 }) {
+  const { defaultCurrency } = useWorkspace();
   const {
     attributes,
     listeners,
@@ -1106,7 +1108,7 @@ function SortableLineItemRow({
             {item.is_free ? (
               <span className="text-emerald-400 font-semibold uppercase">Free</span>
             ) : (
-              `$${lineSubtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+              formatCurrency(lineSubtotal, defaultCurrency, { decimals: 2 })
             )}
           </div>
         </div>

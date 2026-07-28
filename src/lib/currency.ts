@@ -60,22 +60,49 @@ export const CURRENCIES: CurrencyOption[] = [
 export function formatCurrency(
   value: number,
   currency: string = DEFAULT_CURRENCY,
+  options?: { decimals?: number },
 ): string {
   const code = (currency || DEFAULT_CURRENCY).trim();
   const amount = Number(value) || 0;
+  const decimals = options?.decimals ?? 0;
   try {
     return new Intl.NumberFormat(undefined, {
       style: "currency",
       currency: code,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
     }).format(amount);
   } catch {
     // Invalid ISO code — show the raw code + grouped number so the
     // value is still legible instead of throwing.
     return `${code} ${new Intl.NumberFormat(undefined, {
-      maximumFractionDigits: 0,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
     }).format(amount)}`;
+  }
+}
+
+/**
+ * Symbol for a currency code — "₹" for INR, "$" for USD, "د.إ" for
+ * AED. Prefers our curated CURRENCIES table, falls back to asking
+ * Intl for the currency part, and finally to the raw code so the
+ * caller always gets something renderable (input adornments, icon
+ * replacements on stat cards).
+ */
+export function getCurrencySymbol(
+  currency: string = DEFAULT_CURRENCY,
+): string {
+  const code = (currency || DEFAULT_CURRENCY).trim().toUpperCase();
+  const known = CURRENCIES.find((c) => c.code === code);
+  if (known) return known.symbol;
+  try {
+    const parts = new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: code,
+    }).formatToParts(0);
+    return parts.find((p) => p.type === "currency")?.value ?? code;
+  } catch {
+    return code;
   }
 }
 

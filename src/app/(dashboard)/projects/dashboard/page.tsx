@@ -6,13 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, Target, Clock, CheckCircle2, TrendingUp, Users } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { formatCurrency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 export default function ProjectDashboardPage() {
   const supabase = createClient();
   const router = useRouter();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, defaultCurrency } = useWorkspace();
 
   const [stats, setStats] = useState({
     active: 0,
@@ -105,7 +106,7 @@ export default function ProjectDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {loading ? '-' : `$${stats.totalBudget.toLocaleString()}`}
+              {loading ? '-' : formatCurrency(stats.totalBudget, defaultCurrency)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Across all active & completed</p>
           </CardContent>

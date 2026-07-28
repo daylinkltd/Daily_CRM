@@ -10,9 +10,9 @@ import {
   Trash2,
   Loader2,
   FileText,
-  DollarSign,
   Layers,
 } from "lucide-react";
+import { formatCurrency, getCurrencySymbol } from "@/lib/currency";
 
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -42,7 +42,7 @@ import {
 export function CatalogSettings() {
   const supabase = createClient();
   const { accountId, canEditSettings } = useAuth();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, defaultCurrency } = useWorkspace();
   const workspaceId = activeWorkspace?.id || accountId;
 
   // State for Catalog Items
@@ -323,7 +323,7 @@ export function CatalogSettings() {
                         </p>
                       )}
                       <p className="text-xs font-semibold text-foreground">
-                        ${item.default_price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                        {formatCurrency(item.default_price, defaultCurrency, { decimals: 2 })}
                       </p>
                     </div>
                     {canEditSettings && (
@@ -440,7 +440,9 @@ export function CatalogSettings() {
               <div className="grid gap-2">
                 <Label htmlFor="item-price">Default Price</Label>
                 <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    {getCurrencySymbol(defaultCurrency)}
+                  </span>
                   <Input
                     id="item-price"
                     type="number"

@@ -18,6 +18,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  contactDisplayName,
+  contactInitial,
+} from "@/lib/contact-display";
 import { format } from "date-fns";
 
 interface ContactSidebarProps {
@@ -123,8 +127,8 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
     );
   }
 
-  const displayName = contact.name || contact.phone;
-  const initials = displayName.charAt(0).toUpperCase();
+  const displayName = contactDisplayName(contact.name, contact.phone);
+  const initials = contactInitial(contact.name, contact.phone);
 
   return (
     <div className="flex h-full w-70 flex-col border-l border-border bg-card">

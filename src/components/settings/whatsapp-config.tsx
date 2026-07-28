@@ -104,6 +104,12 @@ export function WhatsAppConfig() {
 
   const [mockPhoneId, setMockPhoneId] = useState('sim-phone-001');
 
+  // Meta App Secret (webhook signature verification)
+  const [metaAppSecret, setMetaAppSecret] = useState('');
+  const [metaAppSecretEdited, setMetaAppSecretEdited] = useState(false);
+  const [hasAppSecret, setHasAppSecret] = useState(false);
+  const [showAppSecret, setShowAppSecret] = useState(false);
+
   // Shared Webhook Verify Token
   const [verifyToken, setVerifyToken] = useState('');
 
@@ -165,6 +171,11 @@ export function WhatsAppConfig() {
         if (payload.has_token || payload.connected) {
           setMetaToken(MASKED_TOKEN);
           setMetaTokenEdited(false);
+        }
+        setHasAppSecret(Boolean(payload.has_app_secret));
+        if (payload.has_app_secret) {
+          setMetaAppSecret(MASKED_TOKEN);
+          setMetaAppSecretEdited(false);
         }
       } else if (activeProv === 'twilio') {
         setTwilioSender(payload.phone_number_id || '');
@@ -270,6 +281,17 @@ export function WhatsAppConfig() {
         payload.access_token = rawToken;
       }
 
+      // Only send the app secret when the user actually entered a new
+      // value — the server validates it against Meta before storing.
+      if (
+        selectedProvider === 'meta' &&
+        metaAppSecretEdited &&
+        metaAppSecret.trim() &&
+        metaAppSecret !== MASKED_TOKEN
+      ) {
+        payload.app_secret = metaAppSecret.trim();
+      }
+
       const res = await fetch('/api/whatsapp/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -306,6 +328,9 @@ export function WhatsAppConfig() {
             { duration: 10000 }
           );
         }
+      }
+      if (data.app_secret_warning) {
+        toast.warning(data.app_secret_warning, { duration: 12000 });
       }
 
       await fetchConfig();
@@ -583,6 +608,39 @@ export function WhatsAppConfig() {
                   {hasConfig && !metaTokenEdited && (
                     <p className="text-[11px] text-muted-foreground">Token is hidden for security. Click to re-enter if updating.</p>
                   )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-foreground">Meta App Secret</Label>
+                  <div className="relative">
+                    <Input
+                      type={showAppSecret ? 'text' : 'password'}
+                      placeholder={hasAppSecret ? MASKED_TOKEN : 'App Dashboard → App settings → Basic → App Secret'}
+                      value={metaAppSecret}
+                      onChange={(e) => {
+                        setMetaAppSecret(e.target.value);
+                        setMetaAppSecretEdited(true);
+                      }}
+                      onFocus={() => {
+                        if (metaAppSecret === MASKED_TOKEN) {
+                          setMetaAppSecret('');
+                          setMetaAppSecretEdited(true);
+                        }
+                      }}
+                      className="bg-muted/50 border-input text-foreground placeholder:text-muted-foreground font-mono text-xs sm:text-sm h-9 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAppSecret(!showAppSecret)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showAppSecret ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Required to receive incoming messages — Meta signs every webhook with it.
+                    {!hasAppSecret && ' Not configured yet: inbound events may be rejected.'}
+                  </p>
                 </div>
               </>
             )}

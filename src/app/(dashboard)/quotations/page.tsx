@@ -18,6 +18,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { formatCurrency } from "@/lib/currency";
 import type { Quotation } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +34,7 @@ export default function QuotationsPage() {
   const router = useRouter();
   const supabase = createClient();
   const { user, accountId } = useAuth();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, defaultCurrency } = useWorkspace();
   const workspaceId = activeWorkspace?.id || accountId;
 
   const [quotes, setQuotes] = useState<Quotation[]>([]);
@@ -326,10 +327,13 @@ export default function QuotationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              ${quotes
-                .filter((q) => q.status === "Accepted")
-                .reduce((sum, q) => sum + Number(q.total_one_time), 0)
-                .toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              {formatCurrency(
+                quotes
+                  .filter((q) => q.status === "Accepted")
+                  .reduce((sum, q) => sum + Number(q.total_one_time), 0),
+                defaultCurrency,
+                { decimals: 2 },
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Active client accounts</p>
           </CardContent>
@@ -431,10 +435,10 @@ export default function QuotationsPage() {
                       <td className="p-4 font-medium text-foreground">
                         <div>
                           <p className="text-xs text-muted-foreground">One-time:</p>
-                          <p className="font-bold">${Number(q.total_one_time).toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+                          <p className="font-bold">{formatCurrency(Number(q.total_one_time), defaultCurrency, { decimals: 2 })}</p>
                           {Number(q.total_recurring) > 0 && (
                             <p className="text-[10px] text-primary">
-                              Recurring: ${Number(q.total_recurring).toLocaleString()}/mo
+                              Recurring: {formatCurrency(Number(q.total_recurring), defaultCurrency)}/mo
                             </p>
                           )}
                         </div>

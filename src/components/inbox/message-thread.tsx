@@ -42,6 +42,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageBubble } from "./message-bubble";
 import { MessageActions } from "./message-actions";
+import { ChatBackground } from "./chat-background";
 import {
   MessageComposer,
   CHAT_MEDIA_BUCKET,
@@ -50,6 +51,10 @@ import {
 import { deleteAccountMedia } from "@/lib/storage/upload-media";
 import { TemplatePicker } from "./template-picker";
 import { buildReplyPreview } from "./reply-quote";
+import {
+  contactDisplayName as formatContactName,
+  contactInitial,
+} from "@/lib/contact-display";
 import { toast } from "sonner";
 
 interface ReplyDraft {
@@ -63,6 +68,17 @@ function renderTemplateBody(body: string, params: string[]): string {
     const idx = Number(raw) - 1;
     return params[idx] ?? `{{${raw}}}`;
   });
+}
+
+/**
+ * True when a send-API error means the 24-hour customer-service window
+ * has closed (Meta error 131047 / "re-engagement message"). Used to
+ * offer the template picker directly from the failure toast.
+ */
+function isSessionWindowError(reason: string): boolean {
+  return /131047|re-?engagement|24.?h(our)?s? (window|session)|customer service window|session window/i.test(
+    reason,
+  );
 }
 
 interface MessageThreadProps {
@@ -110,6 +126,13 @@ interface MessageThreadProps {
    * Optional callback to delete the current conversation.
    */
   onDeleteConversation?: (conversationId: string) => void;
+  /**
+   * Whether the workspace's chatbot feature is enabled
+   * (chatbot_config.is_enabled). The per-conversation bot pause/resume
+   * toggle is only rendered when true — showing it while the feature is
+   * off in Settings is just confusing noise.
+   */
+  chatbotEnabled?: boolean;
 }
 
 function formatDateSeparator(dateStr: string): string {
@@ -142,17 +165,10 @@ const STATUS_OPTIONS: { label: string; value: ConversationStatus; color: string 
   { label: "Closed", value: "closed", color: "text-muted-foreground" },
 ];
 
-/**
- * WhatsApp-style doodle background applied to the chat area (both the
- * active thread and the empty state). The SVG tile lives at
- * `/public/inbox-doodle.svg`; the slate-950 colour sits underneath so
- * the doodles read as a subtle pattern rather than a stark grid.
- *
- * Defined once at module scope so the two render paths can't drift —
- * if we ever switch the asset, both spots update together.
- */
-const DOODLE_BG_CLASSES =
-  "bg-background bg-[url('/inbox-doodle.svg')] bg-repeat";
+/** True when the message was sent by our side (agent or bot). */
+function isFromAgent(m: Message): boolean {
+  return m.sender_type === "agent" || m.sender_type === "bot";
+}
 
 export function MessageThread({
   conversation,
@@ -170,6 +186,7 @@ export function MessageThread({
   onToggleContactPanel,
   onOpenNewChat,
   onDeleteConversation,
+  chatbotEnabled = false,
 }: MessageThreadProps) {
   const { user } = useAuth();
   const { getPresence, getRow, now } = usePresence();
@@ -201,6 +218,23 @@ export function MessageThread({
     }, 700);
   }, [isRefreshing, onRefresh]);
   const [replyTo, setReplyTo] = useState<ReplyDraft | null>(null);
+
+  // Failure toast for sends rejected because the 24h window closed —
+  // surfaces the API's actionable message and offers the template picker
+  // directly from the toast.
+  const notifySendFailure = useCallback((reason: string) => {
+    if (isSessionWindowError(reason)) {
+      toast.error(reason, {
+        duration: 10000,
+        action: {
+          label: "Send template",
+          onClick: () => setTemplateModalOpen(true),
+        },
+      });
+      return;
+    }
+    toast.error(`Failed to send: ${reason}`);
+  }, []);
 
   const [updatingBot, setUpdatingBot] = useState(false);
   const handleToggleBot = useCallback(async () => {
@@ -536,7 +570,7 @@ export function MessageThread({
         if (!res.ok) {
           const reason = payload?.error || `HTTP ${res.status}`;
           console.error("Failed to send message:", reason);
-          toast.error(`Failed to send: ${reason}`);
+          notifySendFailure(reason);
           // Mark the optimistic bubble as failed so the user sees what happened
           onUpdateMessage(tempId, { status: "failed" });
           return;
@@ -553,7 +587,7 @@ export function MessageThread({
         onUpdateMessage(tempId, { status: "failed" });
       }
     },
-    [conversation, onNewMessage, onUpdateMessage]
+    [conversation, onNewMessage, onUpdateMessage, notifySendFailure]
   );
 
   const handleSendMedia = useCallback(
@@ -602,7 +636,7 @@ export function MessageThread({
         if (!res.ok) {
           const reason = data?.error || `HTTP ${res.status}`;
           console.error("Failed to send media:", reason);
-          toast.error(`Failed to send: ${reason}`);
+          notifySendFailure(reason);
           onUpdateMessage(tempId, { status: "failed" });
           // The upload never reached the recipient — GC the orphaned
           // object rather than leaving it in the public bucket forever.
@@ -619,7 +653,7 @@ export function MessageThread({
         void deleteAccountMedia(CHAT_MEDIA_BUCKET, payload.path).catch(() => {});
       }
     },
-    [conversation, onNewMessage, onUpdateMessage],
+    [conversation, onNewMessage, onUpdateMessage, notifySendFailure],
   );
 
   const handleStatusChange = useCallback(
@@ -730,7 +764,11 @@ export function MessageThread({
     return map;
   }, [reactions]);
 
-  const contactDisplayName = contact?.name || contact?.phone || "Customer";
+  const contactDisplayName = formatContactName(
+    contact?.name,
+    contact?.phone,
+    "Customer",
+  );
 
   // Author label for a quoted message: "You" when we sent the parent,
   // contact name when the customer sent it.
@@ -844,29 +882,32 @@ export function MessageThread({
   // pattern under the user's eye.
   if (!conversation || !contact) {
     return (
-      <div className={cn("flex flex-1 flex-col items-center justify-center p-6 text-center", DOODLE_BG_CLASSES)}>
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted shadow-sm">
-          <MessageSquare className="h-8 w-8 text-muted-foreground" />
+      <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-background p-6 text-center">
+        <ChatBackground />
+        <div className="relative flex flex-col items-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 shadow-sm">
+            <MessageSquare className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="mt-4 text-base font-semibold text-foreground">
+            No Conversation Selected
+          </h3>
+          <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+            Select a chat from the left sidebar or start a new conversation to begin messaging on WhatsApp.
+          </p>
+          {onOpenNewChat && (
+            <Button
+              onClick={onOpenNewChat}
+              className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs shadow-md shadow-primary/10"
+            >
+              + Start New Conversation
+            </Button>
+          )}
         </div>
-        <h3 className="mt-4 text-base font-semibold text-foreground">
-          No Conversation Selected
-        </h3>
-        <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-          Select a chat from the left sidebar or start a new conversation to begin messaging on WhatsApp.
-        </p>
-        {onOpenNewChat && (
-          <Button
-            onClick={onOpenNewChat}
-            className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs shadow-md shadow-primary/10"
-          >
-            + Start New Conversation
-          </Button>
-        )}
       </div>
     );
   }
 
-  const displayName = contact.name || contact.phone;
+  const displayName = formatContactName(contact.name, contact.phone);
   const messageGroups = groupMessagesByDate(messages);
   const currentStatus = STATUS_OPTIONS.find(
     (s) => s.value === conversation.status
@@ -886,7 +927,7 @@ export function MessageThread({
     // clipped and the hover toolbar overlaps the Tags panel. Letting the
     // root shrink lets the bubbles' break-words / max-w caps apply.
     // Issue #257.
-    <div className={cn("flex min-w-0 flex-1 flex-col", DOODLE_BG_CLASSES)}>
+    <div className="flex min-w-0 flex-1 flex-col bg-background">
       {/* Header — solid card surface sits on top of the doodle so the
           name/avatar/dropdowns stay legible. */}
       <div className="flex items-center justify-between gap-2 border-b border-border bg-card px-3 py-3 sm:px-4">
@@ -898,13 +939,13 @@ export function MessageThread({
               type="button"
               onClick={onBack}
               aria-label="Back to conversations"
-              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring lg:hidden"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
           )}
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-foreground">
-            {displayName.charAt(0).toUpperCase()}
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            {contactInitial(contact.name, contact.phone)}
           </div>
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold text-foreground">{displayName}</h2>
@@ -925,44 +966,46 @@ export function MessageThread({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Chatbot Toggle Button */}
-          <button
-            type="button"
-            onClick={handleToggleBot}
-            disabled={updatingBot}
-            title={
-              conversation.bot_status === 'paused'
-                ? conversation.bot_paused_until
-                  ? `Bot is paused until ${new Date(conversation.bot_paused_until).toLocaleTimeString()}. Click to resume.`
-                  : 'Bot is paused. Click to resume.'
-                : 'Bot is active. Click to pause.'
-            }
-            className={cn(
-              "inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors disabled:opacity-60",
-              conversation.bot_status === 'paused'
-                ? "bg-slate-900 border border-slate-700 text-muted-foreground hover:bg-slate-800 hover:text-foreground"
-                : "bg-emerald-950/40 border border-emerald-600/30 text-emerald-400 hover:bg-emerald-950/60 hover:text-emerald-300"
-            )}
-          >
-            {conversation.bot_status !== 'paused' ? (
-              <>
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                </span>
-                <Bot className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Bot Active</span>
-              </>
-            ) : (
-              <>
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-500"></span>
-                <Bot className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">
-                  {conversation.bot_paused_until ? 'Bot Paused (Auto)' : 'Bot Paused'}
-                </span>
-              </>
-            )}
-          </button>
+          {/* Chatbot pause/resume toggle — only rendered when the
+              workspace's chatbot feature is enabled in Settings. */}
+          {chatbotEnabled && (
+            <button
+              type="button"
+              onClick={handleToggleBot}
+              disabled={updatingBot}
+              aria-pressed={conversation.bot_status !== "paused"}
+              title={
+                conversation.bot_status === "paused"
+                  ? conversation.bot_paused_until
+                    ? `Chatbot is paused until ${new Date(conversation.bot_paused_until).toLocaleTimeString()}. Click to resume.`
+                    : "Chatbot is paused for this conversation. Click to resume."
+                  : "Chatbot is active for this conversation. Click to pause."
+              }
+              className={cn(
+                "inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                conversation.bot_status === "paused"
+                  ? "border-border bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                  : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+              )}
+            >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  conversation.bot_status === "paused"
+                    ? "bg-muted-foreground"
+                    : "bg-primary"
+                )}
+              />
+              <Bot className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">
+                {conversation.bot_status === "paused"
+                  ? conversation.bot_paused_until
+                    ? "Bot paused (auto)"
+                    : "Bot paused"
+                  : "Bot active"}
+              </span>
+            </button>
+          )}
 
           {/* Contact-panel toggle — desktop only. The contact sidebar
               eats a chunk of horizontal width that crowds the thread on
@@ -979,7 +1022,7 @@ export function MessageThread({
               aria-pressed={contactPanelOpen}
               title={contactPanelOpen ? "Hide contact" : "Show contact"}
               className={cn(
-                "hidden h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-muted hover:text-foreground lg:inline-flex",
+                "hidden h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring lg:inline-flex",
                 contactPanelOpen ? "text-primary" : "text-muted-foreground",
               )}
             >
@@ -1004,7 +1047,7 @@ export function MessageThread({
               aria-label="Refresh conversation"
               title="Refresh"
               className={cn(
-                "inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-60",
+                "inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60",
               )}
             >
               <RefreshCw
@@ -1019,7 +1062,7 @@ export function MessageThread({
               onClick={() => onDeleteConversation(conversation.id)}
               aria-label="Delete conversation"
               title="Delete Chat"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -1028,7 +1071,7 @@ export function MessageThread({
           {/* Status dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger className={cn(
-                  "inline-flex items-center justify-center h-7 gap-1 px-2 text-xs rounded-md hover:bg-muted",
+                  "inline-flex items-center justify-center h-7 gap-1 px-2 text-xs rounded-md transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                   currentStatus?.color ?? "text-muted-foreground"
                 )}>
                 {currentStatus?.label ?? "Status"}
@@ -1054,7 +1097,7 @@ export function MessageThread({
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                "inline-flex items-center justify-center h-7 gap-1 px-2 text-xs rounded-md hover:bg-muted",
+                "inline-flex items-center justify-center h-7 gap-1 px-2 text-xs rounded-md transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                 assignedAgentId ? "text-primary" : "text-muted-foreground"
               )}
             >
@@ -1117,8 +1160,16 @@ export function MessageThread({
         </div>
       </div>
 
-      {/* Messages Area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+      {/* Messages Area — doodle wallpaper sits in a fixed layer behind
+          the scroll container (WhatsApp-style: the pattern doesn't
+          scroll with the messages). `min-h-0` keeps the flex child
+          shrinkable so the scroll container gets the leftover height. */}
+      <div className="relative min-h-0 flex-1">
+        <ChatBackground />
+        <div
+          ref={scrollRef}
+          className="relative h-full overflow-y-auto px-4 py-4 sm:px-6"
+        >
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -1131,18 +1182,31 @@ export function MessageThread({
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {messageGroups.map((group) => (
               <div key={group.date}>
-                {/* Date separator */}
-                <div className="mb-4 flex items-center justify-center">
-                  <span className="rounded-full bg-muted px-3 py-1 text-[10px] font-medium text-muted-foreground">
+                {/* Date separator — WhatsApp-style centered chip on a
+                    solid card surface so it stays legible over the
+                    wallpaper. */}
+                <div className="mb-3 flex items-center justify-center">
+                  <span className="rounded-md border border-border/60 bg-card px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground shadow-sm">
                     {formatDateSeparator(group.date)}
                   </span>
                 </div>
-                {/* Messages */}
-                <div className="space-y-2">
-                  {group.messages.map((msg) => {
+                {/* Messages — consecutive bubbles from the same sender
+                    sit tighter (mt-0.5) than sender changes (mt-3), and
+                    only the last bubble of a run gets the tail corner. */}
+                <div>
+                  {group.messages.map((msg, i) => {
+                    const prevMsg = i > 0 ? group.messages[i - 1] : null;
+                    const nextMsg =
+                      i < group.messages.length - 1
+                        ? group.messages[i + 1]
+                        : null;
+                    const sameSenderAsPrev =
+                      !!prevMsg && isFromAgent(prevMsg) === isFromAgent(msg);
+                    const isRunEnd =
+                      !nextMsg || isFromAgent(nextMsg) !== isFromAgent(msg);
                     const parent = msg.reply_to_message_id
                       ? messagesById.get(msg.reply_to_message_id)
                       : null;
@@ -1165,22 +1229,29 @@ export function MessageThread({
                       void postReaction(msg.id, next);
                     };
                     return (
-                      <MessageActions
+                      <div
                         key={msg.id}
-                        message={msg}
-                        onReply={() => handleStartReply(msg)}
-                        onReact={(emoji) => {
-                          if (emoji) void postReaction(msg.id, emoji);
-                        }}
+                        className={cn(
+                          i > 0 && (sameSenderAsPrev ? "mt-0.5" : "mt-3"),
+                        )}
                       >
-                        <MessageBubble
+                        <MessageActions
                           message={msg}
-                          reply={reply}
-                          reactions={msgReactions}
-                          currentUserId={user?.id}
-                          onToggleReaction={handlePillToggle}
-                        />
-                      </MessageActions>
+                          onReply={() => handleStartReply(msg)}
+                          onReact={(emoji) => {
+                            if (emoji) void postReaction(msg.id, emoji);
+                          }}
+                        >
+                          <MessageBubble
+                            message={msg}
+                            reply={reply}
+                            reactions={msgReactions}
+                            currentUserId={user?.id}
+                            onToggleReaction={handlePillToggle}
+                            withTail={isRunEnd}
+                          />
+                        </MessageActions>
+                      </div>
                     );
                   })}
                 </div>
@@ -1188,6 +1259,7 @@ export function MessageThread({
             ))}
           </div>
         )}
+        </div>
       </div>
 
       {/* Composer */}

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { DEFAULT_CURRENCY } from "@/lib/currency";
 import { useAuth } from "./use-auth";
 
 export interface WorkspacePlanLimits {
@@ -27,6 +28,8 @@ export interface Workspace {
   plan_limits: WorkspacePlanLimits;
   created_at: string;
   logo_url?: string | null;
+  /** Workspace default currency (ISO-4217, migration 033). */
+  default_currency?: string | null;
 }
 
 export interface WorkspaceMember {
@@ -120,6 +123,8 @@ interface WorkspaceContextValue {
   activeMember: { id: string } | null;
   activeRole: "owner" | "admin" | "member" | "viewer" | null;
   permissions: WorkspacePermissions;
+  /** Active workspace's default currency (ISO-4217, falls back to USD). */
+  defaultCurrency: string;
   loading: boolean;
   switchWorkspace: (workspaceId: string) => void;
   refreshWorkspaces: () => Promise<void>;
@@ -169,7 +174,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             plan,
             plan_limits,
             created_at,
-            logo_url
+            logo_url,
+            default_currency
           )
         `)
         .eq("user_id", user.id);
@@ -323,6 +329,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         activeMember,
         activeRole,
         permissions,
+        defaultCurrency: activeWorkspace?.default_currency || DEFAULT_CURRENCY,
         loading,
         switchWorkspace,
         refreshWorkspaces,

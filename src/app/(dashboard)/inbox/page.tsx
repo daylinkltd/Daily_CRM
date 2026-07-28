@@ -34,6 +34,34 @@ export default function InboxPage() {
     null
   );
   const [newChatModalOpen, setNewChatModalOpen] = useState(false);
+  // Whether the workspace's chatbot feature is enabled in Settings.
+  // Gates the per-conversation bot toggle/indicators — showing a bot
+  // pause/resume control while the chatbot is off is just noise.
+  const [chatbotEnabled, setChatbotEnabled] = useState(false);
+
+  useEffect(() => {
+    const workspaceId = activeWorkspace?.id;
+    if (!workspaceId) {
+      setChatbotEnabled(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/whatsapp/chatbot-config?workspace_id=${workspaceId}`
+        );
+        if (!res.ok) return;
+        const config = await res.json();
+        if (!cancelled) setChatbotEnabled(!!config?.is_enabled);
+      } catch {
+        // Leave the toggle hidden when the config can't be fetched.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeWorkspace?.id]);
 
   // Fire the deep-link auto-select exactly once per URL — subsequent
   // list refreshes (realtime, manual refetch) must not snap the user
@@ -198,6 +226,15 @@ export default function InboxPage() {
       setActiveConversation(conv);
       setActiveContact(conv.contact ?? null);
       setMessages([]);
+      // Optimistically clear the unread badge for the opened thread —
+      // MessageThread resets the server-side unread_count, but waiting
+      // for realtime/polling to echo that back leaves the badge lingering
+      // for a few seconds after the user has already opened the chat.
+      if (conv.unread_count > 0) {
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conv.id ? { ...c, unread_count: 0 } : c))
+        );
+      }
       // Record the selection on the deep-link ref BEFORE we change the
       // URL. The router.replace below flips `deepLinkConvId`, which can
       // in turn cause ConversationList to refetch and eventually call
@@ -361,6 +398,7 @@ export default function InboxPage() {
             workspaceId={activeWorkspace?.id}
             onOpenNewChat={() => setNewChatModalOpen(true)}
             onDeleteConversation={handleDeleteConversation}
+            chatbotEnabled={chatbotEnabled}
           />
         </div>
 
@@ -386,6 +424,7 @@ export default function InboxPage() {
             onBack={handleCloseConversation}
             onOpenNewChat={() => setNewChatModalOpen(true)}
             onDeleteConversation={handleDeleteConversation}
+            chatbotEnabled={chatbotEnabled}
           />
         </div>
 

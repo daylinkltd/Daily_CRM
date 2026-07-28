@@ -30,9 +30,10 @@ import {
   Trash2,
   Save,
   X,
-  DollarSign,
+  Banknote,
 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { formatCurrency } from '@/lib/currency';
 
 interface ContactDetailViewProps {
   open: boolean;
@@ -48,7 +49,7 @@ export function ContactDetailView({
   onUpdated,
 }: ContactDetailViewProps) {
   const supabase = createClient();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, defaultCurrency } = useWorkspace();
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(false);
@@ -654,12 +655,11 @@ export function ContactDetailView({
                         </div>
                         <div className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            <DollarSign className="size-3" />
-                            {new Intl.NumberFormat('en-US', {
-                              style: 'currency',
-                              currency: deal.currency || 'USD',
-                              maximumFractionDigits: 0,
-                            }).format(Number(deal.value || 0))}
+                            <Banknote className="size-3" />
+                            {formatCurrency(
+                              Number(deal.value || 0),
+                              deal.currency || defaultCurrency,
+                            )}
                           </span>
                           {deal.status && deal.status !== 'open' && (
                             <span

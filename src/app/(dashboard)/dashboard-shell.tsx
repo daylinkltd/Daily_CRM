@@ -129,16 +129,29 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const pendingInvite = sessionStorage.getItem("pending_invite_token");
+    if (!loading && !user) {
+      router.push("/login");
+    } else if (!loading && user && !wsLoading && workspaces.length === 0) {
+      // No workspace yet — check for a pending invitation before
+      // falling back to onboarding. The token can live in two places:
+      //   1. auth user_metadata (set at signup) — survives new tabs
+      //      and devices, e.g. the email-confirmation tab.
+      //   2. sessionStorage (set when the login/signup page mounted
+      //      with ?invite=) — same-tab flows for existing accounts.
+      // Members (workspaces.length > 0) never get diverted, so a
+      // stale token can't bounce an accepted member out of the app.
+      const pendingInvite =
+        (typeof user.user_metadata?.invite_token === "string" &&
+        user.user_metadata.invite_token
+          ? user.user_metadata.invite_token
+          : null) ??
+        (typeof window !== "undefined"
+          ? sessionStorage.getItem("pending_invite_token")
+          : null);
       if (pendingInvite) {
         router.push(`/join/${encodeURIComponent(pendingInvite)}`);
         return;
       }
-    }
-    if (!loading && !user) {
-      router.push("/login");
-    } else if (!loading && user && !wsLoading && workspaces.length === 0) {
       router.push("/onboarding");
     }
   }, [user, loading, wsLoading, workspaces, router]);

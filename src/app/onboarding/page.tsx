@@ -78,18 +78,28 @@ function OnboardingInner() {
 
   // If user already has workspaces, they shouldn't be here, redirect them to dashboard
   // If they have a pending invite token in progress, redirect them to the invitation join page.
+  // Membership wins over a (possibly stale) invite token so accepted
+  // members always land in their workspace's dashboard.
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const pendingInvite = sessionStorage.getItem("pending_invite_token");
-      if (pendingInvite) {
-        router.push(`/join/${encodeURIComponent(pendingInvite)}`);
-        return;
-      }
-    }
     if (workspaces.length > 0) {
       router.push("/dashboard");
+      return;
     }
-  }, [workspaces, router]);
+    // The token lives in auth user_metadata (set at signup — survives
+    // the email-confirmation tab / other devices) with sessionStorage
+    // as a same-tab fallback for existing accounts.
+    const pendingInvite =
+      (typeof user?.user_metadata?.invite_token === "string" &&
+      user.user_metadata.invite_token
+        ? user.user_metadata.invite_token
+        : null) ??
+      (typeof window !== "undefined"
+        ? sessionStorage.getItem("pending_invite_token")
+        : null);
+    if (pendingInvite) {
+      router.push(`/join/${encodeURIComponent(pendingInvite)}`);
+    }
+  }, [workspaces, user, router]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -628,6 +638,19 @@ function OnboardingPageContent() {
   const { workspaces, loading: wsLoading } = useWorkspace();
   const router = useRouter();
 
+  // Invited users must never see the plan-selection wizard — their
+  // workspace already has a plan. Resolve the pending invite token
+  // from auth user_metadata (survives new tabs/devices) or the
+  // same-tab sessionStorage fallback.
+  const pendingInvite =
+    (typeof user?.user_metadata?.invite_token === "string" &&
+    user.user_metadata.invite_token
+      ? user.user_metadata.invite_token
+      : null) ??
+    (typeof window !== "undefined"
+      ? sessionStorage.getItem("pending_invite_token")
+      : null);
+
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
@@ -640,6 +663,12 @@ function OnboardingPageContent() {
     }
   }, [user, loading, wsLoading, workspaces, router]);
 
+  useEffect(() => {
+    if (!loading && user && !wsLoading && workspaces.length === 0 && pendingInvite) {
+      router.push(`/join/${encodeURIComponent(pendingInvite)}`);
+    }
+  }, [user, loading, wsLoading, workspaces, pendingInvite, router]);
+
   if (loading || wsLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 text-sm">
@@ -651,6 +680,15 @@ function OnboardingPageContent() {
 
   if (!user) return null;
   if (workspaces.length > 0) return null;
+  // Redirecting to /join — don't flash the plan-selection wizard.
+  if (pendingInvite) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 text-sm">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+        Taking you to your invitation...
+      </div>
+    );
+  }
 
   return <OnboardingInner />;
 }

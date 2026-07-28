@@ -103,7 +103,7 @@ export function MessageActions({
       >
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
           <PopoverTrigger
-            className="flex h-5 w-5 items-center justify-center rounded-full text-popover-foreground hover:bg-muted hover:text-foreground"
+            className="flex h-5 w-5 items-center justify-center rounded-full text-popover-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             aria-label="React"
           >
             <SmilePlus className="h-3.5 w-3.5" />
@@ -117,7 +117,7 @@ export function MessageActions({
                 key={e}
                 type="button"
                 onClick={() => handlePickEmoji(e)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none transition-transform hover:scale-125 hover:bg-muted"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-lg leading-none transition-transform hover:scale-125 hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 aria-label={`React with ${e}`}
               >
                 {e}
@@ -128,7 +128,7 @@ export function MessageActions({
         <button
           type="button"
           onClick={handleReply}
-          className="flex h-5 w-5 items-center justify-center rounded-full text-popover-foreground hover:bg-muted hover:text-foreground"
+          className="flex h-5 w-5 items-center justify-center rounded-full text-popover-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           aria-label="Reply"
         >
           <CornerUpLeft className="h-3.5 w-3.5" />
@@ -136,7 +136,7 @@ export function MessageActions({
         <button
           type="button"
           onClick={handleCopy}
-          className="flex h-5 w-5 items-center justify-center rounded-full text-popover-foreground hover:bg-muted hover:text-foreground"
+          className="flex h-5 w-5 items-center justify-center rounded-full text-popover-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           aria-label="Copy"
         >
           <Copy className="h-3.5 w-3.5" />
