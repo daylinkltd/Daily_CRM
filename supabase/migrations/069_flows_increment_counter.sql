@@ -1,5 +1,5 @@
 -- ============================================================
--- 062_flows_increment_counter.sql
+-- 069_flows_increment_counter.sql
 --
 -- Atomic increment of flows.execution_count + refresh of
 -- last_executed_at. Called via PostgREST RPC from the Flows

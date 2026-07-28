@@ -1,15 +1,15 @@
 -- ============================================================
--- 064: Enforce viewer read-only on the feature-module tables.
+-- 067: Enforce viewer read-only on the feature-module tables.
 --
--- Follow-up to 063_viewer_read_only.sql, which split the CRM core
+-- Follow-up to 066_viewer_read_only.sql, which split the CRM core
 -- tables' "any active member can do everything" FOR ALL policies
 -- into writer-manage + member-view pairs but left the feature
 -- modules (projects, payroll, HRMS, commerce, retail — migrations
 -- 039+) untouched.
 --
--- Depends on 063 (is_active_workspace_writer helper) being applied.
+-- Depends on 066 (is_active_workspace_writer helper) being applied.
 --
--- Same pattern as 063 for every table below:
+-- Same pattern as 066 for every table below:
 --   - DROP the old "any active member can manage" FOR ALL policy;
 --   - CREATE a FOR ALL policy gated on is_active_workspace_writer;
 --   - CREATE a FOR SELECT policy gated on is_active_workspace_member.

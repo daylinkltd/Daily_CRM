@@ -1,5 +1,5 @@
 -- ============================================================
--- 064: Workspace-scope the five child tables still on legacy
+-- 068: Workspace-scope the five child tables still on legacy
 --      per-user ownership policies from migration 001.
 --
 -- contact_tags, contact_custom_values, contact_notes,
@@ -8,7 +8,7 @@
 -- creator's user_id (directly or via the parent row), so
 -- teammates who didn't create the parent contact / broadcast /
 -- conversation can't read or write them through the session
--- client, and the viewer role (062/063) isn't enforced.
+-- client, and the viewer role (065/066) isn't enforced.
 --
 -- None of these tables has a workspace_id column; the workspace
 -- is resolved through the NOT NULL parent FK:
@@ -18,17 +18,17 @@
 --   broadcast_recipients.broadcast_id  -> broadcasts.workspace_id
 --   messages.conversation_id           -> conversations.workspace_id
 --
--- Pattern follows 063_viewer_read_only.sql: a FOR ALL policy
+-- Pattern follows 066_viewer_read_only.sql: a FOR ALL policy
 -- gated on is_active_workspace_writer() plus a FOR SELECT policy
 -- gated on is_active_workspace_member(), permissive (OR'd), so
 -- viewers keep read access while writes need a non-viewer role.
 -- (FOR ALL's WITH CHECK defaults to USING, so inserts are covered.)
 --
--- Ordering: safe to run before or after 063. The writer helper is
+-- Ordering: safe to run before or after 066. The writer helper is
 -- (re)created here with a role::text comparison so it doesn't
--- reference the 'viewer' enum value added in 062 — identical
--- behavior to 063's definition once 'viewer' exists, and it
--- doesn't fail if 062/063 haven't been applied yet.
+-- reference the 'viewer' enum value added in 065 — identical
+-- behavior to 066's definition once 'viewer' exists, and it
+-- doesn't fail if 065/066 haven't been applied yet.
 --
 -- messages also loses the migration-001 policy
 -- "Service role can insert messages" WITH CHECK (true): it had no
@@ -40,8 +40,8 @@
 
 -- ---------------------------------------------------------------------------
 -- 1. Helper: is_active_workspace_writer(workspace_id, user_id)
---    Same definition as 063 but 'viewer' is compared as text so this
---    migration doesn't depend on the enum value from 062.
+--    Same definition as 066 but 'viewer' is compared as text so this
+--    migration doesn't depend on the enum value from 065.
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.is_active_workspace_writer(
   p_workspace_id UUID,

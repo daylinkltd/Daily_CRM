@@ -108,6 +108,21 @@ export async function PATCH(
 
     if (error) {
       console.error("[members route PATCH] update error:", error);
+      // 22P02 = invalid input value for enum: the 'viewer' value hasn't
+      // been added to workspace_role yet. Say so instead of a generic
+      // failure, so the operator knows the fix is a pending migration.
+      const isMissingEnumValue =
+        (error as { code?: string }).code === "22P02" ||
+        /invalid input value for enum/i.test(error.message ?? "");
+      if (isMissingEnumValue && dbRole === "viewer") {
+        return NextResponse.json(
+          {
+            error:
+              "The read-only 'viewer' role isn't enabled on this database yet. Apply migration 065_add_viewer_workspace_role.sql (then 066/067) in Supabase, or pick agent instead.",
+          },
+          { status: 409 },
+        );
+      }
       return NextResponse.json({ error: "Failed to update member role" }, { status: 500 });
     }
 

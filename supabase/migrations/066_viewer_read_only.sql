@@ -1,7 +1,7 @@
 -- ============================================================
--- 063: Enforce viewer read-only at the database layer.
+-- 066: Enforce viewer read-only at the database layer.
 --
--- Depends on 062_add_viewer_workspace_role.sql being COMMITTED
+-- Depends on 065_add_viewer_workspace_role.sql being COMMITTED
 -- first ('viewer' cannot be referenced in the transaction that
 -- adds it to the enum).
 --
