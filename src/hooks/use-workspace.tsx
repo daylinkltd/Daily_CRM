@@ -6,10 +6,15 @@ import {
   useEffect,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { DEFAULT_CURRENCY } from "@/lib/currency";
+import {
+  deriveModuleAccess,
+  type ModuleAccess,
+} from "@/lib/auth/modules";
 import { useAuth } from "./use-auth";
 
 export interface WorkspacePlanLimits {
@@ -123,6 +128,12 @@ interface WorkspaceContextValue {
   activeMember: { id: string } | null;
   activeRole: "owner" | "admin" | "member" | "viewer" | null;
   permissions: WorkspacePermissions;
+  /**
+   * Per-app-module access for the current member, derived from their enum
+   * role + custom-role permissions JSONB. Owners/admins get every module.
+   * See `deriveModuleAccess` in `@/lib/auth/modules`.
+   */
+  moduleAccess: ModuleAccess;
   /** Active workspace's default currency (ISO-4217, falls back to USD). */
   defaultCurrency: string;
   loading: boolean;
@@ -142,6 +153,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [activeMember, setActiveMember] = useState<{ id: string } | null>(null);
   const [activeRole, setActiveRole] = useState<"owner" | "admin" | "member" | "viewer" | null>(null);
   const [permissions, setPermissions] = useState<WorkspacePermissions>(DEFAULT_MEMBER_PERMISSIONS);
+  // Raw `workspace_roles.permissions` JSONB for the active member's custom
+  // role (null when they have no custom role assigned). Kept separate from
+  // `permissions` because module access is derived from the raw booleans —
+  // see `moduleAccess` below.
+  const [rolePermissions, setRolePermissions] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchWorkspaces = useCallback(async () => {
@@ -155,6 +171,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setActiveMember(null);
       setActiveRole(null);
       setPermissions(DEFAULT_MEMBER_PERMISSIONS);
+      setRolePermissions(null);
       setLoading(false);
       return;
     }
@@ -220,13 +237,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         }
 
         // Fetch ABAC permissions for this workspace
-        await loadPermissions(supabase, chosenWorkspace.id, chosenRole);
+        await loadPermissions(
+          supabase,
+          chosenWorkspace.id,
+          chosenRole,
+          roleIdMap[chosenWorkspace.id] ?? null,
+        );
       } else {
         setWorkspaces([]);
         setActiveWorkspace(null);
         setActiveMember(null);
         setActiveRole(null);
         setPermissions(DEFAULT_MEMBER_PERMISSIONS);
+        setRolePermissions(null);
       }
     } catch (err) {
       console.error("[WorkspaceProvider] exception:", err);
@@ -238,12 +261,35 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const loadPermissions = async (
     supabase: ReturnType<typeof createClient>,
     workspaceId: string,
-    role: "owner" | "admin" | "member" | "viewer" | null
+    role: "owner" | "admin" | "member" | "viewer" | null,
+    roleId: string | null
   ) => {
-    // Owners & Admins always get all permissions — no DB call needed
+    // Owners & Admins always get all permissions — no DB call needed.
+    // Their module access is derived from the enum role alone, so the raw
+    // role JSONB can stay null (the owner/admin bypass ignores it).
     if (role === "owner" || role === "admin") {
       setPermissions(OWNER_PERMISSIONS);
+      setRolePermissions(null);
       return;
+    }
+
+    // Fetch the member's custom-role permissions JSONB directly. RLS scopes
+    // workspace_roles to the caller's workspace, and we filter on both id and
+    // workspace_id, so this can never read another tenant's role. Module
+    // access is derived from these raw booleans (module_crm/hr/retail/projects).
+    if (roleId) {
+      const { data: roleRow } = await supabase
+        .from("workspace_roles")
+        .select("permissions")
+        .eq("id", roleId)
+        .eq("workspace_id", workspaceId)
+        .maybeSingle();
+      setRolePermissions(
+        (roleRow?.permissions as Record<string, unknown> | undefined) ?? null,
+      );
+    } else {
+      // No custom role assigned → module access falls back to the default.
+      setRolePermissions(null);
     }
 
     try {
@@ -321,6 +367,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [permissions]
   );
 
+  // Derive per-module access from the enum role + raw custom-role JSONB.
+  // Owner/admin ⇒ all modules; role-less members ⇒ DEFAULT_MODULE_ACCESS.
+  const moduleAccess = useMemo(
+    () => deriveModuleAccess(activeRole, rolePermissions),
+    [activeRole, rolePermissions]
+  );
+
   return (
     <WorkspaceContext.Provider
       value={{
@@ -329,6 +382,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         activeMember,
         activeRole,
         permissions,
+        moduleAccess,
         defaultCurrency: activeWorkspace?.default_currency || DEFAULT_CURRENCY,
         loading,
         switchWorkspace,
@@ -348,4 +402,13 @@ export function useWorkspace(): WorkspaceContextValue {
     throw new Error("useWorkspace must be used within a WorkspaceProvider");
   }
   return ctx;
+}
+
+/**
+ * Convenience hook returning just the current member's per-module access
+ * `{ crm, hr, retail, projects }`. Owner/admin get every module; a member
+ * with no custom role falls back to DEFAULT_MODULE_ACCESS (CRM only).
+ */
+export function useModuleAccess(): ModuleAccess {
+  return useWorkspace().moduleAccess;
 }

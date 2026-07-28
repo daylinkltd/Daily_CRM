@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { RequireModule } from '@/components/auth/require-module';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, Target, Clock, CheckCircle2, TrendingUp, Users } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
@@ -11,6 +12,14 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 export default function ProjectDashboardPage() {
+  return (
+    <RequireModule module="projects">
+      <ProjectDashboardPageContent />
+    </RequireModule>
+  );
+}
+
+function ProjectDashboardPageContent() {
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, defaultCurrency } = useWorkspace();

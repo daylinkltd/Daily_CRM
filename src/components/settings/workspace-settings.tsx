@@ -16,6 +16,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  MODULE_KEYS,
+  MODULE_PERMISSION_KEY,
+  MODULE_LABELS,
+} from "@/lib/auth/modules";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface ProfileDetail {
@@ -60,6 +65,22 @@ const PERMISSION_LABELS: { key: string; label: string; group: string }[] = [
 
 const PERMISSION_GROUPS = ["Core", "Engagement", "Advanced", "Settings"];
 
+// App-module toggles (module_crm / module_hr / module_retail / module_projects).
+// These write into the SAME permissions JSONB as the feature keys above, but
+// are grouped separately in the UI. Owners/admins implicitly get all modules.
+const MODULE_TOGGLES: { key: string; label: string }[] = MODULE_KEYS.map((k) => ({
+  key: MODULE_PERMISSION_KEY[k],
+  label: MODULE_LABELS[k],
+}));
+
+/** Fresh permissions map for a new role: all feature keys off, CRM module on. */
+function initialRolePerms(): Record<string, boolean> {
+  return {
+    ...Object.fromEntries(PERMISSION_LABELS.map((p) => [p.key, false])),
+    ...Object.fromEntries(MODULE_TOGGLES.map((m) => [m.key, m.key === "module_crm"])),
+  };
+}
+
 // ─── WorkspaceSettings Component ──────────────────────────────────────────────
 export function WorkspaceSettings() {
   const { activeWorkspace, activeRole, refreshWorkspaces, createWorkspace, can } = useWorkspace();
@@ -95,9 +116,7 @@ export function WorkspaceSettings() {
   // ── Custom role builder ────────────────────────────────────────────────────
   const [roleName, setRoleName] = useState("");
   const [roleDesc, setRoleDesc] = useState("");
-  const [rolePerms, setRolePerms] = useState<Record<string, boolean>>(
-    Object.fromEntries(PERMISSION_LABELS.map((p) => [p.key, false]))
-  );
+  const [rolePerms, setRolePerms] = useState<Record<string, boolean>>(initialRolePerms());
   const [roleLoading, setRoleLoading] = useState(false);
   const [roleError, setRoleError] = useState("");
   const [roleSuccess, setRoleSuccess] = useState("");
@@ -282,7 +301,7 @@ export function WorkspaceSettings() {
     } else {
       setRoleSuccess(`Role "${roleName.trim()}" created!`);
       setRoleName(""); setRoleDesc("");
-      setRolePerms(Object.fromEntries(PERMISSION_LABELS.map((p) => [p.key, false])));
+      setRolePerms(initialRolePerms());
       fetchRoles();
       setTimeout(() => setRoleSuccess(""), 4000);
     }
@@ -387,7 +406,20 @@ export function WorkspaceSettings() {
 
                 {expandedRoleId === role.id && (
                   <div className="px-4 pb-4 border-t border-slate-800/50">
-                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <p className="mt-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">App Modules</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {MODULE_TOGGLES.map((m) => {
+                        const enabled = role.permissions[m.key] === true;
+                        return (
+                          <div key={m.key} className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium ${enabled ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-slate-900 text-slate-600 border border-slate-800"}`}>
+                            {enabled ? <Check className="h-3 w-3 shrink-0" /> : <Lock className="h-3 w-3 shrink-0" />}
+                            {m.label}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Permissions</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {PERMISSION_LABELS.map((p) => {
                         const enabled = role.permissions[p.key] === true;
                         return (
@@ -420,6 +452,30 @@ export function WorkspaceSettings() {
                 <Label className="text-xs text-slate-400 font-medium">Description</Label>
                 <Input value={roleDesc} onChange={(e) => setRoleDesc(e.target.value)} placeholder="Optional description"
                   className="bg-slate-950 border-slate-800 focus:border-primary text-foreground text-sm" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-slate-400 font-medium uppercase tracking-wider">App Modules</Label>
+              <p className="text-[11px] text-slate-500">Which product modules this role can open. Owners and admins always have every module.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                {MODULE_TOGGLES.map((m) => {
+                  const checked = rolePerms[m.key] === true;
+                  return (
+                    <label key={m.key} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-sm ${
+                      checked
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600"
+                    }`}>
+                      <input type="checkbox" checked={checked} onChange={(e) => setRolePerms({ ...rolePerms, [m.key]: e.target.checked })}
+                        className="sr-only" />
+                      <div className={`flex h-4 w-4 items-center justify-center rounded border shrink-0 ${checked ? "bg-primary border-primary" : "border-slate-600"}`}>
+                        {checked && <Check className="h-2.5 w-2.5 text-white" />}
+                      </div>
+                      {m.label}
+                    </label>
+                  );
+                })}
               </div>
             </div>
 

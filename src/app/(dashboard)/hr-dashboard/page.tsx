@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { RequireModule } from '@/components/auth/require-module';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,14 @@ import {
 import { useRouter } from 'next/navigation';
 
 export default function HRDashboardPage() {
+  return (
+    <RequireModule module="hr">
+      <HRDashboardPageContent />
+    </RequireModule>
+  );
+}
+
+function HRDashboardPageContent() {
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace } = useWorkspace();

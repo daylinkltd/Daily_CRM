@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { RequireModule } from "@/components/auth/require-module";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -48,6 +49,14 @@ interface CartItem {
 }
 
 export default function POSTerminalPage() {
+  return (
+    <RequireModule module="retail">
+      <POSTerminalPageContent />
+    </RequireModule>
+  );
+}
+
+function POSTerminalPageContent() {
   const { activeWorkspace } = useWorkspace();
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState<any[]>([]);

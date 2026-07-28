@@ -7,6 +7,7 @@ import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace, type WorkspacePermissions } from "@/hooks/use-workspace";
+import type { ModuleKey } from "@/lib/auth/modules";
 import { useTotalUnread } from "@/hooks/use-total-unread";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -82,6 +83,20 @@ type NavGroup = {
   label: string;
   icon: React.ElementType;
   items: NavItem[];
+};
+
+/**
+ * Maps each sidebar nav group's label to the app module that gates it.
+ * `null` = ungated (always visible, e.g. the System group). Groups whose
+ * module the member can't access are hidden from the module switcher.
+ * Keep the keys in sync with the `navGroups` labels below.
+ */
+const NAV_GROUP_MODULE: Record<string, ModuleKey | null> = {
+  CRM: "crm",
+  Retail: "retail",
+  "Project Management": "projects",
+  "HR Management": "hr",
+  System: null,
 };
 
 const navGroups: NavGroup[] = [
@@ -173,7 +188,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { profile, signOut } = useAuth();
-  const { can } = useWorkspace();
+  const { can, moduleAccess } = useWorkspace();
   const totalUnread = useTotalUnread();
   const { mode } = useTheme();
   const isDark = mode === "dark";
@@ -213,12 +228,34 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     localStorage.setItem("sidebar_collapsed", String(next));
   };
 
+  // Only surface module groups the current member can access. Ungated
+  // groups (NAV_GROUP_MODULE === null, e.g. System) always show. Preserves
+  // navGroups order, so accessibleGroups[0] is CRM whenever CRM is allowed.
+  const accessibleGroups = useMemo(() => {
+    return navGroups.filter((group) => {
+      const mod = NAV_GROUP_MODULE[group.label];
+      return mod == null || moduleAccess[mod];
+    });
+  }, [moduleAccess]);
+
+  // If the active module became inaccessible (role change, direct nav),
+  // fall back to the first accessible group (CRM when available).
+  useEffect(() => {
+    if (accessibleGroups.length === 0) return;
+    const stillAccessible = accessibleGroups.some((g) => g.label === activeModule);
+    if (!stillAccessible) {
+      const fallback = accessibleGroups[0].label;
+      setActiveModule(fallback);
+      localStorage.setItem("active_app_module", fallback);
+    }
+  }, [accessibleGroups, activeModule]);
+
   const handleSwitchModule = (moduleLabel: string) => {
     setActiveModule(moduleLabel);
     localStorage.setItem("active_app_module", moduleLabel);
 
     // Auto-navigate to first item of switched module for clean user flow
-    const group = navGroups.find(g => g.label === moduleLabel);
+    const group = accessibleGroups.find(g => g.label === moduleLabel);
     if (group && group.items.length > 0) {
       const firstItem = group.items.find(item => !item.permission || can(item.permission));
       if (firstItem) {
@@ -227,18 +264,18 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     }
   };
 
-  // Get active menu items for selected module
+  // Get active menu items for selected module (only from accessible groups)
   const visibleItems = useMemo(() => {
-    const group = navGroups.find(g => g.label === activeModule);
+    const group = accessibleGroups.find(g => g.label === activeModule);
     if (!group) return [];
     return group.items.filter(item => !item.permission || can(item.permission));
-  }, [activeModule, can]);
+  }, [accessibleGroups, activeModule, can]);
 
   // Find active group icon
   const ActiveGroupIcon = useMemo(() => {
-    const group = navGroups.find(g => g.label === activeModule);
+    const group = accessibleGroups.find(g => g.label === activeModule);
     return group ? group.icon : AppWindow;
-  }, [activeModule]);
+  }, [accessibleGroups, activeModule]);
 
   // Dynamic Theme Colors
   const sidebarBgClass = isDark
@@ -375,7 +412,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               </div>
               <DropdownMenuSeparator className="bg-slate-800/60 my-1" />
               
-              {navGroups.map((group) => {
+              {accessibleGroups.map((group) => {
                 const GroupIcon = group.icon;
                 const isSelected = activeModule === group.label;
                 

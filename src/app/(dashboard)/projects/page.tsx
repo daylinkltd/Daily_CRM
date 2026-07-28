@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { RequireModule } from '@/components/auth/require-module';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -29,6 +30,14 @@ import { useRouter } from 'next/navigation';
 import { ProjectForm } from '@/components/projects/project-form';
 
 export default function ProjectsListPage() {
+  return (
+    <RequireModule module="projects">
+      <ProjectsListPageContent />
+    </RequireModule>
+  );
+}
+
+function ProjectsListPageContent() {
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, can } = useWorkspace();
