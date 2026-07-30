@@ -247,10 +247,10 @@ export function ProfileForm() {
     : '—';
 
   return (
-    <Card className="bg-slate-900/40 border-slate-800">
+    <Card className="bg-card/40 border-border">
       <CardHeader>
         <CardTitle className="text-foreground">Profile</CardTitle>
-        <CardDescription className="text-slate-400">
+        <CardDescription className="text-muted-foreground">
           How you show up across the app. Your avatar and name appear in the
           header, sidebar, and anywhere your teammates see you.
         </CardDescription>
@@ -292,7 +292,7 @@ export function ProfileForm() {
                   variant="ghost"
                   onClick={onRemoveAvatar}
                   disabled={saving}
-                  className="text-slate-400 hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <Trash2 className="size-4" />
                   Remove
@@ -346,7 +346,7 @@ export function ProfileForm() {
           </div>
 
           {/* Read-only block */}
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-4">
+          <div className="rounded-lg border border-border bg-card/60 p-4">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
               Account details
             </p>
@@ -363,7 +363,7 @@ export function ProfileForm() {
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-slate-500">User ID</dt>
-                <dd className="mt-0.5 break-all font-mono text-xs text-slate-400">
+                <dd className="mt-0.5 break-all font-mono text-xs text-muted-foreground">
                   {user?.id ?? '—'}
                 </dd>
               </div>
@@ -371,7 +371,7 @@ export function ProfileForm() {
           </div>
 
           {(!profile && !user) && (
-            <p className="flex items-center gap-2 text-sm text-slate-400">
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <CircleAlert className="size-4" />
               Loading your profile…
             </p>

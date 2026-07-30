@@ -1,32 +1,48 @@
 /* src/styles/tokens.css */
 /* ===========================================================================
- * Enterprise Design System Tokens - 20 Rules Single Source of Truth
+ * Daily CRM Enterprise Design System Tokens
  * =========================================================================== */
 
 :root {
-  /* Rule 1 & Rule 15: Radius System & Heights */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
+  /* Dimensions & Spacing Tokens */
+  --sidebar-width: 248px;
+  --topbar-height: 56px;
+  
+  --page-padding-desktop: 24px;
+  --page-padding-tablet: 20px;
+  --page-padding-mobile: 16px;
+  --section-gap: 20px;
+  
+  --card-padding: 20px;
+  --card-padding-compact: 16px;
+  --card-padding-large: 24px;
+
+  /* Radius System */
+  --radius-card: 12px;
+  --radius-control: 10px;
   --radius: 10px;           /* Cards, Inputs, Buttons, Tables, Dropdowns */
-  --radius-card: 10px;
   --radius-button: 10px;
   --radius-input: 10px;
-  --radius-table: 10px;
+  --radius-table: 12px;
   --radius-dropdown: 10px;
   --radius-modal: 12px;     /* Modals */
   --radius-full: 9999px;    /* Avatars & Pills */
 
-  --height-button: 40px;
-  --height-input: 40px;
-  --height-select: 40px;
-  --height-search: 40px;
+  /* Heights */
+  --height-control: 36px;
+  --height-control-sm: 32px;
+  --height-control-lg: 40px;
+  --height-button: 36px;
+  --height-input: 36px;
+  --height-select: 36px;
+  --height-search: 36px;
   --height-badge: 24px;
-  --height-header: 64px;
+  --height-header: 56px;
   --height-table-header: 44px;
   --height-table-row: 52px;
+  --height-nav-item: 36px;
 
-  /* Rule 2: 8-Point Spacing Grid */
+  /* 8-Point Spacing Grid */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
@@ -35,22 +51,25 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
 
-  /* Rule 3: Typography Scale */
-  --font-display: 36px;
-  --font-page-title: 30px;
-  --font-section-title: 24px;
-  --font-card-title: 18px;
-  --font-body: 16px;
-  --font-secondary: 14px;
-  --font-caption: 12px;
+  /* Typography Scale */
+  --font-page-title: 24px;
+  --font-page-subtitle: 13px;
+  --font-section-title: 16px;
+  --font-card-label: 13px;
+  --font-metric-number: 28px;
+  --font-body: 14px;
+  --font-table: 13px;
+  --font-meta: 12px;
+  --font-nav: 13px;
+  --font-button: 13px;
 
-  /* Rule 12: Elevation & Shadows */
+  /* Elevation & Shadows */
   --shadow-none: none;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
-  /* Rule 14: Motion & Animations */
+  /* Motion & Animations */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);     /* Hover */
   --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);   /* Dropdowns */
   --transition-slow: 250ms cubic-bezier(0.4, 0, 0.2, 1);     /* Modals */

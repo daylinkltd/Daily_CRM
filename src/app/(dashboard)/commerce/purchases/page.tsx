@@ -172,11 +172,11 @@ export default function PurchasesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
             <Truck className="h-6 w-6 text-[#00aef0]" />
             Purchase Orders & Goods Inward
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Manage procurement, supplier purchase orders, and stock inward bills.
           </p>
         </div>
@@ -184,14 +184,14 @@ export default function PurchasesPage() {
           <Button
             onClick={fetchPurchasesData}
             variant="outline"
-            className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11"
+            className="border-border text-slate-300 gap-1.5 rounded-xl h-11"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
           <Button
             onClick={() => setShowAddModal(true)}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
           >
             <Plus className="h-4 w-4" />
             Create Purchase Order
@@ -200,10 +200,10 @@ export default function PurchasesPage() {
       </div>
 
       {/* Business Workflow Banner */}
-      <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
+      <div className="bg-card/90 border border-border p-4 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
         <Info className="h-5 w-5 text-[#00aef0] shrink-0" />
         <div>
-          <strong className="text-white block font-bold text-sm">
+          <strong className="text-foreground block font-bold text-sm">
             Procurement & Stock Inward Workflow:
           </strong>
           Select a Supplier → Add catalog products & purchase costs → Setting status to{" "}
@@ -212,24 +212,24 @@ export default function PurchasesPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800 backdrop-blur-md">
+      <div className="flex items-center gap-3 bg-card/80 p-3 rounded-2xl border border-border backdrop-blur-md">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search by PO Number or Supplier Name..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-10 h-10 bg-slate-950/80 border-slate-800 text-white rounded-xl focus:border-[#00aef0]"
+            className="pl-10 h-10 bg-background/80 border-border text-foreground rounded-xl focus:border-[#00aef0]"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl">
+      <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">PO #</th>
                 <th className="py-3.5 px-4">Date</th>
@@ -256,7 +256,7 @@ export default function PurchasesPage() {
                     </p>
                     <Button
                       onClick={() => setShowAddModal(true)}
-                      className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl gap-2 mt-2"
+                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2"
                     >
                       <Plus className="h-4 w-4" />
                       Create First Purchase Order
@@ -266,10 +266,10 @@ export default function PurchasesPage() {
               ) : (
                 filteredPOs.map((po) => (
                   <tr key={po.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-white">
+                    <td className="py-3.5 px-4 font-mono font-bold text-foreground">
                       #{po.po_number}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-400">
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       {new Date(po.created_at).toLocaleDateString()}
                     </td>
                     <td className="py-3.5 px-4 text-xs font-semibold text-slate-200">
@@ -278,7 +278,7 @@ export default function PurchasesPage() {
                     <td className="py-3.5 px-4 text-center text-xs font-bold text-[#00aef0]">
                       {po.items?.length || 0} Items
                     </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-white">
+                    <td className="py-3.5 px-4 text-right font-extrabold text-foreground">
                       ₹{Number(po.total_amount || 0).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 text-center">
@@ -304,14 +304,14 @@ export default function PurchasesPage() {
 
       {/* Create Purchase Order Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl text-slate-100 my-8 overflow-x-hidden">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="bg-card border border-border rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl text-slate-100 my-8 overflow-x-hidden">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Truck className="h-5 w-5 text-[#00aef0]" />
                 Create Purchase Order &amp; Stock Inward
               </h2>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowAddModal(false)} className="text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -324,7 +324,7 @@ export default function PurchasesPage() {
                   <select
                     value={selectedSupplierId}
                     onChange={(e) => setSelectedSupplierId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-10 px-3 text-xs"
+                    className="w-full bg-background border border-border text-foreground rounded-xl h-10 px-3 text-xs"
                   >
                     <option value="">-- Direct Supplier / Vendor --</option>
                     {suppliers.map((s) => (
@@ -340,7 +340,7 @@ export default function PurchasesPage() {
                   <select
                     value={poStatus}
                     onChange={(e) => setPoStatus(e.target.value as any)}
-                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-10 px-3 text-xs font-bold"
+                    className="w-full bg-background border border-border text-foreground rounded-xl h-10 px-3 text-xs font-bold"
                   >
                     <option value="RECEIVED">RECEIVED (Auto Inward Stock into Catalog)</option>
                     <option value="ORDERED">ORDERED (Pending Goods Receipt)</option>
@@ -349,13 +349,13 @@ export default function PurchasesPage() {
               </div>
 
               {/* Add Items Builder Card */}
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+              <div className="bg-background p-4 rounded-2xl border border-border space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#00aef0] flex items-center gap-1.5">
                   <Package className="h-4 w-4" /> Add Catalog Items to PO
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div className="sm:col-span-1">
-                    <Label className="text-[11px] text-slate-400">Search &amp; Select Product</Label>
+                    <Label className="text-[11px] text-muted-foreground">Search &amp; Select Product</Label>
                     <div className="mt-1">
                       <ProductCombobox
                         products={products}
@@ -373,23 +373,23 @@ export default function PurchasesPage() {
                     </div>
                   </div>
                   <div>
-                    <Label className="text-[11px] text-slate-400">Inward Qty</Label>
+                    <Label className="text-[11px] text-muted-foreground">Inward Qty</Label>
                     <Input
                       type="number"
                       min="1"
                       value={itemQty}
                       onChange={(e) => setItemQty(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                      className="bg-card border-border text-foreground rounded-xl h-9 text-xs mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-[11px] text-slate-400">Unit Purchase Price (₹)</Label>
+                    <Label className="text-[11px] text-muted-foreground">Unit Purchase Price (₹)</Label>
                     <Input
                       type="number"
                       placeholder="Cost price..."
                       value={itemCost}
                       onChange={(e) => setItemCost(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                      className="bg-card border-border text-foreground rounded-xl h-9 text-xs mt-1"
                     />
                   </div>
                 </div>
@@ -404,9 +404,9 @@ export default function PurchasesPage() {
 
               {/* Added Line Items Table */}
               {poItems.length > 0 && (
-                <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+                <div className="rounded-2xl border border-border bg-background overflow-hidden">
                   <table className="w-full text-left text-xs text-slate-300">
-                    <thead className="bg-slate-900 font-semibold text-slate-400 border-b border-slate-800">
+                    <thead className="bg-card font-semibold text-muted-foreground border-b border-border">
                       <tr>
                         <th className="py-2 px-3">Product</th>
                         <th className="py-2 px-3 text-center">Qty</th>
@@ -418,7 +418,7 @@ export default function PurchasesPage() {
                     <tbody className="divide-y divide-slate-800/60">
                       {poItems.map((item) => (
                         <tr key={item.id}>
-                          <td className="py-2 px-3 font-semibold text-white">
+                          <td className="py-2 px-3 font-semibold text-foreground">
                             {item.product_name}
                           </td>
                           <td className="py-2 px-3 text-center font-bold">
@@ -443,7 +443,7 @@ export default function PurchasesPage() {
                       ))}
                     </tbody>
                   </table>
-                  <div className="p-3 bg-slate-900/90 text-right text-xs font-bold text-white border-t border-slate-800">
+                  <div className="p-3 bg-card/90 text-right text-xs font-bold text-foreground border-t border-border">
                     Grand Total: <span className="text-[#00aef0] text-sm font-extrabold ml-2">₹{grandTotalPO.toFixed(2)}</span>
                   </div>
                 </div>
@@ -457,15 +457,15 @@ export default function PurchasesPage() {
                   placeholder="e.g. Stock batch received at Main Warehouse"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs"
+                  className="bg-background border-border text-foreground rounded-xl h-9 text-xs"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-slate-800 text-slate-300 rounded-xl h-10">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-slate-300 rounded-xl h-10">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl h-10 px-5">
+                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">
                   {saving ? "Saving PO..." : "Save Purchase Order"}
                 </Button>
               </div>

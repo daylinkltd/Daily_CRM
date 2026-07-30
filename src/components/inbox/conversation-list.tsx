@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import type { Conversation, ConversationStatus } from "@/types";
 import { Search, ChevronDown, Bot, Trash2, Bell, BellOff } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -188,13 +188,13 @@ export function ConversationList({
       {/* Search + Filter + New Chat */}
       <div className="space-y-2 border-b border-border p-3">
         <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
+          <div className="flex-1">
+            <SearchInput
               value={search}
               onChange={handleSearchChange}
+              onClear={() => setSearch("")}
               placeholder="Search..."
-              className="border-border bg-muted pl-9 text-sm text-foreground placeholder-muted-foreground focus:border-primary/50 h-9"
+              className="bg-muted border-border h-9"
             />
           </div>
           {onToggleNotifications && (

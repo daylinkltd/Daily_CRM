@@ -122,8 +122,8 @@ export default function NewBroadcastPage() {
     <div className="mx-auto max-w-3xl space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">New Broadcast</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <h1 className="text-2xl font-bold text-foreground">New Broadcast</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Create and send a broadcast message to your contacts.
         </p>
       </div>
@@ -150,7 +150,7 @@ export default function NewBroadcastPage() {
                 </div>
                 <span
                   className={`hidden text-sm font-medium sm:block ${
-                    isActive ? 'text-white' : isCompleted ? 'text-primary' : 'text-slate-500'
+                    isActive ? 'text-foreground' : isCompleted ? 'text-primary' : 'text-slate-500'
                   }`}
                 >
                   {step.label}

@@ -277,7 +277,7 @@ export function ProjectReportsGallery({ projectId, projectType: initialProjectTy
                 <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-sm">
                   <strong>Burnup Analysis:</strong> Total scope is {stats.totalTasks} work items. Completed scope has reached {stats.completedTasks} items ({stats.completionRate}% completion rate).
                 </div>
-                <div className="h-64 border rounded-lg p-6 flex flex-col justify-end gap-2 bg-slate-950/20">
+                <div className="h-64 border rounded-lg p-6 flex flex-col justify-end gap-2 bg-background/20">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Total Scope ({stats.totalTasks})</span>
                     <span className="text-emerald-500 font-bold">Completed ({stats.completedTasks})</span>

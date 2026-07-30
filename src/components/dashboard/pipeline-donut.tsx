@@ -14,9 +14,9 @@ interface PipelineDonutProps {
 
 export function PipelineDonut({ data, loading, currency }: PipelineDonutProps) {
   return (
-    <section className="flex h-full flex-col rounded-xl border border-slate-800 bg-slate-900">
-      <header className="border-b border-slate-800 px-5 py-4">
-        <h2 className="text-sm font-semibold text-white">Pipeline Value</h2>
+    <section className="flex h-full flex-col rounded-xl border border-border bg-card">
+      <header className="border-b border-border px-5 py-4">
+        <h2 className="text-sm font-semibold text-foreground">Pipeline Value</h2>
         <p className="mt-0.5 text-xs text-slate-500">
           Open deals by stage
         </p>

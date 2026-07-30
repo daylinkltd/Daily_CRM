@@ -66,7 +66,7 @@ export function InstagramConfig() {
       {/* Main config form */}
       <div className="space-y-6">
         {/* Connection Status */}
-        <Alert className="bg-slate-900 border-slate-700">
+        <Alert className="bg-card border-slate-700">
           <div className="flex items-center gap-2">
             {connectionStatus === 'connected' ? (
               <CheckCircle2 className="size-4 text-primary" />
@@ -77,7 +77,7 @@ export function InstagramConfig() {
               {connectionStatus === 'connected' ? 'Connected' : 'Not Connected'}
             </AlertTitle>
           </div>
-          <AlertDescription className="text-slate-400">
+          <AlertDescription className="text-muted-foreground">
             {connectionStatus === 'connected'
               ? 'Your Instagram account is connected and ready to receive DMs.'
               : statusMessage}
@@ -85,10 +85,10 @@ export function InstagramConfig() {
         </Alert>
 
         {/* API Credentials */}
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">API Credentials</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-muted-foreground">
               Enter your Instagram Graph API credentials to start receiving DMs.
             </CardDescription>
           </CardHeader>
@@ -119,7 +119,7 @@ export function InstagramConfig() {
                 <button
                   type="button"
                   onClick={() => setShowToken(!showToken)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -142,10 +142,10 @@ export function InstagramConfig() {
         </Card>
 
         {/* Webhook URL */}
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">Webhook Configuration</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-muted-foreground">
               Use this URL in your Meta App Dashboard for Instagram.
             </CardDescription>
           </CardHeader>
@@ -183,10 +183,10 @@ export function InstagramConfig() {
 
       {/* Sidebar */}
       <div>
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground text-base">Setup Instructions</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-muted-foreground">
               Follow these steps to connect Instagram DMs.
             </CardDescription>
           </CardHeader>
@@ -199,7 +199,7 @@ export function InstagramConfig() {
                     Link Instagram to Facebook Page
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-slate-400">
+                <AccordionContent className="text-muted-foreground">
                   <ol className="list-decimal list-inside space-y-1 text-sm">
                     <li>Go to your Facebook Page Settings</li>
                     <li>Click &quot;Linked Accounts&quot;</li>
@@ -214,7 +214,7 @@ export function InstagramConfig() {
                     Enable Message Access
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-slate-400">
+                <AccordionContent className="text-muted-foreground">
                   <ol className="list-decimal list-inside space-y-1 text-sm">
                     <li>Open Instagram app on your phone</li>
                     <li>Go to Settings &gt; Privacy &gt; Messages</li>

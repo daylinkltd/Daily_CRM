@@ -336,14 +336,14 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
           </div>
 
           {/* Workflow Diagram Canvas */}
-          <div className="relative border border-border/80 rounded-xl bg-slate-50/50 dark:bg-slate-950/50 p-8 min-h-[220px] flex items-center justify-center overflow-x-auto">
+          <div className="relative border border-border/80 rounded-xl bg-slate-50/50 dark:bg-background/50 p-8 min-h-[220px] flex items-center justify-center overflow-x-auto">
             <div 
               className="flex items-center gap-6 transition-all duration-200"
               style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'center center' }}
             >
               {/* START Node */}
               <div className="flex items-center gap-3">
-                <div className="size-10 rounded-full bg-slate-900 text-white font-bold text-[10px] tracking-wider flex items-center justify-center shadow-md">
+                <div className="size-10 rounded-full bg-card text-foreground font-bold text-[10px] tracking-wider flex items-center justify-center shadow-md">
                   START
                 </div>
                 <div className="w-8 h-0.5 bg-muted-foreground/40 relative">
@@ -370,7 +370,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
 
                       {/* Transition Label 'Any' */}
                       {showTransitionLabels && (
-                        <div className="absolute -top-3 -right-2 bg-slate-800 text-white text-[9px] font-medium px-1.5 py-0.5 rounded-full shadow">
+                        <div className="absolute -top-3 -right-2 bg-slate-800 text-foreground text-[9px] font-medium px-1.5 py-0.5 rounded-full shadow">
                           Any
                         </div>
                       )}

@@ -197,16 +197,16 @@ export function Step3Personalize({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">Personalize Message</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-lg font-semibold text-foreground">Personalize Message</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Map template variables to contact fields, custom fields, or static
           values.
         </p>
       </div>
 
       {placeholders.length === 0 ? (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-center">
-          <p className="text-sm text-slate-400">
+        <div className="rounded-xl border border-border bg-card/50 p-6 text-center">
+          <p className="text-sm text-muted-foreground">
             This template has no variables to personalize.
           </p>
         </div>
@@ -219,7 +219,7 @@ export function Step3Personalize({
             return (
               <div
                 key={placeholder}
-                className="rounded-xl border border-slate-800 bg-slate-900/50 p-4"
+                className="rounded-xl border border-border bg-card/50 p-4"
               >
                 <div className="mb-3 flex items-center gap-2">
                   <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-mono font-medium text-primary">
@@ -229,7 +229,7 @@ export function Step3Personalize({
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-slate-400">
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       Mapping Type
                     </label>
                     <Select
@@ -255,7 +255,7 @@ export function Step3Personalize({
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-slate-400">
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       {mapping.type === 'static' ? 'Value' : 'Field'}
                     </label>
                     {mapping.type === 'static' ? (
@@ -322,10 +322,10 @@ export function Step3Personalize({
 
       {/* Live Preview — rendered as a WhatsApp-style bubble so the user
           sees approximately what the recipient will see. */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+      <div className="rounded-xl border border-border bg-card/50 p-4">
         <div className="mb-3 flex items-center gap-2">
           <Eye className="h-4 w-4 text-primary" />
-          <p className="text-sm font-medium text-white">Live Preview</p>
+          <p className="text-sm font-medium text-foreground">Live Preview</p>
           <span className="text-xs text-slate-500">({previewLabel})</span>
           {loadingPreview && (
             <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
@@ -350,7 +350,7 @@ export function Step3Personalize({
         </div>
       )}
 
-      <div className="flex items-center justify-between border-t border-slate-800 pt-4">
+      <div className="flex items-center justify-between border-t border-border pt-4">
         <Button
           variant="outline"
           onClick={onBack}

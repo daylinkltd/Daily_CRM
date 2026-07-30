@@ -27,13 +27,14 @@ import type {
   ResponseTimeSummary,
 } from '@/lib/dashboard/types'
 
-import { MetricCard } from '@/components/dashboard/metric-card'
+import { MetricCard } from '@/components/ui/metric-card'
 import { SkeletonCard } from '@/components/dashboard/skeleton'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { ConversationsChart } from '@/components/dashboard/conversations-chart'
 import { PipelineDonut } from '@/components/dashboard/pipeline-donut'
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
+import { PageHeader } from '@/components/ui/page-header'
 
 type RangeDays = 7 | 30 | 90
 
@@ -133,7 +134,7 @@ export default function DashboardPage() {
       <div className="flex h-[50vh] items-center justify-center bg-transparent">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-sm text-slate-400">Loading workspace...</p>
+          <p className="text-sm text-muted-foreground">Loading workspace...</p>
         </div>
       </div>
     )
@@ -142,8 +143,8 @@ export default function DashboardPage() {
   if (!activeWorkspace) {
     return (
       <div className="flex h-[50vh] flex-col items-center justify-center text-center">
-        <h2 className="text-xl font-semibold text-white">No active workspace</h2>
-        <p className="mt-2 text-sm text-slate-400">Please select or create a workspace to view the dashboard.</p>
+        <h2 className="text-xl font-semibold text-foreground">No active workspace</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Please select or create a workspace to view the dashboard.</p>
       </div>
     )
   }
@@ -151,12 +152,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Live analytics across conversations, contacts, deals, broadcasts, and automations.
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Live analytics across conversations, contacts, deals, broadcasts, and automations."
+      />
 
       {/* Metric cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -165,44 +164,39 @@ export default function DashboardPage() {
         ) : (
           <>
             <MetricCard
-              title="Active Conversations"
+              label="Active Conversations"
               value={metrics.activeConversations.current.toLocaleString()}
               icon={MessageSquare}
-              delta={{
-                sign: metrics.activeConversations.previous,
-                label: deltaLabel(metrics.activeConversations.previous, 'new today vs yesterday'),
+              change={{
+                value: Math.abs(metrics.activeConversations.previous),
+                trend: metrics.activeConversations.previous > 0 ? "up" : metrics.activeConversations.previous < 0 ? "down" : "neutral",
+                label: "new today vs yesterday",
               }}
             />
             <MetricCard
-              title="New Contacts Today"
+              label="New Contacts Today"
               value={metrics.newContactsToday.current.toLocaleString()}
               icon={UserPlus}
-              delta={{
-                sign:
-                  metrics.newContactsToday.current - metrics.newContactsToday.previous,
-                label: deltaLabel(
-                  metrics.newContactsToday.current - metrics.newContactsToday.previous,
-                  'vs yesterday',
-                ),
+              change={{
+                value: Math.abs(metrics.newContactsToday.current - metrics.newContactsToday.previous),
+                trend: (metrics.newContactsToday.current - metrics.newContactsToday.previous) > 0 ? "up" : (metrics.newContactsToday.current - metrics.newContactsToday.previous) < 0 ? "down" : "neutral",
+                label: "vs yesterday",
               }}
             />
             <MetricCard
-              title="Open Deals Value"
+              label="Open Deals Value"
               value={formatCurrency(metrics.openDealsValue, defaultCurrency)}
               icon={Banknote}
-              subtitle={`${metrics.openDealsCount} open deal${metrics.openDealsCount === 1 ? '' : 's'}`}
+              description={`${metrics.openDealsCount} open deal${metrics.openDealsCount === 1 ? '' : 's'}`}
             />
             <MetricCard
-              title="Messages Sent Today"
+              label="Messages Sent Today"
               value={metrics.messagesSentToday.current.toLocaleString()}
               icon={Send}
-              delta={{
-                sign:
-                  metrics.messagesSentToday.current - metrics.messagesSentToday.previous,
-                label: deltaLabel(
-                  metrics.messagesSentToday.current - metrics.messagesSentToday.previous,
-                  'vs yesterday',
-                ),
+              change={{
+                value: Math.abs(metrics.messagesSentToday.current - metrics.messagesSentToday.previous),
+                trend: (metrics.messagesSentToday.current - metrics.messagesSentToday.previous) > 0 ? "up" : (metrics.messagesSentToday.current - metrics.messagesSentToday.previous) < 0 ? "down" : "neutral",
+                label: "vs yesterday",
               }}
             />
           </>

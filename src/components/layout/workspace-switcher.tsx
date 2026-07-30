@@ -41,15 +41,15 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
 
   // Dynamic switcher styling depending on light vs dark sidebar look
   const switcherBg = minimalist
-    ? "border-transparent bg-transparent hover:bg-slate-800/40 text-white px-2 py-1.5"
+    ? "border-transparent bg-transparent hover:bg-slate-800/40 text-foreground px-2 py-1.5"
     : isDark
     ? "border-border bg-card hover:bg-muted/80 text-foreground"
-    : "border-slate-700 bg-slate-950/40 hover:bg-slate-800/80 text-white";
+    : "border-slate-700 bg-background/40 hover:bg-slate-800/80 text-foreground";
 
-  const switcherTextClass = isDark ? "text-foreground" : "text-white";
+  const switcherTextClass = isDark ? "text-foreground" : "text-foreground";
   const switcherRoleClass = isDark ? "text-primary" : "text-primary-foreground/80";
   const switcherArrowClass = isDark ? "text-muted-foreground" : "text-slate-300";
-  const switcherLogoBorder = isDark ? "border-border bg-muted" : "border-slate-800 bg-slate-950";
+  const switcherLogoBorder = isDark ? "border-border bg-muted" : "border-border bg-background";
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
@@ -109,17 +109,17 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
         </button>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800 text-slate-100">
+          <DialogContent className="sm:max-w-md bg-card border-border text-slate-100">
             {isLimitReached ? (
               <div className="py-6 text-center space-y-4">
                 <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
-                <DialogTitle className="text-lg font-semibold text-white">
+                <DialogTitle className="text-lg font-semibold text-foreground">
                   Workspace limit reached
                 </DialogTitle>
                 <p className="text-sm text-slate-300">
                   You have reached the maximum of <strong>{maxWorkspaces}</strong> workspaces allowed by your current plan.
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   Upgrade your plan to unlock more workspaces.
                 </p>
                 <DialogFooter className="mt-4 justify-center sm:justify-center flex-row gap-2">
@@ -127,7 +127,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     type="button"
                     variant="ghost"
                     onClick={() => setIsDialogOpen(false)}
-                    className="text-slate-400 hover:text-white hover:bg-slate-800"
+                    className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
                   >
                     Cancel
                   </Button>
@@ -137,7 +137,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                       setIsDialogOpen(false);
                       window.location.href = "/settings?tab=billing";
                     }}
-                    className="bg-primary hover:bg-primary-hover text-white font-medium"
+                    className="bg-primary hover:bg-primary-hover text-foreground font-medium"
                   >
                     Upgrade Plan
                   </Button>
@@ -146,7 +146,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
             ) : (
               <form onSubmit={handleCreateWorkspace}>
                 <DialogHeader>
-                  <DialogTitle className="text-lg font-semibold text-white">
+                  <DialogTitle className="text-lg font-semibold text-foreground">
                     Create New Workspace
                   </DialogTitle>
                 </DialogHeader>
@@ -160,7 +160,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                       placeholder="e.g. Sales Team, Marketing Dept"
                       value={newWorkspaceName}
                       onChange={(e) => setNewWorkspaceName(e.target.value)}
-                      className="bg-slate-950 border-slate-800 focus:border-primary focus:ring-primary text-white"
+                      className="bg-background border-border focus:border-primary focus:ring-primary text-foreground"
                       required
                       autoFocus
                     />
@@ -171,14 +171,14 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     type="button"
                     variant="ghost"
                     onClick={() => setIsDialogOpen(false)}
-                    className="text-slate-400 hover:text-white hover:bg-slate-800"
+                    className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={isCreating || !newWorkspaceName.trim()}
-                    className="bg-primary hover:bg-primary-hover text-white font-medium"
+                    className="bg-primary hover:bg-primary-hover text-foreground font-medium"
                   >
                     {isCreating ? "Creating..." : "Create Workspace"}
                   </Button>
@@ -284,17 +284,17 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
       </DropdownMenu>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800 text-slate-100">
+        <DialogContent className="sm:max-w-md bg-card border-border text-slate-100">
           {isLimitReached ? (
             <div className="py-6 text-center space-y-4">
               <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
-              <DialogTitle className="text-lg font-semibold text-white">
+              <DialogTitle className="text-lg font-semibold text-foreground">
                 Workspace limit reached
               </DialogTitle>
               <p className="text-sm text-slate-300">
                 You have reached the maximum of <strong>{maxWorkspaces}</strong> workspaces allowed by your current plan.
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Upgrade your plan to unlock more workspaces.
               </p>
               <DialogFooter className="mt-4 justify-center sm:justify-center flex-row gap-2">
@@ -302,7 +302,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                   type="button"
                   variant="ghost"
                   onClick={() => setIsDialogOpen(false)}
-                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                  className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
                 >
                   Cancel
                 </Button>
@@ -321,7 +321,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
           ) : (
             <form onSubmit={handleCreateWorkspace}>
               <DialogHeader>
-                <DialogTitle className="text-lg font-semibold text-white">
+                <DialogTitle className="text-lg font-semibold text-foreground">
                   Create New Workspace
                 </DialogTitle>
               </DialogHeader>
@@ -335,7 +335,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     placeholder="e.g. Sales Team, Marketing Dept"
                     value={newWorkspaceName}
                     onChange={(e) => setNewWorkspaceName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 focus:border-primary focus:ring-primary text-white"
+                    className="bg-background border-border focus:border-primary focus:ring-primary text-foreground"
                     required
                     autoFocus
                   />
@@ -346,7 +346,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                   type="button"
                   variant="ghost"
                   onClick={() => setIsDialogOpen(false)}
-                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                  className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
                 >
                   Cancel
                 </Button>

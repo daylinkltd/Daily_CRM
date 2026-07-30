@@ -294,7 +294,7 @@ export function InviteMemberDialog({
             <p className="text-sm text-slate-300">
               You have reached the maximum of <strong>{maxMembers}</strong> team members allowed by your current plan.
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Upgrade your plan to unlock more member seats.
             </p>
             <DialogFooter className="mt-4 justify-center sm:justify-center flex-row gap-2">
@@ -302,7 +302,7 @@ export function InviteMemberDialog({
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="text-slate-400 hover:text-foreground hover:bg-slate-800"
+                className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
               >
                 Cancel
               </Button>

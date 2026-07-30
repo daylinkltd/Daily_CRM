@@ -63,17 +63,17 @@ export default function SalesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
             <Receipt className="h-6 w-6 text-[#00aef0]" />
             Sales Orders & Tax Invoices
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             View real-time completed POS checkout transactions, B2B sales invoices, and customer receipts.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-right">
-            <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-card border border-border px-4 py-2 rounded-xl text-right">
+            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider block">
               Total Invoiced Revenue
             </span>
             <span className="text-lg font-extrabold text-[#00aef0]">
@@ -83,7 +83,7 @@ export default function SalesPage() {
           <Button
             onClick={fetchOrders}
             variant="outline"
-            className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11"
+            className="border-border text-slate-300 gap-1.5 rounded-xl h-11"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh Orders
@@ -92,24 +92,24 @@ export default function SalesPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800 backdrop-blur-md">
+      <div className="flex items-center gap-3 bg-card/80 p-3 rounded-2xl border border-border backdrop-blur-md">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search by Order #, Invoice Series, Customer Phone..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-10 h-10 bg-slate-950/80 border-slate-800 text-white rounded-xl focus:border-[#00aef0]"
+            className="pl-10 h-10 bg-background/80 border-border text-foreground rounded-xl focus:border-[#00aef0]"
           />
         </div>
       </div>
 
       {/* Sales Orders Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl">
+      <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Order / Invoice #</th>
                 <th className="py-3.5 px-4">Date & Time</th>
@@ -145,7 +145,7 @@ export default function SalesPage() {
 
                   return (
                     <tr key={order.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-white font-mono">
+                      <td className="py-3.5 px-4 font-bold text-foreground font-mono">
                         <button
                           onClick={() => {
                             setSelectedOrder(order);
@@ -157,7 +157,7 @@ export default function SalesPage() {
                           #{order.order_number}
                         </button>
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-slate-400">
+                      <td className="py-3.5 px-4 text-xs text-muted-foreground">
                         {new Date(order.created_at).toLocaleString("en-IN", {
                           dateStyle: "medium",
                           timeStyle: "short",
@@ -185,10 +185,10 @@ export default function SalesPage() {
                           {order.payment_method}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right text-xs text-slate-400">
+                      <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
                         ₹{Number(order.tax_total || 0).toFixed(2)}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-extrabold text-white">
+                      <td className="py-3.5 px-4 text-right font-extrabold text-foreground">
                         ₹{Number(order.grand_total).toFixed(2)}
                       </td>
                       <td className="py-3.5 px-4 text-center">
@@ -205,7 +205,7 @@ export default function SalesPage() {
                             setSelectedOrder(order);
                             setShowInvoiceModal(true);
                           }}
-                          className="border-slate-800 hover:border-[#00aef0] bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-[#00aef0] text-xs rounded-xl gap-1.5 h-8"
+                          className="border-border hover:border-[#00aef0] bg-card hover:bg-slate-800 text-slate-200 hover:text-[#00aef0] text-xs rounded-xl gap-1.5 h-8"
                         >
                           <Eye className="h-3.5 w-3.5 text-[#00aef0]" />
                           View Invoice
@@ -222,18 +222,18 @@ export default function SalesPage() {
 
       {/* Invoice Detail Modal */}
       {showInvoiceModal && selectedOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl my-8 text-slate-100 relative">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-card border border-border rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl my-8 text-slate-100 relative">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
                 <span className="bg-[#00aef0]/10 text-[#00aef0] px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
                   <Receipt className="h-3.5 w-3.5" /> Tax Invoice #{selectedOrder.order_number}
                 </span>
-                <h2 className="text-xl font-extrabold text-white tracking-tight mt-1">
+                <h2 className="text-xl font-extrabold text-foreground tracking-tight mt-1">
                   POS Sales Receipt
                 </h2>
-                <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5 text-slate-500" />
                     {new Date(selectedOrder.created_at).toLocaleString()}
@@ -246,17 +246,17 @@ export default function SalesPage() {
               </div>
               <button
                 onClick={() => setShowInvoiceModal(false)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-slate-800 rounded-xl transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Customer & Counter Banner */}
-            <div className="grid grid-cols-2 gap-3 bg-slate-950 p-3.5 rounded-2xl border border-slate-800 text-xs">
+            <div className="grid grid-cols-2 gap-3 bg-background p-3.5 rounded-2xl border border-border text-xs">
               <div>
                 <span className="text-slate-500 block">Customer Information</span>
-                <span className="font-bold text-white block mt-0.5">
+                <span className="font-bold text-foreground block mt-0.5">
                   {selectedOrder.customer
                     ? `${selectedOrder.customer.first_name} ${selectedOrder.customer.last_name || ""}`
                     : selectedOrder.is_walkin_customer
@@ -264,7 +264,7 @@ export default function SalesPage() {
                     : selectedOrder.customer_mobile || "Guest Customer"}
                 </span>
                 {selectedOrder.customer_gstin && (
-                  <span className="text-[11px] text-slate-400 block font-mono">
+                  <span className="text-[11px] text-muted-foreground block font-mono">
                     GSTIN: {selectedOrder.customer_gstin}
                   </span>
                 )}
@@ -274,16 +274,16 @@ export default function SalesPage() {
                 <span className="font-bold text-[#00aef0] block mt-0.5 uppercase">
                   Counter: {selectedOrder.counter_number || "COUNTER-1"} ({selectedOrder.channel || "POS"})
                 </span>
-                <span className="text-[11px] text-slate-400 block">
+                <span className="text-[11px] text-muted-foreground block">
                   Payment Mode: {selectedOrder.payment_method}
                 </span>
               </div>
             </div>
 
             {/* Line Items Table */}
-            <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950">
+            <div className="rounded-2xl border border-border overflow-hidden bg-background">
               <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-900/90 font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+                <thead className="bg-card/90 font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
                   <tr>
                     <th className="py-2.5 px-3">Item Description</th>
                     <th className="py-2.5 px-3 text-center">Qty</th>
@@ -295,7 +295,7 @@ export default function SalesPage() {
                 <tbody className="divide-y divide-slate-800/60">
                   {(selectedOrder.items || []).map((item: any, idx: number) => (
                     <tr key={item.id || idx}>
-                      <td className="py-2.5 px-3 font-semibold text-white">
+                      <td className="py-2.5 px-3 font-semibold text-foreground">
                         {item.product?.name || `Product ID #${item.product_id}`}
                         {item.product?.sku && (
                           <span className="block text-[10px] text-slate-500 font-mono">
@@ -312,7 +312,7 @@ export default function SalesPage() {
                       <td className="py-2.5 px-3 text-right text-purple-400 font-mono">
                         {item.tax_rate || 0}%
                       </td>
-                      <td className="py-2.5 px-3 text-right font-extrabold text-white">
+                      <td className="py-2.5 px-3 text-right font-extrabold text-foreground">
                         ₹{Number(item.total_price || item.quantity * item.selling_price).toFixed(2)}
                       </td>
                     </tr>
@@ -322,12 +322,12 @@ export default function SalesPage() {
             </div>
 
             {/* Totals Summary */}
-            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-400">
+            <div className="bg-background p-4 rounded-2xl border border-border space-y-2 text-xs">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal</span>
                 <span>₹{Number(selectedOrder.subtotal || 0).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-muted-foreground">
                 <span>GST Tax Total</span>
                 <span>₹{Number(selectedOrder.tax_total || 0).toFixed(2)}</span>
               </div>
@@ -337,7 +337,7 @@ export default function SalesPage() {
                   <span>-₹{Number(selectedOrder.discount_amount).toFixed(2)}</span>
                 </div>
               )}
-              <div className="border-t border-slate-800 pt-2 flex justify-between text-sm font-extrabold text-white">
+              <div className="border-t border-border pt-2 flex justify-between text-sm font-extrabold text-foreground">
                 <span>Grand Total</span>
                 <span className="text-[#00aef0] text-base">
                   ₹{Number(selectedOrder.grand_total).toFixed(2)}
@@ -346,7 +346,7 @@ export default function SalesPage() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-slate-800 pt-4">
+            <div className="flex items-center justify-between border-t border-border pt-4">
               <span className="text-[11px] text-slate-500">
                 Daily CRM Enterprise POS Billing System
               </span>
@@ -357,14 +357,14 @@ export default function SalesPage() {
                     window.print();
                     toast.success("Printing invoice receipt...");
                   }}
-                  className="border-slate-800 hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] gap-1.5 rounded-xl text-xs h-10"
+                  className="border-border hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] gap-1.5 rounded-xl text-xs h-10"
                 >
                   <Printer className="h-4 w-4" />
                   Print Receipt
                 </Button>
                 <Button
                   onClick={() => setShowInvoiceModal(false)}
-                  className="bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs h-10 px-5"
+                  className="bg-slate-800 hover:bg-slate-700 text-foreground font-bold rounded-xl text-xs h-10 px-5"
                 >
                   Close
                 </Button>

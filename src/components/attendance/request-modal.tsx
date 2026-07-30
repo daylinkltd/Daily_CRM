@@ -77,9 +77,9 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-800 text-slate-100 sm:max-w-md shadow-2xl">
+      <DialogContent className="bg-card border-border text-slate-100 sm:max-w-md shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2 text-lg font-bold">
+          <DialogTitle className="text-foreground flex items-center gap-2 text-lg font-bold">
             <FileCheck2 className="h-5 w-5 text-[#00aef0]" />
             Request Attendance Regularization
           </DialogTitle>
@@ -90,7 +90,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
             <select
               value={requestType}
               onChange={(e) => setRequestType(e.target.value as any)}
-              className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl p-2.5 text-xs font-semibold focus:border-[#00aef0]"
+              className="w-full bg-background border border-border text-foreground rounded-xl p-2.5 text-xs font-semibold focus:border-[#00aef0]"
             >
               <option value="MISSED_PUNCH">Missed Punch (Forgot to Punch In/Out)</option>
               <option value="CORRECTION">Attendance Correction</option>
@@ -107,7 +107,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
                 type="date"
                 value={attendanceDate}
                 onChange={(e) => setAttendanceDate(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-white text-xs h-9"
+                className="bg-background border-border text-foreground text-xs h-9"
                 required
               />
             </div>
@@ -117,7 +117,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
                 type="time"
                 value={requestedPunchIn}
                 onChange={(e) => setRequestedPunchIn(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-white text-xs h-9"
+                className="bg-background border-border text-foreground text-xs h-9"
               />
             </div>
             <div>
@@ -126,7 +126,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
                 type="time"
                 value={requestedPunchOut}
                 onChange={(e) => setRequestedPunchOut(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-white text-xs h-9"
+                className="bg-background border-border text-foreground text-xs h-9"
               />
             </div>
           </div>
@@ -137,25 +137,25 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide a detailed explanation for your manager..."
-              className="bg-slate-950 border-slate-800 text-white text-xs resize-none"
+              className="bg-background border-border text-foreground text-xs resize-none"
               rows={3}
               required
             />
           </div>
 
-          <DialogFooter className="pt-3 border-t border-slate-800">
+          <DialogFooter className="pt-3 border-t border-border">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-slate-800 text-slate-400 hover:text-white"
+              className="border-border text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={submitting}
-              className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/20"
+              className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20"
             >
               {submitting && <Loader2 className="size-4 animate-spin mr-2" />}
               Submit Request

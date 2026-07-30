@@ -197,16 +197,16 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
             <Layers className="h-6 w-6 text-[#00aef0]" />
             Inventory & Stock Movements
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Track real-time stock levels, reorder thresholds, and log stock additions via barcode scan or F3 hotkey.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchInventory} variant="outline" className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11">
+          <Button onClick={fetchInventory} variant="outline" className="border-border text-slate-300 gap-1.5 rounded-xl h-11">
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
@@ -219,7 +219,7 @@ export default function InventoryPage() {
               setNotes("");
               setShowStockModal(true);
             }}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
           >
             <Plus className="h-4 w-4" />
             Add / Adjust Stock (F3)
@@ -228,24 +228,24 @@ export default function InventoryPage() {
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800 backdrop-blur-md">
+      <div className="flex items-center gap-3 bg-card/80 p-3 rounded-2xl border border-border backdrop-blur-md">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search stock by Product Name, SKU, or Barcode..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-10 h-10 bg-slate-950/80 border-slate-800 text-white rounded-xl focus:border-[#00aef0]"
+            className="pl-10 h-10 bg-background/80 border-border text-foreground rounded-xl focus:border-[#00aef0]"
           />
         </div>
       </div>
 
       {/* Inventory Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl">
+      <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Product Name</th>
                 <th className="py-3.5 px-4">SKU / Barcode</th>
@@ -274,10 +274,10 @@ export default function InventoryPage() {
                   const isLowStock = currentQty <= (item.reorder_level || 10);
                   return (
                     <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-white">
+                      <td className="py-3.5 px-4 font-semibold text-foreground">
                         {item.name}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-xs text-slate-400">
+                      <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground">
                         <div>{item.sku}</div>
                         {item.barcode && (
                           <div className="text-[11px] text-[#00aef0] flex items-center gap-1 mt-0.5">
@@ -285,13 +285,13 @@ export default function InventoryPage() {
                           </div>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-center uppercase text-xs text-slate-400 font-mono">
+                      <td className="py-3.5 px-4 text-center uppercase text-xs text-muted-foreground font-mono">
                         {item.unit}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-extrabold text-base text-white">
-                        {currentQty} <span className="text-xs font-normal text-slate-400">{item.unit}</span>
+                      <td className="py-3.5 px-4 text-right font-extrabold text-base text-foreground">
+                        {currentQty} <span className="text-xs font-normal text-muted-foreground">{item.unit}</span>
                       </td>
-                      <td className="py-3.5 px-4 text-right text-xs text-slate-400">
+                      <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
                         {item.reorder_level || 10} {item.unit}
                       </td>
                       <td className="py-3.5 px-4 text-center">
@@ -318,16 +318,16 @@ export default function InventoryPage() {
 
       {/* Add / Adjust Stock Modal */}
       {showStockModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
               <Plus className="h-5 w-5 text-[#00aef0]" />
               Add / Adjust Stock
             </h2>
 
             <form onSubmit={handleAddStock} className="space-y-4">
               {/* 1-Scan Barcode Input */}
-              <div className="space-y-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <div className="space-y-1.5 bg-background p-3 rounded-2xl border border-border">
                 <Label className="text-xs font-bold text-[#00aef0] flex items-center gap-1.5">
                   <Barcode className="h-4 w-4" /> 1-Scan Barcode / Search Product
                 </Label>
@@ -338,7 +338,7 @@ export default function InventoryPage() {
                     placeholder="Scan product barcode here with scanner..."
                     value={barcodeSearch}
                     onChange={(e) => handleBarcodeOrQueryChange(e.target.value)}
-                    className="bg-slate-900 border-slate-800 text-white h-10 rounded-xl px-3 text-xs font-mono focus:border-[#00aef0]"
+                    className="bg-card border-border text-foreground h-10 rounded-xl px-3 text-xs font-mono focus:border-[#00aef0]"
                   />
                 </div>
 
@@ -348,7 +348,7 @@ export default function InventoryPage() {
                       <div className="font-extrabold text-emerald-400 flex items-center gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Matched: {selectedProductObj.name}
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
                         SKU: {selectedProductObj.sku} | Current Stock: {selectedProductObj.current_stock || 0} {selectedProductObj.unit}
                       </div>
                     </div>
@@ -362,7 +362,7 @@ export default function InventoryPage() {
                   required
                   value={selectedProductId}
                   onChange={(e) => handleSelectProductDropdown(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 text-white h-10 rounded-xl px-3 text-sm focus:border-[#00aef0]"
+                  className="w-full bg-background border border-border text-foreground h-10 rounded-xl px-3 text-sm focus:border-[#00aef0]"
                 >
                   <option value="">-- Choose a Product --</option>
                   {inventory.map((prod) => (
@@ -378,7 +378,7 @@ export default function InventoryPage() {
                 <select
                   value={movementType}
                   onChange={(e) => setMovementType(e.target.value as any)}
-                  className="w-full bg-slate-950 border border-slate-800 text-white h-10 rounded-xl px-3 text-sm focus:border-[#00aef0]"
+                  className="w-full bg-background border border-border text-foreground h-10 rounded-xl px-3 text-sm focus:border-[#00aef0]"
                 >
                   <option value="INWARD">Stock Inward (+ New Delivery)</option>
                   <option value="ADJUSTMENT">Stock Adjustment (+ Manual Addition)</option>
@@ -394,7 +394,7 @@ export default function InventoryPage() {
                   placeholder="e.g. 50"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-white h-10 rounded-xl font-bold text-base focus:border-[#00aef0]"
+                  className="bg-background border-border text-foreground h-10 rounded-xl font-bold text-base focus:border-[#00aef0]"
                 />
               </div>
 
@@ -405,7 +405,7 @@ export default function InventoryPage() {
                   placeholder="e.g. Received from Supplier Bill #1042"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-white h-10 rounded-xl text-xs"
+                  className="bg-background border-border text-foreground h-10 rounded-xl text-xs"
                 />
               </div>
 
@@ -414,14 +414,14 @@ export default function InventoryPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowStockModal(false)}
-                  className="border-slate-800 text-slate-300 rounded-xl"
+                  className="border-border text-slate-300 rounded-xl"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={saving || !selectedProductId}
-                  className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl px-6"
+                  className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl px-6"
                 >
                   {saving ? "Updating..." : "Add Stock"}
                 </Button>

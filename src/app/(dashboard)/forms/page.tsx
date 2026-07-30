@@ -192,8 +192,8 @@ export default function FormsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Custom Forms</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Custom Forms</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Build forms to capture and ingest leads directly into your contacts and pipelines.
           </p>
         </div>
@@ -210,16 +210,16 @@ export default function FormsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="text-sm text-slate-400">Loading forms...</p>
+          <p className="text-sm text-muted-foreground">Loading forms...</p>
         </div>
       ) : forms.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-800 p-12 text-center bg-slate-900/20 backdrop-blur-sm">
+        <div className="rounded-lg border border-dashed border-border p-12 text-center bg-card/20 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3 max-w-sm mx-auto">
             <div className="size-12 rounded-full bg-slate-800 flex items-center justify-center text-primary">
               <FileText className="size-6" />
             </div>
-            <h3 className="text-lg font-medium text-white">No forms created yet</h3>
-            <p className="text-sm text-slate-400">
+            <h3 className="text-lg font-medium text-foreground">No forms created yet</h3>
+            <p className="text-sm text-muted-foreground">
               Create a custom form, map its inputs to Contact properties or Pipelines, and publish the sharing link to generate leads automatically.
             </p>
             <Button
@@ -236,19 +236,19 @@ export default function FormsPage() {
           {forms.map((form) => (
             <div
               key={form.id}
-              className="group relative rounded-xl border border-slate-800/80 bg-slate-900/50 hover:bg-slate-900/80 hover:border-slate-700/80 transition-all duration-200 p-5 flex flex-col justify-between gap-4"
+              className="group relative rounded-xl border border-border/80 bg-card/50 hover:bg-card/80 hover:border-slate-700/80 transition-all duration-200 p-5 flex flex-col justify-between gap-4"
             >
               <div>
                 {/* Title and Top Row */}
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-semibold text-white group-hover:text-primary transition-colors line-clamp-1">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                     {form.title}
                   </h3>
                   <DropdownMenu>
-                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-foreground" />} >
+                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-foreground" />} >
                       <MoreVertical className="size-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-slate-300">
+                    <DropdownMenuContent align="end" className="bg-card border-slate-700 text-slate-300">
                       <DropdownMenuItem
                         onClick={() => router.push(`/forms/${form.id}`)}
                         className="hover:bg-slate-800 focus:bg-slate-800 focus:text-foreground"
@@ -285,15 +285,15 @@ export default function FormsPage() {
                   </DropdownMenu>
                 </div>
 
-                <p className="text-xs text-slate-400 mt-1 line-clamp-2 min-h-[2rem]">
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2 min-h-[2rem]">
                   {form.description || <span className="italic text-slate-500">No description</span>}
                 </p>
               </div>
 
               {/* Bottom analytics/actions */}
-              <div className="flex items-center justify-between border-t border-slate-800/80 pt-3 mt-1 text-xs">
-                <div className="flex items-center gap-1.5 text-slate-400">
-                  <span className="font-semibold text-white">
+              <div className="flex items-center justify-between border-t border-border/80 pt-3 mt-1 text-xs">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <span className="font-semibold text-foreground">
                     {submissionCounts[form.id] || 0}
                   </span>
                   <span>responses</span>
@@ -302,7 +302,7 @@ export default function FormsPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => copyShareLink(form.id)}
-                    className="text-slate-400 hover:text-foreground p-1 rounded hover:bg-slate-800 transition-colors"
+                    className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-slate-800 transition-colors"
                     title="Copy Public Link"
                   >
                     {copiedId === form.id ? (
@@ -329,10 +329,10 @@ export default function FormsPage() {
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-slate-200 max-w-md">
+        <DialogContent className="bg-card border-border text-slate-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-foreground">Create New Form</DialogTitle>
-            <DialogDescription className="text-slate-400 text-sm">
+            <DialogDescription className="text-muted-foreground text-sm">
               Enter a name and optional description. You will customize fields and mappings on the next screen.
             </DialogDescription>
           </DialogHeader>
@@ -381,11 +381,11 @@ export default function FormsPage() {
 
       {/* Delete Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-slate-200 max-w-sm">
+        <DialogContent className="bg-card border-border text-slate-200 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-foreground">Delete Form</DialogTitle>
-            <DialogDescription className="text-slate-400 text-sm">
-              Are you sure you want to delete <span className="text-white font-medium">&quot;{deleteTarget?.title}&quot;</span>? All fields and submissions will be permanently removed. This action cannot be undone.
+            <DialogDescription className="text-muted-foreground text-sm">
+              Are you sure you want to delete <span className="text-foreground font-medium">&quot;{deleteTarget?.title}&quot;</span>? All fields and submissions will be permanently removed. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
 
@@ -401,7 +401,7 @@ export default function FormsPage() {
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-foreground"
             >
               {deleting ? <Loader2 className="size-4 animate-spin" /> : 'Delete Permanently'}
             </Button>

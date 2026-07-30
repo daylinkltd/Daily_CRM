@@ -48,12 +48,12 @@ export function SheetsConfig() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] mt-4">
       <div className="space-y-6">
-        <Alert className="bg-slate-900 border-slate-700">
+        <Alert className="bg-card border-slate-700">
           <div className="flex items-center gap-2">
             {connectionStatus === 'connected' ? <CheckCircle2 className="size-4 text-primary" /> : <XCircle className="size-4 text-red-500" />}
             <AlertTitle className="text-foreground mb-0">{connectionStatus === 'connected' ? 'Google Account Connected' : 'Not Connected'}</AlertTitle>
           </div>
-          <AlertDescription className="text-slate-400">
+          <AlertDescription className="text-muted-foreground">
             {connectionStatus === 'connected' ? 'Your Google Workspace account is successfully linked.' : 'Authenticate with Google to enable 2-way sync.'}
           </AlertDescription>
           {connectionStatus === 'disconnected' && (
@@ -64,10 +64,10 @@ export function SheetsConfig() {
         </Alert>
 
         {connectionStatus === 'connected' && (
-          <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+          <Card className="bg-card border-slate-700 ring-0 ring-transparent">
             <CardHeader>
               <CardTitle className="text-foreground">Sync Configuration</CardTitle>
-              <CardDescription className="text-slate-400">Map your Daily CRM data to a specific spreadsheet.</CardDescription>
+              <CardDescription className="text-muted-foreground">Map your Daily CRM data to a specific spreadsheet.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -93,12 +93,12 @@ export function SheetsConfig() {
         )}
       </div>
       <div>
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground text-base">2-Way Sync Rules</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="list-disc list-inside space-y-2 text-sm text-slate-400">
+            <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
               <li>Changes in CRM Contacts are pushed to the Sheet instantly.</li>
               <li>Row updates in the Sheet are synced back to CRM every 15 minutes.</li>
               <li>Deleting a row in Sheets will NOT delete the Contact in CRM (Safety check).</li>

@@ -539,17 +539,17 @@ export default function ProductsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
             <Package className="h-6 w-6 text-[#00aef0]" />
             Products & Enterprise Master Catalog
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Manage multi-unit conversions, tiered rates, HSN codes, custom attributes, and bin locations.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/settings?tab=retail">
-            <Button variant="outline" className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11">
+            <Button variant="outline" className="border-border text-slate-300 gap-1.5 rounded-xl h-11">
               <Settings className="h-4 w-4 text-[#00aef0]" />
               Master Template: <span className="text-[#00aef0] font-extrabold">{activeTemplate}</span>
             </Button>
@@ -561,7 +561,7 @@ export default function ProductsPage() {
               setActiveTab("BASIC");
               setShowAddModal(true);
             }}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
           >
             <Plus className="h-4 w-4" />
             Add New Product
@@ -570,28 +570,28 @@ export default function ProductsPage() {
       </div>
 
       {/* Search & Filter */}
-      <div className="flex items-center gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800 backdrop-blur-md">
+      <div className="flex items-center gap-3 bg-card/80 p-3 rounded-2xl border border-border backdrop-blur-md">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search by Product Name, SKU, Barcode, Size, Color, or Brand..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-10 h-10 bg-slate-950/80 border-slate-800 text-white rounded-xl focus:border-[#00aef0]"
+            className="pl-10 h-10 bg-background/80 border-border text-foreground rounded-xl focus:border-[#00aef0]"
           />
         </div>
-        <Button variant="outline" onClick={fetchProducts} className="h-10 border-slate-800 text-slate-300 gap-1.5 rounded-xl">
+        <Button variant="outline" onClick={fetchProducts} className="h-10 border-border text-slate-300 gap-1.5 rounded-xl">
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh
         </Button>
       </div>
 
       {/* Products Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl">
+      <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Product Name</th>
                 <th className="py-3.5 px-4">SKU / Barcode</th>
@@ -619,13 +619,13 @@ export default function ProductsPage() {
               ) : (
                 products.map((product) => (
                   <tr key={product.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-semibold text-white">
+                    <td className="py-3.5 px-4 font-semibold text-foreground">
                       <button
                         onClick={() => {
                           setSelectedViewProduct(product);
                           setShowViewModal(true);
                         }}
-                        className="text-left font-bold text-white hover:text-[#00aef0] transition-colors flex flex-col group cursor-pointer"
+                        className="text-left font-bold text-foreground hover:text-[#00aef0] transition-colors flex flex-col group cursor-pointer"
                       >
                         <span className="group-hover:underline flex items-center gap-1.5">
                           {product.name}
@@ -647,7 +647,7 @@ export default function ProductsPage() {
                         )}
                       </button>
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-slate-400">
+                    <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground">
                       <div>{product.sku}</div>
                       {product.barcode && (
                         <div className="flex items-center gap-1 text-[11px] text-[#00aef0] mt-0.5">
@@ -656,19 +656,19 @@ export default function ProductsPage() {
                         </div>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-slate-400">
+                    <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground">
                       {product.hsn_sac_code || "6203"}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-400">
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       {product.base_unit || "PCS"} (1 {product.purchase_unit || "PACK"} = {product.unit_conversion_factor || 6})
                     </td>
-                    <td className="py-3.5 px-4 text-right text-slate-400">
+                    <td className="py-3.5 px-4 text-right text-muted-foreground">
                       ₹{Number(product.mrp || product.selling_price).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 text-right font-bold text-[#00aef0]">
                       ₹{Number(product.selling_price).toFixed(2)}
                     </td>
-                    <td className="py-3.5 px-4 text-right text-xs text-slate-400">
+                    <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
                       {product.tax_rate}%
                     </td>
                     <td className="py-3.5 px-4 text-center">
@@ -680,7 +680,7 @@ export default function ProductsPage() {
                             setSelectedViewProduct(product);
                             setShowViewModal(true);
                           }}
-                          className="border-slate-800 hover:border-[#00aef0] bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
+                          className="border-border hover:border-[#00aef0] bg-card hover:bg-slate-800 text-slate-200 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
                         >
                           <Eye className="h-3.5 w-3.5 text-[#00aef0]" />
                           View Details
@@ -689,7 +689,7 @@ export default function ProductsPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleOpenEditModal(product)}
-                          className="border-slate-800 hover:border-purple-500 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-semibold text-xs rounded-xl gap-1.5 h-8"
+                          className="border-border hover:border-purple-500 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-semibold text-xs rounded-xl gap-1.5 h-8"
                         >
                           <Pencil className="h-3.5 w-3.5 text-purple-400" />
                           Edit
@@ -701,7 +701,7 @@ export default function ProductsPage() {
                             setSelectedBarcodeProduct(product);
                             setShowTagModal(true);
                           }}
-                          className="border-slate-800 hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
+                          className="border-border hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
                         >
                           <Printer className="h-3.5 w-3.5" />
                           Print Tag
@@ -738,23 +738,23 @@ export default function ProductsPage() {
 
       {/* Multi-Tab Add/Edit Product Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl my-8">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-card border border-border rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl my-8">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                 <Package className="h-5 w-5 text-[#00aef0]" />
                 {editingProduct ? `Edit Product Master (${editingProduct.sku})` : "Add Enterprise Product Master"}
               </h2>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowAddModal(false)} className="text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Configured Master Template Info Bar */}
-            <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <div className="bg-background p-3 rounded-2xl border border-border flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs">
                 <Sparkles className="h-4 w-4 text-[#00aef0]" />
-                <span className="text-slate-400">Active Business Template:</span>
+                <span className="text-muted-foreground">Active Business Template:</span>
                 <span className="font-extrabold text-[#00aef0] text-sm">{activeTemplate}</span>
               </div>
               <Link href="/settings?tab=retail" className="text-[11px] text-[#00aef0] hover:underline flex items-center gap-1 font-semibold">
@@ -763,7 +763,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Modal Tabs Header */}
-            <div className="flex items-center gap-1 border-b border-slate-800 pb-2 overflow-x-auto">
+            <div className="flex items-center gap-1 border-b border-border pb-2 overflow-x-auto">
               {[
                 { id: "BASIC", label: "Basic Info", icon: Package },
                 { id: "UNITS_PRICING", label: "Units & Rates", icon: Banknote },
@@ -779,8 +779,8 @@ export default function ProductsPage() {
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all whitespace-nowrap ${
                       activeTab === tab.id
-                        ? "bg-[#00aef0] text-white shadow-md shadow-[#00aef0]/20"
-                        : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                        ? "bg-[#00aef0] text-foreground shadow-md shadow-[#00aef0]/20"
+                        : "text-muted-foreground hover:text-foreground hover:bg-slate-800/50"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -802,7 +802,7 @@ export default function ProductsPage() {
                       placeholder="e.g. Men's Cotton Denim Shirt / Paracetamol 650mg / Frame Glasses"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10"
+                      className="bg-background border-border text-foreground rounded-xl h-10"
                     />
                   </div>
 
@@ -820,7 +820,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Rajasthani Clay Guild / Jaipur Artisans"
                             value={artisanName}
                             onChange={(e) => setArtisanName(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -830,7 +830,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 3-5 Days"
                             value={craftingTimeDays}
                             onChange={(e) => setCraftingTimeDays(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -840,7 +840,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Handmade Wooden Box / Jute Potli"
                             value={giftPackagingType}
                             onChange={(e) => setGiftPackagingType(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -850,7 +850,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Name Engraving, Custom Photo Print"
                             value={customizationNotes}
                             onChange={(e) => setCustomizationNotes(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                       </div>
@@ -871,7 +871,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Wedding Return Gift / Corporate Gifting / Festival Hamper"
                             value={eventTypeTarget}
                             onChange={(e) => setEventTypeTarget(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -881,7 +881,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 50 Pcs minimum"
                             value={minOrderQuantity}
                             onChange={(e) => setMinOrderQuantity(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -891,7 +891,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 50-200 pcs @ ₹180 / 200+ pcs @ ₹150"
                             value={bulkTier1Price}
                             onChange={(e) => setBulkTier1Price(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -901,7 +901,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Custom Event Logo Card Included"
                             value={customizationNotes}
                             onChange={(e) => setCustomizationNotes(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                       </div>
@@ -922,7 +922,7 @@ export default function ProductsPage() {
                             placeholder="e.g. S / M / L / XL / 38 / 40"
                             value={apparelSize}
                             onChange={(e) => setApparelSize(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -932,7 +932,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Navy Blue / Crimson / Off-White"
                             value={apparelColor}
                             onChange={(e) => setApparelColor(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -942,7 +942,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 100% Cotton / Denim / Silk"
                             value={apparelFabric}
                             onChange={(e) => setApparelFabric(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -952,7 +952,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Slim Fit / Regular / Oversized"
                             value={apparelFit}
                             onChange={(e) => setApparelFit(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                       </div>
@@ -973,7 +973,7 @@ export default function ProductsPage() {
                             placeholder="e.g. UK 6 / UK 7 / UK 8 / UK 9 / EU 42"
                             value={apparelSize}
                             onChange={(e) => setApparelSize(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -983,7 +983,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Tan Brown / Matte Black / White"
                             value={apparelColor}
                             onChange={(e) => setApparelColor(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -993,7 +993,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Genuine Leather / Rubber / EVA"
                             value={soleMaterial}
                             onChange={(e) => setSoleMaterial(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -1003,7 +1003,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Flat / 2 Inches / Block Heel"
                             value={heelHeight}
                             onChange={(e) => setHeelHeight(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -1013,7 +1013,7 @@ export default function ProductsPage() {
                             placeholder="e.g. Lace-Up / Slip-On / Velcro"
                             value={closureType}
                             onChange={(e) => setClosureType(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div className="flex items-center pt-5">
@@ -1022,7 +1022,7 @@ export default function ProductsPage() {
                               type="checkbox"
                               checked={isWaterproof}
                               onChange={(e) => setIsWaterproof(e.target.checked)}
-                              className="rounded border-slate-800 text-cyan-500"
+                              className="rounded border-border text-cyan-500"
                             />
                             Waterproof / All-Weather Footwear
                           </label>
@@ -1043,7 +1043,7 @@ export default function ProductsPage() {
                           <select
                             value={karatPurity}
                             onChange={(e) => setKaratPurity(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-9 text-xs mt-1 px-2"
+                            className="w-full bg-background border border-border text-foreground rounded-xl h-9 text-xs mt-1 px-2"
                           >
                             <option value="24K">24K (99.9% Pure Gold)</option>
                             <option value="22K">22K (91.6% BIS Hallmark)</option>
@@ -1060,7 +1060,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 8.50"
                             value={netWeightGrams}
                             onChange={(e) => setNetWeightGrams(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono"
                           />
                         </div>
                         <div>
@@ -1070,7 +1070,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 10.00"
                             value={grossWeightGrams}
                             onChange={(e) => setGrossWeightGrams(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono"
                           />
                         </div>
                         <div>
@@ -1080,7 +1080,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 1.50"
                             value={stoneWeightGrams}
                             onChange={(e) => setStoneWeightGrams(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono"
                           />
                         </div>
                         <div>
@@ -1090,7 +1090,7 @@ export default function ProductsPage() {
                             placeholder="e.g. ₹500 or 12%"
                             value={makingCharge}
                             onChange={(e) => setMakingCharge(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                           />
                         </div>
                         <div>
@@ -1100,7 +1100,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 3.5"
                             value={wastagePercent}
                             onChange={(e) => setWastagePercent(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono"
                           />
                         </div>
                         <div>
@@ -1110,7 +1110,7 @@ export default function ProductsPage() {
                             placeholder="e.g. HUID: AB1234"
                             value={hallmarkNumber}
                             onChange={(e) => setHallmarkNumber(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono"
                           />
                         </div>
                         <div>
@@ -1120,7 +1120,7 @@ export default function ProductsPage() {
                             placeholder="e.g. 0.50 ct"
                             value={diamondWeightCarat}
                             onChange={(e) => setDiamondWeightCarat(e.target.value)}
-                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono"
+                            className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono"
                           />
                         </div>
                       </div>
@@ -1136,27 +1136,27 @@ export default function ProductsPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-[11px] text-slate-300">Model Number</Label>
-                          <Input type="text" placeholder="e.g. iPhone 15 Pro / Samsung S24" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. iPhone 15 Pro / Samsung S24" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Processor / Chipset</Label>
-                          <Input type="text" placeholder="e.g. Apple A17 Pro / Snapdragon 8 Gen 3" value={processor} onChange={(e) => setProcessor(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. Apple A17 Pro / Snapdragon 8 Gen 3" value={processor} onChange={(e) => setProcessor(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">RAM / Storage</Label>
-                          <Input type="text" placeholder="e.g. 8GB RAM / 256GB" value={ramSize} onChange={(e) => setRamSize(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 8GB RAM / 256GB" value={ramSize} onChange={(e) => setRamSize(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Display Size</Label>
-                          <Input type="text" placeholder='e.g. 6.7" AMOLED 120Hz' value={displaySize} onChange={(e) => setDisplaySize(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder='e.g. 6.7" AMOLED 120Hz' value={displaySize} onChange={(e) => setDisplaySize(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Battery Capacity (mAh)</Label>
-                          <Input type="text" placeholder="e.g. 5000 mAh" value={batteryCapacity} onChange={(e) => setBatteryCapacity(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 5000 mAh" value={batteryCapacity} onChange={(e) => setBatteryCapacity(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Warranty (Months)</Label>
-                          <Input type="number" placeholder="e.g. 12" value={warrantyMonths} onChange={(e) => setWarrantyMonths(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="number" placeholder="e.g. 12" value={warrantyMonths} onChange={(e) => setWarrantyMonths(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
                     </div>
@@ -1171,11 +1171,11 @@ export default function ProductsPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-[11px] text-slate-300">Material Grade / Type</Label>
-                          <Input type="text" placeholder="e.g. IS 2062 Grade A / M.S. / CPVC" value={materialGrade} onChange={(e) => setMaterialGrade(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. IS 2062 Grade A / M.S. / CPVC" value={materialGrade} onChange={(e) => setMaterialGrade(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Dimensions (L × W × H / Dia)</Label>
-                          <Input type="text" placeholder="e.g. 12mm × 6m / 3/4 inch dia" value={furnitureDimensions} onChange={(e) => setFurnitureDimensions(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 12mm × 6m / 3/4 inch dia" value={furnitureDimensions} onChange={(e) => setFurnitureDimensions(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
                     </div>
@@ -1190,19 +1190,19 @@ export default function ProductsPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-[11px] text-slate-300">Dimensions (L × W × H cm)</Label>
-                          <Input type="text" placeholder="e.g. 180 × 90 × 75 cm" value={furnitureDimensions} onChange={(e) => setFurnitureDimensions(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 180 × 90 × 75 cm" value={furnitureDimensions} onChange={(e) => setFurnitureDimensions(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Wood / Material Type</Label>
-                          <Input type="text" placeholder="e.g. Sheesham / Teak / MDF / Engineered Wood" value={woodMaterialType} onChange={(e) => setWoodMaterialType(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. Sheesham / Teak / MDF / Engineered Wood" value={woodMaterialType} onChange={(e) => setWoodMaterialType(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Weight Capacity (kg)</Label>
-                          <Input type="text" placeholder="e.g. 120 kg" value={weightCapacityKg} onChange={(e) => setWeightCapacityKg(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 120 kg" value={weightCapacityKg} onChange={(e) => setWeightCapacityKg(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div className="flex items-end">
                           <label className="flex items-center gap-2 text-xs text-stone-300 cursor-pointer">
-                            <input type="checkbox" checked={isAssemblyRequired} onChange={(e) => setIsAssemblyRequired(e.target.checked)} className="rounded border-slate-800" />
+                            <input type="checkbox" checked={isAssemblyRequired} onChange={(e) => setIsAssemblyRequired(e.target.checked)} className="rounded border-border" />
                             Assembly Required
                           </label>
                         </div>
@@ -1214,24 +1214,24 @@ export default function ProductsPage() {
                   {activeTemplate === "AUTOMOBILE" && (
                     <div className="space-y-2.5 bg-slate-500/10 p-3.5 rounded-2xl border border-slate-500/30 sm:col-span-2">
                       <Label className="text-xs text-slate-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
-                        <Car className="h-4 w-4 text-slate-400" /> Automobile & Spare Parts Attributes
+                        <Car className="h-4 w-4 text-muted-foreground" /> Automobile & Spare Parts Attributes
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-[11px] text-slate-300">OEM Part Number</Label>
-                          <Input type="text" placeholder="e.g. MRF-TYR-185/65R15" value={oemPartNumber} onChange={(e) => setOemPartNumber(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono" />
+                          <Input type="text" placeholder="e.g. MRF-TYR-185/65R15" value={oemPartNumber} onChange={(e) => setOemPartNumber(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Vehicle Fitment</Label>
-                          <Input type="text" placeholder="e.g. Honda City 2020-2024 / Maruti Swift" value={vehicleFitment} onChange={(e) => setVehicleFitment(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. Honda City 2020-2024 / Maruti Swift" value={vehicleFitment} onChange={(e) => setVehicleFitment(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Engine Type</Label>
-                          <Input type="text" placeholder="e.g. 1.5L Petrol / 2.0L Diesel / EV" value={engineType} onChange={(e) => setEngineType(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 1.5L Petrol / 2.0L Diesel / EV" value={engineType} onChange={(e) => setEngineType(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Model Year Range</Label>
-                          <Input type="text" placeholder="e.g. 2018-2024" value={vehicleYear} onChange={(e) => setVehicleYear(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 2018-2024" value={vehicleYear} onChange={(e) => setVehicleYear(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
                     </div>
@@ -1246,19 +1246,19 @@ export default function ProductsPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-[11px] text-slate-300">ISBN Number</Label>
-                          <Input type="text" placeholder="e.g. 978-3-16-148410-0" value={isbnNumber} onChange={(e) => setIsbnNumber(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono" />
+                          <Input type="text" placeholder="e.g. 978-3-16-148410-0" value={isbnNumber} onChange={(e) => setIsbnNumber(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Author Name</Label>
-                          <Input type="text" placeholder="e.g. R.K. Narayan / Amish Tripathi" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. R.K. Narayan / Amish Tripathi" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Publisher</Label>
-                          <Input type="text" placeholder="e.g. Penguin Books India" value={publisher} onChange={(e) => setPublisher(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. Penguin Books India" value={publisher} onChange={(e) => setPublisher(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Edition / Language</Label>
-                          <Input type="text" placeholder="e.g. 3rd Edition / Hindi" value={edition} onChange={(e) => setEdition(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 3rd Edition / Hindi" value={edition} onChange={(e) => setEdition(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
                     </div>
@@ -1287,7 +1287,7 @@ export default function ProductsPage() {
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Spice Level</Label>
-                          <select value={spicyLevel} onChange={(e) => setSpicyLevel(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-9 text-xs mt-1 px-2">
+                          <select value={spicyLevel} onChange={(e) => setSpicyLevel(e.target.value)} className="w-full bg-background border border-border text-foreground rounded-xl h-9 text-xs mt-1 px-2">
                             <option value="MILD">Mild 🌶</option>
                             <option value="MEDIUM">Medium 🌶🌶</option>
                             <option value="HOT">Hot 🌶🌶🌶</option>
@@ -1296,11 +1296,11 @@ export default function ProductsPage() {
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">KOT Station</Label>
-                          <Input type="text" placeholder="e.g. Main Kitchen / Tandoor / Bar" value={kotStation} onChange={(e) => setKotStation(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. Main Kitchen / Tandoor / Bar" value={kotStation} onChange={(e) => setKotStation(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Recipe Code</Label>
-                          <Input type="text" placeholder="e.g. RCP-BTR-CHK-01" value={recipeCode} onChange={(e) => setRecipeCode(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono" />
+                          <Input type="text" placeholder="e.g. RCP-BTR-CHK-01" value={recipeCode} onChange={(e) => setRecipeCode(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono" />
                         </div>
                       </div>
                     </div>
@@ -1315,11 +1315,11 @@ export default function ProductsPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-[11px] text-slate-300">BOM Reference Code</Label>
-                          <Input type="text" placeholder="e.g. BOM-PROD-2024-001" value={bomReference} onChange={(e) => setBomReference(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1 font-mono" />
+                          <Input type="text" placeholder="e.g. BOM-PROD-2024-001" value={bomReference} onChange={(e) => setBomReference(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono" />
                         </div>
                         <div>
                           <Label className="text-[11px] text-slate-300">Yield % / Scrap %</Label>
-                          <Input type="text" placeholder="e.g. 95% yield / 5% scrap" value={yieldPercent} onChange={(e) => setYieldPercent(e.target.value)} className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1" />
+                          <Input type="text" placeholder="e.g. 95% yield / 5% scrap" value={yieldPercent} onChange={(e) => setYieldPercent(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
                     </div>
@@ -1337,7 +1337,7 @@ export default function ProductsPage() {
                           placeholder="e.g. 52-18-140 / Ray-Ban RB5154"
                           value={frameSize}
                           onChange={(e) => setFrameSize(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                       <div>
@@ -1347,7 +1347,7 @@ export default function ProductsPage() {
                           placeholder="e.g. SPH -2.50 / CYL -1.00"
                           value={lensPowerSph}
                           onChange={(e) => setLensPowerSph(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs font-mono mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs font-mono mt-1"
                         />
                       </div>
                     </div>
@@ -1365,7 +1365,7 @@ export default function ProductsPage() {
                           placeholder="e.g. Ruby Woo / Shade 120"
                           value={shadeCode}
                           onChange={(e) => setShadeCode(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                       <div>
@@ -1375,7 +1375,7 @@ export default function ProductsPage() {
                           placeholder="e.g. 50 ml / 100g"
                           value={volumeMl}
                           onChange={(e) => setVolumeMl(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                     </div>
@@ -1393,7 +1393,7 @@ export default function ProductsPage() {
                           placeholder="e.g. Dog (Golden Retriever / German Shepherd)"
                           value={petBreed}
                           onChange={(e) => setPetBreed(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                       <div>
@@ -1403,7 +1403,7 @@ export default function ProductsPage() {
                           placeholder="e.g. Chicken & Rice / 10 Kg Bag"
                           value={packSize}
                           onChange={(e) => setPackSize(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                     </div>
@@ -1421,7 +1421,7 @@ export default function ProductsPage() {
                           placeholder="e.g. Class 3 Flammable / UN 1263"
                           value={hazardClass}
                           onChange={(e) => setHazardClass(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white font-mono text-xs rounded-xl h-9 mt-1"
+                          className="bg-background border-border text-foreground font-mono text-xs rounded-xl h-9 mt-1"
                         />
                       </div>
                       <div>
@@ -1431,7 +1431,7 @@ export default function ProductsPage() {
                           placeholder="e.g. RAL 9010 Pure White"
                           value={shadeCode}
                           onChange={(e) => setShadeCode(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                     </div>
@@ -1449,7 +1449,7 @@ export default function ProductsPage() {
                           placeholder="e.g. NPK 19-19-19 / Hybrid Cotton"
                           value={seedVariety}
                           onChange={(e) => setSeedVariety(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                       <div>
@@ -1459,7 +1459,7 @@ export default function ProductsPage() {
                           placeholder="e.g. Wheat / Kharif Season"
                           value={cropType}
                           onChange={(e) => setCropType(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                     </div>
@@ -1477,7 +1477,7 @@ export default function ProductsPage() {
                           placeholder="e.g. 0-6 Months / 1-2 Years"
                           value={babyAgeGroup}
                           onChange={(e) => setBabyAgeGroup(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                       <div>
@@ -1487,7 +1487,7 @@ export default function ProductsPage() {
                           placeholder="e.g. BPA-Free Food Grade Silicone"
                           value={apparelFabric}
                           onChange={(e) => setApparelFabric(e.target.value)}
-                          className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1"
                         />
                       </div>
                     </div>
@@ -1500,7 +1500,7 @@ export default function ProductsPage() {
                       type="text"
                       value={sku}
                       onChange={(e) => setSku(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white font-mono text-xs rounded-xl h-10"
+                      className="bg-background border-border text-foreground font-mono text-xs rounded-xl h-10"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1509,7 +1509,7 @@ export default function ProductsPage() {
                       type="text"
                       value={barcode}
                       onChange={(e) => setBarcode(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white font-mono text-xs rounded-xl h-10"
+                      className="bg-background border-border text-foreground font-mono text-xs rounded-xl h-10"
                     />
                   </div>
 
@@ -1520,7 +1520,7 @@ export default function ProductsPage() {
                       placeholder="Alternate search term"
                       value={aliasName}
                       onChange={(e) => setAliasName(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1530,7 +1530,7 @@ export default function ProductsPage() {
                       placeholder="e.g. Levi's / Nike / Zara / Cipla / Ray-Ban"
                       value={manufacturer}
                       onChange={(e) => setManufacturer(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                     />
                   </div>
                 </div>
@@ -1546,7 +1546,7 @@ export default function ProductsPage() {
                       value={baseUnit}
                       onChange={(e) => setBaseUnit(e.target.value)}
                       placeholder="PCS / KG / LTR / PAIR"
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1556,7 +1556,7 @@ export default function ProductsPage() {
                       value={purchaseUnit}
                       onChange={(e) => setPurchaseUnit(e.target.value)}
                       placeholder="PACK / BOX / CARTON"
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                     />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
@@ -1565,7 +1565,7 @@ export default function ProductsPage() {
                       type="number"
                       value={conversionFactor}
                       onChange={(e) => setConversionFactor(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs font-mono"
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs font-mono"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1576,7 +1576,7 @@ export default function ProductsPage() {
                       placeholder="0.00"
                       value={purchasePrice}
                       onChange={(e) => setPurchasePrice(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1587,7 +1587,7 @@ export default function ProductsPage() {
                       placeholder="0.00"
                       value={mrp}
                       onChange={(e) => setMrp(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1598,7 +1598,7 @@ export default function ProductsPage() {
                       placeholder="0.00"
                       value={sellingPrice}
                       onChange={(e) => setSellingPrice(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white font-bold rounded-xl h-10 text-xs text-[#00aef0]"
+                      className="bg-background border-border text-foreground font-bold rounded-xl h-10 text-xs text-[#00aef0]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1609,7 +1609,7 @@ export default function ProductsPage() {
                       placeholder="0.00"
                       value={wholesaleRate}
                       onChange={(e) => setWholesaleRate(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                     />
                   </div>
                 </div>
@@ -1624,7 +1624,7 @@ export default function ProductsPage() {
                       type="text"
                       value={hsnSacCode}
                       onChange={(e) => setHsnSacCode(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white font-mono text-xs rounded-xl h-10"
+                      className="bg-background border-border text-foreground font-mono text-xs rounded-xl h-10"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1634,7 +1634,7 @@ export default function ProductsPage() {
                       value={taxRate}
                       onChange={(e) => setTaxRate(e.target.value)}
                       placeholder="5"
-                      className="bg-slate-950 border-slate-800 text-white font-mono text-xs rounded-xl h-10"
+                      className="bg-background border-border text-foreground font-mono text-xs rounded-xl h-10"
                     />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
@@ -1643,7 +1643,7 @@ export default function ProductsPage() {
                         type="checkbox"
                         checked={isTaxInclusive}
                         onChange={(e) => setIsTaxInclusive(e.target.checked)}
-                        className="rounded border-slate-800 text-[#00aef0]"
+                        className="rounded border-border text-[#00aef0]"
                       />
                       Selling Price is Tax Inclusive (GST Included)
                     </label>
@@ -1660,7 +1660,7 @@ export default function ProductsPage() {
                       type="number"
                       value={initialStock}
                       onChange={(e) => setInitialStock(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white font-mono text-xs rounded-xl h-10"
+                      className="bg-background border-border text-foreground font-mono text-xs rounded-xl h-10"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1669,7 +1669,7 @@ export default function ProductsPage() {
                       type="number"
                       value={reorderLevel}
                       onChange={(e) => setReorderLevel(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white font-mono text-xs rounded-xl h-10"
+                      className="bg-background border-border text-foreground font-mono text-xs rounded-xl h-10"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1679,7 +1679,7 @@ export default function ProductsPage() {
                       placeholder="e.g. Rack A-2"
                       value={shelfNumber}
                       onChange={(e) => setShelfNumber(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white text-xs rounded-xl h-10"
+                      className="bg-background border-border text-foreground text-xs rounded-xl h-10"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -1689,7 +1689,7 @@ export default function ProductsPage() {
                       placeholder="e.g. BIN-204"
                       value={binLocation}
                       onChange={(e) => setBinLocation(e.target.value)}
-                      className="bg-slate-950 border-slate-800 text-white text-xs rounded-xl h-10"
+                      className="bg-background border-border text-foreground text-xs rounded-xl h-10"
                     />
                   </div>
                 </div>
@@ -1703,7 +1703,7 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={trackBatch}
                       onChange={(e) => setTrackBatch(e.target.checked)}
-                      className="rounded border-slate-800 text-[#00aef0]"
+                      className="rounded border-border text-[#00aef0]"
                     />
                     Enable Batch Number & Expiry Date Tracking (FEFO)
                   </label>
@@ -1712,7 +1712,7 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={trackSerial}
                       onChange={(e) => setTrackSerial(e.target.checked)}
-                      className="rounded border-slate-800 text-[#00aef0]"
+                      className="rounded border-border text-[#00aef0]"
                     />
                     Enable Serial Number / IMEI Tracking
                   </label>
@@ -1721,7 +1721,7 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={allowNegativeStock}
                       onChange={(e) => setAllowNegativeStock(e.target.checked)}
-                      className="rounded border-slate-800 text-[#00aef0]"
+                      className="rounded border-border text-[#00aef0]"
                     />
                     Allow Sales when Stock is Zero / Negative
                   </label>
@@ -1731,7 +1731,7 @@ export default function ProductsPage() {
               {/* Tab 6: Interactive Ad-Hoc Custom Fields Builder */}
               {activeTab === "CUSTOM_FIELDS" && (
                 <div className="space-y-4 pt-2">
-                  <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-3">
+                  <div className="bg-background p-3 rounded-2xl border border-border space-y-3">
                     <Label className="text-xs text-[#00aef0] font-bold flex items-center gap-1.5">
                       <PlusCircle className="h-4 w-4" /> Add Custom Field Definition for {activeTemplate}
                     </Label>
@@ -1741,12 +1741,12 @@ export default function ProductsPage() {
                         placeholder="Field Name (e.g. Bluetooth Version / Designer Name)"
                         value={newFieldName}
                         onChange={(e) => setNewFieldName(e.target.value)}
-                        className="bg-slate-900 border-slate-800 text-white text-xs h-9"
+                        className="bg-card border-border text-foreground text-xs h-9"
                       />
                       <select
                         value={newFieldType}
                         onChange={(e) => setNewFieldType(e.target.value as any)}
-                        className="bg-slate-900 border-slate-800 text-slate-200 text-xs rounded-xl px-2 h-9"
+                        className="bg-card border-border text-slate-200 text-xs rounded-xl px-2 h-9"
                       >
                         <option value="TEXT">Text Field</option>
                         <option value="NUMBER">Number Field</option>
@@ -1756,7 +1756,7 @@ export default function ProductsPage() {
                       <Button
                         type="button"
                         onClick={handleAddCustomField}
-                        className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold text-xs h-9 rounded-xl gap-1"
+                        className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold text-xs h-9 rounded-xl gap-1"
                       >
                         <Plus className="h-3.5 w-3.5" /> Add Field
                       </Button>
@@ -1771,7 +1771,7 @@ export default function ProductsPage() {
                       </div>
                     ) : (
                       customFields.map((cf) => (
-                        <div key={cf.id} className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
+                        <div key={cf.id} className="flex items-center justify-between bg-background p-2.5 rounded-xl border border-border text-xs">
                           <div className="flex-1 pr-2">
                             <Label className="text-xs text-slate-300 font-bold">{cf.name}</Label>
                             <Input
@@ -1783,7 +1783,7 @@ export default function ProductsPage() {
                                   prev.map((item) => (item.id === cf.id ? { ...item, value: e.target.value } : item))
                                 )
                               }
-                              className="bg-slate-900 border-slate-800 text-white text-xs h-8 mt-1"
+                              className="bg-card border-border text-foreground text-xs h-8 mt-1"
                             />
                           </div>
                           <button
@@ -1800,11 +1800,11 @@ export default function ProductsPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-slate-800 text-slate-300 rounded-xl h-10">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-slate-300 rounded-xl h-10">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl h-10 px-6">
+                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-6">
                   {saving
                     ? editingProduct
                       ? "Updating Product..."

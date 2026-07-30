@@ -79,7 +79,7 @@ export function ComplianceBanner() {
         <Button
           size="sm"
           onClick={() => router.push(`/policies/${firstPending.id}/read`)}
-          className="bg-amber-600 hover:bg-amber-700 text-white border-none text-xs"
+          className="bg-amber-600 hover:bg-amber-700 text-foreground border-none text-xs"
         >
           Review & Sign <ChevronRight className="size-3.5 ml-1" />
         </Button>

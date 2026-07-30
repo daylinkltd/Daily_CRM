@@ -106,10 +106,10 @@ export function ProductDetailsModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-3xl w-full p-6 space-y-6 shadow-2xl my-8 text-slate-100 relative">
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-card border border-border rounded-3xl max-w-3xl w-full p-6 space-y-6 shadow-2xl my-8 text-slate-100 relative">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-800 pb-4 gap-4">
+        <div className="flex items-start justify-between border-b border-border pb-4 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="bg-[#00aef0]/10 text-[#00aef0] px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1">
@@ -131,11 +131,11 @@ export function ProductDetailsModal({
               </span>
             </div>
 
-            <h2 className="text-2xl font-extrabold text-white tracking-tight mt-1">
+            <h2 className="text-2xl font-extrabold text-foreground tracking-tight mt-1">
               {product.name}
             </h2>
 
-            <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap font-mono pt-1">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap font-mono pt-1">
               <span className="flex items-center gap-1">
                 <Hash className="h-3.5 w-3.5 text-slate-500" /> SKU:{" "}
                 <strong className="text-slate-200">{product.sku}</strong>
@@ -157,7 +157,7 @@ export function ProductDetailsModal({
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-slate-800 rounded-xl transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -165,8 +165,8 @@ export function ProductDetailsModal({
 
         {/* Quick Highlights Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-background/80 p-3.5 rounded-2xl border border-border space-y-1">
+            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider block">
               Selling Price
             </span>
             <span className="text-xl font-extrabold text-[#00aef0] block">
@@ -179,8 +179,8 @@ export function ProductDetailsModal({
             )}
           </div>
 
-          <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-background/80 p-3.5 rounded-2xl border border-border space-y-1">
+            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider block">
               Purchase Price
             </span>
             <span className="text-xl font-extrabold text-slate-200 block">
@@ -193,33 +193,33 @@ export function ProductDetailsModal({
             )}
           </div>
 
-          <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-background/80 p-3.5 rounded-2xl border border-border space-y-1">
+            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider block">
               GST Tax Rate
             </span>
             <span className="text-xl font-extrabold text-purple-400 block">
               {product.tax_rate || 0}%
             </span>
-            <span className="text-[11px] text-slate-400 block">
+            <span className="text-[11px] text-muted-foreground block">
               {product.is_tax_inclusive ? "Tax Inclusive" : "Tax Exclusive"}
             </span>
           </div>
 
-          <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 space-y-1">
-            <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-background/80 p-3.5 rounded-2xl border border-border space-y-1">
+            <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider block">
               Stock & Unit
             </span>
             <span className="text-xl font-extrabold text-amber-400 block">
               {product.initial_stock || 0} {product.base_unit || "PCS"}
             </span>
-            <span className="text-[11px] text-slate-400 block">
+            <span className="text-[11px] text-muted-foreground block">
               Min Reorder: {product.reorder_level || 10}
             </span>
           </div>
         </div>
 
         {/* Tab Navigation Header */}
-        <div className="flex items-center gap-1.5 border-b border-slate-800 pb-2 overflow-x-auto">
+        <div className="flex items-center gap-1.5 border-b border-border pb-2 overflow-x-auto">
           {[
             { id: "OVERVIEW", label: "Overview & Master", icon: Info },
             { id: "PRICING", label: "Pricing & Rates", icon: Banknote },
@@ -234,8 +234,8 @@ export function ProductDetailsModal({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-3 py-2 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                    ? "bg-[#00aef0] text-foreground shadow-lg shadow-[#00aef0]/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-slate-800/60"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -277,8 +277,8 @@ export function ProductDetailsModal({
               </div>
 
               {/* Profitability Analysis Box */}
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <div className="bg-background p-4 rounded-2xl border border-border space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Percent className="h-4 w-4 text-[#00aef0]" /> Profitability Analysis
                 </h4>
                 <div className="grid grid-cols-3 gap-2 text-xs">
@@ -325,8 +325,8 @@ export function ProductDetailsModal({
               </div>
 
               {/* Tracking Flags Status */}
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <div className="bg-background p-4 rounded-2xl border border-border space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Tracking & Inventory Rules
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -353,17 +353,17 @@ export function ProductDetailsModal({
           {activeTab === "ATTRIBUTES" && (
             <div className="space-y-4">
               {attributeEntries.length > 0 ? (
-                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                <div className="bg-background p-4 rounded-2xl border border-border space-y-3">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[#00aef0] flex items-center gap-1.5">
                     <Sparkles className="h-4 w-4" /> {industryTemplate} Industry Attributes
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     {attributeEntries.map(([k, v]) => (
-                      <div key={k} className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
-                        <span className="text-slate-400 capitalize block text-[11px]">
+                      <div key={k} className="bg-card/90 p-2.5 rounded-xl border border-border">
+                        <span className="text-muted-foreground capitalize block text-[11px]">
                           {k.replace(/_/g, " ")}
                         </span>
-                        <span className="font-semibold text-white block mt-0.5">
+                        <span className="font-semibold text-foreground block mt-0.5">
                           {typeof v === "boolean" ? (v ? "Yes" : "No") : String(v || "N/A")}
                         </span>
                       </div>
@@ -373,15 +373,15 @@ export function ProductDetailsModal({
               ) : null}
 
               {Object.keys(customUserFields).length > 0 && (
-                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                <div className="bg-background p-4 rounded-2xl border border-border space-y-3">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
                     <Layers className="h-4 w-4" /> Custom Fields
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     {Object.entries(customUserFields).map(([k, v]) => (
-                      <div key={k} className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
-                        <span className="text-slate-400 block text-[11px]">{k}</span>
-                        <span className="font-semibold text-white block mt-0.5">
+                      <div key={k} className="bg-card/90 p-2.5 rounded-xl border border-border">
+                        <span className="text-muted-foreground block text-[11px]">{k}</span>
+                        <span className="font-semibold text-foreground block mt-0.5">
                           {String(v || "N/A")}
                         </span>
                       </div>
@@ -400,7 +400,7 @@ export function ProductDetailsModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-slate-800 pt-4">
+        <div className="flex items-center justify-between border-t border-border pt-4">
           <div className="text-[11px] text-slate-500">
             Created: {product.created_at ? new Date(product.created_at).toLocaleDateString() : "Catalog Item"}
           </div>
@@ -412,7 +412,7 @@ export function ProductDetailsModal({
                   onClose();
                   onEdit(product);
                 }}
-                className="border-slate-800 hover:border-[#00aef0] bg-[#00aef0]/10 hover:bg-[#00aef0]/20 text-[#00aef0] gap-2 rounded-xl text-xs h-10 font-bold"
+                className="border-border hover:border-[#00aef0] bg-[#00aef0]/10 hover:bg-[#00aef0]/20 text-[#00aef0] gap-2 rounded-xl text-xs h-10 font-bold"
               >
                 <Pencil className="h-4 w-4" />
                 Edit Product
@@ -425,7 +425,7 @@ export function ProductDetailsModal({
                   onClose();
                   onPrintTag(product);
                 }}
-                className="border-slate-800 hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] gap-2 rounded-xl text-xs h-10"
+                className="border-border hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] gap-2 rounded-xl text-xs h-10"
               >
                 <Printer className="h-4 w-4" />
                 Print Barcode Tag
@@ -433,7 +433,7 @@ export function ProductDetailsModal({
             )}
             <Button
               onClick={onClose}
-              className="bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs h-10 px-5"
+              className="bg-slate-800 hover:bg-slate-700 text-foreground font-bold rounded-xl text-xs h-10 px-5"
             >
               Close
             </Button>
@@ -456,8 +456,8 @@ function DetailCard({
   highlight?: boolean;
 }) {
   return (
-    <div className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800/80 space-y-1">
-      <span className="text-[11px] text-slate-400 font-medium block">{label}</span>
+    <div className="bg-background/80 p-3 rounded-2xl border border-border/80 space-y-1">
+      <span className="text-[11px] text-muted-foreground font-medium block">{label}</span>
       <span
         className={`block text-xs font-semibold ${
           highlight ? "text-[#00aef0] text-sm font-extrabold" : "text-slate-200"
@@ -475,7 +475,7 @@ function FlagBadge({ label, active }: { label: string; active: boolean }) {
       className={`p-2.5 rounded-xl border flex items-center gap-2 text-xs font-semibold ${
         active
           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-          : "bg-slate-900 text-slate-500 border-slate-800"
+          : "bg-card text-slate-500 border-border"
       }`}
     >
       {active ? (

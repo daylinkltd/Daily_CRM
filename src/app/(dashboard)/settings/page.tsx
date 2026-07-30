@@ -27,6 +27,7 @@ import {
   resolveSection,
   type SettingsSection,
 } from '@/components/settings/settings-sections';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -103,16 +104,11 @@ export default function SettingsPage() {
   };
 
   return (
-    <div>
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Settings
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Everything in one place — your account and your workspace. Pick a
-          section to manage it.
-        </p>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Settings"
+        description="Everything in one place — your account and your workspace. Pick a section to manage it."
+      />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[236px_minmax(0,1fr)] lg:items-start">
         <SettingsRail active={section} onSelect={go} hints={hints} />

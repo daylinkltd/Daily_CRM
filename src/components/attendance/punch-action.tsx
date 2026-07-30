@@ -201,12 +201,12 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
         {!todayRecord || !todayRecord.punch_in_time ? (
           <div className="flex items-center gap-2">
             {/* Work Location Selector */}
-            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs">
+            <div className="flex items-center bg-card border border-border rounded-xl p-1 text-xs">
               <button
                 type="button"
                 onClick={() => setWorkLocation('OFFICE')}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                  workLocation === 'OFFICE' ? 'bg-[#00aef0] text-white font-bold' : 'text-slate-400 hover:text-white'
+                  workLocation === 'OFFICE' ? 'bg-[#00aef0] text-foreground font-bold' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Building2 className="h-3.5 w-3.5" />
@@ -216,7 +216,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
                 type="button"
                 onClick={() => setWorkLocation('WFH')}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                  workLocation === 'WFH' ? 'bg-[#00aef0] text-white font-bold' : 'text-slate-400 hover:text-white'
+                  workLocation === 'WFH' ? 'bg-[#00aef0] text-foreground font-bold' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Home className="h-3.5 w-3.5" />
@@ -226,7 +226,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
                 type="button"
                 onClick={() => setWorkLocation('CLIENT_SITE')}
                 className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                  workLocation === 'CLIENT_SITE' ? 'bg-[#00aef0] text-white font-bold' : 'text-slate-400 hover:text-white'
+                  workLocation === 'CLIENT_SITE' ? 'bg-[#00aef0] text-foreground font-bold' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Briefcase className="h-3.5 w-3.5" />
@@ -237,7 +237,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
             <Button 
               onClick={() => handlePunch('in')} 
               disabled={loading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shadow-lg shadow-emerald-600/20 rounded-xl h-10 px-4"
+              className="bg-emerald-600 hover:bg-emerald-700 text-foreground font-extrabold shadow-lg shadow-emerald-600/20 rounded-xl h-10 px-4"
             >
               {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : <Fingerprint className="size-4 mr-2" />}
               Punch In
@@ -255,17 +255,17 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
               <Button
                 onClick={() => handleBreak('resume')}
                 disabled={loading}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl h-10 gap-1.5 shadow-lg shadow-amber-600/20"
+                className="bg-amber-600 hover:bg-amber-700 text-foreground font-bold rounded-xl h-10 gap-1.5 shadow-lg shadow-amber-600/20"
               >
                 {loading ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
                 Resume Work (On {activeBreak.break_type} Break)
               </Button>
             ) : (
-              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 p-1 rounded-xl">
+              <div className="flex items-center gap-1.5 bg-card border border-border p-1 rounded-xl">
                 <select
                   value={breakType}
                   onChange={(e) => setBreakType(e.target.value as any)}
-                  className="bg-slate-950 text-slate-200 border-none text-xs rounded-lg px-2 py-1 focus:ring-0"
+                  className="bg-background text-slate-200 border-none text-xs rounded-lg px-2 py-1 focus:ring-0"
                 >
                   <option value="LUNCH">Lunch Break</option>
                   <option value="TEA">Tea / Coffee</option>
@@ -295,7 +295,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
             </Button>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 bg-slate-900 px-3.5 py-2 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 bg-card px-3.5 py-2 rounded-xl border border-border">
             <Clock className="size-4 text-[#00aef0]" />
             Logged {todayRecord.working_hours} hrs ({todayRecord.net_productive_hours || todayRecord.working_hours} hrs net) today
           </div>

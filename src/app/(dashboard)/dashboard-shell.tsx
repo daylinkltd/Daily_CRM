@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, Suspense, startTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Script from "next/script";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
@@ -20,6 +20,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const { workspaces, activeWorkspace, loading: wsLoading, refreshWorkspaces } = useWorkspace();
   const router = useRouter();
+  const pathname = usePathname();
 
   // Sidebar drawer state — only used on mobile. On lg+ the sidebar is
   // always visible and this stays at `false` (ignored by the component).
@@ -161,7 +162,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-sm text-slate-400">Loading...</p>
+          <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -172,7 +173,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   if (isTrialExpired) {
     const activePlanConfig = PLANS.find((p) => p.id === selectedPlan) || PLANS[1];
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden text-slate-100">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden text-slate-100">
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-red-500/5 blur-[120px]" />
 
@@ -181,17 +182,17 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 mb-2">
               <AlertTriangle className="h-6 w-6" />
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">Free Trial Expired</h1>
-            <p className="text-slate-400 text-sm max-w-md mx-auto">
+            <h1 className="text-2xl font-black text-foreground tracking-tight">Free Trial Expired</h1>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto">
               Your 14-day free trial has expired. Upgrade your workspace plan to unlock the dashboard and resume customer engagement.
             </p>
           </div>
 
-          <div className="w-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl">
-            <div className="flex flex-col md:flex-row items-center justify-between border-b border-slate-800/80 pb-6 mb-6 gap-4">
+          <div className="w-full bg-card/60 border border-border/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl">
+            <div className="flex flex-col md:flex-row items-center justify-between border-b border-border/80 pb-6 mb-6 gap-4">
               <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Workspace</span>
-                <h3 className="text-lg font-bold text-white">{activeWorkspace?.name || "My Workspace"}</h3>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Workspace</span>
+                <h3 className="text-lg font-bold text-foreground">{activeWorkspace?.name || "My Workspace"}</h3>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -200,7 +201,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                     billingCycle === "monthly"
                       ? "bg-primary text-primary-foreground"
-                      : "text-slate-400 hover:text-foreground bg-slate-950 border border-slate-800"
+                      : "text-muted-foreground hover:text-foreground bg-background border border-border"
                   }`}
                 >
                   Monthly
@@ -211,11 +212,11 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors relative ${
                     billingCycle === "annual"
                       ? "bg-primary text-primary-foreground"
-                      : "text-slate-400 hover:text-foreground bg-slate-950 border border-slate-800"
+                      : "text-muted-foreground hover:text-foreground bg-background border border-border"
                   }`}
                 >
                   Annual
-                  <span className="absolute -top-3 -right-6 px-1.5 py-0.5 bg-emerald-500 text-white text-[8px] font-bold rounded-full uppercase tracking-wider scale-90">
+                  <span className="absolute -top-3 -right-6 px-1.5 py-0.5 bg-emerald-500 text-foreground text-[8px] font-bold rounded-full uppercase tracking-wider scale-90">
                     2 Months Free
                   </span>
                 </button>
@@ -236,7 +237,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                     className={`relative flex flex-col rounded-2xl p-4 border transition-all cursor-pointer select-none ${
                       isSelected
                         ? "border-primary bg-primary/5 shadow-xl shadow-primary/5"
-                        : "border-slate-800 bg-slate-950/40 hover:border-slate-700"
+                        : "border-border bg-background/40 hover:border-slate-700"
                     }`}
                   >
                     {plan.isRecommended && (
@@ -244,15 +245,15 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                         RECOMMENDED
                       </div>
                     )}
-                    <span className="text-xs font-extrabold text-white block">{plan.name}</span>
+                    <span className="text-xs font-extrabold text-foreground block">{plan.name}</span>
                     <div className="flex items-baseline gap-0.5 mt-1 mb-4">
-                      <span className="text-lg font-black text-white">{displayPrice}</span>
+                      <span className="text-lg font-black text-foreground">{displayPrice}</span>
                       <span className="text-slate-500 text-[10px]">{periodLabel}</span>
                     </div>
 
                     <ul className="space-y-1.5 flex-1 mb-4">
                       {plan.features.slice(0, 3).map((f) => (
-                        <li key={f} className="flex items-start gap-1 text-[10px] text-slate-400">
+                        <li key={f} className="flex items-start gap-1 text-[10px] text-muted-foreground">
                           <Check className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
                           <span>{f}</span>
                         </li>
@@ -260,8 +261,8 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                     </ul>
 
                     <div className="flex justify-center mt-2">
-                      <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-slate-800"}`}>
-                        {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                      <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-border"}`}>
+                        {isSelected && <Check className="h-2.5 w-2.5 text-foreground" />}
                       </div>
                     </div>
                   </div>
@@ -301,13 +302,13 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header onOpenSidebar={() => setSidebarOpen(true)} />
         {/* Thinner horizontal padding on mobile so cards have room to breathe. */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className={`flex-1 overflow-y-auto ${pathname.startsWith('/inbox') ? '' : 'p-[var(--page-padding-mobile)] sm:p-[var(--page-padding-tablet)] lg:p-[var(--page-padding-desktop)]'}`}>
           <Suspense
             fallback={
               <div className="flex h-full items-center justify-center bg-transparent">
                 <div className="flex flex-col items-center gap-3">
                   <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  <p className="text-sm text-slate-400">Loading section...</p>
+                  <p className="text-sm text-muted-foreground">Loading section...</p>
                 </div>
               </div>
             }

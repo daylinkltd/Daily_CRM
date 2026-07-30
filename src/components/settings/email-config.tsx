@@ -44,20 +44,20 @@ export function EmailConfig() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] mt-4">
       <div className="space-y-6">
-        <Alert className="bg-slate-900 border-slate-700">
+        <Alert className="bg-card border-slate-700">
           <div className="flex items-center gap-2">
             {connectionStatus === 'connected' ? <CheckCircle2 className="size-4 text-primary" /> : <XCircle className="size-4 text-red-500" />}
             <AlertTitle className="text-foreground mb-0">{connectionStatus === 'connected' ? 'Connected' : 'Not Connected'}</AlertTitle>
           </div>
-          <AlertDescription className="text-slate-400">
+          <AlertDescription className="text-muted-foreground">
             {connectionStatus === 'connected' ? `Your ${provider} account is connected.` : 'Configure your SMTP/API email provider.'}
           </AlertDescription>
         </Alert>
 
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">API Credentials</CardTitle>
-            <CardDescription className="text-slate-400">Enter your Email provider credentials.</CardDescription>
+            <CardDescription className="text-muted-foreground">Enter your Email provider credentials.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -76,7 +76,7 @@ export function EmailConfig() {
               <Label className="text-slate-300">API Key</Label>
               <div className="relative">
                 <Input type={showToken ? 'text' : 'password'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 pr-10" />
-                <button type="button" onClick={() => setShowToken(!showToken)} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground">
+                <button type="button" onClick={() => setShowToken(!showToken)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
@@ -94,12 +94,12 @@ export function EmailConfig() {
         </div>
       </div>
       <div>
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground text-base">Instructions</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               Ensure your From Email address is verified in your provider&apos;s dashboard to prevent emails from going to spam.
             </p>
           </CardContent>

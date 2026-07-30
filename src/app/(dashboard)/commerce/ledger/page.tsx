@@ -196,11 +196,11 @@ export default function CustomerLedgerPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
             <Wallet className="h-6 w-6 text-[#00aef0]" />
             Customer Khata &amp; Credit Risk Ledger
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Track customer credit balances (Udhar), set credit limits, collect payments, and send WhatsApp payment reminders.
           </p>
         </div>
@@ -208,14 +208,14 @@ export default function CustomerLedgerPage() {
           <Button
             onClick={fetchLedger}
             variant="outline"
-            className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11"
+            className="border-border text-slate-300 gap-1.5 rounded-xl h-11"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh Books
           </Button>
           <Button
             onClick={() => setShowAddCustomerModal(true)}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
           >
             <UserPlus className="h-4 w-4" />
             Add New Customer
@@ -224,10 +224,10 @@ export default function CustomerLedgerPage() {
       </div>
 
       {/* Workflow Guidance Banner */}
-      <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
+      <div className="bg-card/90 border border-border p-4 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
         <Info className="h-5 w-5 text-[#00aef0] shrink-0" />
         <div>
-          <strong className="text-white block font-bold text-sm">
+          <strong className="text-foreground block font-bold text-sm">
             How Customer Khata Works:
           </strong>
           Customers created here are automatically saved to your <span className="text-[#00aef0] font-bold">CRM Contacts</span> and available in <span className="text-[#00aef0] font-bold">POS Billing</span>. When a POS checkout is completed using <span className="text-amber-400 font-bold">KHATA_CREDIT</span> mode, their pending balance increases here. Click <strong>Record Payment</strong> to collect cash/UPI and clear their Udhar balance!
@@ -236,9 +236,9 @@ export default function CustomerLedgerPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between">
+        <div className="p-4 bg-card/90 border border-border rounded-2xl flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Total Registered Customers</div>
+            <div className="text-xs text-muted-foreground font-medium">Total Registered Customers</div>
             <div className="text-2xl font-extrabold text-[#00aef0] mt-1">{totalCustomersCount}</div>
           </div>
           <div className="h-10 w-10 bg-[#00aef0]/10 border border-[#00aef0]/20 rounded-xl flex items-center justify-center text-[#00aef0]">
@@ -246,9 +246,9 @@ export default function CustomerLedgerPage() {
           </div>
         </div>
 
-        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between">
+        <div className="p-4 bg-card/90 border border-border rounded-2xl flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Total Pending Udhar Balance</div>
+            <div className="text-xs text-muted-foreground font-medium">Total Pending Udhar Balance</div>
             <div className="text-2xl font-extrabold text-amber-400 mt-1">
               ₹{totalUdharBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </div>
@@ -258,9 +258,9 @@ export default function CustomerLedgerPage() {
           </div>
         </div>
 
-        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between">
+        <div className="p-4 bg-card/90 border border-border rounded-2xl flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Over Credit Limit Alerts</div>
+            <div className="text-xs text-muted-foreground font-medium">Over Credit Limit Alerts</div>
             <div className="text-2xl font-extrabold text-rose-400 mt-1">{overLimitCount}</div>
           </div>
           <div className="h-10 w-10 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center text-rose-400">
@@ -270,24 +270,24 @@ export default function CustomerLedgerPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800 backdrop-blur-md">
+      <div className="flex items-center gap-3 bg-card/80 p-3 rounded-2xl border border-border backdrop-blur-md">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search Customer by Name, Phone Number, or Company..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-10 h-10 bg-slate-950/80 border-slate-800 text-white rounded-xl focus:border-[#00aef0]"
+            className="pl-10 h-10 bg-background/80 border-border text-foreground rounded-xl focus:border-[#00aef0]"
           />
         </div>
       </div>
 
       {/* Khata Ledger Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl">
+      <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4 w-[28%]">Customer Name</th>
                 <th className="py-3.5 px-4 w-[24%]">Phone &amp; Email</th>
@@ -313,7 +313,7 @@ export default function CustomerLedgerPage() {
                     </p>
                     <Button
                       onClick={() => setShowAddCustomerModal(true)}
-                      className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl gap-2 mt-2"
+                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2"
                     >
                       <UserPlus className="h-4 w-4" />
                       Add First Customer
@@ -331,7 +331,7 @@ export default function CustomerLedgerPage() {
                       <td className="py-3.5 px-4 font-extrabold text-slate-100">
                         <div>{contact.displayName}</div>
                         {contact.company && (
-                          <span className="block text-[11px] text-slate-400 font-normal">
+                          <span className="block text-[11px] text-muted-foreground font-normal">
                             {contact.company}
                           </span>
                         )}
@@ -344,7 +344,7 @@ export default function CustomerLedgerPage() {
                           </div>
                         )}
                         {contact.email && (
-                          <div className="text-[11px] text-slate-400">{contact.email}</div>
+                          <div className="text-[11px] text-muted-foreground">{contact.email}</div>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-right font-medium text-slate-300">
@@ -368,7 +368,7 @@ export default function CustomerLedgerPage() {
                           <Button
                             size="sm"
                             onClick={() => setSelectedPayCustomer(contact)}
-                            className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold text-xs rounded-xl gap-1 h-8 px-3"
+                            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold text-xs rounded-xl gap-1 h-8 px-3"
                           >
                             <IndianRupee className="h-3.5 w-3.5" />
                             Record Payment
@@ -395,13 +395,13 @@ export default function CustomerLedgerPage() {
 
       {/* Pagination Bar */}
       {filteredCustomers.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl text-xs text-slate-300 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card/80 border border-border p-3.5 rounded-2xl text-xs text-slate-300 backdrop-blur-md">
           <div>
-            Showing <strong className="text-white">{(page - 1) * pageSize + 1}</strong> to{" "}
-            <strong className="text-white">
+            Showing <strong className="text-foreground">{(page - 1) * pageSize + 1}</strong> to{" "}
+            <strong className="text-foreground">
               {Math.min(page * pageSize, filteredCustomers.length)}
             </strong>{" "}
-            of <strong className="text-white">{filteredCustomers.length}</strong> registered customers
+            of <strong className="text-foreground">{filteredCustomers.length}</strong> registered customers
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -409,11 +409,11 @@ export default function CustomerLedgerPage() {
               variant="outline"
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="border-slate-800 text-slate-300 h-8 gap-1 rounded-xl disabled:opacity-40"
+              className="border-border text-slate-300 h-8 gap-1 rounded-xl disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" /> Previous
             </Button>
-            <span className="font-bold text-slate-200 px-3 py-1 bg-slate-950 rounded-lg border border-slate-800">
+            <span className="font-bold text-slate-200 px-3 py-1 bg-background rounded-lg border border-border">
               Page {page} of {totalPages}
             </span>
             <Button
@@ -421,7 +421,7 @@ export default function CustomerLedgerPage() {
               variant="outline"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="border-slate-800 text-slate-300 h-8 gap-1 rounded-xl disabled:opacity-40"
+              className="border-border text-slate-300 h-8 gap-1 rounded-xl disabled:opacity-40"
             >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
@@ -431,14 +431,14 @@ export default function CustomerLedgerPage() {
 
       {/* Add New Customer Modal */}
       {showAddCustomerModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-[#00aef0]" />
                 Add New Customer to CRM &amp; Khata
               </h2>
-              <button onClick={() => setShowAddCustomerModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowAddCustomerModal(false)} className="text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -453,7 +453,7 @@ export default function CustomerLedgerPage() {
                     placeholder="e.g. Ramesh"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                   />
                 </div>
                 <div className="space-y-1">
@@ -463,7 +463,7 @@ export default function CustomerLedgerPage() {
                     placeholder="e.g. Kumar"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                   />
                 </div>
               </div>
@@ -477,7 +477,7 @@ export default function CustomerLedgerPage() {
                     placeholder="e.g. 9876543210"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                   />
                 </div>
                 <div className="space-y-1">
@@ -487,7 +487,7 @@ export default function CustomerLedgerPage() {
                     placeholder="e.g. ramesh@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                   />
                 </div>
               </div>
@@ -500,7 +500,7 @@ export default function CustomerLedgerPage() {
                     placeholder="e.g. Ramesh Traders"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                   />
                 </div>
                 <div className="space-y-1">
@@ -509,16 +509,16 @@ export default function CustomerLedgerPage() {
                     type="number"
                     value={creditLimit}
                     onChange={(e) => setCreditLimit(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs font-bold"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-xs font-bold"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-                <Button type="button" variant="outline" onClick={() => setShowAddCustomerModal(false)} className="border-slate-800 text-slate-300 rounded-xl h-10">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setShowAddCustomerModal(false)} className="border-border text-slate-300 rounded-xl h-10">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl h-10 px-5">
+                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">
                   {saving ? "Adding..." : "Add Customer"}
                 </Button>
               </div>
@@ -529,25 +529,25 @@ export default function CustomerLedgerPage() {
 
       {/* Record Payment Collection Modal */}
       {selectedPayCustomer && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <IndianRupee className="h-5 w-5 text-[#00aef0]" />
                 Collect Khata Payment
               </h2>
-              <button onClick={() => setSelectedPayCustomer(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setSelectedPayCustomer(null)} className="text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1 text-xs">
-              <span className="text-slate-400 block">Customer Name:</span>
-              <strong className="text-white text-sm font-extrabold block">
+            <div className="bg-background p-3 rounded-2xl border border-border space-y-1 text-xs">
+              <span className="text-muted-foreground block">Customer Name:</span>
+              <strong className="text-foreground text-sm font-extrabold block">
                 {selectedPayCustomer.displayName}
               </strong>
               <div className="flex items-center justify-between pt-1">
-                <span className="text-slate-400">Current Pending Udhar:</span>
+                <span className="text-muted-foreground">Current Pending Udhar:</span>
                 <span className="text-amber-400 font-extrabold text-sm">
                   ₹{Number(selectedPayCustomer.outstanding_balance || 0).toFixed(2)}
                 </span>
@@ -563,7 +563,7 @@ export default function CustomerLedgerPage() {
                   placeholder="Enter collected cash/UPI amount..."
                   value={payAmount}
                   onChange={(e) => setPayAmount(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs font-bold text-base"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-xs font-bold text-base"
                 />
               </div>
 
@@ -572,7 +572,7 @@ export default function CustomerLedgerPage() {
                 <select
                   value={payMode}
                   onChange={(e) => setPayMode(e.target.value as any)}
-                  className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-10 px-3 text-xs font-bold"
+                  className="w-full bg-background border border-border text-foreground rounded-xl h-10 px-3 text-xs font-bold"
                 >
                   <option value="CASH">CASH Collection</option>
                   <option value="UPI">UPI / GPay / PhonePe</option>
@@ -587,15 +587,15 @@ export default function CustomerLedgerPage() {
                   placeholder="e.g. Partial cash payment received"
                   value={payNotes}
                   onChange={(e) => setPayNotes(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs"
+                  className="bg-background border-border text-foreground rounded-xl h-9 text-xs"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-                <Button type="button" variant="outline" onClick={() => setSelectedPayCustomer(null)} className="border-slate-800 text-slate-300 rounded-xl h-10">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setSelectedPayCustomer(null)} className="border-border text-slate-300 rounded-xl h-10">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl h-10 px-5">
+                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">
                   {saving ? "Saving..." : "Record Payment"}
                 </Button>
               </div>

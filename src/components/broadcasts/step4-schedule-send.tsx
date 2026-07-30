@@ -103,15 +103,15 @@ export function Step4ScheduleSend({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">Review & Send</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-lg font-semibold text-foreground">Review & Send</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Name your broadcast, review the details, and send.
         </p>
       </div>
 
       {/* Broadcast Name */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-white">Broadcast Name</label>
+        <label className="mb-1.5 block text-sm font-medium text-foreground">Broadcast Name</label>
         <Input
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
@@ -121,33 +121,33 @@ export function Step4ScheduleSend({
       </div>
 
       {/* Summary Card */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 space-y-3">
-        <p className="text-sm font-medium text-white">Summary</p>
+      <div className="rounded-xl border border-border bg-card/50 p-4 space-y-3">
+        <p className="text-sm font-medium text-foreground">Summary</p>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-xs text-slate-400">Template</p>
-            <p className="text-white">{template.name}</p>
+            <p className="text-xs text-muted-foreground">Template</p>
+            <p className="text-foreground">{template.name}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Audience</p>
-            <p className="text-white">{audienceLabel}</p>
+            <p className="text-xs text-muted-foreground">Audience</p>
+            <p className="text-foreground">{audienceLabel}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Estimated Reach</p>
+            <p className="text-xs text-muted-foreground">Estimated Reach</p>
             <div className="flex items-center gap-1.5">
               {loadingReach ? (
                 <Loader2 className="h-3 w-3 animate-spin text-primary" />
               ) : (
                 <>
                   <Users className="h-3.5 w-3.5 text-primary" />
-                  <p className="font-medium text-white">{estimatedReach.toLocaleString()}</p>
+                  <p className="font-medium text-foreground">{estimatedReach.toLocaleString()}</p>
                 </>
               )}
             </div>
           </div>
           <div>
-            <p className="text-xs text-slate-400">Language</p>
-            <p className="text-white">{template.language ?? 'en_US'}</p>
+            <p className="text-xs text-muted-foreground">Language</p>
+            <p className="text-foreground">{template.language ?? 'en_US'}</p>
           </div>
         </div>
       </div>
@@ -158,7 +158,7 @@ export function Step4ScheduleSend({
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <p className="text-sm font-medium text-white">Sending broadcast...</p>
+              <p className="text-sm font-medium text-foreground">Sending broadcast...</p>
             </div>
             <span className="text-xs font-medium text-primary">{progress}%</span>
           </div>
@@ -171,7 +171,7 @@ export function Step4ScheduleSend({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
         <Button
           variant="outline"
           onClick={onBack}
@@ -207,14 +207,14 @@ export function Step4ScheduleSend({
             <Send className="h-4 w-4" />
             Send Broadcast
           </DialogTrigger>
-          <DialogContent className="border-slate-700 bg-slate-900 sm:max-w-md">
+          <DialogContent className="border-slate-700 bg-card sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-foreground">Confirm Broadcast</DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogDescription className="text-muted-foreground">
                 You are about to send this broadcast to{' '}
-                <span className="font-medium text-white">{estimatedReach.toLocaleString()}</span>{' '}
+                <span className="font-medium text-foreground">{estimatedReach.toLocaleString()}</span>{' '}
                 contacts using the{' '}
-                <span className="font-medium text-white">{template.name}</span> template.
+                <span className="font-medium text-foreground">{template.name}</span> template.
                 This action cannot be undone.
               </DialogDescription>
             </DialogHeader>

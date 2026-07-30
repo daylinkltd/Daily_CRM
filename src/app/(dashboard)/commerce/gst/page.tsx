@@ -106,22 +106,22 @@ export default function GstReportsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
             <FileText className="h-6 w-6 text-[#00aef0]" />
             GST Filing & E-Invoicing Engine
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             GSTR-1 Sales Report, GSTR-2B Input Tax Credit (ITC), CGST/SGST/IGST splitting, and B2B IRN generation.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchGstData} variant="outline" className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11">
+          <Button onClick={fetchGstData} variant="outline" className="border-border text-slate-300 gap-1.5 rounded-xl h-11">
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
           <Button
             onClick={handleExportCsv}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
           >
             <Download className="h-4 w-4" />
             Export GSTR CSV
@@ -131,51 +131,51 @@ export default function GstReportsPage() {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl">
-          <div className="text-xs text-slate-400 font-medium">Total Taxable Sales</div>
-          <div className="text-xl font-extrabold text-white mt-1">
+        <div className="p-4 bg-card/90 border border-border rounded-2xl">
+          <div className="text-xs text-muted-foreground font-medium">Total Taxable Sales</div>
+          <div className="text-xl font-extrabold text-foreground mt-1">
             ₹{summary.totalTaxableSales.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Excludes GST component</div>
+          <div className="text-[11px] text-muted-foreground mt-1">Excludes GST component</div>
         </div>
 
-        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl">
-          <div className="text-xs text-slate-400 font-medium">Output GST Collected</div>
+        <div className="p-4 bg-card/90 border border-border rounded-2xl">
+          <div className="text-xs text-muted-foreground font-medium">Output GST Collected</div>
           <div className="text-xl font-extrabold text-rose-400 mt-1">
             ₹{summary.totalOutputGst.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-2">
+          <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
             <span>CGST: ₹{summary.totalCgst.toFixed(2)}</span>
             <span>SGST: ₹{summary.totalSgst.toFixed(2)}</span>
           </div>
         </div>
 
-        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl">
-          <div className="text-xs text-slate-400 font-medium">Input Tax Credit (ITC)</div>
+        <div className="p-4 bg-card/90 border border-border rounded-2xl">
+          <div className="text-xs text-muted-foreground font-medium">Input Tax Credit (ITC)</div>
           <div className="text-xl font-extrabold text-emerald-400 mt-1">
             ₹{summary.totalInputGst.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Claimable on purchases</div>
+          <div className="text-[11px] text-muted-foreground mt-1">Claimable on purchases</div>
         </div>
 
-        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl">
-          <div className="text-xs text-slate-400 font-medium">Net GST Liability</div>
+        <div className="p-4 bg-card/90 border border-border rounded-2xl">
+          <div className="text-xs text-muted-foreground font-medium">Net GST Liability</div>
           <div className="text-xl font-extrabold text-[#00aef0] mt-1">
             ₹{summary.netGstLiability.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Output GST - Input Credit</div>
+          <div className="text-[11px] text-muted-foreground mt-1">Output GST - Input Credit</div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+      <div className="flex items-center justify-between border-b border-border pb-2">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab("GSTR1")}
             className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
               activeTab === "GSTR1"
-                ? "bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20"
-                : "text-slate-400 hover:text-white"
+                ? "bg-[#00aef0] text-foreground shadow-lg shadow-[#00aef0]/20"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             GSTR-1 Outward Sales Report
@@ -184,30 +184,30 @@ export default function GstReportsPage() {
             onClick={() => setActiveTab("GSTR2B")}
             className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
               activeTab === "GSTR2B"
-                ? "bg-[#00aef0] text-white shadow-lg shadow-[#00aef0]/20"
-                : "text-slate-400 hover:text-white"
+                ? "bg-[#00aef0] text-foreground shadow-lg shadow-[#00aef0]/20"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             GSTR-2B Inward Purchase (ITC) Report
           </button>
         </div>
         <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Filter Invoice / GSTIN..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-9 h-9 bg-slate-950 border-slate-800 text-white rounded-xl text-xs"
+            className="pl-9 h-9 bg-background border-border text-foreground rounded-xl text-xs"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl overflow-hidden shadow-2xl">
+      <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-300">
-            <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Invoice #</th>
                 <th className="py-3.5 px-4">Date</th>
@@ -238,16 +238,16 @@ export default function GstReportsPage() {
               ) : (
                 filteredEntries.map((e) => (
                   <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-white">
+                    <td className="py-3.5 px-4 font-mono font-bold text-foreground">
                       #{e.invoice_number}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-400">
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       {e.invoice_date}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-slate-100">
                       {e.party_name || "POS Retail Customer"}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-slate-400">
+                    <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground">
                       {e.gstin || "URP (Unregistered)"}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-xs text-[#00aef0]">
@@ -256,13 +256,13 @@ export default function GstReportsPage() {
                     <td className="py-3.5 px-4 text-right font-medium text-slate-200">
                       ₹{Number(e.taxable_amount).toFixed(2)}
                     </td>
-                    <td className="py-3.5 px-4 text-right text-xs text-slate-400">
+                    <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
                       ₹{Number(e.cgst_amount || 0).toFixed(2)}
                     </td>
-                    <td className="py-3.5 px-4 text-right text-xs text-slate-400">
+                    <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
                       ₹{Number(e.sgst_amount || 0).toFixed(2)}
                     </td>
-                    <td className="py-3.5 px-4 text-right text-xs text-slate-400">
+                    <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
                       ₹{Number(e.igst_amount || 0).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 text-right font-extrabold text-[#00aef0]">
@@ -291,32 +291,32 @@ export default function GstReportsPage() {
 
       {/* Signed E-Invoice QR Modal */}
       {selectedEInvoice && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-emerald-400" />
                 Signed E-Invoice IRN &amp; QR
               </h2>
-              <button onClick={() => setSelectedEInvoice(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setSelectedEInvoice(null)} className="text-muted-foreground hover:text-foreground">
                 ✕
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <span className="text-slate-400 block">IRN (64-Char Hash):</span>
-                <span className="font-mono text-[11px] text-[#00aef0] break-all bg-slate-950 p-2 rounded-lg block mt-0.5 border border-slate-800">
+                <span className="text-muted-foreground block">IRN (64-Char Hash):</span>
+                <span className="font-mono text-[11px] text-[#00aef0] break-all bg-background p-2 rounded-lg block mt-0.5 border border-border">
                   {selectedEInvoice.irn_number}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <span className="text-slate-400 block">Ack Number:</span>
-                  <span className="font-mono text-white font-bold">{selectedEInvoice.ack_number}</span>
+                  <span className="text-muted-foreground block">Ack Number:</span>
+                  <span className="font-mono text-foreground font-bold">{selectedEInvoice.ack_number}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Ack Date:</span>
+                  <span className="text-muted-foreground block">Ack Date:</span>
                   <span className="text-slate-300">{selectedEInvoice.ack_date ? new Date(selectedEInvoice.ack_date).toLocaleDateString() : "—"}</span>
                 </div>
               </div>
@@ -328,8 +328,8 @@ export default function GstReportsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-slate-800">
-              <Button onClick={() => setSelectedEInvoice(null)} className="bg-[#00aef0] text-white font-bold rounded-xl">
+            <div className="flex justify-end pt-2 border-t border-border">
+              <Button onClick={() => setSelectedEInvoice(null)} className="bg-[#00aef0] text-foreground font-bold rounded-xl">
                 Close Viewer
               </Button>
             </div>

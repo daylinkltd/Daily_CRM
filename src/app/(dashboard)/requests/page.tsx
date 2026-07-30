@@ -136,7 +136,7 @@ export default function EmployeeRequestsPage() {
                   </Badge>
                   <Badge
                     variant={r.status === 'APPROVED' ? 'default' : r.status === 'REJECTED' ? 'destructive' : 'secondary'}
-                    className={r.status === 'APPROVED' ? 'bg-emerald-600 text-white' : ''}
+                    className={r.status === 'APPROVED' ? 'bg-emerald-600 text-foreground' : ''}
                   >
                     {r.status}
                   </Badge>

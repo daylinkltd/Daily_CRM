@@ -153,10 +153,10 @@ export function BillingPanel() {
 
   if (loading && !usage) {
     return (
-      <div className="flex h-[350px] items-center justify-center rounded-xl border border-slate-800 bg-slate-900/20">
+      <div className="flex h-[350px] items-center justify-center rounded-xl border border-border bg-card/20">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="text-sm text-slate-400">Loading plan subscription details...</span>
+          <span className="text-sm text-muted-foreground">Loading plan subscription details...</span>
         </div>
       </div>
     );
@@ -193,14 +193,14 @@ export function BillingPanel() {
                 </span>
               )}
             </div>
-            <h2 className="mt-2 text-2xl font-black text-white">{currentPlan.name} Tier</h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <h2 className="mt-2 text-2xl font-black text-foreground">{currentPlan.name} Tier</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
               Workspace subscription handles routing and resource quotas for your team.
             </p>
           </div>
           <div className="text-left sm:text-right">
-            <span className="text-xs text-slate-400 block">Pricing Plan Cost</span>
-            <span className="text-2xl font-black text-white">
+            <span className="text-xs text-muted-foreground block">Pricing Plan Cost</span>
+            <span className="text-2xl font-black text-foreground">
               {currentPlan.priceMonthly === 0 ? "₹0" : currentPlan.priceMonthly === -1 ? "Custom" : `₹${currentPlan.priceMonthly.toLocaleString()}/mo`}
             </span>
             <span className="text-[10px] text-slate-500 block">excl. GST</span>
@@ -211,11 +211,11 @@ export function BillingPanel() {
       {/* Plan Usage Limits Progress Meters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Outbound messages */}
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+        <div className="rounded-xl border border-border bg-background/40 p-5">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <span className="text-xs text-slate-400 font-semibold block">Monthly Messages</span>
-              <span className="text-lg font-black text-white">
+              <span className="text-xs text-muted-foreground font-semibold block">Monthly Messages</span>
+              <span className="text-lg font-black text-foreground">
                 {totalMessages.toLocaleString()} / {maxMessages === 999999 ? "∞" : maxMessages.toLocaleString()}
               </span>
             </div>
@@ -225,7 +225,7 @@ export function BillingPanel() {
               </span>
             )}
           </div>
-          <div className="w-full bg-slate-900 rounded-full h-2">
+          <div className="w-full bg-card rounded-full h-2">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${
                 msgPercent >= 100 ? "bg-red-500" : msgPercent >= 80 ? "bg-amber-500" : "bg-primary"
@@ -239,11 +239,11 @@ export function BillingPanel() {
         </div>
 
         {/* Team Members */}
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+        <div className="rounded-xl border border-border bg-background/40 p-5">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <span className="text-xs text-slate-400 font-semibold block">Team Members</span>
-              <span className="text-lg font-black text-white">
+              <span className="text-xs text-muted-foreground font-semibold block">Team Members</span>
+              <span className="text-lg font-black text-foreground">
                 {totalMembers} / {maxMembers === 999999 ? "Unlimited" : maxMembers}
               </span>
             </div>
@@ -253,7 +253,7 @@ export function BillingPanel() {
               </span>
             )}
           </div>
-          <div className="w-full bg-slate-900 rounded-full h-2">
+          <div className="w-full bg-card rounded-full h-2">
             <div
               className="h-2 rounded-full bg-primary transition-all duration-500"
               style={{ width: `${maxMembers === 999999 ? 100 : membersPercent}%` }}
@@ -265,11 +265,11 @@ export function BillingPanel() {
         </div>
 
         {/* Workspaces */}
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-5">
+        <div className="rounded-xl border border-border bg-background/40 p-5">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <span className="text-xs text-slate-400 font-semibold block">Workspaces</span>
-              <span className="text-lg font-black text-white">
+              <span className="text-xs text-muted-foreground font-semibold block">Workspaces</span>
+              <span className="text-lg font-black text-foreground">
                 {totalWorkspaces} / {maxWorkspaces === 999999 ? "Unlimited" : maxWorkspaces}
               </span>
             </div>
@@ -279,7 +279,7 @@ export function BillingPanel() {
               </span>
             )}
           </div>
-          <div className="w-full bg-slate-900 rounded-full h-2">
+          <div className="w-full bg-card rounded-full h-2">
             <div
               className="h-2 rounded-full bg-primary transition-all duration-500"
               style={{ width: `${maxWorkspaces === 999999 ? 100 : workspacesPercent}%` }}
@@ -292,10 +292,10 @@ export function BillingPanel() {
       </div>
 
       {/* Upgrade Options Section */}
-      <div className="border-t border-slate-800/60 pt-8">
+      <div className="border-t border-border/60 pt-8">
         <div className="text-center mb-6">
-          <h3 className="text-lg font-extrabold text-white">Upgrade Workspace Plan</h3>
-          <p className="text-slate-400 text-xs mt-1">Unlock larger allowances and multi-agent automations.</p>
+          <h3 className="text-lg font-extrabold text-foreground">Upgrade Workspace Plan</h3>
+          <p className="text-muted-foreground text-xs mt-1">Unlock larger allowances and multi-agent automations.</p>
 
           {/* Pricing Toggle */}
           <div className="flex items-center justify-center gap-3 mt-4">
@@ -305,7 +305,7 @@ export function BillingPanel() {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                 billingCycle === "monthly"
                   ? "bg-primary text-primary-foreground"
-                  : "text-slate-400 hover:text-foreground bg-slate-900 border border-slate-800"
+                  : "text-muted-foreground hover:text-foreground bg-card border border-border"
               }`}
             >
               Monthly
@@ -316,11 +316,11 @@ export function BillingPanel() {
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors relative ${
                 billingCycle === "annual"
                   ? "bg-primary text-primary-foreground"
-                  : "text-slate-400 hover:text-foreground bg-slate-900 border border-slate-800"
+                  : "text-muted-foreground hover:text-foreground bg-card border border-border"
               }`}
             >
               Annual
-              <span className="absolute -top-3 -right-6 px-1.5 py-0.5 bg-emerald-500 text-white text-[8px] font-bold rounded-full uppercase tracking-wider scale-90">
+              <span className="absolute -top-3 -right-6 px-1.5 py-0.5 bg-emerald-500 text-foreground text-[8px] font-bold rounded-full uppercase tracking-wider scale-90">
                 2 Months Free
               </span>
             </button>
@@ -345,7 +345,7 @@ export function BillingPanel() {
                 className={`relative flex flex-col rounded-xl p-5 border transition-all ${
                   isCurrent
                     ? "border-primary bg-primary/5"
-                    : "border-slate-800 bg-slate-900/20 hover:border-slate-700"
+                    : "border-border bg-card/20 hover:border-slate-700"
                 }`}
               >
                 {plan.isRecommended && (
@@ -355,9 +355,9 @@ export function BillingPanel() {
                 )}
 
                 <div className="mb-4">
-                  <span className="text-sm font-extrabold text-white">{plan.name}</span>
+                  <span className="text-sm font-extrabold text-foreground">{plan.name}</span>
                   <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-xl font-black text-white">{price}</span>
+                    <span className="text-xl font-black text-foreground">{price}</span>
                     <span className="text-slate-500 text-[10px]">{periodLabel}</span>
                   </div>
                   {!isCustom && (
@@ -385,7 +385,7 @@ export function BillingPanel() {
                   onClick={() => handleUpgrade(plan)}
                   className={`w-full flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
                     isCurrent
-                      ? "bg-slate-800 text-slate-400 cursor-default"
+                      ? "bg-slate-800 text-muted-foreground cursor-default"
                       : plan.isRecommended
                       ? "bg-primary text-primary-foreground hover:bg-primary-hover"
                       : "border border-slate-700 text-slate-200 hover:border-slate-600 hover:text-foreground"

@@ -219,7 +219,7 @@ export default function PoliciesDashboardPage() {
                     </Badge>
                     <Badge
                       variant={p.status === 'PUBLISHED' ? 'default' : 'secondary'}
-                      className={p.status === 'PUBLISHED' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
+                      className={p.status === 'PUBLISHED' ? 'bg-emerald-600 hover:bg-emerald-700 text-foreground' : ''}
                     >
                       {p.status === 'PUBLISHED' ? `v${maxVerNum} Published` : 'Draft'}
                     </Badge>
@@ -278,7 +278,7 @@ export default function PoliciesDashboardPage() {
                           <Button
                             size="sm"
                             onClick={() => handleApprove(p.id)}
-                            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-foreground"
                           >
                             <Send className="size-3.5 mr-1" /> Approve & Publish
                           </Button>

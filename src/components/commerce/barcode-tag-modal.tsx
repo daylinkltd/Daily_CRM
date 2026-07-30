@@ -77,23 +77,23 @@ export function BarcodeTagModal({
         }}
       />
 
-      <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl text-slate-100">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+      <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl text-slate-100">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <BarcodeIcon className="h-5 w-5 text-[#00aef0]" />
               Barcode Tag Generator (32px High-Precision Scan)
             </h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Printable Tag Container */}
-          <div className="flex justify-center p-4 bg-slate-950 border border-slate-800 rounded-2xl">
+          <div className="flex justify-center p-4 bg-background border border-border rounded-2xl">
             <div
               className="tag-print-modal-container bg-white text-black p-3 rounded-lg border border-slate-300 shadow-md flex flex-col justify-between items-center text-center select-none"
               style={{
@@ -156,37 +156,37 @@ export function BarcodeTagModal({
           {/* Configuration controls */}
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="space-y-1">
-              <label className="text-slate-400">Tag Width (mm)</label>
+              <label className="text-muted-foreground">Tag Width (mm)</label>
               <input
                 type="number"
                 value={tagWidth}
                 onChange={(e) => setTagWidth(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-2.5 py-1.5 font-mono"
+                className="w-full bg-background border border-border text-foreground rounded-lg px-2.5 py-1.5 font-mono"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-slate-400">Tag Height (mm)</label>
+              <label className="text-muted-foreground">Tag Height (mm)</label>
               <input
                 type="number"
                 value={tagHeight}
                 onChange={(e) => setTagHeight(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-2.5 py-1.5 font-mono"
+                className="w-full bg-background border border-border text-foreground rounded-lg px-2.5 py-1.5 font-mono"
               />
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+          <div className="flex items-center justify-between pt-2 border-t border-border">
             <Button
               variant="outline"
               onClick={onClose}
-              className="border-slate-800 text-slate-300 rounded-xl text-xs"
+              className="border-border text-slate-300 rounded-xl text-xs"
             >
               Close
             </Button>
             <Button
               onClick={handlePrint}
-              className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl gap-2 text-xs"
+              className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 text-xs"
             >
               <Printer className="h-4 w-4" />
               Print 32px Barcode Tag

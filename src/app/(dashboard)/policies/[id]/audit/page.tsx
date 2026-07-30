@@ -157,7 +157,7 @@ export default function PolicyAuditPage({ params }: { params: Promise<{ id: stri
                         <Badge variant="outline" className="text-[10px]">v{a.version_number}</Badge>
                       </td>
                       <td className="p-3">
-                        <Badge variant={a.status === 'ACTIVE' ? 'default' : 'secondary'} className={a.status === 'ACTIVE' ? 'bg-emerald-600 text-white' : ''}>
+                        <Badge variant={a.status === 'ACTIVE' ? 'default' : 'secondary'} className={a.status === 'ACTIVE' ? 'bg-emerald-600 text-foreground' : ''}>
                           {a.status}
                         </Badge>
                       </td>

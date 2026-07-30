@@ -15,7 +15,7 @@ export function PageHeader({ description, action, className }: PageHeaderProps) 
     <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6", className)}>
       <div className="min-w-0">
         {description && (
-          <p className="text-sm text-slate-400 leading-normal max-w-3xl">
+          <p className="text-sm text-muted-foreground leading-normal max-w-3xl">
             {description}
           </p>
         )}

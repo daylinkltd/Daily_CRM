@@ -346,8 +346,8 @@ export function Step2SelectAudience({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-white">Select Audience</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-lg font-semibold text-foreground">Select Audience</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Choose who will receive this broadcast.
         </p>
       </div>
@@ -377,21 +377,21 @@ export function Step2SelectAudience({
               className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${
                 isSelected
                   ? 'border-primary bg-primary/5 ring-1 ring-violet-500/30'
-                  : 'border-slate-800 bg-slate-900/50 hover:border-slate-700'
+                  : 'border-border bg-card/50 hover:border-slate-700'
               }`}
             >
               <div
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
                   isSelected
                     ? 'bg-primary/10 text-primary'
-                    : 'bg-slate-800 text-slate-400'
+                    : 'bg-slate-800 text-muted-foreground'
                 }`}
               >
                 <Icon className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-medium text-white">{option.label}</p>
-                <p className="mt-0.5 text-xs text-slate-400">
+                <p className="text-sm font-medium text-foreground">{option.label}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
                   {option.description}
                 </p>
               </div>
@@ -401,12 +401,12 @@ export function Step2SelectAudience({
       </div>
 
       {audience.type === 'tags' && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-          <p className="mb-3 text-sm font-medium text-white">Select Tags</p>
+        <div className="rounded-xl border border-border bg-card/50 p-4">
+          <p className="mb-3 text-sm font-medium text-foreground">Select Tags</p>
           {loadingTags ? (
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           ) : tags.length === 0 ? (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               No tags found. Create tags in Settings.
             </p>
           ) : (
@@ -437,12 +437,12 @@ export function Step2SelectAudience({
       )}
 
       {audience.type === 'custom_field' && (
-        <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-          <p className="text-sm font-medium text-white">Custom Field Filter</p>
+        <div className="space-y-3 rounded-xl border border-border bg-card/50 p-4">
+          <p className="text-sm font-medium text-foreground">Custom Field Filter</p>
           {loadingFields ? (
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           ) : customFields.length === 0 ? (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               No custom fields defined. Create one in Settings → Custom Fields.
             </p>
           ) : (
@@ -487,12 +487,12 @@ export function Step2SelectAudience({
       )}
 
       {audience.type === 'csv' && (
-        <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-          <p className="text-sm font-medium text-white">Upload CSV File</p>
+        <div className="space-y-4 rounded-xl border border-border bg-card/50 p-4">
+          <p className="text-sm font-medium text-foreground">Upload CSV File</p>
           
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-700 p-6 cursor-pointer hover:border-primary/50 transition-colors bg-slate-950/20"
+            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-700 p-6 cursor-pointer hover:border-primary/50 transition-colors bg-background/20"
           >
             {audience.csvContacts && audience.csvContacts.length > 0 ? (
               <>
@@ -507,7 +507,7 @@ export function Step2SelectAudience({
             ) : (
               <>
                 <Upload className="size-8 text-slate-500" />
-                <p className="text-sm text-slate-400">Click to upload CSV file</p>
+                <p className="text-sm text-muted-foreground">Click to upload CSV file</p>
                 <p className="text-xs text-slate-500">CSV with a &quot;phone&quot; column is required</p>
               </>
             )}
@@ -523,20 +523,20 @@ export function Step2SelectAudience({
 
           {audience.csvContacts && audience.csvContacts.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Preview (first 5 rows)
               </p>
-              <div className="rounded-lg border border-slate-800 bg-slate-950/30 overflow-hidden">
+              <div className="rounded-lg border border-border bg-background/30 overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-slate-800/80">
-                      <th className="px-3 py-1.5 text-left text-slate-400 font-medium">Phone</th>
-                      <th className="px-3 py-1.5 text-left text-slate-400 font-medium">Name</th>
+                      <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Phone</th>
+                      <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Name</th>
                     </tr>
                   </thead>
                   <tbody>
                     {audience.csvContacts.slice(0, 5).map((row, i) => (
-                      <tr key={i} className="border-t border-slate-800">
+                      <tr key={i} className="border-t border-border">
                         <td className="px-3 py-1.5 text-slate-300">{row.phone}</td>
                         <td className="px-3 py-1.5 text-slate-300">{row.name || '-'}</td>
                       </tr>
@@ -568,10 +568,10 @@ export function Step2SelectAudience({
       )}
 
       {/* Exclude list — applies regardless of audience type */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+      <div className="rounded-xl border border-border bg-card/50 p-4">
         <div className="mb-3 flex items-center gap-2">
           <X className="h-4 w-4 text-red-400" />
-          <p className="text-sm font-medium text-white">
+          <p className="text-sm font-medium text-foreground">
             Exclude contacts with these tags
           </p>
           <span className="text-xs text-slate-500">(optional)</span>
@@ -605,20 +605,20 @@ export function Step2SelectAudience({
       </div>
 
       {/* Audience Summary */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-        <p className="mb-2 text-sm font-medium text-white">Audience Summary</p>
+      <div className="rounded-xl border border-border bg-card/50 p-4">
+        <p className="mb-2 text-sm font-medium text-foreground">Audience Summary</p>
         {loadingCount ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <span className="text-xs text-slate-400">Calculating…</span>
+            <span className="text-xs text-muted-foreground">Calculating…</span>
           </div>
         ) : estimatedCount !== null ? (
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
-            <span className="text-sm text-white">
+            <span className="text-sm text-foreground">
               {estimatedCount.toLocaleString()}
             </span>
-            <span className="text-xs text-slate-400">estimated recipients</span>
+            <span className="text-xs text-muted-foreground">estimated recipients</span>
           </div>
         ) : (
           <p className="text-xs text-slate-500">
@@ -627,7 +627,7 @@ export function Step2SelectAudience({
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-800 pt-4">
+      <div className="flex items-center justify-between border-t border-border pt-4">
         <Button
           variant="outline"
           onClick={onBack}

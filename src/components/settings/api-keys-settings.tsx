@@ -528,7 +528,7 @@ export function ApiKeysSettings() {
                 setRevealedPrefix(null);
                 setRevealedName(null);
               }}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-foreground"
             >
               I Have Saved My API Key
             </Button>
@@ -568,7 +568,7 @@ export function ApiKeysSettings() {
             <Button
               onClick={handleRevoke}
               disabled={revoking}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-foreground"
             >
               {revoking ? (
                 <>

@@ -11,8 +11,8 @@
 }
 
 .sidebar-expanded {
-  width: 280px;
-  min-width: 280px;
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
 }
 
 .sidebar-collapsed {
@@ -21,21 +21,21 @@
 }
 
 .top-navbar {
-  height: 64px;
+  height: var(--topbar-height);
 }
 
 .page-content-padding {
-  padding: 32px;
+  padding: var(--page-padding-desktop);
 }
 
 @media (max-width: 1024px) {
   .page-content-padding {
-    padding: 24px;
+    padding: var(--page-padding-tablet);
   }
 }
 
 @media (max-width: 640px) {
   .page-content-padding {
-    padding: 16px;
+    padding: var(--page-padding-mobile);
   }
 }

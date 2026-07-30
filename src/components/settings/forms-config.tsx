@@ -33,10 +33,10 @@ export function FormsConfig() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] mt-4">
       <div className="space-y-6">
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">Universal Form Webhook</CardTitle>
-            <CardDescription className="text-slate-400">Send form submissions from any platform (Google Forms, Facebook Lead Ads, Webflow, Typeform) directly into Daily CRM.</CardDescription>
+            <CardDescription className="text-muted-foreground">Send form submissions from any platform (Google Forms, Facebook Lead Ads, Webflow, Typeform) directly into Daily CRM.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -51,10 +51,10 @@ export function FormsConfig() {
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">Processing Rules</CardTitle>
-            <CardDescription className="text-slate-400">How should new leads be handled when a form is submitted?</CardDescription>
+            <CardDescription className="text-muted-foreground">How should new leads be handled when a form is submitted?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -79,15 +79,15 @@ export function FormsConfig() {
         </Card>
       </div>
       <div>
-        <Card className="bg-slate-900 border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground text-base">Field Mapping</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-slate-400 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Ensure your external form fields match these payload keys so Daily CRM can automatically parse them:
             </p>
-            <div className="bg-slate-950 p-3 rounded-md border border-slate-800">
+            <div className="bg-background p-3 rounded-md border border-border">
               <pre className="text-xs text-slate-300 font-mono whitespace-pre-wrap">
 {`{
   "name": "John Doe",

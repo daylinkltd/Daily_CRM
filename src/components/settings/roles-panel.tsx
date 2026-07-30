@@ -376,7 +376,7 @@ export function RolesPanel() {
             <Button
               onClick={handleDelete}
               disabled={deletePending}
-              className="bg-destructive text-white hover:bg-destructive/90"
+              className="bg-destructive text-foreground hover:bg-destructive/90"
             >
               {deletePending ? (
                 <>

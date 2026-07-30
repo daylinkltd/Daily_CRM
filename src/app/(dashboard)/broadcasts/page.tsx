@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/table';
 import { Radio, Plus, Loader2 } from 'lucide-react';
 import { getBroadcastStatus } from '@/lib/broadcast-status';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
 
 /**
  * Poll cadence while any broadcast is sending. Kept modest so we don't
@@ -174,51 +176,42 @@ export default function BroadcastsPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Broadcasts</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Send bulk messages to your contacts using approved templates.
-          </p>
-        </div>
-        <Button
-          onClick={() => router.push('/broadcasts/new')}
-          className="bg-primary text-primary-foreground hover:bg-primary"
-        >
-          <Plus className="h-4 w-4" />
-          New Broadcast
-        </Button>
-      </div>
-
-      {broadcasts.length === 0 ? (
-        <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900">
-          <Radio className="mb-3 h-10 w-10 text-slate-600" />
-          <p className="text-sm font-medium text-white">No broadcasts yet</p>
-          <p className="mt-1 text-xs text-slate-400">
-            Create your first broadcast to reach your contacts at scale.
-          </p>
-          <Button
-            onClick={() => router.push('/broadcasts/new')}
-            className="mt-4 bg-primary text-primary-foreground hover:bg-primary"
-          >
+      <PageHeader
+        title="Broadcasts"
+        description="Send bulk messages to your contacts using approved templates."
+        actions={
+          <Button onClick={() => router.push('/broadcasts/new')} variant="primary">
             <Plus className="h-4 w-4" />
             New Broadcast
           </Button>
-        </div>
+        }
+      />
+
+      {broadcasts.length === 0 ? (
+        <EmptyState
+          icon={Radio}
+          title="No broadcasts yet"
+          description="Create your first broadcast to reach your contacts at scale."
+          action={{
+            label: "New Broadcast",
+            onClick: () => router.push('/broadcasts/new'),
+            icon: Plus,
+          }}
+        />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-800 hover:bg-transparent">
-                <TableHead className="text-slate-400">Name</TableHead>
-                <TableHead className="hidden text-slate-400 md:table-cell">Template</TableHead>
-                <TableHead className="hidden text-right text-slate-400 sm:table-cell">
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="text-muted-foreground">Name</TableHead>
+                <TableHead className="hidden text-muted-foreground md:table-cell">Template</TableHead>
+                <TableHead className="hidden text-right text-muted-foreground sm:table-cell">
                   Recipients
                 </TableHead>
-                <TableHead className="hidden text-slate-400 lg:table-cell">Delivery</TableHead>
-                <TableHead className="hidden text-slate-400 lg:table-cell">Read</TableHead>
-                <TableHead className="text-slate-400">Status</TableHead>
-                <TableHead className="hidden text-slate-400 sm:table-cell">Date</TableHead>
+                <TableHead className="hidden text-muted-foreground lg:table-cell">Delivery</TableHead>
+                <TableHead className="hidden text-muted-foreground lg:table-cell">Read</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="hidden text-muted-foreground sm:table-cell">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -227,10 +220,10 @@ export default function BroadcastsPage() {
                 return (
                   <TableRow
                     key={broadcast.id}
-                    className="cursor-pointer border-slate-800 hover:bg-slate-800/50"
+                    className="cursor-pointer border-border hover:bg-slate-800/50"
                     onClick={() => router.push(`/broadcasts/${broadcast.id}`)}
                   >
-                    <TableCell className="font-medium text-white">
+                    <TableCell className="font-medium text-foreground">
                       {broadcast.name}
                     </TableCell>
                     <TableCell className="hidden text-slate-300 md:table-cell">
@@ -266,7 +259,7 @@ export default function BroadcastsPage() {
                         {status.label}
                       </span>
                     </TableCell>
-                    <TableCell className="hidden text-slate-400 sm:table-cell">
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {new Date(broadcast.created_at).toLocaleDateString()}
                     </TableCell>
                   </TableRow>

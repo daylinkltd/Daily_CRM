@@ -201,10 +201,10 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-700 text-slate-200 sm:max-w-lg">
+      <DialogContent className="bg-card border-slate-700 text-slate-200 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-foreground">Import Contacts</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogDescription className="text-muted-foreground">
             Upload a CSV file with a &quot;phone&quot; column (required). Optional columns:
             name, email, company.
           </DialogDescription>
@@ -227,7 +227,7 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
             ) : (
               <>
                 <Upload className="size-8 text-slate-500" />
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-muted-foreground">
                   Click to upload CSV file
                 </p>
                 <p className="text-xs text-slate-500">
@@ -248,17 +248,17 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
           {/* Preview table */}
           {preview.length > 0 && !result && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Preview (first {preview.length} rows)
               </p>
               <div className="rounded-lg border border-slate-700 overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-slate-800">
-                      <th className="px-3 py-1.5 text-left text-slate-400 font-medium">Phone</th>
-                      <th className="px-3 py-1.5 text-left text-slate-400 font-medium">Name</th>
-                      <th className="px-3 py-1.5 text-left text-slate-400 font-medium">Email</th>
-                      <th className="px-3 py-1.5 text-left text-slate-400 font-medium">Company</th>
+                      <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Phone</th>
+                      <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Name</th>
+                      <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Email</th>
+                      <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Company</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -284,7 +284,7 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
           {/* Results */}
           {result && (
             <div className="rounded-lg border border-slate-700 p-4 space-y-2">
-              <p className="text-sm font-medium text-white">Import Complete</p>
+              <p className="text-sm font-medium text-foreground">Import Complete</p>
               <div className="flex items-center gap-4">
                 {result.imported > 0 && (
                   <div className="flex items-center gap-1.5 text-primary text-sm">
@@ -303,7 +303,7 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
           )}
         </div>
 
-        <DialogFooter className="bg-slate-900 border-slate-700">
+        <DialogFooter className="bg-card border-slate-700">
           <Button
             type="button"
             variant="outline"

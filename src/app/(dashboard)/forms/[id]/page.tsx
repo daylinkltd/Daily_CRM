@@ -385,7 +385,7 @@ export default function FormBuilderPage({
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-3">
         <Loader2 className="size-8 animate-spin text-primary" />
-        <p className="text-sm text-slate-400">Loading form builder...</p>
+        <p className="text-sm text-muted-foreground">Loading form builder...</p>
       </div>
     );
   }
@@ -395,32 +395,32 @@ export default function FormBuilderPage({
   return (
     <div className="space-y-6">
       {/* Header Panel */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => router.push('/forms')}
-            className="text-slate-400 hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-5" />
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white line-clamp-1">
+              <h1 className="text-xl font-bold text-foreground line-clamp-1">
                 {form.title}
               </h1>
               <span
                 className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                   form.is_active
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    : 'bg-slate-800 text-muted-foreground border border-slate-700'
                 }`}
               >
                 {form.is_active ? 'Active' : 'Inactive'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">Form ID: {form.id}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Form ID: {form.id}</p>
           </div>
         </div>
 
@@ -428,7 +428,7 @@ export default function FormBuilderPage({
           <Button
             variant="outline"
             onClick={copyShareLink}
-            className="border-slate-800 hover:bg-slate-800 text-slate-300"
+            className="border-border hover:bg-slate-800 text-slate-300"
           >
             {copied ? <Check className="size-4 mr-2 text-emerald-400" /> : <Copy className="size-4 mr-2" />}
             Copy Public Link
@@ -450,14 +450,14 @@ export default function FormBuilderPage({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-900 border border-slate-800 p-1">
-          <TabsTrigger value="builder" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-400">
+        <TabsList className="bg-card border border-border p-1">
+          <TabsTrigger value="builder" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">
             Form Builder
           </TabsTrigger>
-          <TabsTrigger value="integrations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-400">
+          <TabsTrigger value="integrations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">
             Pipelines Integration
           </TabsTrigger>
-          <TabsTrigger value="responses" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-400">
+          <TabsTrigger value="responses" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground">
             Responses ({submissions.length})
           </TabsTrigger>
         </TabsList>
@@ -468,13 +468,13 @@ export default function FormBuilderPage({
             {/* Left Canvas Panel */}
             <div className="lg:col-span-2 space-y-4">
               {/* Form Metadata */}
-              <Card className="bg-slate-900/60 border-slate-800 text-slate-300">
+              <Card className="bg-card/60 border-border text-slate-300">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold text-foreground">Form Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="form-meta-title" className="text-slate-400">Form Title</Label>
+                    <Label htmlFor="form-meta-title" className="text-muted-foreground">Form Title</Label>
                     <Input
                       id="form-meta-title"
                       value={formTitle}
@@ -484,7 +484,7 @@ export default function FormBuilderPage({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="form-meta-desc" className="text-slate-400">Description / Instructions</Label>
+                    <Label htmlFor="form-meta-desc" className="text-muted-foreground">Description / Instructions</Label>
                     <Textarea
                       id="form-meta-desc"
                       value={formDesc}
@@ -504,7 +504,7 @@ export default function FormBuilderPage({
                 </div>
 
                 {fields.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-slate-800 p-8 text-center bg-slate-900/20">
+                  <div className="rounded-lg border border-dashed border-border p-8 text-center bg-card/20">
                     <p className="text-sm text-slate-500 italic">No fields configured. Click below to add your first question.</p>
                   </div>
                 ) : (
@@ -527,10 +527,10 @@ export default function FormBuilderPage({
                         <div
                           key={field.id}
                           onClick={() => setSelectedFieldId(field.id || null)}
-                          className={`group flex items-center justify-between border rounded-lg p-3.5 bg-slate-900/40 hover:bg-slate-900/70 transition-all cursor-pointer ${
+                          className={`group flex items-center justify-between border rounded-lg p-3.5 bg-card/40 hover:bg-card/70 transition-all cursor-pointer ${
                             isSelected
-                              ? 'border-primary bg-slate-900/80 ring-1 ring-primary/20'
-                              : 'border-slate-800/80'
+                              ? 'border-primary bg-card/80 ring-1 ring-primary/20'
+                              : 'border-border/80'
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -543,7 +543,7 @@ export default function FormBuilderPage({
                                   moveField(idx, 'up');
                                 }}
                                 disabled={idx === 0}
-                                className="text-slate-400 hover:text-foreground disabled:text-slate-700"
+                                className="text-muted-foreground hover:text-foreground disabled:text-slate-700"
                               >
                                 <ChevronUp className="size-4" />
                               </button>
@@ -554,7 +554,7 @@ export default function FormBuilderPage({
                                   moveField(idx, 'down');
                                 }}
                                 disabled={idx === fields.length - 1}
-                                className="text-slate-400 hover:text-foreground disabled:text-slate-700"
+                                className="text-muted-foreground hover:text-foreground disabled:text-slate-700"
                               >
                                 <ChevronDown className="size-4" />
                               </button>
@@ -562,7 +562,7 @@ export default function FormBuilderPage({
 
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-medium text-sm text-white">
+                                <span className="font-medium text-sm text-foreground">
                                   {field.label || <span className="italic text-slate-500">Untitled Field</span>}
                                 </span>
                                 {field.is_required && (
@@ -573,7 +573,7 @@ export default function FormBuilderPage({
                                 <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-slate-800 rounded text-slate-300 uppercase">
                                   {field.field_type}
                                 </span>
-                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-slate-800 rounded text-slate-400 flex items-center gap-1">
+                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-slate-800 rounded text-muted-foreground flex items-center gap-1">
                                   <Database className="size-2.5" />
                                   {mappingBadge}
                                 </span>
@@ -599,8 +599,8 @@ export default function FormBuilderPage({
                 )}
 
                 {/* Add Fields Quick Actions */}
-                <div className="border border-slate-800/80 rounded-lg p-4 bg-slate-950/40">
-                  <span className="text-xs text-slate-400 block mb-2.5 font-semibold uppercase">Add Form Element</span>
+                <div className="border border-border/80 rounded-lg p-4 bg-background/40">
+                  <span className="text-xs text-muted-foreground block mb-2.5 font-semibold uppercase">Add Form Element</span>
                   <div className="flex flex-wrap gap-2">
                     {[
                       { type: 'text', label: 'Single Line Text' },
@@ -618,7 +618,7 @@ export default function FormBuilderPage({
                         variant="outline"
                         size="sm"
                         onClick={() => addField(item.type as FormFieldType)}
-                        className="bg-slate-900 border-slate-800 hover:bg-slate-800 text-xs text-slate-300"
+                        className="bg-card border-border hover:bg-slate-800 text-xs text-slate-300"
                       >
                         <Plus className="size-3.5 mr-1" />
                         {item.label}
@@ -631,13 +631,13 @@ export default function FormBuilderPage({
 
             {/* Right Settings Configuration Panel */}
             <div className="space-y-4">
-              <Card className="bg-slate-900 border-slate-800 text-slate-300 sticky top-4">
+              <Card className="bg-card border-border text-slate-300 sticky top-4">
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Settings2 className="size-4 text-primary" />
                     Field Mapping Settings
                   </CardTitle>
-                  <CardDescription className="text-slate-400 text-xs">
+                  <CardDescription className="text-muted-foreground text-xs">
                     Configure validation and map form questions directly to CRM fields.
                   </CardDescription>
                 </CardHeader>
@@ -650,7 +650,7 @@ export default function FormBuilderPage({
                     <>
                       {/* Label */}
                       <div className="space-y-1.5">
-                        <Label htmlFor="field-label" className="text-slate-400 text-xs">Field Label</Label>
+                        <Label htmlFor="field-label" className="text-muted-foreground text-xs">Field Label</Label>
                         <Input
                           id="field-label"
                           value={selectedField.label || ''}
@@ -662,7 +662,7 @@ export default function FormBuilderPage({
                       {/* Placeholder */}
                       {selectedField.field_type !== 'checkbox' && selectedField.field_type !== 'file' && (
                         <div className="space-y-1.5">
-                          <Label htmlFor="field-placeholder" className="text-slate-400 text-xs">Placeholder Text</Label>
+                          <Label htmlFor="field-placeholder" className="text-muted-foreground text-xs">Placeholder Text</Label>
                           <Input
                             id="field-placeholder"
                             value={selectedField.placeholder || ''}
@@ -675,7 +675,7 @@ export default function FormBuilderPage({
                       {/* Select Options */}
                       {selectedField.field_type === 'select' && (
                         <div className="space-y-1.5">
-                          <Label htmlFor="field-options" className="text-slate-400 text-xs">Dropdown Options</Label>
+                          <Label htmlFor="field-options" className="text-muted-foreground text-xs">Dropdown Options</Label>
                           <Input
                             id="field-options"
                             value={selectedField.options ? selectedField.options.join(', ') : ''}
@@ -695,7 +695,7 @@ export default function FormBuilderPage({
                       )}
 
                       {/* Required Toggle */}
-                      <div className="flex items-center justify-between border-y border-slate-800 py-3 mt-2">
+                      <div className="flex items-center justify-between border-y border-border py-3 mt-2">
                         <Label htmlFor="field-req" className="text-slate-300 text-xs font-semibold uppercase">Is Field Required?</Label>
                         <Switch
                           id="field-req"
@@ -707,15 +707,15 @@ export default function FormBuilderPage({
 
                       {/* CRM Mapping Type */}
                       {selectedField.field_type === 'file' ? (
-                        <div className="rounded-md bg-slate-950/40 border border-slate-800 p-3 mt-2 space-y-1">
+                        <div className="rounded-md bg-background/40 border border-border p-3 mt-2 space-y-1">
                           <p className="text-xs text-primary font-medium">Auto Deal File Sync</p>
-                          <p className="text-[10px] text-slate-400 leading-normal">
+                          <p className="text-[10px] text-muted-foreground leading-normal">
                             Uploaded documents are automatically saved to your CRM file vault and linked to the generated pipeline deal.
                           </p>
                         </div>
                       ) : (
                         <div className="space-y-1.5">
-                          <Label htmlFor="mapping-type" className="text-slate-400 text-xs">Map response values to</Label>
+                          <Label htmlFor="mapping-type" className="text-muted-foreground text-xs">Map response values to</Label>
                           <Select
                             value={selectedField.mapping_type || 'none'}
                             onValueChange={(val) =>
@@ -741,7 +741,7 @@ export default function FormBuilderPage({
                       {/* CRM Mapping Key */}
                       {selectedField.field_type !== 'file' && selectedField.mapping_type === 'contact_field' && (
                         <div className="space-y-1.5">
-                          <Label htmlFor="mapping-key-contact" className="text-slate-400 text-xs">Select Contact Field</Label>
+                          <Label htmlFor="mapping-key-contact" className="text-muted-foreground text-xs">Select Contact Field</Label>
                           <Select
                             value={selectedField.mapping_key || ''}
                             onValueChange={(val) => updateSelectedField({ mapping_key: val || undefined })}
@@ -761,7 +761,7 @@ export default function FormBuilderPage({
 
                       {selectedField.field_type !== 'file' && selectedField.mapping_type === 'contact_custom_field' && (
                         <div className="space-y-1.5">
-                          <Label htmlFor="mapping-key-custom" className="text-slate-400 text-xs">Select Custom Field</Label>
+                          <Label htmlFor="mapping-key-custom" className="text-muted-foreground text-xs">Select Custom Field</Label>
                           {customFields.length === 0 ? (
                             <p className="text-[10px] text-slate-500 italic">No custom fields created in your CRM contacts.</p>
                           ) : (
@@ -787,7 +787,7 @@ export default function FormBuilderPage({
 
                       {selectedField.field_type !== 'file' && selectedField.mapping_type === 'deal_field' && (
                         <div className="space-y-1.5">
-                          <Label htmlFor="mapping-key-deal" className="text-slate-400 text-xs">Select Deal Field</Label>
+                          <Label htmlFor="mapping-key-deal" className="text-muted-foreground text-xs">Select Deal Field</Label>
                           <Select
                             value={selectedField.mapping_key || ''}
                             onValueChange={(val) => updateSelectedField({ mapping_key: val || undefined })}
@@ -808,12 +808,12 @@ export default function FormBuilderPage({
                   )}
                 </CardContent>
                 {selectedField && (
-                  <CardFooter className="border-t border-slate-800 pt-3 flex justify-between">
+                  <CardFooter className="border-t border-border pt-3 flex justify-between">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setSelectedFieldId(null)}
-                      className="text-slate-400 hover:text-foreground"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       Deselect
                     </Button>
@@ -821,7 +821,7 @@ export default function FormBuilderPage({
                       variant="destructive"
                       size="sm"
                       onClick={() => removeField(selectedFieldId!)}
-                      className="bg-red-950/20 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white text-xs"
+                      className="bg-red-950/20 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-foreground text-xs"
                     >
                       <Trash2 className="size-3.5 mr-1" />
                       Remove Field
@@ -847,19 +847,19 @@ export default function FormBuilderPage({
 
         {/* Tab 2: Integrations */}
         <TabsContent value="integrations" className="focus-visible:outline-none">
-          <Card className="bg-slate-900 border-slate-800 text-slate-300 max-w-xl">
+          <Card className="bg-card border-border text-slate-300 max-w-xl">
             <CardHeader>
               <CardTitle className="text-foreground">Pipeline Automation Settings</CardTitle>
-              <CardDescription className="text-slate-400 text-sm">
+              <CardDescription className="text-muted-foreground text-sm">
                 Automatically generate deals for incoming form responses and route them to specific pipelines and stages.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Toggle automation */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-border pb-4">
                 <div>
-                  <Label htmlFor="auto-deal" className="text-white font-medium">Create a Pipeline Deal</Label>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <Label htmlFor="auto-deal" className="text-foreground font-medium">Create a Pipeline Deal</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     Generate an open deal linked to the contact card upon form submission.
                   </p>
                 </div>
@@ -875,7 +875,7 @@ export default function FormBuilderPage({
                 <div className="space-y-4 animate-fadeIn">
                   {/* Select Pipeline */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="target-pipeline" className="text-slate-400">Target Pipeline</Label>
+                    <Label htmlFor="target-pipeline" className="text-muted-foreground">Target Pipeline</Label>
                     {pipelines.length === 0 ? (
                       <p className="text-xs text-slate-500 italic">No pipelines created yet. Go to Pipelines to build one.</p>
                     ) : (
@@ -903,7 +903,7 @@ export default function FormBuilderPage({
 
                   {/* Select Pipeline Stage */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="target-stage" className="text-slate-400">Target Stage</Label>
+                    <Label htmlFor="target-stage" className="text-muted-foreground">Target Stage</Label>
                     <Select
                       key={`stage-${selectedStageId}-${activeStages.length}`}
                       value={selectedStageId}
@@ -925,7 +925,7 @@ export default function FormBuilderPage({
                 </div>
               )}
             </CardContent>
-            <CardFooter className="border-t border-slate-800 pt-4 flex justify-end">
+            <CardFooter className="border-t border-border pt-4 flex justify-end">
               <Button
                 onClick={saveIntegrations}
                 disabled={savingIntegrations || (createDealOnSubmit && (!selectedPipelineId || !selectedStageId))}
@@ -940,10 +940,10 @@ export default function FormBuilderPage({
 
         {/* Tab 3: Responses */}
         <TabsContent value="responses" className="focus-visible:outline-none">
-          <Card className="bg-slate-900 border-slate-800 text-slate-300">
+          <Card className="bg-card border-border text-slate-300">
             <CardHeader className="pb-3">
               <CardTitle className="text-foreground">Submission History</CardTitle>
-              <CardDescription className="text-slate-400 text-sm">
+              <CardDescription className="text-muted-foreground text-sm">
                 Complete log of responses filled out by leads, cross-referenced with your CRM entities.
               </CardDescription>
             </CardHeader>
@@ -951,7 +951,7 @@ export default function FormBuilderPage({
               {submissions.length === 0 ? (
                 <div className="text-center py-20">
                   <FileText className="size-12 mx-auto text-slate-600 mb-3" />
-                  <h3 className="text-md font-semibold text-white">No submissions yet</h3>
+                  <h3 className="text-md font-semibold text-foreground">No submissions yet</h3>
                   <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
                     Share the public form link. When leads fill it out, their details and answers will appear here.
                   </p>
@@ -959,7 +959,7 @@ export default function FormBuilderPage({
               ) : (
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/40 text-slate-400">
+                    <tr className="border-b border-border bg-background/40 text-muted-foreground">
                       <th className="p-4 font-semibold">Submission Date</th>
                       <th className="p-4 font-semibold">Linked Contact</th>
                       <th className="p-4 font-semibold">Linked Deal</th>
@@ -972,8 +972,8 @@ export default function FormBuilderPage({
                   </thead>
                   <tbody>
                     {submissions.map((sub) => (
-                      <tr key={sub.id} className="border-b border-slate-800/80 hover:bg-slate-950/20">
-                        <td className="p-4 text-slate-400 whitespace-nowrap">
+                      <tr key={sub.id} className="border-b border-border/80 hover:bg-background/20">
+                        <td className="p-4 text-muted-foreground whitespace-nowrap">
                           {new Date(sub.created_at).toLocaleString()}
                         </td>
                         <td className="p-4 font-medium text-foreground whitespace-nowrap">

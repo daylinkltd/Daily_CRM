@@ -276,21 +276,19 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   }, [accessibleGroups, activeModule]);
 
   // Dynamic Theme Colors
-  const sidebarBgClass = isDark
-    ? "bg-slate-950 border-r border-border text-foreground"
-    : "bg-[#0f172a] border-r border-slate-800/80 text-slate-200";
+  const sidebarBgClass = "bg-sidebar border-r border-sidebar-border text-sidebar-foreground";
 
   const switcherBg = isDark
     ? "border-border bg-transparent hover:bg-muted/10 text-foreground"
-    : "border-slate-800/80 bg-transparent hover:bg-slate-800/30 text-white";
+    : "border-border/80 bg-transparent hover:bg-slate-800/30 text-foreground";
 
-  const dividerClass = isDark ? "border-t border-border" : "border-t border-slate-800/60";
+  const dividerClass = isDark ? "border-t border-border" : "border-t border-border/60";
 
   const linkClass = (isActive: boolean) => {
     if (isActive) {
-      return "bg-primary/15 text-primary";
+      return "bg-[rgba(37,99,235,0.16)] text-foreground font-medium";
     }
-    return "text-slate-400 hover:bg-slate-800/30 hover:text-white";
+    return "text-muted-foreground hover:bg-slate-800/30 hover:text-foreground";
   };
 
   return (
@@ -301,7 +299,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           type="button"
           aria-label="Close menu"
           onClick={onClose}
-          className="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-sm transition-opacity lg:hidden"
+          className="fixed inset-0 z-30 bg-background/70 backdrop-blur-sm transition-opacity lg:hidden"
         />
       )}
 
@@ -310,14 +308,14 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex h-full flex-col transition-all duration-300 ease-in-out",
           sidebarBgClass,
-          isCollapsed ? "w-16" : "w-60",
+          isCollapsed ? "w-16" : "w-[248px]",
           open ? "translate-x-0" : "-translate-x-full",
           "lg:static lg:translate-x-0 lg:transition-all"
         )}
         aria-label="Primary"
       >
         {/* Unified Header Row: Logo & Workspace Switcher in a single line */}
-        <div className="flex h-16 shrink-0 items-center justify-between gap-1.5 px-3 border-b border-slate-800/40">
+        <div className="flex h-[56px] shrink-0 items-center justify-between gap-1.5 px-3 border-b border-sidebar-border">
           {isCollapsed ? (
             /* Collapsed view: Show just the workspace avatar dropdown centered */
             <div className="w-full flex justify-center py-1">
@@ -346,7 +344,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           {!open && !isCollapsed && (
             <button
               onClick={toggleCollapse}
-              className="hidden lg:flex h-7 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-850 text-slate-400 hover:text-white transition-colors"
+              className="hidden lg:flex h-7 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-850 text-muted-foreground hover:text-foreground transition-colors"
               title="Collapse Sidebar"
             >
               <ChevronLeft className="h-4 w-4" strokeWidth={3} />
@@ -358,7 +356,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-md lg:hidden text-slate-400 hover:text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-md lg:hidden text-muted-foreground hover:text-foreground"
             >
               <X className="h-5 w-5" />
             </button>
@@ -385,7 +383,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     </div>
                     {!isCollapsed && (
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-bold text-white leading-tight">
+                        <p className="truncate text-xs font-bold text-foreground leading-tight">
                           {activeModule} Module
                         </p>
                         <p className="text-[8px] text-primary font-extrabold uppercase tracking-wider leading-none mt-0.5">
@@ -394,7 +392,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                       </div>
                     )}
                   </div>
-                  {!isCollapsed && <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />}
+                  {!isCollapsed && <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
                 </button>
               }
             />
@@ -403,12 +401,12 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               align={isCollapsed ? "start" : "center"}
               side={isCollapsed ? "right" : "bottom"}
               sideOffset={12}
-              className="w-56 bg-slate-900 border border-slate-800 text-slate-200 p-1.5 rounded-2xl shadow-xl z-50"
+              className="w-56 bg-card border border-border text-foreground p-1.5 rounded-2xl shadow-xl z-50"
             >
-              <div className="px-3 py-2 text-xs font-extrabold uppercase tracking-wider text-slate-400">
+              <div className="px-3 py-2 text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
                 App Modules
               </div>
-              <DropdownMenuSeparator className="bg-slate-800/60 my-1" />
+              <DropdownMenuSeparator className="bg-border my-1" />
               
               {accessibleGroups.map((group) => {
                 const GroupIcon = group.icon;
@@ -419,10 +417,10 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     key={group.label}
                     onClick={() => handleSwitchModule(group.label)}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-bold transition-all focus:bg-slate-800 focus:text-white cursor-pointer",
+                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-bold transition-all focus:bg-muted focus:text-foreground cursor-pointer",
                       isSelected
                         ? "bg-primary/15 text-primary focus:bg-primary/20 focus:text-primary"
-                        : "text-slate-400 hover:text-white"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     <GroupIcon className="h-4 w-4 shrink-0" />
@@ -436,7 +434,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
         {/* Separator */}
         <div className="px-3 py-2 shrink-0">
-          <div className="border-t border-slate-800/40 w-full" />
+          <div className="border-t border-border/40 w-full" />
         </div>
 
         {/* Dynamic Sidebar Links (Only show selected module links) */}
@@ -464,7 +462,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                 
                 {/* Collapsed Tooltip */}
                 {isCollapsed && (
-                  <span className="absolute left-14 scale-0 group-hover:scale-100 transition-all rounded bg-slate-950 text-white text-xs font-semibold px-2.5 py-1.5 shadow-md origin-left whitespace-nowrap z-50">
+                  <span className="absolute left-14 scale-0 group-hover:scale-100 transition-all rounded bg-background text-foreground text-xs font-semibold px-2.5 py-1.5 shadow-md origin-left whitespace-nowrap z-50">
                     {item.label}
                   </span>
                 )}
@@ -486,7 +484,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             <button
               type="button"
               onClick={toggleCollapse}
-              className="flex h-11 w-11 mx-auto items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-slate-850 mb-1"
+              className="flex h-11 w-11 mx-auto items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-slate-850 mb-1"
               title="Expand Sidebar"
             >
               <ChevronRight className="h-5 w-5" strokeWidth={3} />
@@ -519,10 +517,10 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                   </Avatar>
                   {!isCollapsed && (
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-bold text-white">
+                      <p className="truncate text-xs font-bold text-foreground">
                         {profile?.full_name ?? "User"}
                       </p>
-                      <p className="truncate text-[10px] text-slate-400 mt-0.5">
+                      <p className="truncate text-[10px] text-muted-foreground mt-0.5">
                         {profile?.email ?? ""}
                       </p>
                     </div>
@@ -535,12 +533,12 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               align="end"
               side={isCollapsed ? "right" : "bottom"}
               sideOffset={12}
-              className="min-w-56 bg-slate-900 border border-slate-800 text-slate-200 p-1.5 rounded-2xl shadow-xl z-50"
+              className="min-w-56 bg-card border border-border text-slate-200 p-1.5 rounded-2xl shadow-xl z-50"
             >
               {!isCollapsed && (
-                <div className="px-3 py-2 border-b border-slate-800/60 mb-1">
-                  <p className="text-xs font-bold text-white truncate">{profile?.full_name ?? "User"}</p>
-                  <p className="text-[10px] text-slate-400 truncate mt-0.5">{profile?.email ?? ""}</p>
+                <div className="px-3 py-2 border-b border-border/60 mb-1">
+                  <p className="text-xs font-bold text-foreground truncate">{profile?.full_name ?? "User"}</p>
+                  <p className="text-[10px] text-muted-foreground truncate mt-0.5">{profile?.email ?? ""}</p>
                 </div>
               )}
               <DropdownMenuItem render={<Link href="/settings?tab=profile" />}>

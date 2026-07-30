@@ -32,8 +32,8 @@ export default function IntegrationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Integrations</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Integrations</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Connect your Daily CRM workspace to external communication platforms and data sources.
         </p>
       </div>
@@ -49,12 +49,12 @@ export default function IntegrationsPage() {
             { id: 'sheets', name: 'Google Sheets', desc: '2-way Sync with Sheets', icon: FileSpreadsheet },
             { id: 'forms', name: 'Lead Forms', desc: 'Google Forms, FB Forms, Webhooks', icon: FormInput },
           ].map(integration => (
-            <div key={integration.id} onClick={() => onChange(integration.id)} className="cursor-pointer group flex flex-col items-center p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center hover:border-primary/50 hover:bg-slate-800/50 transition-all">
+            <div key={integration.id} onClick={() => onChange(integration.id)} className="cursor-pointer group flex flex-col items-center p-6 rounded-2xl bg-card border border-border text-center hover:border-primary/50 hover:bg-slate-800/50 transition-all">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4 group-hover:scale-110 transition-transform">
                 <integration.icon className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-1">{integration.name}</h3>
-              <p className="text-slate-400 text-sm mb-4">{integration.desc}</p>
+              <h3 className="text-lg font-semibold text-foreground mb-1">{integration.name}</h3>
+              <p className="text-muted-foreground text-sm mb-4">{integration.desc}</p>
               <Button variant="outline" className="w-full border-slate-700 text-slate-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
                 Configure
               </Button>
@@ -63,7 +63,7 @@ export default function IntegrationsPage() {
         </div>
       ) : (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-          <Button variant="ghost" onClick={() => onChange(null)} className="text-slate-400 hover:text-foreground mb-2">
+          <Button variant="ghost" onClick={() => onChange(null)} className="text-muted-foreground hover:text-foreground mb-2">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Integrations
           </Button>
           
@@ -77,10 +77,10 @@ export default function IntegrationsPage() {
           
           {/* Placeholders for remaining requested integrations */}
           {['google', 'zoho'].includes(tab || '') && (
-            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-8 text-center">
+            <div className="rounded-lg border border-border bg-card/50 p-8 text-center">
               <FileSpreadsheet className="mx-auto h-8 w-8 text-primary mb-3" />
-              <h3 className="text-lg font-medium text-white mb-1">Coming Soon</h3>
-              <p className="text-slate-400 text-sm">OAuth flow and configuration parameters are currently being implemented.</p>
+              <h3 className="text-lg font-medium text-foreground mb-1">Coming Soon</h3>
+              <p className="text-muted-foreground text-sm">OAuth flow and configuration parameters are currently being implemented.</p>
             </div>
           )}
         </div>

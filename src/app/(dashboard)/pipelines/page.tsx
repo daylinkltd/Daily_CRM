@@ -316,17 +316,17 @@ export default function PipelinesPage() {
           {/* Pipeline selector dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-foreground hover:bg-slate-800 transition-colors data-[popup-open]:bg-slate-800"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-card px-3 py-2 text-sm text-foreground hover:bg-slate-800 transition-colors data-[popup-open]:bg-slate-800"
             >
               <GitBranch className="h-4 w-4 text-primary" />
               <span className="font-semibold">
                 {selectedPipeline?.name ?? "Select Pipeline"}
               </span>
-              <ChevronDown className="h-4 w-4 text-slate-400" />
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
-              className="w-64 border-slate-700 bg-slate-900 text-slate-200"
+              className="w-64 border-slate-700 bg-card text-slate-200"
             >
               {pipelines.length === 0 && (
                 <DropdownMenuItem disabled className="text-slate-500">
@@ -365,7 +365,7 @@ export default function PipelinesPage() {
           <Button
             variant="outline"
             onClick={() => setNewPipelineOpen(true)}
-            className="border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
+            className="border-slate-700 bg-card text-slate-200 hover:bg-slate-800"
           >
             <Plus className="mr-1 h-4 w-4" />
             Add Pipeline
@@ -385,10 +385,10 @@ export default function PipelinesPage() {
       {pipelines.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 py-20">
           <GitBranch className="h-12 w-12 text-slate-600" />
-          <h3 className="mt-4 text-lg font-medium text-white">
+          <h3 className="mt-4 text-lg font-medium text-foreground">
             No pipelines yet
           </h3>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Create a pipeline to start tracking deals
           </p>
           <Button
@@ -414,7 +414,7 @@ export default function PipelinesPage() {
 
       {/* New Pipeline Dialog */}
       <Dialog open={newPipelineOpen} onOpenChange={setNewPipelineOpen}>
-        <DialogContent className="sm:max-w-sm bg-slate-900 border-slate-700">
+        <DialogContent className="sm:max-w-sm bg-card border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-foreground">New Pipeline</DialogTitle>
           </DialogHeader>
@@ -429,11 +429,11 @@ export default function PipelinesPage() {
                 if (e.key === "Enter") handleCreatePipeline();
               }}
             />
-            <p className="mt-2 text-xs text-slate-400">
+            <p className="mt-2 text-xs text-muted-foreground">
               Default stages (New Lead → Won) will be created automatically.
             </p>
           </div>
-          <DialogFooter className="bg-slate-900/50 border-slate-700">
+          <DialogFooter className="bg-card/50 border-slate-700">
             <Button
               variant="outline"
               onClick={() => setNewPipelineOpen(false)}

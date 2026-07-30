@@ -360,11 +360,11 @@ export function DealForm({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="bg-slate-900 border-slate-700 text-slate-200 sm:max-w-lg w-full p-0"
+        className="bg-card border-slate-700 text-slate-200 sm:max-w-lg w-full p-0"
       >
         <div className="flex h-full flex-col">
           <SheetHeader className="border-b border-slate-700/50 p-4">
-            <SheetTitle className="text-white">
+            <SheetTitle className="text-foreground">
               {deal ? "Edit Deal" : "New Deal"}
             </SheetTitle>
           </SheetHeader>
@@ -482,7 +482,7 @@ export function DealForm({
                     >
                       Add
                     </Button>
-                    <Button variant="ghost" onClick={() => setIsAddingSource(false)} className="h-9 px-3 text-slate-400 hover:text-foreground"><X className="h-4 w-4" /></Button>
+                    <Button variant="ghost" onClick={() => setIsAddingSource(false)} className="h-9 px-3 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></Button>
                   </div>
                 ) : (
                   <select
@@ -574,7 +574,7 @@ export function DealForm({
                       href={f.local_path} 
                       target="_blank" 
                       rel="noreferrer"
-                      className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/50 border border-slate-700 hover:border-slate-600 transition-colors text-sm text-slate-300 hover:text-foreground"
+                      className="flex items-center gap-2 p-2 rounded-lg bg-card/50 border border-slate-700 hover:border-slate-600 transition-colors text-sm text-slate-300 hover:text-foreground"
                     >
                       <File className="w-4 h-4 text-primary" />
                       <span className="truncate">{f.name}</span>
@@ -587,8 +587,8 @@ export function DealForm({
             </div>
 
             {deal && (
-              <div className="space-y-2 rounded-lg border border-slate-700 bg-slate-900/50 p-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+              <div className="space-y-2 rounded-lg border border-slate-700 bg-card/50 p-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Status
                 </p>
                 <div className="flex gap-2">
@@ -611,7 +611,7 @@ export function DealForm({
                     type="button"
                     onClick={() => setShowLostReasonPrompt(true)}
                     disabled={!!statusAction || deal.status === "lost"}
-                    className="flex-1 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                    className="flex-1 bg-red-600 text-foreground hover:bg-red-700 disabled:opacity-50"
                   >
                     {statusAction === "lost" ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -641,7 +641,7 @@ export function DealForm({
                         type="button"
                         onClick={() => handleStatusChange("lost", lostReasonId)}
                         disabled={!!statusAction}
-                        className="flex-1 h-8 bg-red-600 text-white hover:bg-red-700 text-xs"
+                        className="flex-1 h-8 bg-red-600 text-foreground hover:bg-red-700 text-xs"
                       >
                         Confirm Lost
                       </Button>
@@ -649,7 +649,7 @@ export function DealForm({
                         type="button"
                         variant="ghost"
                         onClick={() => setShowLostReasonPrompt(false)}
-                        className="flex-1 h-8 text-slate-400 hover:text-foreground text-xs"
+                        className="flex-1 h-8 text-muted-foreground hover:text-foreground text-xs"
                       >
                         Cancel
                       </Button>
@@ -662,7 +662,7 @@ export function DealForm({
                     variant="ghost"
                     onClick={() => handleStatusChange("open")}
                     disabled={!!statusAction}
-                    className="w-full text-slate-400 hover:text-foreground"
+                    className="w-full text-muted-foreground hover:text-foreground"
                   >
                     Reopen deal
                   </Button>
@@ -671,7 +671,7 @@ export function DealForm({
             )}
           </div>
 
-          <div className="border-t border-slate-700/50 bg-slate-900/80 p-4">
+          <div className="border-t border-slate-700/50 bg-card/80 p-4">
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -706,7 +706,7 @@ export function DealForm({
                       type="button"
                       onClick={handleDelete}
                       disabled={deleting}
-                      className="rounded bg-red-600 px-2 py-1 font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                      className="rounded bg-red-600 px-2 py-1 font-medium text-foreground hover:bg-red-700 disabled:opacity-50"
                     >
                       {deleting ? "Deleting..." : "Confirm"}
                     </button>

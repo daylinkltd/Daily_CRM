@@ -234,7 +234,7 @@ export function ChatbotConfig() {
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] mt-4">
       <div className="space-y-6">
         {/* ── Chatbot Activation Toggle ── */}
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-card border-slate-700">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -242,8 +242,8 @@ export function ChatbotConfig() {
                   <Bot className="size-6 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold">Enable AI Chatbot</h3>
-                  <p className="text-xs text-slate-400">
+                  <h3 className="text-foreground font-semibold">Enable AI Chatbot</h3>
+                  <p className="text-xs text-muted-foreground">
                     Allow the AI Chatbot to monitor and respond to customer WhatsApp inquiries.
                   </p>
                 </div>
@@ -254,13 +254,13 @@ export function ChatbotConfig() {
         </Card>
 
         {/* ── AI Provider Configurations ── */}
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-card border-slate-700">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2 text-base">
               <Sparkles className="size-4 text-primary" />
               AI Engine Credentials
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-muted-foreground">
               Select your preferred LLM provider and enter credentials to power the chatbot.
             </CardDescription>
           </CardHeader>
@@ -327,14 +327,14 @@ export function ChatbotConfig() {
                 <button
                   type="button"
                   onClick={() => setShowKey(!showKey)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
               <p className="text-[11px] text-slate-500">
                 Left blank? The chatbot will attempt to fall back to the CRM&apos;s system-wide{" "}
-                <code className="text-slate-400 bg-slate-950 px-1 py-0.5 rounded text-[10px]">
+                <code className="text-muted-foreground bg-background px-1 py-0.5 rounded text-[10px]">
                   {provider === "grok"
                     ? "XAI_API_KEY"
                     : provider === "groq"
@@ -348,13 +348,13 @@ export function ChatbotConfig() {
         </Card>
 
         {/* ── Prompts & Business Knowledge ── */}
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-card border-slate-700">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2 text-base">
               <BookOpen className="size-4 text-primary" />
               Persona & Knowledge Base
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-muted-foreground">
               Provide context and directions to shape the bot&apos;s behavior and business awareness.
             </CardDescription>
           </CardHeader>
@@ -402,13 +402,13 @@ Support contacts: support@example.com"
         </Card>
 
         {/* ── Control Rules (Auto-Pause & Typing Delay) ── */}
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-card border-slate-700">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2 text-base">
               <Sliders className="size-4 text-primary" />
               Conversation Control Rules
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-muted-foreground">
               Manage how the AI interacts alongside human agents in your workspace.
             </CardDescription>
           </CardHeader>
@@ -496,12 +496,12 @@ Support contacts: support@example.com"
 
       {/* ── Instructions Sidebar ── */}
       <div>
-        <Card className="bg-slate-900 border-slate-700">
+        <Card className="bg-card border-slate-700">
           <CardHeader>
             <CardTitle className="text-foreground text-base">Quick Start Guide</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 text-xs text-slate-400 leading-relaxed">
-            <div className="p-3 bg-slate-950/50 rounded-lg border border-slate-800">
+          <CardContent className="space-y-4 text-xs text-muted-foreground leading-relaxed">
+            <div className="p-3 bg-background/50 rounded-lg border border-border">
               <p className="text-primary font-semibold mb-1 flex items-center gap-1">
                 <Zap className="size-3.5" /> 1. Connect API Credentials
               </p>
@@ -511,7 +511,7 @@ Support contacts: support@example.com"
               </p>
             </div>
 
-            <div className="p-3 bg-slate-950/50 rounded-lg border border-slate-800">
+            <div className="p-3 bg-background/50 rounded-lg border border-border">
               <p className="text-primary font-semibold mb-1 flex items-center gap-1">
                 <BookOpen className="size-3.5" /> 2. Add Business Knowledge
               </p>
@@ -522,7 +522,7 @@ Support contacts: support@example.com"
               </p>
             </div>
 
-            <div className="p-3 bg-slate-950/50 rounded-lg border border-slate-800">
+            <div className="p-3 bg-background/50 rounded-lg border border-border">
               <p className="text-primary font-semibold mb-1 flex items-center gap-1">
                 <Sliders className="size-3.5" /> 3. Test & Enable
               </p>

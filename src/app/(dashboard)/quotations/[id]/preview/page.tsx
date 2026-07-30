@@ -436,7 +436,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
                 size="sm"
                 onClick={handleAcceptQuotation}
                 disabled={actionLoading}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="bg-emerald-600 hover:bg-emerald-700 text-foreground"
               >
                 <CheckCircle className="size-4 mr-1.5" /> Accept & Convert
               </Button>

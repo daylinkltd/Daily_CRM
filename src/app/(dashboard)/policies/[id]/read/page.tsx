@@ -144,7 +144,7 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
           <Badge variant="outline" className="text-xs bg-card">
             {policy.category.replace(/_/g, ' ')}
           </Badge>
-          <Badge className="bg-emerald-600 text-white">
+          <Badge className="bg-emerald-600 text-foreground">
             Version v{activeVersion.version_number}
           </Badge>
         </div>

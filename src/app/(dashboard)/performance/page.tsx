@@ -136,7 +136,7 @@ export default function PerformancePage() {
                 <Card key={c.id} className="border-border bg-card shadow-sm">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <Badge className="bg-emerald-600 text-white text-[10px] uppercase">{c.status}</Badge>
+                      <Badge className="bg-emerald-600 text-foreground text-[10px] uppercase">{c.status}</Badge>
                       <span className="text-xs text-muted-foreground">{c.start_date} – {c.end_date}</span>
                     </div>
                     <CardTitle className="text-base font-semibold mt-2">{c.name}</CardTitle>

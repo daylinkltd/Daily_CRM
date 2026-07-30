@@ -263,7 +263,7 @@ export function EpicDetailsModal({
               <div className="lg:col-span-8 p-6 space-y-6">
                 {/* Epic Title Header */}
                 <div className="flex items-center gap-3">
-                  <div className="size-8 rounded bg-purple-600 flex items-center justify-center text-white shrink-0 font-bold text-sm">
+                  <div className="size-8 rounded bg-purple-600 flex items-center justify-center text-foreground shrink-0 font-bold text-sm">
                     E
                   </div>
                   <Input

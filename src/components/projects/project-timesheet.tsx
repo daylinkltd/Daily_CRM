@@ -135,7 +135,7 @@ export function ProjectTimesheet({ projectId }: ProjectTimesheetProps) {
 
         <Card className="border-border shadow-sm">
           <CardContent className="p-6 flex flex-col items-center text-center space-y-2">
-            <Clock className="size-5 text-slate-400" />
+            <Clock className="size-5 text-muted-foreground" />
             <p className="text-sm font-medium text-muted-foreground">Non-Billable</p>
             <p className="text-2xl font-bold text-slate-600">{totalNonBillable.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">hrs</span></p>
           </CardContent>

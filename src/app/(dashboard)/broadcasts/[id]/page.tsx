@@ -50,15 +50,15 @@ interface StatCardProps {
 function StatCard({ label, value, total, icon, color }: StatCardProps) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center justify-between">
         <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${color}`}>
           {icon}
         </div>
         <span className="text-xs text-slate-500">{pct}%</span>
       </div>
-      <p className="mt-3 text-2xl font-bold text-white">{value.toLocaleString()}</p>
-      <p className="text-xs text-slate-400">{label}</p>
+      <p className="mt-3 text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -77,8 +77,8 @@ interface FunnelStep {
 function FunnelChart({ steps }: { steps: FunnelStep[] }) {
   const max = Math.max(...steps.map((s) => s.value), 1);
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-      <h3 className="mb-4 text-sm font-medium text-white">Funnel</h3>
+    <div className="rounded-xl border border-border bg-card p-4">
+      <h3 className="mb-4 text-sm font-medium text-foreground">Funnel</h3>
       <div className="space-y-2">
         {steps.map((step) => {
           const pctOfMax = Math.max(5, Math.round((step.value / max) * 100));
@@ -88,7 +88,7 @@ function FunnelChart({ steps }: { steps: FunnelStep[] }) {
               : 0;
           return (
             <div key={step.label} className="flex items-center gap-3">
-              <span className="w-20 shrink-0 text-xs text-slate-400">
+              <span className="w-20 shrink-0 text-xs text-muted-foreground">
                 {step.label}
               </span>
               <div className="relative h-7 flex-1 rounded-full bg-slate-800">
@@ -96,7 +96,7 @@ function FunnelChart({ steps }: { steps: FunnelStep[] }) {
                   className={`h-7 rounded-full ${step.color} transition-[width] duration-500`}
                   style={{ width: `${pctOfMax}%` }}
                 />
-                <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-white">
+                <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-foreground">
                   {step.value.toLocaleString()}
                   <span className="ml-2 text-slate-300/80">
                     ({pctOfSent}%)
@@ -286,14 +286,14 @@ export default function BroadcastDetailPage() {
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white">{broadcast.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{broadcast.name}</h1>
               <span
                 className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${status.classes}`}
               >
                 {status.label}
               </span>
             </div>
-            <div className="mt-1 flex items-center gap-3 text-sm text-slate-400">
+            <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
               <span>Template: {broadcast.template_name}</span>
               <span>-</span>
               <span>
@@ -323,7 +323,7 @@ export default function BroadcastDetailPage() {
               size="sm"
               onClick={handleDelete}
               disabled={deleting}
-              className="h-7 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+              className="h-7 bg-red-600 text-foreground hover:bg-red-700 disabled:opacity-50"
             >
               {deleting ? 'Deleting…' : 'Confirm'}
             </Button>
@@ -396,9 +396,9 @@ export default function BroadcastDetailPage() {
       <FunnelChart steps={funnelSteps} />
 
       {/* Recipients Table */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-3">
-          <h2 className="text-sm font-medium text-white">
+      <div className="rounded-xl border border-border bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+          <h2 className="text-sm font-medium text-foreground">
             Recipients ({filteredRecipients.length}
             {statusFilter !== 'all' ? ` of ${recipients.length}` : ''})
           </h2>
@@ -419,7 +419,7 @@ export default function BroadcastDetailPage() {
                   : getRecipientStatus(statusFilter).label}
                 <ChevronDown className="h-3 w-3" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="border-slate-700 bg-slate-900">
+              <DropdownMenuContent className="border-slate-700 bg-card">
                 <DropdownMenuItem
                   onClick={() => setStatusFilter('all')}
                   className={
@@ -459,7 +459,7 @@ export default function BroadcastDetailPage() {
 
         {filteredRecipients.length === 0 ? (
           <div className="flex h-32 items-center justify-center">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               {recipients.length === 0
                 ? 'No recipients found.'
                 : 'No recipients match this filter.'}
@@ -469,22 +469,22 @@ export default function BroadcastDetailPage() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-800 hover:bg-transparent">
-                  <TableHead className="text-slate-400">Contact</TableHead>
-                  <TableHead className="text-slate-400">Phone</TableHead>
-                  <TableHead className="text-slate-400">Status</TableHead>
-                  <TableHead className="text-slate-400">Sent</TableHead>
-                  <TableHead className="text-slate-400">Delivered</TableHead>
-                  <TableHead className="text-slate-400">Read</TableHead>
-                  <TableHead className="text-slate-400">Error</TableHead>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="text-muted-foreground">Contact</TableHead>
+                  <TableHead className="text-muted-foreground">Phone</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-muted-foreground">Sent</TableHead>
+                  <TableHead className="text-muted-foreground">Delivered</TableHead>
+                  <TableHead className="text-muted-foreground">Read</TableHead>
+                  <TableHead className="text-muted-foreground">Error</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRecipients.map((recipient) => {
                   const rStatus = getRecipientStatus(recipient.status);
                   return (
-                    <TableRow key={recipient.id} className="border-slate-800">
-                      <TableCell className="font-medium text-white">
+                    <TableRow key={recipient.id} className="border-border">
+                      <TableCell className="font-medium text-foreground">
                         {recipient.contact?.name ?? 'Unknown'}
                       </TableCell>
                       <TableCell className="text-slate-300">
@@ -497,17 +497,17 @@ export default function BroadcastDetailPage() {
                           {rStatus.label}
                         </span>
                       </TableCell>
-                      <TableCell className="text-slate-400">
+                      <TableCell className="text-muted-foreground">
                         {recipient.sent_at
                           ? new Date(recipient.sent_at).toLocaleString()
                           : '-'}
                       </TableCell>
-                      <TableCell className="text-slate-400">
+                      <TableCell className="text-muted-foreground">
                         {recipient.delivered_at
                           ? new Date(recipient.delivered_at).toLocaleString()
                           : '-'}
                       </TableCell>
-                      <TableCell className="text-slate-400">
+                      <TableCell className="text-muted-foreground">
                         {recipient.read_at
                           ? new Date(recipient.read_at).toLocaleString()
                           : '-'}

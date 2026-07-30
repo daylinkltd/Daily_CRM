@@ -493,7 +493,7 @@ export function WhatsAppConfig() {
                   onClick={handleReset}
                   disabled={resetting}
                   size="sm"
-                  className="mt-3 bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs"
+                  className="mt-3 bg-amber-600 hover:bg-amber-700 text-foreground font-medium text-xs"
                 >
                   {resetting ? <><Loader2 className="size-3.5 animate-spin mr-1.5" /> Resetting...</> : <><RotateCcw className="size-3.5 mr-1.5" /> Reset Configuration</>}
                 </Button>

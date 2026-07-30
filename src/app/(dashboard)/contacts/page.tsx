@@ -6,14 +6,7 @@ import { toast } from 'sonner';
 import type { Contact, Tag, ContactTag } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { DataTable, Column } from '@/components/ui/data-table';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -56,6 +49,9 @@ import { CustomFieldsManager } from '@/components/contacts/custom-fields-manager
 import { GatedButton } from '@/components/ui/gated-button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { PageHeader } from '@/components/ui/page-header';
+import { SearchInput } from '@/components/ui/search-input';
+import { DataToolbar } from '@/components/ui/data-toolbar';
 
 const PAGE_SIZE = 25;
 
@@ -347,84 +343,242 @@ export default function ContactsPage() {
     setPage(0);
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Contacts</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your contact list. {totalCount > 0 && `${totalCount} total contacts.`}
-          </p>
+  const columns: Column<ContactWithTags>[] = [
+    {
+      key: "select",
+      header: (
+        <Checkbox
+          checked={allOnPageSelected}
+          indeterminate={!allOnPageSelected && someOnPageSelected}
+          onCheckedChange={toggleSelectAll}
+          disabled={contacts.length === 0}
+          aria-label="Select all contacts on this page"
+        />
+      ),
+      cell: (contact) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={selected.has(contact.id)}
+            onCheckedChange={() => toggleSelect(contact.id)}
+            aria-label={`Select ${contact.name || contact.phone}`}
+          />
         </div>
-        <div className="flex items-center gap-2">
-          {canEditSettings && (
-            <Button
-              variant="outline"
-              onClick={() => setCustomFieldsOpen(true)}
-              className="border-border text-muted-foreground hover:bg-muted"
-            >
-              <SlidersHorizontal className="size-4" />
-              Custom fields
-            </Button>
+      ),
+      headClassName: "w-10",
+    },
+    {
+      key: "name",
+      header: "Name",
+      cell: (contact) => (
+        <span className="text-foreground font-medium">
+          {contact.name || <span className="text-muted-foreground italic">Unnamed</span>}
+        </span>
+      ),
+      headClassName: "text-muted-foreground",
+    },
+    {
+      key: "phone",
+      header: "Phone",
+      cell: (contact) => (
+        <span className="text-muted-foreground font-mono text-xs">
+          {contact.phone}
+        </span>
+      ),
+      headClassName: "text-muted-foreground",
+    },
+    {
+      key: "email",
+      header: "Email",
+      cell: (contact) => (
+        <span className="text-muted-foreground text-sm">
+          {contact.email || "-"}
+        </span>
+      ),
+      headClassName: "text-muted-foreground hidden md:table-cell",
+      className: "hidden md:table-cell",
+    },
+    {
+      key: "company",
+      header: "Company",
+      cell: (contact) => (
+        <span className="text-muted-foreground text-sm">
+          {contact.company || "-"}
+        </span>
+      ),
+      headClassName: "text-muted-foreground hidden lg:table-cell",
+      className: "hidden lg:table-cell",
+    },
+    {
+      key: "tags",
+      header: "Tags",
+      cell: (contact) => (
+        <div className="flex flex-wrap gap-1">
+          {contact.tags && contact.tags.length > 0 ? (
+            contact.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag.id}
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium"
+                style={{
+                  backgroundColor: tag.color + '20',
+                  color: tag.color,
+                }}
+              >
+                {tag.name}
+              </span>
+            ))
+          ) : (
+            <span className="text-muted-foreground text-xs">-</span>
           )}
-          <GatedButton
-            variant="outline"
-            canAct={canEdit}
-            gateReason="add or import contacts"
-            onClick={() => setImportOpen(true)}
-            className="border-border text-muted-foreground hover:bg-muted"
-          >
-            <Upload className="size-4" />
-            Import
-          </GatedButton>
-          <GatedButton
-            canAct={canEdit}
-            gateReason="add or import contacts"
-            onClick={openAddForm}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Plus className="size-4" />
-            Add Contact
-          </GatedButton>
+          {contact.tags && contact.tags.length > 3 && (
+            <span className="text-[10px] text-muted-foreground">
+              +{contact.tags.length - 3}
+            </span>
+          )}
         </div>
-      </div>
-
-      {/* Search + tag filter */}
-      <div className="space-y-2">
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                // Reset pagination when the query changes — the result
-                // set shrinks/grows, page N may no longer be valid.
-                setPage(0);
+      ),
+      headClassName: "text-muted-foreground hidden md:table-cell",
+      className: "hidden md:table-cell",
+    },
+    {
+      key: "created",
+      header: "Created",
+      cell: (contact) => (
+        <span className="text-muted-foreground text-xs">
+          {new Date(contact.created_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })}
+        </span>
+      ),
+      headClassName: "text-muted-foreground hidden lg:table-cell",
+      className: "hidden lg:table-cell",
+    },
+    {
+      key: "actions",
+      header: "",
+      cell: (contact) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={(e) => e.stopPropagation()}
+              />
+            }
+          >
+            <MoreHorizontal className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="bg-popover border-border"
+          >
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                openEditForm(contact);
               }}
-              placeholder="Search by name, phone, or email..."
-              className="pl-8 bg-card border-border text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
+              className="text-popover-foreground focus:bg-muted focus:text-foreground"
+            >
+              <Pencil className="size-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                confirmDelete(contact);
+              }}
+            >
+              <Trash2 className="size-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      headClassName: "text-muted-foreground w-12",
+    }
+  ];
 
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <PageHeader
+        title="Contacts"
+        description={`Manage your contact list and customer records.${totalCount > 0 ? ` (${totalCount} total)` : ''}`}
+        actions={
+          <>
+            {canEditSettings && (
+              <Button
+                variant="outline"
+                size="md"
+                onClick={() => setCustomFieldsOpen(true)}
+              >
+                <SlidersHorizontal className="size-4" />
+                Custom fields
+              </Button>
+            )}
+            <GatedButton
+              variant="outline"
+              canAct={canEdit}
+              gateReason="add or import contacts"
+              onClick={() => setImportOpen(true)}
+            >
+              <Upload className="size-4" />
+              Import
+            </GatedButton>
+            <GatedButton
+              canAct={canEdit}
+              gateReason="add or import contacts"
+              onClick={openAddForm}
+              variant="primary"
+            >
+              <Plus className="size-4" />
+              Add Contact
+            </GatedButton>
+          </>
+        }
+      />
+
+      {/* Toolbar & Filter */}
+      <DataToolbar
+        search={
+          <SearchInput
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
+            onClear={() => {
+              setSearch('');
+              setPage(0);
+            }}
+            placeholder="Search by name, phone, or email..."
+            className="w-full sm:w-[320px]"
+          />
+        }
+        filters={
           <Popover>
             <PopoverTrigger
               render={
                 <Button
                   variant="outline"
-                  className="border-border text-muted-foreground hover:bg-muted shrink-0"
-                />
+                  size="md"
+                  className="shrink-0"
+                >
+                  <Filter className="size-4" />
+                  Filter by tags
+                  {selectedTagIds.length > 0 && (
+                    <span className="ml-1 inline-flex items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                      {selectedTagIds.length}
+                    </span>
+                  )}
+                </Button>
               }
-            >
-              <Filter className="size-4" />
-              Filter by tags
-              {selectedTagIds.length > 0 && (
-                <span className="ml-1 inline-flex items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
-                  {selectedTagIds.length}
-                </span>
-              )}
-            </PopoverTrigger>
+            />
             <PopoverContent align="start" className="w-64 p-0">
               <div className="flex items-center justify-between px-3 py-2 border-b border-border">
                 <span className="text-sm font-medium text-popover-foreground">
@@ -468,7 +622,8 @@ export default function ContactsPage() {
               )}
             </PopoverContent>
           </Popover>
-        </div>
+        }
+      />
 
         {/* Active tag-filter chips */}
         {selectedTagIds.length > 0 && (
@@ -504,7 +659,6 @@ export default function ContactsPage() {
             </button>
           </div>
         )}
-      </div>
 
       {/* Bulk action bar */}
       {selected.size > 0 && (
@@ -538,166 +692,18 @@ export default function ContactsPage() {
 
       {/* Table */}
       <div className="rounded-lg border border-border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="w-10">
-                <Checkbox
-                  checked={allOnPageSelected}
-                  indeterminate={!allOnPageSelected && someOnPageSelected}
-                  onCheckedChange={toggleSelectAll}
-                  disabled={contacts.length === 0}
-                  aria-label="Select all contacts on this page"
-                />
-              </TableHead>
-              <TableHead className="text-muted-foreground">Name</TableHead>
-              <TableHead className="text-muted-foreground">Phone</TableHead>
-              <TableHead className="text-muted-foreground hidden md:table-cell">Email</TableHead>
-              <TableHead className="text-muted-foreground hidden lg:table-cell">Company</TableHead>
-              <TableHead className="text-muted-foreground hidden md:table-cell">Tags</TableHead>
-              <TableHead className="text-muted-foreground hidden lg:table-cell">Created</TableHead>
-              <TableHead className="text-muted-foreground w-12" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow className="border-border">
-                <TableCell colSpan={8} className="text-center py-12">
-                  <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="size-6 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Loading contacts...</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : contacts.length === 0 ? (
-              <TableRow className="border-border">
-                <TableCell colSpan={8} className="text-center py-12">
-                  <div className="flex flex-col items-center gap-2">
-                    <Users className="size-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {hasActiveFilters
-                        ? 'No contacts match your filters.'
-                        : 'No contacts yet.'}
-                    </p>
-                    {!hasActiveFilters && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={openAddForm}
-                        className="mt-2 border-border text-muted-foreground hover:bg-muted"
-                      >
-                        <Plus className="size-3.5" />
-                        Add your first contact
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              contacts.map((contact) => (
-                <TableRow
-                  key={contact.id}
-                  className="border-border hover:bg-muted/50 cursor-pointer"
-                  onClick={() => openDetail(contact.id)}
-                >
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selected.has(contact.id)}
-                      onCheckedChange={() => toggleSelect(contact.id)}
-                      aria-label={`Select ${contact.name || contact.phone}`}
-                    />
-                  </TableCell>
-                  <TableCell className="text-foreground font-medium">
-                    {contact.name || <span className="text-muted-foreground italic">Unnamed</span>}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs">
-                    {contact.phone}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden md:table-cell text-sm">
-                    {contact.email || <span className="text-muted-foreground">-</span>}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden lg:table-cell text-sm">
-                    {contact.company || <span className="text-muted-foreground">-</span>}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <div className="flex flex-wrap gap-1">
-                      {contact.tags && contact.tags.length > 0 ? (
-                        contact.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag.id}
-                            className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium"
-                            style={{
-                              backgroundColor: tag.color + '20',
-                              color: tag.color,
-                            }}
-                          >
-                            {tag.name}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-muted-foreground text-xs">-</span>
-                      )}
-                      {contact.tags && contact.tags.length > 3 && (
-                        <span className="text-[10px] text-muted-foreground">
-                          +{contact.tags.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs hidden lg:table-cell">
-                    {new Date(contact.created_at).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="text-muted-foreground hover:text-foreground"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        }
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="bg-popover border-border"
-                      >
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditForm(contact);
-                          }}
-                          className="text-popover-foreground focus:bg-muted focus:text-foreground"
-                        >
-                          <Pencil className="size-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-border" />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            confirmDelete(contact);
-                          }}
-                        >
-                          <Trash2 className="size-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+        <DataTable
+          data={contacts}
+          columns={columns}
+          keyExtractor={(c) => c.id}
+          loading={loading}
+          onRowClick={(c) => openDetail(c.id)}
+          rowClassName="border-border hover:bg-muted/50 cursor-pointer"
+          emptyTitle={hasActiveFilters ? 'No contacts match your filters.' : 'No contacts yet.'}
+          emptyDescription=""
+          emptyIcon={Users}
+          emptyAction={!hasActiveFilters ? { label: 'Add your first contact', onClick: openAddForm } : undefined}
+        />
       </div>
 
       {/* Pagination */}
