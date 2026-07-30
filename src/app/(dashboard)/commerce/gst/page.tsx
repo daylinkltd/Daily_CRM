@@ -244,8 +244,8 @@ export default function GstReportsPage() {
                     <td className="py-3.5 px-4 text-xs text-slate-400">
                       {e.invoice_date}
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-white">
-                      {e.party_name}
+                    <td className="py-3.5 px-4 font-bold text-slate-100">
+                      {e.party_name || "POS Retail Customer"}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-xs text-slate-400">
                       {e.gstin || "URP (Unregistered)"}
@@ -265,7 +265,7 @@ export default function GstReportsPage() {
                     <td className="py-3.5 px-4 text-right text-xs text-slate-400">
                       ₹{Number(e.igst_amount || 0).toFixed(2)}
                     </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-white">
+                    <td className="py-3.5 px-4 text-right font-extrabold text-[#00aef0]">
                       ₹{Number(e.total_invoice_amount).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 text-center">

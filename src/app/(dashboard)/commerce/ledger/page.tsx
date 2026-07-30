@@ -2,57 +2,182 @@
 
 import { useState, useEffect } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Wallet, Search, Send, RefreshCw } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  Wallet,
+  Search,
+  Send,
+  RefreshCw,
+  UserPlus,
+  Plus,
+  IndianRupee,
+  AlertTriangle,
+  Users,
+  CheckCircle2,
+  X,
+  Info,
+  Phone,
+  Building,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export default function CustomerLedgerPage() {
   const { activeWorkspace } = useWorkspace();
-  const supabase = createClient();
-  const [contacts, setContacts] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
 
-  const fetchContacts = async () => {
+  // Add Customer Modal State
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [company, setCompany] = useState("");
+  const [creditLimit, setCreditLimit] = useState("50000");
+
+  // Record Payment Collection Modal State
+  const [selectedPayCustomer, setSelectedPayCustomer] = useState<any | null>(null);
+  const [payAmount, setPayAmount] = useState("");
+  const [payMode, setPayMode] = useState<"CASH" | "UPI" | "BANK">("CASH");
+  const [payNotes, setPayNotes] = useState("");
+
+  const [saving, setSaving] = useState(false);
+
+  const fetchLedger = async () => {
     if (!activeWorkspace?.id) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("contacts")
-        .select("*")
-        .eq("workspace_id", activeWorkspace.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setContacts(data || []);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load customer ledger");
+      const res = await fetch(`/api/commerce/ledger?workspace_id=${activeWorkspace.id}`);
+      const json = await res.json();
+      if (res.ok && json.customers) {
+        setCustomers(json.customers);
+      }
+    } catch {
+      toast.error("Failed to load customer khata ledger");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchContacts();
+    fetchLedger();
   }, [activeWorkspace?.id]);
 
-  const handleWhatsAppReminder = (contact: any) => {
-    if (!contact.phone) {
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeWorkspace?.id || (!firstName && !phone)) {
+      toast.error("Customer Name or Phone Number is required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/commerce/ledger", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "CREATE_CUSTOMER",
+          workspace_id: activeWorkspace.id,
+          first_name: firstName,
+          last_name: lastName,
+          phone_number: phone,
+          email,
+          company,
+          credit_limit: Number(creditLimit || 50000),
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to create customer");
+
+      toast.success("New Customer added to CRM & Khata Ledger!");
+      setShowAddCustomerModal(false);
+      setFirstName("");
+      setLastName("");
+      setPhone("");
+      setEmail("");
+      setCompany("");
+      setCreditLimit("50000");
+      fetchLedger();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add customer");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRecordPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeWorkspace?.id || !selectedPayCustomer || !payAmount) {
+      toast.error("Payment amount is required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/commerce/ledger", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "RECORD_PAYMENT",
+          workspace_id: activeWorkspace.id,
+          contact_id: selectedPayCustomer.id,
+          payment_amount: Number(payAmount),
+          payment_mode: payMode,
+          notes: payNotes,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to record payment");
+
+      toast.success(
+        `Recorded Khata payment of ₹${Number(payAmount).toFixed(2)} for ${selectedPayCustomer.displayName}!`
+      );
+      setSelectedPayCustomer(null);
+      setPayAmount("");
+      setPayNotes("");
+      fetchLedger();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to record payment");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleWhatsAppReminder = (c: any) => {
+    const rawPhone = c.phone || c.phone_number;
+    if (!rawPhone) {
       toast.error("Customer phone number is missing");
       return;
     }
-    const cleanPhone = contact.phone.replace(/[^0-9]/g, "");
+    const cleanPhone = rawPhone.replace(/[^0-9]/g, "");
+    const bal = Number(c.outstanding_balance || 0).toFixed(2);
     const message = encodeURIComponent(
-      `Hello ${contact.name}, this is a gentle reminder from Daily CRM regarding your pending credit balance. Please make the payment at your earliest convenience. Thank you!`
+      `Hello ${c.displayName}, this is a gentle reminder from ${activeWorkspace?.name || "Daily CRM"} regarding your pending Khata credit balance of ₹${bal}. Please make the payment at your earliest convenience. Thank you!`
     );
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, "_blank");
   };
 
-  const filteredContacts = contacts.filter((c) =>
-    c.name?.toLowerCase().includes(query.toLowerCase()) ||
-    c.phone?.includes(query)
+  // Compute Stats
+  const totalCustomersCount = customers.length;
+  const totalUdharBalance = customers.reduce(
+    (acc, c) => acc + Number(c.outstanding_balance || 0),
+    0
+  );
+  const overLimitCount = customers.filter(
+    (c) => Number(c.outstanding_balance || 0) > Number(c.credit_limit || 50000)
+  ).length;
+
+  const filteredCustomers = customers.filter(
+    (c) =>
+      c.displayName?.toLowerCase().includes(query.toLowerCase()) ||
+      c.phone?.includes(query) ||
+      c.phone_number?.includes(query) ||
+      c.company?.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
@@ -62,17 +187,74 @@ export default function CustomerLedgerPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
             <Wallet className="h-6 w-6 text-[#00aef0]" />
-            Customer Khata & Credit Risk Ledger
+            Customer Khata &amp; Credit Risk Ledger
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Track customer credit balances (Udhar), credit limits, payment terms, and send WhatsApp payment reminders.
+            Track customer credit balances (Udhar), set credit limits, collect payments, and send WhatsApp payment reminders.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchContacts} variant="outline" className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11">
+          <Button
+            onClick={fetchLedger}
+            variant="outline"
+            className="border-slate-800 text-slate-300 gap-1.5 rounded-xl h-11"
+          >
             <RefreshCw className="h-4 w-4" />
             Refresh Books
           </Button>
+          <Button
+            onClick={() => setShowAddCustomerModal(true)}
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
+          >
+            <UserPlus className="h-4 w-4" />
+            Add New Customer
+          </Button>
+        </div>
+      </div>
+
+      {/* Workflow Guidance Banner */}
+      <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
+        <Info className="h-5 w-5 text-[#00aef0] shrink-0" />
+        <div>
+          <strong className="text-white block font-bold text-sm">
+            How Customer Khata Works:
+          </strong>
+          Customers created here are automatically saved to your <span className="text-[#00aef0] font-bold">CRM Contacts</span> and available in <span className="text-[#00aef0] font-bold">POS Billing</span>. When a POS checkout is completed using <span className="text-amber-400 font-bold">KHATA_CREDIT</span> mode, their pending balance increases here. Click <strong>Record Payment</strong> to collect cash/UPI and clear their Udhar balance!
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between">
+          <div>
+            <div className="text-xs text-slate-400 font-medium">Total Registered Customers</div>
+            <div className="text-2xl font-extrabold text-[#00aef0] mt-1">{totalCustomersCount}</div>
+          </div>
+          <div className="h-10 w-10 bg-[#00aef0]/10 border border-[#00aef0]/20 rounded-xl flex items-center justify-center text-[#00aef0]">
+            <Users className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between">
+          <div>
+            <div className="text-xs text-slate-400 font-medium">Total Pending Udhar Balance</div>
+            <div className="text-2xl font-extrabold text-amber-400 mt-1">
+              ₹{totalUdharBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </div>
+          </div>
+          <div className="h-10 w-10 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-center text-amber-400">
+            <IndianRupee className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between">
+          <div>
+            <div className="text-xs text-slate-400 font-medium">Over Credit Limit Alerts</div>
+            <div className="text-2xl font-extrabold text-rose-400 mt-1">{overLimitCount}</div>
+          </div>
+          <div className="h-10 w-10 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center text-rose-400">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
         </div>
       </div>
 
@@ -97,8 +279,7 @@ export default function CustomerLedgerPage() {
             <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
               <tr>
                 <th className="py-3.5 px-4">Customer Name</th>
-                <th className="py-3.5 px-4">Phone Number</th>
-                <th className="py-3.5 px-4">Customer Category</th>
+                <th className="py-3.5 px-4">Phone &amp; Email</th>
                 <th className="py-3.5 px-4 text-right">Credit Limit</th>
                 <th className="py-3.5 px-4 text-right">Pending Udhar Balance</th>
                 <th className="py-3.5 px-4 text-center">Actions</th>
@@ -107,56 +288,274 @@ export default function CustomerLedgerPage() {
             <tbody className="divide-y divide-slate-800/60">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
-                    Loading Customer Ledger...
+                  <td colSpan={5} className="py-12 text-center text-slate-500 text-sm">
+                    Loading Customer Khata Ledger...
                   </td>
                 </tr>
-              ) : filteredContacts.length === 0 ? (
+              ) : filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
-                    No customers found in ledger. Add contacts in CRM module to start tracking credit.
+                  <td colSpan={5} className="py-12 text-center text-slate-500 text-sm space-y-3">
+                    <Users className="h-10 w-10 mx-auto text-slate-600 mb-2" />
+                    <p className="text-slate-300 font-semibold">No Customers Found</p>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Add customer details to start tracking credit limits and Khata payments.
+                    </p>
+                    <Button
+                      onClick={() => setShowAddCustomerModal(true)}
+                      className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl gap-2 mt-2"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      Add First Customer
+                    </Button>
                   </td>
                 </tr>
               ) : (
-                filteredContacts.map((contact) => (
-                  <tr key={contact.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-semibold text-white">
-                      {contact.name}
-                      {contact.company && (
-                        <span className="block text-[11px] text-slate-400 font-normal">
-                          {contact.company}
+                filteredCustomers.map((contact) => {
+                  const bal = Number(contact.outstanding_balance || 0);
+                  const limit = Number(contact.credit_limit || 50000);
+                  const isOverLimit = bal > limit;
+
+                  return (
+                    <tr key={contact.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3.5 px-4 font-extrabold text-slate-100">
+                        <div>{contact.displayName}</div>
+                        {contact.company && (
+                          <span className="block text-[11px] text-slate-400 font-normal">
+                            {contact.company}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-slate-300">
+                        {(contact.phone || contact.phone_number) && (
+                          <div className="flex items-center gap-1 font-mono text-slate-200">
+                            <Phone className="h-3 w-3 text-[#00aef0]" />
+                            {contact.phone || contact.phone_number}
+                          </div>
+                        )}
+                        {contact.email && (
+                          <div className="text-[11px] text-slate-400">{contact.email}</div>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-medium text-slate-300">
+                        ₹{limit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-extrabold">
+                        <span
+                          className={
+                            bal > 0
+                              ? isOverLimit
+                                ? "text-rose-400"
+                                : "text-amber-400"
+                              : "text-emerald-400"
+                          }
+                        >
+                          ₹{bal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-slate-400">
-                      {contact.phone || "—"}
-                    </td>
-                    <td className="py-3.5 px-4 text-xs font-bold text-[#00aef0]">
-                      RETAIL
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-medium text-slate-300">
-                      ₹50,000.00
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-amber-400">
-                      ₹{Number(contact.outstanding_balance || 0).toFixed(2)}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <Button
-                        size="sm"
-                        onClick={() => handleWhatsAppReminder(contact)}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl gap-1.5 h-8"
-                      >
-                        <Send className="h-3.5 w-3.5" />
-                        WhatsApp Reminder
-                      </Button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => setSelectedPayCustomer(contact)}
+                            className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold text-xs rounded-xl gap-1 h-8 px-3"
+                          >
+                            <IndianRupee className="h-3.5 w-3.5" />
+                            Record Payment
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleWhatsAppReminder(contact)}
+                            className="border-emerald-600/30 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 font-bold text-xs rounded-xl gap-1 h-8 px-3"
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                            WhatsApp
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Add New Customer Modal */}
+      {showAddCustomerModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-[#00aef0]" />
+                Add New Customer to CRM &amp; Khata
+              </h2>
+              <button onClick={() => setShowAddCustomerModal(false)} className="text-slate-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateCustomer} className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-slate-300">First Name *</Label>
+                  <Input
+                    required
+                    type="text"
+                    placeholder="e.g. Ramesh"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-slate-300">Last Name</Label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Kumar"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-slate-300">Phone Number *</Label>
+                  <Input
+                    required
+                    type="text"
+                    placeholder="e.g. 9876543210"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-slate-300">Email Address</Label>
+                  <Input
+                    type="email"
+                    placeholder="e.g. ramesh@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-slate-300">Company / Shop Name</Label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Ramesh Traders"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-slate-300">Credit Limit (₹)</Label>
+                  <Input
+                    type="number"
+                    value={creditLimit}
+                    onChange={(e) => setCreditLimit(e.target.value)}
+                    className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+                <Button type="button" variant="outline" onClick={() => setShowAddCustomerModal(false)} className="border-slate-800 text-slate-300 rounded-xl h-10">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl h-10 px-5">
+                  {saving ? "Adding..." : "Add Customer"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Record Payment Collection Modal */}
+      {selectedPayCustomer && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <IndianRupee className="h-5 w-5 text-[#00aef0]" />
+                Collect Khata Payment
+              </h2>
+              <button onClick={() => setSelectedPayCustomer(null)} className="text-slate-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1 text-xs">
+              <span className="text-slate-400 block">Customer Name:</span>
+              <strong className="text-white text-sm font-extrabold block">
+                {selectedPayCustomer.displayName}
+              </strong>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-slate-400">Current Pending Udhar:</span>
+                <span className="text-amber-400 font-extrabold text-sm">
+                  ₹{Number(selectedPayCustomer.outstanding_balance || 0).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={handleRecordPayment} className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-300">Payment Collected Amount (₹) *</Label>
+                <Input
+                  required
+                  type="number"
+                  placeholder="Enter collected cash/UPI amount..."
+                  value={payAmount}
+                  onChange={(e) => setPayAmount(e.target.value)}
+                  className="bg-slate-950 border-slate-800 text-white rounded-xl h-10 text-xs font-bold text-base"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-300">Payment Collection Mode</Label>
+                <select
+                  value={payMode}
+                  onChange={(e) => setPayMode(e.target.value as any)}
+                  className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-10 px-3 text-xs font-bold"
+                >
+                  <option value="CASH">CASH Collection</option>
+                  <option value="UPI">UPI / GPay / PhonePe</option>
+                  <option value="BANK">Bank Transfer / Cheque</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-300">Notes / Remarks</Label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Partial cash payment received"
+                  value={payNotes}
+                  onChange={(e) => setPayNotes(e.target.value)}
+                  className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+                <Button type="button" variant="outline" onClick={() => setSelectedPayCustomer(null)} className="border-slate-800 text-slate-300 rounded-xl h-10">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl h-10 px-5">
+                  {saving ? "Saving..." : "Record Payment"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
