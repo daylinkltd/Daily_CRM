@@ -208,7 +208,7 @@ export async function PUT(request: Request) {
   if (product_status !== undefined) updateData.product_status = product_status;
   if (shelf_number !== undefined) updateData.shelf_number = shelf_number;
   if (bin_location !== undefined) updateData.bin_location = bin_location;
-  if (initial_stock !== undefined) updateData.initial_stock = Number(initial_stock || 0);
+  if (initial_stock !== undefined) updateData.opening_stock = Number(initial_stock || 0);
 
   const { data, error } = await supabase
     .from("commerce_products")

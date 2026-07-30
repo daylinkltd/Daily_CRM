@@ -29,6 +29,8 @@ export const INDUSTRY_TEMPLATES = [
   { id: "CHEMICAL_PAINT", label: "Chemicals & Paint Store", icon: "", desc: "Hazard Class, UN Number, Flash Point, Viscosity, Color Code, Safety Sheet (MSDS)." },
   { id: "AGRICULTURE", label: "Agriculture & Farming", icon: "", desc: "Seed Variety, Crop, Season, Fertilizer Grade, Pesticide Type, License #." },
   { id: "BABY_PRODUCTS", label: "Baby & Infant Products", icon: "", desc: "Age Group (Months), Material, Safety Standard, BPA Free, Non-Toxic." },
+  { id: "HANDCRAFTED_GIFTS", label: "Handcrafted & Handmade Gift Shop", icon: "", desc: "Artisan/Maker Name, Handcrafting Lead Days, Personalization Notes, Gift Box Type, Sustainable/Eco-Friendly." },
+  { id: "EVENT_BULK_GIFTS", label: "Wedding & Corporate Bulk Return Gifts", icon: "", desc: "Target Event (Wedding/Corporate), Minimum Order Qty (MOQ), Tiered Bulk Rates, Custom Branding Card, Sample Lead Time." },
 ];
 
 const DEFAULT_ACCOUNTS = [

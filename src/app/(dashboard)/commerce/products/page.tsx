@@ -195,6 +195,16 @@ export default function ProductsPage() {
   const [babyAgeGroup, setBabyAgeGroup] = useState("");
   const [isBpaFree] = useState(true);
 
+  // Handcrafted Gifts & Event Bulk Gifts Presets
+  const [artisanName, setArtisanName] = useState("");
+  const [craftingTimeDays, setCraftingTimeDays] = useState("3-5 Days");
+  const [customizationNotes, setCustomizationNotes] = useState("Name Engraving & Logo Print");
+  const [giftPackagingType, setGiftPackagingType] = useState("Handmade Wooden Box");
+  const [eventTypeTarget, setEventTypeTarget] = useState("Wedding Return Gift / Corporate Gifting");
+  const [minOrderQuantity, setMinOrderQuantity] = useState("50");
+  const [bulkTier1Price, setBulkTier1Price] = useState("");
+  const [bulkTier2Price, setBulkTier2Price] = useState("");
+
   // Interactive Ad-Hoc Custom Fields Builder
   const [customFields, setCustomFields] = useState<CustomFieldDef[]>([]);
   const [newFieldName, setNewFieldName] = useState("");
@@ -795,6 +805,108 @@ export default function ProductsPage() {
                       className="bg-slate-950 border-slate-800 text-white rounded-xl h-10"
                     />
                   </div>
+
+                  {/* DYNAMIC CARD: HANDCRAFTED GIFTS */}
+                  {activeTemplate === "HANDCRAFTED_GIFTS" && (
+                    <div className="space-y-2.5 bg-rose-500/10 p-3.5 rounded-2xl border border-rose-500/20 sm:col-span-2">
+                      <Label className="text-xs text-rose-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Gem className="h-4 w-4 text-rose-400" /> Handcrafted &amp; Handmade Gift Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Artisan / Craftsperson Name</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. Rajasthani Clay Guild / Jaipur Artisans"
+                            value={artisanName}
+                            onChange={(e) => setArtisanName(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Handcrafting Lead Time (Days)</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. 3-5 Days"
+                            value={craftingTimeDays}
+                            onChange={(e) => setCraftingTimeDays(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Gift Box &amp; Packaging Type</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. Handmade Wooden Box / Jute Potli"
+                            value={giftPackagingType}
+                            onChange={(e) => setGiftPackagingType(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Personalization / Custom Engraving Notes</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. Name Engraving, Custom Photo Print"
+                            value={customizationNotes}
+                            onChange={(e) => setCustomizationNotes(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DYNAMIC CARD: EVENT BULK GIFTS */}
+                  {activeTemplate === "EVENT_BULK_GIFTS" && (
+                    <div className="space-y-2.5 bg-amber-500/10 p-3.5 rounded-2xl border border-amber-500/20 sm:col-span-2">
+                      <Label className="text-xs text-amber-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                        <Sparkles className="h-4 w-4 text-amber-400" /> Wedding &amp; Corporate Bulk Return Gift Attributes
+                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Target Event Category</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. Wedding Return Gift / Corporate Gifting / Festival Hamper"
+                            value={eventTypeTarget}
+                            onChange={(e) => setEventTypeTarget(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Minimum Order Qty (MOQ)</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. 50 Pcs minimum"
+                            value={minOrderQuantity}
+                            onChange={(e) => setMinOrderQuantity(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Tiered Bulk Rates (50-200 pcs / 200+ pcs)</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. 50-200 pcs @ ₹180 / 200+ pcs @ ₹150"
+                            value={bulkTier1Price}
+                            onChange={(e) => setBulkTier1Price(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-slate-300">Custom Branding Tag &amp; Thank-You Card</Label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. Custom Event Logo Card Included"
+                            value={customizationNotes}
+                            onChange={(e) => setCustomizationNotes(e.target.value)}
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-9 text-xs mt-1"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* DYNAMIC CARD: GARMENTS & APPAREL ATTRIBUTES */}
                   {activeTemplate === "GARMENT" && (
