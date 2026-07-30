@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-[10px] border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-2",
   {
     variants: {
       variant: {
@@ -26,10 +26,10 @@ const buttonVariants = cva(
         xs: "h-6 px-2 text-xs gap-1 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-10 px-4 text-sm [&_svg:not([class*='size-'])]:size-4",
-        icon: "size-9 rounded-[10px] p-0",
-        "icon-xs": "size-6 rounded-[8px] p-0 [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8 rounded-[10px] p-0 [&_svg:not([class*='size-'])]:size-3.5",
-        "icon-lg": "size-10 rounded-[10px] p-0",
+        icon: "size-9 rounded-none p-0",
+        "icon-xs": "size-6 rounded-none p-0 [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-8 rounded-none p-0 [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-lg": "size-10 rounded-none p-0",
       },
     },
     defaultVariants: {

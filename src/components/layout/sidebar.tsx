@@ -378,7 +378,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                   title={isCollapsed ? `Module: ${activeModule}` : "Switch App Module"}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary/15 text-primary border border-primary/20">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-none bg-primary/15 text-primary border border-primary/20">
                       <ActiveGroupIcon className="h-3.5 w-3.5" />
                     </div>
                     {!isCollapsed && (
@@ -462,7 +462,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                 
                 {/* Collapsed Tooltip */}
                 {isCollapsed && (
-                  <span className="absolute left-14 scale-0 group-hover:scale-100 transition-all rounded bg-background text-foreground text-xs font-semibold px-2.5 py-1.5 shadow-md origin-left whitespace-nowrap z-50">
+                  <span className="absolute left-14 scale-0 group-hover:scale-100 transition-all rounded-none bg-background text-foreground text-xs font-semibold px-2.5 py-1.5 shadow-md origin-left whitespace-nowrap z-50">
                     {item.label}
                   </span>
                 )}

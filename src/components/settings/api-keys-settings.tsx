@@ -429,7 +429,7 @@ export function ApiKeysSettings() {
                           id={`scope-${scope}`}
                           checked={checked}
                           onChange={() => handleToggleScope(scope)}
-                          className="mt-1 size-4 rounded border-border text-primary bg-background focus:ring-primary focus:ring-offset-background"
+                          className="mt-1 size-4 rounded-none border-border text-primary bg-background focus:ring-primary focus:ring-offset-background"
                         />
                         <div className="min-w-0 flex-1">
                           <Label

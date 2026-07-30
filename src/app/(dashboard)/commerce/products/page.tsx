@@ -1022,7 +1022,7 @@ export default function ProductsPage() {
                               type="checkbox"
                               checked={isWaterproof}
                               onChange={(e) => setIsWaterproof(e.target.checked)}
-                              className="rounded border-border text-cyan-500"
+                              className="rounded-none border-border text-cyan-500"
                             />
                             Waterproof / All-Weather Footwear
                           </label>
@@ -1202,7 +1202,7 @@ export default function ProductsPage() {
                         </div>
                         <div className="flex items-end">
                           <label className="flex items-center gap-2 text-xs text-stone-300 cursor-pointer">
-                            <input type="checkbox" checked={isAssemblyRequired} onChange={(e) => setIsAssemblyRequired(e.target.checked)} className="rounded border-border" />
+                            <input type="checkbox" checked={isAssemblyRequired} onChange={(e) => setIsAssemblyRequired(e.target.checked)} className="rounded-none border-border" />
                             Assembly Required
                           </label>
                         </div>
@@ -1643,7 +1643,7 @@ export default function ProductsPage() {
                         type="checkbox"
                         checked={isTaxInclusive}
                         onChange={(e) => setIsTaxInclusive(e.target.checked)}
-                        className="rounded border-border text-[#00aef0]"
+                        className="rounded-none border-border text-[#00aef0]"
                       />
                       Selling Price is Tax Inclusive (GST Included)
                     </label>
@@ -1703,7 +1703,7 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={trackBatch}
                       onChange={(e) => setTrackBatch(e.target.checked)}
-                      className="rounded border-border text-[#00aef0]"
+                      className="rounded-none border-border text-[#00aef0]"
                     />
                     Enable Batch Number & Expiry Date Tracking (FEFO)
                   </label>
@@ -1712,7 +1712,7 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={trackSerial}
                       onChange={(e) => setTrackSerial(e.target.checked)}
-                      className="rounded border-border text-[#00aef0]"
+                      className="rounded-none border-border text-[#00aef0]"
                     />
                     Enable Serial Number / IMEI Tracking
                   </label>
@@ -1721,7 +1721,7 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={allowNegativeStock}
                       onChange={(e) => setAllowNegativeStock(e.target.checked)}
-                      className="rounded border-border text-[#00aef0]"
+                      className="rounded-none border-border text-[#00aef0]"
                     />
                     Allow Sales when Stock is Zero / Negative
                   </label>

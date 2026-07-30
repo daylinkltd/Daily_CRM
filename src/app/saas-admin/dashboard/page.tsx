@@ -1099,7 +1099,7 @@ function MetricCard({ icon, label, value, text, sub, accent, badge }: {
           </div>
           <h3 className="text-2xl font-extrabold mt-1 tracking-tight text-white">
             {value === null
-              ? (text || <div className="h-7 w-12 bg-muted animate-pulse rounded" />)
+              ? (text || <div className="h-7 w-12 bg-muted animate-pulse rounded-none" />)
               : value}
           </h3>
           <p className="text-[10px] text-muted-foreground mt-1">{sub}</p>

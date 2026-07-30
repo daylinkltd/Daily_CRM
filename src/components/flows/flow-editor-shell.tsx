@@ -158,7 +158,7 @@ function ToggleButton({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded px-2 py-1 transition-colors",
+        "inline-flex items-center gap-1.5 rounded-none px-2 py-1 transition-colors",
         active
           ? "bg-secondary text-secondary-foreground"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",

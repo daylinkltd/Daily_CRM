@@ -473,7 +473,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
               type="checkbox"
               checked={showRecommended}
               onChange={(e) => setShowRecommended(e.target.checked)}
-              className="rounded border-border text-primary focus:ring-primary size-4"
+              className="rounded-none border-border text-primary focus:ring-primary size-4"
             />
             Show &quot;Recommended&quot; Badges
           </label>
@@ -482,7 +482,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
               type="checkbox"
               checked={showDescriptions}
               onChange={(e) => setShowDescriptions(e.target.checked)}
-              className="rounded border-border text-primary focus:ring-primary size-4"
+              className="rounded-none border-border text-primary focus:ring-primary size-4"
             />
             Show Item Descriptions
           </label>
@@ -491,7 +491,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
               type="checkbox"
               checked={showCategories}
               onChange={(e) => setShowCategories(e.target.checked)}
-              className="rounded border-border text-primary focus:ring-primary size-4"
+              className="rounded-none border-border text-primary focus:ring-primary size-4"
             />
             Show Service Categories
           </label>
@@ -609,7 +609,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
                     {section.title}
                   </h4>
                   {showCategories && section.items[0]?.source === "catalog" && (
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded-none">
                       Catalog Solution
                     </span>
                   )}
@@ -627,12 +627,12 @@ export default function QuotationPreviewPage({ params }: PageProps) {
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-sm text-foreground">{item.name}</span>
                           {item.is_recommended && showRecommended && (
-                            <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                            <span className="inline-flex items-center rounded-none bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
                               Recommended
                             </span>
                           )}
                           {item.is_free && (
-                            <span className="inline-flex items-center rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 uppercase">
+                            <span className="inline-flex items-center rounded-none bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 uppercase">
                               Free
                             </span>
                           )}
@@ -723,7 +723,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
           {quote.notes_terms && (
             <div className="space-y-1">
               <h4 className="font-bold text-xs uppercase text-primary">Terms & Notes</h4>
-              <p className="text-muted-foreground font-mono leading-relaxed whitespace-pre-line bg-muted/10 p-3 rounded border border-border/40">
+              <p className="text-muted-foreground font-mono leading-relaxed whitespace-pre-line bg-muted/10 p-3 rounded-none border border-border/40">
                 {quote.notes_terms}
               </p>
             </div>

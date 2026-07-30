@@ -152,7 +152,7 @@ function FlowNodeCard({ data, selected }: NodeProps) {
           {meta.label}
         </span>
         {isEntry && (
-          <span className="ml-auto rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
+          <span className="ml-auto rounded-none bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-300">
             Entry
           </span>
         )}
@@ -171,7 +171,7 @@ function FlowNodeCard({ data, selected }: NodeProps) {
           {slots.map((slot) => (
             <div
               key={slot.id}
-              className="relative flex items-center justify-between gap-2 rounded px-1 py-0.5 text-[11px] text-muted-foreground"
+              className="relative flex items-center justify-between gap-2 rounded-none px-1 py-0.5 text-[11px] text-muted-foreground"
             >
               <span className="truncate" title={slot.label}>
                 {slot.label}
@@ -569,7 +569,7 @@ function NodeEditSheet({
             <Icon className={cn("h-4 w-4 shrink-0", meta.color)} />
             <span>{meta.label}</span>
             {isEntry && (
-              <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+              <span className="rounded-none bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
                 Entry
               </span>
             )}

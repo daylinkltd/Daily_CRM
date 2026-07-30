@@ -211,13 +211,13 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
   const getPriorityBadge = (priority?: string) => {
     switch (priority?.toLowerCase()) {
       case 'urgent':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-500/10 text-red-600 border border-red-200/50">Urgent</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[11px] font-medium bg-red-500/10 text-red-600 border border-red-200/50">Urgent</span>;
       case 'high':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/10 text-amber-600 border border-amber-200/50">High</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[11px] font-medium bg-amber-500/10 text-amber-600 border border-amber-200/50">High</span>;
       case 'medium':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-600 border border-blue-200/50">Medium</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[11px] font-medium bg-blue-500/10 text-blue-600 border border-blue-200/50">Medium</span>;
       default:
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-muted/10 text-muted-foreground border border-border/50">Low</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[11px] font-medium bg-muted/10 text-muted-foreground border border-border/50">Low</span>;
     }
   };
 
@@ -369,7 +369,7 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                                     <div
                                       role="button"
                                       tabIndex={0}
-                                      className="inline-flex items-center gap-1 h-6 px-2 rounded text-xs text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer select-none"
+                                      className="inline-flex items-center gap-1 h-6 px-2 rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer select-none"
                                     >
                                       <Plus className="size-3" />
                                       Add
@@ -455,7 +455,7 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                                           e.stopPropagation();
                                           toggleTask(t.id);
                                         }}
-                                        className="p-0.5 rounded hover:bg-muted text-muted-foreground"
+                                        className="p-0.5 rounded-none hover:bg-muted text-muted-foreground"
                                       >
                                         {isTaskExpanded ? (
                                           <ChevronDown className="size-3.5" />
@@ -468,7 +468,7 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                                       {t.title}
                                     </span>
                                     {hasSubtasks && (
-                                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded font-mono">
+                                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-none font-mono">
                                         {t.subtasks.length} subtasks
                                       </span>
                                     )}

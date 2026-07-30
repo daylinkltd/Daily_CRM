@@ -208,7 +208,7 @@ function MessageContent({ message }: { message: Message }) {
       // unreadable).
       return (
         <div>
-          <span className="mb-1 inline-flex items-center gap-1 rounded bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
+          <span className="mb-1 inline-flex items-center gap-1 rounded-none bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
             <LayoutTemplate className="h-3 w-3" />
             Template
           </span>

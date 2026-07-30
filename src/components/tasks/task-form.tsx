@@ -734,7 +734,7 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
                         {subtasks.map(st => (
                           <div key={st.id} className="p-3 flex items-center justify-between text-sm">
                             <span className={st.status === 'completed' ? 'line-through text-muted-foreground' : ''}>{st.title}</span>
-                            <span className="text-xs uppercase bg-muted px-2 py-0.5 rounded">{st.status.replace('_', ' ')}</span>
+                            <span className="text-xs uppercase bg-muted px-2 py-0.5 rounded-none">{st.status.replace('_', ' ')}</span>
                           </div>
                         ))}
                       </div>
@@ -742,7 +742,7 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
                       <p className="text-sm text-muted-foreground py-4">No subtasks found.</p>
                     )}
                     {/* Simplified subtask creation for UI (usually this opens the same modal with parentId, but for now we skip complex nested modals, or just add a hint) */}
-                    <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded text-center border border-dashed">
+                    <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-none text-center border border-dashed">
                       Save this task to create new subtasks, or create them from the board.
                     </div>
                   </>

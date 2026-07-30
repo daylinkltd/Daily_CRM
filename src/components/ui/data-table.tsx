@@ -65,7 +65,7 @@ export function DataTable<T>({
             <TableRow key={i}>
               {columns.map((col) => (
                 <TableCell key={col.key} className={col.className}>
-                  <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+                  <div className="h-4 w-24 animate-pulse rounded-none bg-muted" />
                 </TableCell>
               ))}
             </TableRow>

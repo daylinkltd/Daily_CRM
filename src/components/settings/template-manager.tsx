@@ -731,7 +731,7 @@ export function TemplateManager() {
                       </p>
                     )}
                     {(template.rejection_reason || template.submission_error) && (
-                      <div className="flex items-start gap-1.5 text-xs text-red-400 bg-red-950/20 border border-red-900/40 rounded px-2 py-1.5">
+                      <div className="flex items-start gap-1.5 text-xs text-red-400 bg-red-950/20 border border-red-900/40 rounded-none px-2 py-1.5">
                         <AlertCircle className="size-3.5 mt-0.5 shrink-0" />
                         <span>
                           {template.rejection_reason || template.submission_error}
@@ -820,7 +820,7 @@ export function TemplateManager() {
           </DialogHeader>
 
           {form.category === 'Authentication' && (
-            <div className="flex items-start gap-2 rounded border border-amber-700/40 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+            <div className="flex items-start gap-2 rounded-none border border-amber-700/40 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
               <AlertCircle className="size-4 mt-0.5 shrink-0" />
               <p>
                 AUTHENTICATION templates have a fixed body + OTP button shape
@@ -1115,7 +1115,7 @@ export function TemplateManager() {
                   {form.buttons.map((btn, i) => (
                     <div
                       key={i}
-                      className="space-y-2 rounded border border-border bg-muted/50 p-2"
+                      className="space-y-2 rounded-none border border-border bg-muted/50 p-2"
                     >
                       <div className="flex items-center gap-2">
                         <Select

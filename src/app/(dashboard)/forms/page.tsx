@@ -302,7 +302,7 @@ export default function FormsPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => copyShareLink(form.id)}
-                    className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted transition-colors"
+                    className="text-muted-foreground hover:text-foreground p-1 rounded-none hover:bg-muted transition-colors"
                     title="Copy Public Link"
                   >
                     {copiedId === form.id ? (

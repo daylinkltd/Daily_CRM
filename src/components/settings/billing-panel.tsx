@@ -220,7 +220,7 @@ export function BillingPanel() {
               </span>
             </div>
             {msgPercent >= 80 && (
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${msgPercent >= 100 ? "bg-red-500/15 text-red-500" : "bg-amber-500/15 text-amber-500"}`}>
+              <span className={`px-2 py-0.5 rounded-none text-[10px] font-bold ${msgPercent >= 100 ? "bg-red-500/15 text-red-500" : "bg-amber-500/15 text-amber-500"}`}>
                 {msgPercent >= 100 ? "Limit Reached" : "80% Warning"}
               </span>
             )}
@@ -248,7 +248,7 @@ export function BillingPanel() {
               </span>
             </div>
             {membersPercent >= 100 && maxMembers !== 999999 && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500">
+              <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-amber-500/15 text-amber-500">
                 Max Users
               </span>
             )}
@@ -274,7 +274,7 @@ export function BillingPanel() {
               </span>
             </div>
             {workspacesPercent >= 100 && maxWorkspaces !== 999999 && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500">
+              <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-amber-500/15 text-amber-500">
                 Limit Reached
               </span>
             )}

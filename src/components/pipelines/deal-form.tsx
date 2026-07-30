@@ -698,7 +698,7 @@ export function DealForm({
                       type="button"
                       onClick={() => setConfirmDelete(false)}
                       disabled={deleting}
-                      className="rounded px-2 py-1 text-foreground hover:bg-muted"
+                      className="rounded-none px-2 py-1 text-foreground hover:bg-muted"
                     >
                       Cancel
                     </button>
@@ -706,7 +706,7 @@ export function DealForm({
                       type="button"
                       onClick={handleDelete}
                       disabled={deleting}
-                      className="rounded bg-red-600 px-2 py-1 font-medium text-foreground hover:bg-red-700 disabled:opacity-50"
+                      className="rounded-none bg-red-600 px-2 py-1 font-medium text-foreground hover:bg-red-700 disabled:opacity-50"
                     >
                       {deleting ? "Deleting..." : "Confirm"}
                     </button>

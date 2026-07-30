@@ -150,7 +150,7 @@ export function NodeConfigForm({
             />
             <p className="mt-1 text-[10px] text-muted-foreground">
               Interpolate in downstream prompts and handoff notes with{" "}
-              <code className="rounded bg-muted px-1">
+              <code className="rounded-none bg-muted px-1">
                 {"{{vars."}
                 {(cfg as { var_key?: string }).var_key || "name"}
                 {"}}"}
@@ -974,7 +974,7 @@ function SendMediaForm({
             <button
               type="button"
               onClick={handleClear}
-              className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="rounded-none p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Remove file"
               disabled={uploading}
             >

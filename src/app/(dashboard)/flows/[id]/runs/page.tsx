@@ -250,7 +250,7 @@ function RunCard({
               {meta.label}
             </Badge>
             {run.status === "active" && run.current_node_key && (
-              <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+              <code className="rounded-none bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
                 at {run.current_node_key}
               </code>
             )}
@@ -314,7 +314,7 @@ function EventLine({ ev }: { ev: EventRow }) {
         {ev.event_type}
       </span>
       {ev.node_key && (
-        <code className="shrink-0 rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">
+        <code className="shrink-0 rounded-none bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">
           {ev.node_key}
         </code>
       )}

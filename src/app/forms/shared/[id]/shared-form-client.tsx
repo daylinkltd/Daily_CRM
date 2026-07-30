@@ -273,7 +273,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                       type="checkbox"
                       checked={!!values[field.id]}
                       onChange={(e) => handleInputChange(field.id, e.target.checked)}
-                      className="size-4 rounded border-border bg-muted/40 text-primary focus:ring-primary/20"
+                      className="size-4 rounded-none border-border bg-muted/40 text-primary focus:ring-primary/20"
                     />
                     <label htmlFor={field.id} className="text-sm text-muted-foreground select-none">
                       {field.placeholder || 'Please check this box'}
@@ -323,7 +323,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                         <button
                           type="button"
                           onClick={() => handleRemoveFile(field.id)}
-                          className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-white transition-colors"
+                          className="p-1 rounded-none hover:bg-muted text-muted-foreground hover:text-white transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>

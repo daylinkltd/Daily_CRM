@@ -210,7 +210,7 @@ export default function DashboardPage() {
       {/* items-stretch (the grid default) stretches the two columns to
           match the tallest sibling; adding h-full on each wrapper and
           on the inner panels makes both cards actually fill that
-          stretched height so their rounded borders line up. Without
+          stretched height so their borders line up. Without
           this, the pipeline card rendered at its natural (shorter)
           height while the line chart drove the row height. */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">

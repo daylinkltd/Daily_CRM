@@ -105,11 +105,11 @@ export function ProductCombobox({
                       <span className="truncate text-foreground">{p.name}</span>
                     </div>
                     <div className="text-[11px] text-foreground flex items-center gap-2 flex-wrap">
-                      <span className="font-mono bg-card px-1.5 py-0.5 rounded text-foreground border border-border">
+                      <span className="font-mono bg-card px-1.5 py-0.5 rounded-none text-foreground border border-border">
                         SKU: {p.sku}
                       </span>
                       {p.barcode && (
-                        <span className="text-[#00aef0] font-mono flex items-center gap-1 bg-[#00aef0]/10 px-1.5 py-0.5 rounded border border-[#00aef0]/20">
+                        <span className="text-[#00aef0] font-mono flex items-center gap-1 bg-[#00aef0]/10 px-1.5 py-0.5 rounded-none border border-[#00aef0]/20">
                           <Barcode className="h-3 w-3" /> {p.barcode}
                         </span>
                       )}

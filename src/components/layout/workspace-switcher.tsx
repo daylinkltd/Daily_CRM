@@ -82,8 +82,8 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
     return (
       <div className={cn("flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 text-muted-foreground", hideText ? "px-1.5 py-1.5" : "")}>
         <div className="flex items-center gap-2">
-          <div className="h-5 w-5 animate-pulse rounded bg-muted" />
-          {!hideText && <div className="h-4 w-24 animate-pulse rounded bg-muted" />}
+          <div className="h-5 w-5 animate-pulse rounded-none bg-muted" />
+          {!hideText && <div className="h-4 w-24 animate-pulse rounded-none bg-muted" />}
         </div>
       </div>
     );
@@ -101,7 +101,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
           )}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-muted text-muted-foreground">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none bg-muted text-muted-foreground">
               <Plus className="h-4 w-4" />
             </div>
             {!hideText && <span className="truncate text-xs font-semibold">Create Workspace</span>}
@@ -202,7 +202,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 {activeWorkspace.logo_url ? (
-                  <div className={cn("h-7 w-7 shrink-0 rounded overflow-hidden relative border", switcherLogoBorder)}>
+                  <div className={cn("h-7 w-7 shrink-0 rounded-none overflow-hidden relative border", switcherLogoBorder)}>
                     <Image
                       src={activeWorkspace.logo_url}
                       alt={activeWorkspace.name}
@@ -211,7 +211,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     />
                   </div>
                 ) : (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none bg-primary/10 text-primary">
                     <Building2 className="h-4 w-4" />
                   </div>
                 )}
@@ -250,7 +250,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     {workspace.logo_url ? (
-                      <div className="h-5 w-5 shrink-0 rounded overflow-hidden relative border border-border bg-muted">
+                      <div className="h-5 w-5 shrink-0 rounded-none overflow-hidden relative border border-border bg-muted">
                         <Image
                           src={workspace.logo_url}
                           alt={workspace.name}
@@ -259,7 +259,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                         />
                       </div>
                     ) : (
-                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-none bg-primary/10 text-primary">
                         <Building2 className="h-3.5 w-3.5" />
                       </div>
                     )}

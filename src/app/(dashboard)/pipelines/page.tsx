@@ -296,7 +296,7 @@ export default function PipelinesPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+          <div className="h-8 w-48 animate-pulse rounded-none bg-muted" />
           <div className="h-9 w-28 animate-pulse rounded-lg bg-muted" />
         </div>
         <div className="flex gap-3">

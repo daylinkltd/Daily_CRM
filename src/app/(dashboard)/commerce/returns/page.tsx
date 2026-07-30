@@ -346,7 +346,7 @@ export default function ReturnsPage() {
                     id="restockCheck"
                     checked={restockInventory}
                     onChange={(e) => setRestockInventory(e.target.checked)}
-                    className="rounded bg-card border-border text-[#00aef0]"
+                    className="rounded-none bg-card border-border text-[#00aef0]"
                   />
                   <Label htmlFor="restockCheck" className="text-xs text-foreground cursor-pointer">
                     Restock returned item into active Inventory stock

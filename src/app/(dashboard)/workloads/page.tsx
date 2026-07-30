@@ -230,7 +230,7 @@ export default function WorkloadsPage() {
                   ) : (
                     <div className="space-y-3">
                       {member.tasks.map((t: any) => (
-                        <div key={t.id} className="flex items-center justify-between text-sm bg-background border p-2 rounded shadow-sm">
+                        <div key={t.id} className="flex items-center justify-between text-sm bg-background border p-2 rounded-none shadow-sm">
                           <div className="flex flex-col">
                             <span className="font-medium">{t.title}</span>
                             <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">

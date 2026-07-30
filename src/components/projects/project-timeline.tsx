@@ -308,7 +308,7 @@ export function ProjectTimeline({ projectId }: ProjectTimelineProps) {
                 {expandedEpics[group.id] && group.tasks.map(t => (
                   <div key={`grid-task-${t.id}`} className="h-10 relative group border-b border-border/40 hover:bg-muted/20">
                     <div 
-                      className="absolute top-1.5 h-7 bg-primary text-primary-foreground text-xs rounded shadow-sm px-2 flex items-center overflow-hidden whitespace-nowrap cursor-pointer hover:brightness-110 transition-all z-10 font-medium"
+                      className="absolute top-1.5 h-7 bg-primary text-primary-foreground text-xs rounded-none shadow-sm px-2 flex items-center overflow-hidden whitespace-nowrap cursor-pointer hover:brightness-110 transition-all z-10 font-medium"
                       style={getTaskStyle(t.start_date, t.due_date)}
                       title={`${t.title} (${format(parseISO(t.start_date), 'MMM d')} - ${format(parseISO(t.due_date), 'MMM d')})`}
                     >

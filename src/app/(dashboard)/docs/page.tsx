@@ -14,7 +14,7 @@ const BASE_URL = 'https://dailycrm.cloud';
 
 function Code({ children }: { children: React.ReactNode }) {
   return (
-    <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
+    <code className="rounded-none bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
       {children}
     </code>
   );

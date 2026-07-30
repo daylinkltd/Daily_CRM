@@ -71,7 +71,7 @@ export function TaskTimeLogs({ taskId }: TaskTimeLogsProps) {
               </div>
               <div className="text-right flex flex-col items-end">
                 <span className="font-medium">{log.duration} hrs</span>
-                {log.billable && <span className="text-[10px] uppercase bg-primary/10 text-primary px-1.5 py-0.5 rounded">Billable</span>}
+                {log.billable && <span className="text-[10px] uppercase bg-primary/10 text-primary px-1.5 py-0.5 rounded-none">Billable</span>}
               </div>
             </div>
           );

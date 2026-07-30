@@ -36,7 +36,7 @@ export default async function PortalPage({ params }: { params: Promise<{ token: 
       {/* Portal Header */}
       <header className="bg-card border-b h-16 flex items-center px-6 justify-between sticky top-0 z-50">
         <div className="flex items-center gap-4">
-          <div className="size-8 bg-primary/10 text-primary rounded flex items-center justify-center font-bold">
+          <div className="size-8 bg-primary/10 text-primary rounded-none flex items-center justify-center font-bold">
             {workspaceName?.charAt(0) || 'W'}
           </div>
           <div>

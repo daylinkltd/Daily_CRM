@@ -417,7 +417,7 @@ function NodeCard({
             <span className="truncate text-sm font-medium text-foreground">
               {meta.label}
             </span>
-            <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            <code className="rounded-none bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
               {node.node_key}
             </code>
             {isEntry && (

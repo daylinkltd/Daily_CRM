@@ -418,7 +418,7 @@ function POSTerminalPageContent() {
                       ₹{Number(product.selling_price).toFixed(2)}
                     </span>
                   </div>
-                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-mono">
+                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-none font-mono">
                     {product.base_unit || "PCS"}
                   </span>
                 </div>
@@ -480,7 +480,7 @@ function POSTerminalPageContent() {
                         setSelectedItemForSerial(item);
                         setShowSerialModal(true);
                       }}
-                      className="p-1 text-muted-foreground hover:text-foreground text-[10px] font-mono bg-card border border-border rounded"
+                      className="p-1 text-muted-foreground hover:text-foreground text-[10px] font-mono bg-card border border-border rounded-none"
                     >
                       +S/N
                     </button>

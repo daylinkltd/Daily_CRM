@@ -420,7 +420,7 @@ export default function AttendancePage() {
                       {req.workspace_members?.profiles?.full_name || 'Employee'}
                     </TableCell>
                     <TableCell>
-                      <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-muted text-[#00aef0]">
+                      <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-none bg-muted text-[#00aef0]">
                         {req.request_type}
                       </span>
                     </TableCell>

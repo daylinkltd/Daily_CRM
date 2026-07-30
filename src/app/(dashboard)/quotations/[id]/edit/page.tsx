@@ -1126,7 +1126,7 @@ function SortableLineItemRow({
               type="checkbox"
               checked={item.is_recommended}
               onChange={(e) => onUpdate(secId, item.id, "is_recommended", e.target.checked)}
-              className="rounded border-border bg-muted text-primary focus:ring-primary size-3.5"
+              className="rounded-none border-border bg-muted text-primary focus:ring-primary size-3.5"
             />
             Recommended badge
           </label>
@@ -1136,7 +1136,7 @@ function SortableLineItemRow({
               type="checkbox"
               checked={item.is_free}
               onChange={(e) => onUpdate(secId, item.id, "is_free", e.target.checked)}
-              className="rounded border-border bg-muted text-primary focus:ring-primary size-3.5"
+              className="rounded-none border-border bg-muted text-primary focus:ring-primary size-3.5"
             />
             Mark as Free
           </label>

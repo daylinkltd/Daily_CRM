@@ -5,7 +5,9 @@
  * /broadcasts/page.tsx and /broadcasts/[id]/page.tsx with slight
  * drift risk. One source of truth now.
  *
- * Dark-theme only — bg-*-500/10 + text-*-400 + border-*-500/20.
+ * Dark-theme only. Every variant is a triple: a background at /10,
+ * a text colour, and a border at /20 — written either as a palette
+ * step, an arbitrary hex, or a semantic design token.
  */
 
 import type { BroadcastStatus, RecipientStatus } from "@/types";

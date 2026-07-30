@@ -79,7 +79,7 @@ export default function PlanningPage() {
                     <SelectItem key={p.id} value={p.id} label={p.name}>
                       <div className="flex items-center justify-between w-full gap-2">
                         <span>{p.name}</span>
-                        <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                        <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded-none bg-muted text-muted-foreground">
                           {p.project_type || 'SCRUM'}
                         </span>
                       </div>

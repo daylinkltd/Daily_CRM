@@ -33,7 +33,7 @@ function DroppableSprint({ sprint, tasks, onStartSprint }: { sprint: any, tasks:
           <span className="bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded-full">{tasks.length}</span>
         </h4>
         <div className="flex items-center gap-2">
-          <span className="text-xs uppercase px-2 py-1 bg-muted rounded text-muted-foreground">{sprint.status}</span>
+          <span className="text-xs uppercase px-2 py-1 bg-muted rounded-none text-muted-foreground">{sprint.status}</span>
           {sprint.status === 'planning' && (
             <Button size="sm" variant="outline" className="h-7 text-xs" onClick={onStartSprint}>Start Sprint</Button>
           )}
@@ -41,7 +41,7 @@ function DroppableSprint({ sprint, tasks, onStartSprint }: { sprint: any, tasks:
       </div>
       <div ref={setNodeRef} className="p-3 min-h-[100px] flex flex-col gap-2">
         {tasks.length === 0 ? (
-          <div className="text-xs text-muted-foreground text-center py-6 border-2 border-dashed border-transparent rounded">
+          <div className="text-xs text-muted-foreground text-center py-6 border-2 border-dashed border-transparent rounded-none">
             Drag tasks here
           </div>
         ) : (
@@ -61,7 +61,7 @@ function DroppableBacklog({ tasks }: { tasks: any[] }) {
     <div className={`w-full md:w-1/3 border rounded-lg p-4 transition-colors flex flex-col ${isOver ? 'border-primary/50 bg-primary/5' : 'border-border bg-muted/30'}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-foreground">Backlog</h3>
-        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">{tasks.length} issues</span>
+        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-none">{tasks.length} issues</span>
       </div>
       <div ref={setNodeRef} className="flex-1 space-y-2 min-h-[200px]">
         {tasks.length === 0 ? (

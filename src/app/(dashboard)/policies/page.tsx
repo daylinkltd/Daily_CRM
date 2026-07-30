@@ -232,7 +232,7 @@ export default function PoliciesDashboardPage() {
 
                 <CardContent className="pt-0 space-y-4">
                   {p.linked_module && p.linked_module !== 'NONE' && (
-                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/30 px-2.5 py-1 rounded border border-border">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/30 px-2.5 py-1 rounded-none border border-border">
                       <Layers className="size-3.5 text-primary" />
                       <span>Linked Setting: <strong className="text-foreground">{p.linked_module}</strong></span>
                     </div>

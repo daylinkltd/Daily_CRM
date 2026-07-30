@@ -41,7 +41,7 @@ export function MetricCard({
 
       <div className="mt-3 flex flex-col gap-1">
         {loading ? (
-          <div className="h-8 w-24 animate-pulse rounded bg-muted" />
+          <div className="h-8 w-24 animate-pulse rounded-none bg-muted" />
         ) : (
           <div className="text-4xl font-bold tracking-tight text-foreground">
             {value}

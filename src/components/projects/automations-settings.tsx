@@ -159,7 +159,7 @@ export function AutomationsSettings({ projectId }: AutomationsSettingsProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 p-3 border border-border/50 rounded bg-card">
+              <div className="space-y-2 p-3 border border-border/50 rounded-none bg-card">
                 <Label className="text-xs uppercase text-muted-foreground font-bold tracking-wider">WHEN</Label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm whitespace-nowrap">Task moves to</span>
@@ -174,7 +174,7 @@ export function AutomationsSettings({ projectId }: AutomationsSettingsProps) {
                 </div>
               </div>
 
-              <div className="space-y-2 p-3 border border-border/50 rounded bg-card">
+              <div className="space-y-2 p-3 border border-border/50 rounded-none bg-card">
                 <Label className="text-xs uppercase text-muted-foreground font-bold tracking-wider">THEN</Label>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-sm">Do</span>
@@ -248,7 +248,7 @@ export function AutomationsSettings({ projectId }: AutomationsSettingsProps) {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <h4 className="font-medium text-sm">{rule.name}</h4>
-                  {!rule.is_active && <span className="text-[10px] uppercase bg-muted text-muted-foreground px-1.5 py-0.5 rounded">Disabled</span>}
+                  {!rule.is_active && <span className="text-[10px] uppercase bg-muted text-muted-foreground px-1.5 py-0.5 rounded-none">Disabled</span>}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>When Status is <strong className="text-foreground">{targetStatus?.name || 'Unknown'}</strong></span>

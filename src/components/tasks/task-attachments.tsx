@@ -158,7 +158,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
             return (
               <div key={file.id} className="flex items-center justify-between p-2.5 rounded-md border border-border bg-card">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="size-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                  <div className="size-8 rounded-none bg-primary/10 flex items-center justify-center shrink-0">
                     <File className="size-4 text-primary" />
                   </div>
                   <div className="flex flex-col overflow-hidden">

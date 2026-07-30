@@ -85,7 +85,7 @@ export function ComplianceBanner() {
         </Button>
         <button
           onClick={() => setDismissed(true)}
-          className="p-1 hover:bg-amber-500/20 rounded text-amber-700 dark:text-amber-300"
+          className="p-1 hover:bg-amber-500/20 rounded-none text-amber-700 dark:text-amber-300"
           title="Dismiss notification"
         >
           <X className="size-4" />

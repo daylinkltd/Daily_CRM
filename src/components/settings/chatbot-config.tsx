@@ -334,7 +334,7 @@ export function ChatbotConfig() {
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Left blank? The chatbot will attempt to fall back to the CRM&apos;s system-wide{" "}
-                <code className="text-muted-foreground bg-background px-1 py-0.5 rounded text-[10px]">
+                <code className="text-muted-foreground bg-background px-1 py-0.5 rounded-none text-[10px]">
                   {provider === "grok"
                     ? "XAI_API_KEY"
                     : provider === "groq"

@@ -570,10 +570,10 @@ export default function FormBuilderPage({
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-muted rounded text-foreground uppercase">
+                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-muted rounded-none text-foreground uppercase">
                                   {field.field_type}
                                 </span>
-                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-muted rounded text-muted-foreground flex items-center gap-1">
+                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-muted rounded-none text-muted-foreground flex items-center gap-1">
                                   <Database className="size-2.5" />
                                   {mappingBadge}
                                 </span>
@@ -991,7 +991,7 @@ export default function FormBuilderPage({
                         </td>
                         <td className="p-4 whitespace-nowrap">
                           {sub.deals ? (
-                            <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            <span className="px-2 py-0.5 rounded-none bg-blue-500/10 text-blue-400 border border-blue-500/20">
                               {sub.deals.title}
                             </span>
                           ) : (

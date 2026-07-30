@@ -95,7 +95,7 @@ export function MessengerConfig() {
               <li>Create a Meta App.</li>
               <li>Add the Messenger Product.</li>
               <li>Generate a Page Access Token.</li>
-              <li>Subscribe to Webhooks using: <code className="block mt-1 bg-muted p-2 rounded">{webhookUrl}</code></li>
+              <li>Subscribe to Webhooks using: <code className="block mt-1 bg-muted p-2 rounded-none">{webhookUrl}</code></li>
             </ol>
           </CardContent>
         </Card>

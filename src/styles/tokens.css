@@ -17,16 +17,22 @@
   --card-padding-compact: 16px;
   --card-padding-large: 24px;
 
-  /* Radius System */
-  --radius-card: 12px;
-  --radius-control: 10px;
-  --radius: 10px;           /* Cards, Inputs, Buttons, Tables, Dropdowns */
-  --radius-button: 10px;
-  --radius-input: 10px;
-  --radius-table: 12px;
-  --radius-dropdown: 10px;
-  --radius-modal: 12px;     /* Modals */
-  --radius-full: 9999px;    /* Avatars & Pills */
+  /* Radius System — squared by design.
+     Every box corner is 0. `--radius` drives the whole Tailwind
+     radius scale (rounded-sm…rounded-4xl) via the `@theme inline`
+     block in globals.css, so zeroing it here squares every utility
+     class in the app without touching component files.
+     `--radius-full` is deliberately untouched: avatars, status dots,
+     spinners and toggle knobs stay circular. */
+  --radius-card: 0;
+  --radius-control: 0;
+  --radius: 0;              /* Cards, Inputs, Buttons, Tables, Dropdowns */
+  --radius-button: 0;
+  --radius-input: 0;
+  --radius-table: 0;
+  --radius-dropdown: 0;
+  --radius-modal: 0;        /* Modals */
+  --radius-full: 9999px;    /* Avatars & Pills — intentionally round */
 
   /* Heights */
   --height-control: 36px;

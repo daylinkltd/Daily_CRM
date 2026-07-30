@@ -26,10 +26,14 @@ describe("getBroadcastStatus", () => {
   });
 
   it("each variant has the dark-theme class triple", () => {
+    // A colour is a palette step (blue-500), an arbitrary hex
+    // (\[#00aef0\]) or a semantic design token (muted, border,
+    // muted-foreground). All three are in use.
+    const COLOR = String.raw`(?:[a-z]+-\d+|\[#[0-9a-fA-F]{3,8}\]|[a-z]+(?:-[a-z]+)*)`;
     for (const v of Object.values(broadcastStatusConfig)) {
-      expect(v.classes).toMatch(/bg-(?:[a-z]+-\d+|\[#[0-9a-fA-F]+\])\/10/);
-      expect(v.classes).toMatch(/text-(?:[a-z]+-\d+|\[#[0-9a-fA-F]+\])/);
-      expect(v.classes).toMatch(/border-(?:[a-z]+-\d+|\[#[0-9a-fA-F]+\])\/20/);
+      expect(v.classes).toMatch(new RegExp(String.raw`bg-${COLOR}/10`));
+      expect(v.classes).toMatch(new RegExp(String.raw`text-${COLOR}`));
+      expect(v.classes).toMatch(new RegExp(String.raw`border-${COLOR}/20`));
     }
   });
 });
