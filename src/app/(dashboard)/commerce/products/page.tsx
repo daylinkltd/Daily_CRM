@@ -5,9 +5,10 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Package, Plus, Search, Barcode, Tag, RefreshCw, Printer, X, ShieldCheck, Banknote, Warehouse, Sliders, Sparkles, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2 } from "lucide-react";
+import { Package, Plus, Search, Barcode, Tag, RefreshCw, Printer, X, ShieldCheck, Banknote, Warehouse, Sliders, Sparkles, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2, Eye, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { BarcodeTagModal } from "@/components/commerce/barcode-tag-modal";
+import { ProductDetailsModal } from "@/components/commerce/product-details-modal";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
 import Link from "next/link";
 
@@ -31,6 +32,13 @@ export default function ProductsPage() {
   // Barcode Tag Modal state
   const [showTagModal, setShowTagModal] = useState(false);
   const [selectedBarcodeProduct, setSelectedBarcodeProduct] = useState<any | null>(null);
+
+  // View Details Modal state
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedViewProduct, setSelectedViewProduct] = useState<any | null>(null);
+
+  // Edit Product state
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
   // Core Form State
   const [name, setName] = useState("");
@@ -86,7 +94,7 @@ export default function ProductsPage() {
   const [countryOfOrigin] = useState("India");
 
   // Pharmacy
-  const [saltComposition] = useState("");
+  const [saltComposition, setSaltComposition] = useState("");
   const [medicineType] = useState("TABLET");
   const [dosageForm] = useState("");
   const [strength] = useState("");
@@ -341,6 +349,86 @@ export default function ProductsPage() {
     fetchProducts();
   }, [activeWorkspace?.id, query]);
 
+  const handleResetForm = () => {
+    setEditingProduct(null);
+    setName("");
+    setSku(`SKU-${Date.now().toString().slice(-5)}`);
+    setBarcode(`890${Date.now().toString().slice(-10)}`);
+    setAliasName("");
+    setManufacturer("");
+    setPurchasePrice("");
+    setSellingPrice("");
+    setWholesaleRate("");
+    setMrp("");
+    setHsnSacCode("6203");
+    setTaxRate("5");
+    setIsTaxInclusive(true);
+    setInitialStock("0");
+    setReorderLevel("10");
+    setShelfNumber("");
+    setBinLocation("");
+    setAllowNegativeStock(false);
+    setTrackBatch(false);
+    setTrackSerial(false);
+    setTrackExpiry(false);
+    setApparelSize("");
+    setApparelColor("");
+    setApparelFabric("");
+    setApparelFit("");
+    setPackSize("");
+    setModelNumber("");
+    setKaratPurity("22K");
+    setOemPartNumber("");
+    setCustomFields([]);
+  };
+
+  const handleOpenEditModal = (prod: any) => {
+    setEditingProduct(prod);
+    setName(prod.name || "");
+    setSku(prod.sku || "");
+    setBarcode(prod.barcode || "");
+    setAliasName(prod.alias_name || "");
+    setManufacturer(prod.manufacturer_name || "");
+    setBaseUnit(prod.base_unit || "PCS");
+    setPurchaseUnit(prod.purchase_unit || "BOX");
+    setConversionFactor(String(prod.unit_conversion_factor || 1));
+    setPurchasePrice(prod.purchase_price !== undefined ? String(prod.purchase_price) : "");
+    setSellingPrice(prod.selling_price !== undefined ? String(prod.selling_price) : "");
+    setWholesaleRate(prod.wholesale_rate !== undefined ? String(prod.wholesale_rate) : "");
+    setMrp(prod.mrp !== undefined ? String(prod.mrp) : "");
+    setHsnSacCode(prod.hsn_sac_code || "6203");
+    setTaxRate(prod.tax_rate !== undefined ? String(prod.tax_rate) : "5");
+    setIsTaxInclusive(prod.is_tax_inclusive ?? true);
+    setInitialStock(prod.initial_stock !== undefined ? String(prod.initial_stock) : "0");
+    setReorderLevel(prod.reorder_level !== undefined ? String(prod.reorder_level) : "10");
+    setShelfNumber(prod.shelf_number || "");
+    setBinLocation(prod.bin_location || "");
+    setAllowNegativeStock(!!prod.allow_negative_stock);
+    setTrackBatch(!!prod.track_batch);
+    setTrackSerial(!!prod.track_serial);
+    setTrackExpiry(!!prod.track_expiry);
+
+    const attrs = prod.attributes || {};
+    if (attrs.apparel_size) setApparelSize(attrs.apparel_size);
+    if (attrs.apparel_color) setApparelColor(attrs.apparel_color);
+    if (attrs.apparel_fabric) setApparelFabric(attrs.apparel_fabric);
+    if (attrs.apparel_fit) setApparelFit(attrs.apparel_fit);
+    if (attrs.salt_composition) setSaltComposition(attrs.salt_composition);
+    if (attrs.oem_part_number) setOemPartNumber(attrs.oem_part_number);
+
+    const customUser = attrs.custom_user_fields || {};
+    const parsedCustoms: CustomFieldDef[] = Object.entries(customUser).map(([k, v], i) => ({
+      id: `${Date.now()}-${i}`,
+      name: k,
+      type: "TEXT",
+      value: v,
+    }));
+    setCustomFields(parsedCustoms);
+
+    setActiveTab("BASIC");
+    setShowAddModal(true);
+  };
+
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWorkspace?.id || !name || !sku) {
@@ -357,10 +445,12 @@ export default function ProductsPage() {
         }
       });
 
+      const isEdit = !!editingProduct;
       const res = await fetch("/api/commerce/products", {
-        method: "POST",
+        method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: isEdit ? editingProduct.id : undefined,
           workspace_id: activeWorkspace.id,
           name,
           sku,
@@ -400,121 +490,29 @@ export default function ProductsPage() {
           track_expiry: trackExpiry,
           attributes: {
             industry_template: activeTemplate,
-            // Grocery
             pack_size: packSize || undefined,
-            net_weight: netWeight || undefined,
-            gross_weight: grossWeight || undefined,
-            storage_condition: storageCondition || undefined,
-            best_before_date: bestBeforeDate || undefined,
-            is_organic: isOrganic,
-            is_frozen: isFrozen,
-            country_of_origin: countryOfOrigin || undefined,
-            // Pharmacy
-            salt_composition: saltComposition || undefined,
-            medicine_type: medicineType,
-            dosage_form: dosageForm || undefined,
-            strength: strength || undefined,
-            mfg_license: mfgLicense || undefined,
-            is_schedule_drug: isScheduleDrug,
-            is_controlled_drug: isControlledDrug,
-            expiry_alert_days: expiryAlertDays,
-            // Garments & Footwear
             apparel_size: apparelSize || undefined,
             apparel_color: apparelColor || undefined,
             apparel_fabric: apparelFabric || undefined,
             apparel_fit: apparelFit || undefined,
-            gender_target: genderTarget,
-            season_code: seasonCode || undefined,
-            sleeve_type: sleeveType || undefined,
-            neck_type: neckType || undefined,
-            pattern: pattern || undefined,
-            style_code: styleCode || undefined,
-            heel_height: heelHeight || undefined,
-            sole_material: soleMaterial || undefined,
-            closure_type: closureType || undefined,
-            is_waterproof: isWaterproof,
-            // Electronics
-            model_number: modelNumber || undefined,
-            warranty_months: warrantyMonths || undefined,
-            processor: processor || undefined,
-            ram_size: ramSize || undefined,
-            storage_capacity: storageCapacity || undefined,
-            display_size: displaySize || undefined,
-            battery_capacity: batteryCapacity || undefined,
-            // Jewellery
-            karat_purity: karatPurity || undefined,
-            gross_weight_grams: grossWeightGrams || undefined,
-            net_weight_grams: netWeightGrams || undefined,
-            stone_weight_grams: stoneWeightGrams || undefined,
-            diamond_weight_carat: diamondWeightCarat || undefined,
-            making_charge: makingCharge || undefined,
-            making_charge_type: makingChargeType,
-            wastage_percent: wastagePercent || undefined,
-            hallmark_number: hallmarkNumber || undefined,
-            // Auto Parts
+            salt_composition: saltComposition || undefined,
             oem_part_number: oemPartNumber || undefined,
-            vehicle_fitment: vehicleFitment || undefined,
-            engine_type: engineType || undefined,
-            vehicle_year: vehicleYear || undefined,
-            part_position: partPosition,
-            // Books
-            isbn_number: isbnNumber || undefined,
-            author_name: authorName || undefined,
-            publisher: publisher || undefined,
-            edition: edition || undefined,
-            language: language,
-            binding_type: bindingType,
-            // Hardware & Furniture
-            material_grade: materialGrade || undefined,
-            furniture_dimensions: furnitureDimensions || undefined,
-            wood_material_type: woodMaterialType || undefined,
-            weight_capacity_kg: weightCapacityKg || undefined,
-            is_assembly_required: isAssemblyRequired,
-            // Restaurant & Manufacturing
-            kot_station: kotStation || undefined,
-            recipe_code: recipeCode || undefined,
-            is_veg: isVeg,
-            is_jain: isJain,
-            spicy_level: spicyLevel,
-            bom_reference: bomReference || undefined,
-            yield_percent: yieldPercent,
-            // Optical & Cosmetics & Pet & Chemical & Agriculture & Baby
-            frame_size: frameSize || undefined,
-            lens_type: lensType,
-            lens_power_sph: lensPowerSph || undefined,
-            lens_cylinder_cyl: lensCylinderCyl || undefined,
-            lens_axis: lensAxis || undefined,
-            shade_code: shadeCode || undefined,
-            skin_type: skinType,
-            spf_rating: spfRating || undefined,
-            volume_ml: volumeMl || undefined,
-            pet_type: petType,
-            pet_breed: petBreed || undefined,
-            seed_variety: seedVariety || undefined,
-            crop_type: cropType || undefined,
-            hazard_class: hazardClass || undefined,
-            un_number: unNumber || undefined,
-            baby_age_group: babyAgeGroup || undefined,
-            is_bpa_free: isBpaFree,
-            // Ad-Hoc User Configured Custom Fields
             custom_user_fields: customValuesMap,
           },
         }),
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed to create product");
+      if (!res.ok) throw new Error(json.error || `Failed to ${isEdit ? "update" : "create"} product`);
 
-      toast.success("Enterprise Product Master Created!");
+      toast.success(isEdit ? "Enterprise Product Master Updated!" : "Enterprise Product Master Created!");
       setShowAddModal(false);
-      setName("");
-      setSku("");
-      setBarcode("");
-      setPurchasePrice("");
-      setSellingPrice("");
+      handleResetForm();
       fetchProducts();
 
-      if (json.product) {
+      if (isEdit && selectedViewProduct?.id === editingProduct.id && json.product) {
+        setSelectedViewProduct(json.product);
+      } else if (!isEdit && json.product) {
         setSelectedBarcodeProduct(json.product);
         setShowTagModal(true);
       }
@@ -549,8 +547,7 @@ export default function ProductsPage() {
           <Button
             onClick={() => {
               syncTemplateFromSettings();
-              setSku(`SKU-${Date.now().toString().slice(-5)}`);
-              setBarcode(`890${Date.now().toString().slice(-10)}`);
+              handleResetForm();
               setActiveTab("BASIC");
               setShowAddModal(true);
             }}
@@ -613,22 +610,32 @@ export default function ProductsPage() {
                 products.map((product) => (
                   <tr key={product.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="py-3.5 px-4 font-semibold text-white">
-                      {product.name}
-                      {product.attributes?.apparel_size && (
-                        <span className="block text-[11px] text-purple-400 font-normal">
-                          Size: {product.attributes.apparel_size} | Color: {product.attributes.apparel_color || 'Default'}
+                      <button
+                        onClick={() => {
+                          setSelectedViewProduct(product);
+                          setShowViewModal(true);
+                        }}
+                        className="text-left font-bold text-white hover:text-[#00aef0] transition-colors flex flex-col group cursor-pointer"
+                      >
+                        <span className="group-hover:underline flex items-center gap-1.5">
+                          {product.name}
                         </span>
-                      )}
-                      {product.attributes?.salt_composition && (
-                        <span className="block text-[11px] text-emerald-400 font-normal">
-                          Salt: {product.attributes.salt_composition}
-                        </span>
-                      )}
-                      {product.attributes?.oem_part_number && (
-                        <span className="block text-[11px] text-amber-400 font-normal">
-                          OEM #: {product.attributes.oem_part_number} | Fitment: {product.attributes.vehicle_fitment || 'Universal'}
-                        </span>
-                      )}
+                        {product.attributes?.apparel_size && (
+                          <span className="block text-[11px] text-purple-400 font-normal">
+                            Size: {product.attributes.apparel_size} | Color: {product.attributes.apparel_color || 'Default'}
+                          </span>
+                        )}
+                        {product.attributes?.salt_composition && (
+                          <span className="block text-[11px] text-emerald-400 font-normal">
+                            Salt: {product.attributes.salt_composition}
+                          </span>
+                        )}
+                        {product.attributes?.oem_part_number && (
+                          <span className="block text-[11px] text-amber-400 font-normal">
+                            OEM #: {product.attributes.oem_part_number} | Fitment: {product.attributes.vehicle_fitment || 'Universal'}
+                          </span>
+                        )}
+                      </button>
                     </td>
                     <td className="py-3.5 px-4 font-mono text-xs text-slate-400">
                       <div>{product.sku}</div>
@@ -655,18 +662,41 @@ export default function ProductsPage() {
                       {product.tax_rate}%
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedBarcodeProduct(product);
-                          setShowTagModal(true);
-                        }}
-                        className="border-slate-800 hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
-                      >
-                        <Printer className="h-3.5 w-3.5" />
-                        Print Tag
-                      </Button>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedViewProduct(product);
+                            setShowViewModal(true);
+                          }}
+                          className="border-slate-800 hover:border-[#00aef0] bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-[#00aef0]" />
+                          View Details
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenEditModal(product)}
+                          className="border-slate-800 hover:border-purple-500 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-semibold text-xs rounded-xl gap-1.5 h-8"
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-purple-400" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedBarcodeProduct(product);
+                            setShowTagModal(true);
+                          }}
+                          className="border-slate-800 hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
+                        >
+                          <Printer className="h-3.5 w-3.5" />
+                          Print Tag
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -676,6 +706,18 @@ export default function ProductsPage() {
         </div>
       </div>
 
+      {/* Product Details Modal Component */}
+      <ProductDetailsModal
+        isOpen={showViewModal}
+        onClose={() => setShowViewModal(false)}
+        product={selectedViewProduct}
+        onEdit={(prod) => handleOpenEditModal(prod)}
+        onPrintTag={(prod) => {
+          setSelectedBarcodeProduct(prod);
+          setShowTagModal(true);
+        }}
+      />
+
       {/* Barcode Tag Modal Component */}
       <BarcodeTagModal
         isOpen={showTagModal}
@@ -684,14 +726,14 @@ export default function ProductsPage() {
         workspaceName={activeWorkspace?.name || "Daily CRM Store"}
       />
 
-      {/* Multi-Tab Add Product Modal */}
+      {/* Multi-Tab Add/Edit Product Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl my-8">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <Package className="h-5 w-5 text-[#00aef0]" />
-                Add Enterprise Product Master
+                {editingProduct ? `Edit Product Master (${editingProduct.sku})` : "Add Enterprise Product Master"}
               </h2>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-white">
                 <X className="h-5 w-5" />
@@ -1651,7 +1693,13 @@ export default function ProductsPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl h-10 px-6">
-                  {saving ? "Saving Product..." : "Save Product Master"}
+                  {saving
+                    ? editingProduct
+                      ? "Updating Product..."
+                      : "Saving Product..."
+                    : editingProduct
+                    ? "Update Product Master"
+                    : "Save Product Master"}
                 </Button>
               </div>
             </form>
