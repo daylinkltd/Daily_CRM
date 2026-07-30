@@ -321,7 +321,13 @@ export default function InvoicesPage() {
               </div>
               <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
                 <SelectTrigger className="sm:w-56">
-                  <SelectValue placeholder="All Statuses" />
+                  {/* Item labels only register on first open; render the
+                      label for the current value explicitly. */}
+                  <SelectValue>
+                    {(v: string) =>
+                      v === "all" || !v ? "All Statuses" : STATUS_META[v]?.label ?? v
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>

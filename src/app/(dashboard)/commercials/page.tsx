@@ -177,7 +177,15 @@ export default function CommercialsPage() {
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="sm:w-56">
-                  <SelectValue placeholder="All Statuses" />
+                  {/* Item labels only register on first open; render the
+                      label for the current value explicitly. */}
+                  <SelectValue>
+                    {(v: string) =>
+                      v === "all" || !v
+                        ? "All Statuses"
+                        : COMMERCIAL_STATUSES.find((s) => s.value === v)?.label ?? v
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent searchPlaceholder="Search statuses...">
                   <SelectItem value="all">All Statuses</SelectItem>
