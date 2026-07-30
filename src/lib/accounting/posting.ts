@@ -509,8 +509,12 @@ export async function postExpensePaid(
 }
 
 /** Payroll cycle processed: DR Salary Expense, CR Salaries Payable.
- *  (Payment of the liability posts separately when the cycle is
- *  marked paid: DR Salaries Payable, CR Bank.) */
+ *  The reference_id is suffixed because PAYROLL is a one-shot
+ *  reference type and each cycle legitimately posts twice — once
+ *  when processed (liability booked) and once when paid.
+ *  v1 books the NET payable; statutory deduction liabilities (PF,
+ *  TDS, PT) are netted out of the expense rather than carried as
+ *  separate payables. */
 export async function postPayrollProcessed(
   supabase: SupabaseClient,
   args: {
@@ -524,12 +528,37 @@ export async function postPayrollProcessed(
   return postJournal(supabase, {
     workspace_id: args.workspace_id,
     reference_type: "PAYROLL",
-    reference_id: args.payroll_cycle_id,
+    reference_id: `${args.payroll_cycle_id}:processed`,
     narration: `Payroll processed for ${args.period_label}`,
     created_by: args.created_by,
     lines: [
       { role: "SALARY_EXPENSE", debit: args.total_net_payable },
       { role: "SALARIES_PAYABLE", credit: args.total_net_payable },
+    ],
+  });
+}
+
+/** Payroll cycle paid out: DR Salaries Payable, CR Cash/Bank. */
+export async function postPayrollPaid(
+  supabase: SupabaseClient,
+  args: {
+    workspace_id: string;
+    payroll_cycle_id: string;
+    period_label: string;
+    amount: number;
+    payment_mode?: string;
+    created_by?: string | null;
+  }
+): Promise<PostingResult> {
+  return postJournal(supabase, {
+    workspace_id: args.workspace_id,
+    reference_type: "PAYROLL",
+    reference_id: `${args.payroll_cycle_id}:paid`,
+    narration: `Salaries paid for ${args.period_label}`,
+    created_by: args.created_by,
+    lines: [
+      { role: "SALARIES_PAYABLE", debit: args.amount },
+      { role: roleForPaymentMode(args.payment_mode || "BANK"), credit: args.amount },
     ],
   });
 }
