@@ -132,7 +132,7 @@ export function EmployeeProfileOverview({
                   <SelectContent>
                     <SelectItem value="none">-- None --</SelectItem>
                     {designations.map(d => (
-                      <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                      <SelectItem key={d.id} value={d.id}>{d.title}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

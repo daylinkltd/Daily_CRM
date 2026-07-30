@@ -71,7 +71,7 @@ export function ComplianceBanner() {
             Action Required: {pendingPolicies.length} mandatory HR {pendingPolicies.length === 1 ? 'policy requires' : 'policies require'} your review & legal sign-off.
           </p>
           <p className="text-xs opacity-80">
-            {firstPending.title} ({firstPending.category.replace('_', ' ')})
+            {firstPending.title} ({firstPending.category.replace(/_/g, ' ')})
           </p>
         </div>
       </div>

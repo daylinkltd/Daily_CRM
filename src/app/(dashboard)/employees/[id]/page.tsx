@@ -56,7 +56,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
     // 2. Fetch reference data for the edit form
     const [deptRes, desigRes, rawMgrRes] = await Promise.all([
       supabase.from('departments').select('id, name').eq('workspace_id', activeWorkspace.id).order('name'),
-      supabase.from('designations').select('id, name').eq('workspace_id', activeWorkspace.id).order('name'),
+      supabase.from('designations').select('id, title').eq('workspace_id', activeWorkspace.id).order('title'),
       supabase.from('employee_profiles').select(`workspace_member_id, workspace_members!inner ( id, user_id )`).eq('workspace_id', activeWorkspace.id)
     ]);
 
@@ -134,12 +134,8 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="bg-muted w-full justify-start overflow-x-auto h-auto p-1 rounded-lg">
           <TabsTrigger value="overview" className="py-2">Overview</TabsTrigger>
-          <TabsTrigger value="attendance" className="py-2">Attendance</TabsTrigger>
-          <TabsTrigger value="leave" className="py-2">Leave</TabsTrigger>
           <TabsTrigger value="assets" className="py-2">Assets</TabsTrigger>
           <TabsTrigger value="documents" className="py-2">Documents</TabsTrigger>
-          <TabsTrigger value="projects" className="py-2">Projects</TabsTrigger>
-          <TabsTrigger value="tasks" className="py-2">Tasks</TabsTrigger>
         </TabsList>
 
         <div className="mt-6">
@@ -153,31 +149,11 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
               onSaved={fetchProfileData}
             />
           </TabsContent>
-          <TabsContent value="attendance" className="m-0 focus-visible:outline-none">
-            <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-              Attendance module coming in Sprint 2.
-            </div>
-          </TabsContent>
-          <TabsContent value="leave" className="m-0 focus-visible:outline-none">
-            <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-              Leave records for this employee will appear here.
-            </div>
-          </TabsContent>
           <TabsContent value="assets" className="m-0 focus-visible:outline-none">
             <EmployeeAssetsTab employeeId={id} canEdit={canManagePeople} />
           </TabsContent>
           <TabsContent value="documents" className="m-0 focus-visible:outline-none">
             <EmployeeDocumentsTab employeeId={id} canEdit={canManagePeople} />
-          </TabsContent>
-          <TabsContent value="projects" className="m-0 focus-visible:outline-none">
-            <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-              Projects module coming in Sprint 3.
-            </div>
-          </TabsContent>
-          <TabsContent value="tasks" className="m-0 focus-visible:outline-none">
-            <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-              Tasks module coming in Sprint 4.
-            </div>
           </TabsContent>
         </div>
       </Tabs>

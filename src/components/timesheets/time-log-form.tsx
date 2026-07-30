@@ -55,7 +55,7 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
         .select('id, title, project_id, project:projects!tasks_project_id_fkey(name)')
         .eq('workspace_id', activeWorkspace.id)
         .eq('assigned_workspace_member_id', activeMember.id)
-        .neq('status', 'completed')
+        .neq('status', 'DONE')
         .then(({ data }) => setTasks(data || []));
 
       setTaskId(defaultTaskId || 'none');
@@ -80,6 +80,14 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
       return;
     }
 
+    // time_logs.task_id is NOT NULL in the schema — an unassigned
+    // log can't be stored, so require a task instead of failing the
+    // insert with a raw constraint error.
+    if (!taskId || taskId === 'none') {
+      toast.error('Pick the task this time was spent on');
+      return;
+    }
+
     if (!activeWorkspace?.id || !activeMember?.id) return;
 
     setSaving(true);
@@ -90,11 +98,11 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
         .insert({ 
           workspace_id: activeWorkspace.id, 
           workspace_member_id: activeMember.id,
-          task_id: taskId === 'none' ? null : taskId,
+          task_id: taskId,
           log_date: logDate,
-          hours_logged: parseFloat(hours),
+          duration: parseFloat(hours),
           description: description.trim() || null,
-          is_billable: isBillable
+          billable: isBillable
         });
         
       if (error) throw error;
@@ -127,7 +135,7 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
                 <SelectValue placeholder="General (No Specific Task)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">-- General / Unassigned --</SelectItem>
+                <SelectItem value="none">-- Select a task --</SelectItem>
                 {tasks.map(t => (
                   <SelectItem key={t.id} value={t.id}>
                     {t.title} {t.project ? `(${t.project.name})` : ''}

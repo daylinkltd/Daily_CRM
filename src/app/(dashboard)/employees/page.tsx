@@ -47,7 +47,7 @@ export default function EmployeesPage() {
       .select(`
         *,
         departments ( name ),
-        designations ( name ),
+        designations ( title ),
         workspace_members!inner ( id, user_id, role )
       `)
       .eq('workspace_id', activeWorkspace.id);
@@ -204,7 +204,7 @@ export default function EmployeesPage() {
                       {emp.departments?.name || '-'}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm hidden lg:table-cell">
-                      {emp.designations?.name || '-'}
+                      {emp.designations?.title || '-'}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={emp.status || 'ACTIVE'} />

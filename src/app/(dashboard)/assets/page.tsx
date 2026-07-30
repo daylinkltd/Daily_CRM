@@ -145,7 +145,18 @@ export default function AssetsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       {!isReturned && (
-                        <Button variant="ghost" size="sm" onClick={() => toast.success('Marked as returned!')}>
+                        <Button
+                          variant="ghost" size="sm"
+                          onClick={async () => {
+                            const { error } = await supabase
+                              .from('employee_assets')
+                              .update({ returned_date: new Date().toISOString().slice(0, 10) })
+                              .eq('id', asset.id);
+                            if (error) { toast.error(error.message); return; }
+                            toast.success('Marked as returned');
+                            void fetchAssets();
+                          }}
+                        >
                           Mark Returned
                         </Button>
                       )}

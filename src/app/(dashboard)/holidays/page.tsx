@@ -138,20 +138,19 @@ export default function HolidaysPage() {
                     {h.holiday_type}
                   </Badge>
                   <span className="text-xs font-semibold text-primary">
-                    {new Date(h.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {new Date(`${h.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
                 <CardTitle className="text-base font-semibold mt-2">{h.title}</CardTitle>
                 <CardDescription className="text-xs line-clamp-1 mt-1">
-                  {h.description || 'Official company holiday.'}
+                  {h.description || (h.holiday_type ? `${h.holiday_type.charAt(0)}${h.holiday_type.slice(1).toLowerCase()} holiday` : 'Company holiday')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0 text-xs text-muted-foreground border-t border-border/50 flex items-center justify-between mt-3 pt-3">
                 <span className="flex items-center gap-1">
                   <RefreshCw className="size-3 text-muted-foreground" />
-                  {h.recurrence_type === 'YEARLY' ? 'Repeats Every Year' : 'One-time Event'}
+                  {h.recurrence_type === 'YEARLY' ? 'Repeats Every Year' : h.recurrence_type === 'MONTHLY' ? 'Repeats Monthly' : 'One-time Event'}
                 </span>
-                <span>Active</span>
               </CardContent>
             </Card>
           ))}

@@ -219,7 +219,7 @@ export default function LeavePage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getStatusColor(record.status)}>
-                        {record.status.toUpperCase()}
+                        {(record.status ?? 'pending').toUpperCase()}
                       </Badge>
                     </TableCell>
                     <TableCell>

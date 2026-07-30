@@ -124,13 +124,16 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
           designation_id: designationId,
           joining_date: joiningDate,
           employment_type: employmentType,
-          salary_grade: JSON.stringify({
-            basic: Number(basicSalary) || 0,
-            hra: Number(hra) || 0,
-            allowances: Number(allowances) || 0,
-            pf: Number(pfDeduction) || 0,
-            tds: Number(tds) || 0,
-          }),
+          // Salary goes into the real columns (077) — payroll reads
+          // exclusively from these. It used to be serialized as JSON
+          // into the free-text salary_grade band field, which meant
+          // every onboarded employee was silently excluded from
+          // payroll runs.
+          basic_salary: Number(basicSalary) || 0,
+          hra: Number(hra) || 0,
+          special_allowance: Number(allowances) || 0,
+          pf_deduction: Number(pfDeduction) || 0,
+          tds_deduction: Number(tds) || 0,
           status: 'ACTIVE'
         });
 

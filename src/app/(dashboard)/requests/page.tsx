@@ -36,7 +36,25 @@ const REQUEST_TYPES = [
 ];
 
 export default function EmployeeRequestsPage() {
-  const { activeWorkspace, activeMember } = useWorkspace();
+  const { activeWorkspace, activeMember, can } = useWorkspace();
+  const canManage = can('people_manage');
+
+  async function decideRequest(requestId: string, status: 'APPROVED' | 'REJECTED') {
+    try {
+      const res = await fetch('/api/hr/requests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId, status }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to update request');
+      toast.success(`Request ${status.toLowerCase()}`);
+      void fetchRequests();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update request');
+    }
+  }
+
 
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,7 +164,24 @@ export default function EmployeeRequestsPage() {
               </CardHeader>
               <CardContent className="pt-0 text-xs text-muted-foreground border-t border-border/50 flex items-center justify-between mt-3 pt-3">
                 <span>Submitted {new Date(r.created_at).toLocaleDateString()}</span>
-                <span>{r.status === 'PENDING' ? '⏳ Under HR Review' : 'Resolved'}</span>
+                {r.status === 'PENDING' && canManage ? (
+                  <span className="flex items-center gap-2">
+                    <button
+                      className="text-emerald-500 hover:underline"
+                      onClick={() => decideRequest(r.id, 'APPROVED')}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className="text-red-500 hover:underline"
+                      onClick={() => decideRequest(r.id, 'REJECTED')}
+                    >
+                      Reject
+                    </button>
+                  </span>
+                ) : (
+                  <span>{r.status === 'PENDING' ? '⏳ Under HR Review' : 'Resolved'}</span>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -177,7 +212,7 @@ export default function EmployeeRequestsPage() {
             <div className="space-y-2">
               <Label>Details / Notes for HR</Label>
               <Textarea
-                placeholder="Provide necessary context, bank account numbers, or reason for request..."
+                placeholder="Provide context or the reason for the request. Do NOT include bank details here — HR will collect them securely."
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 rows={4}

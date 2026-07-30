@@ -34,7 +34,7 @@ export function DesignationForm({ open, onOpenChange, designation, onSaved }: De
 
   useEffect(() => {
     if (open) {
-      setName(designation?.name || '');
+      setName(designation?.title || '');
       setDescription(designation?.description || '');
     }
   }, [open, designation]);
@@ -50,7 +50,7 @@ export function DesignationForm({ open, onOpenChange, designation, onSaved }: De
         // Update
         const { error } = await supabase
           .from('designations')
-          .update({ name: name.trim(), description: description.trim() })
+          .update({ title: name.trim(), description: description.trim() })
           .eq('id', designation.id);
           
         if (error) throw error;
@@ -61,7 +61,7 @@ export function DesignationForm({ open, onOpenChange, designation, onSaved }: De
           .from('designations')
           .insert({ 
             workspace_id: activeWorkspace.id, 
-            name: name.trim(), 
+            title: name.trim(), 
             description: description.trim() 
           });
           

@@ -172,7 +172,7 @@ export default function DepartmentsPage() {
                     <p className="text-sm text-muted-foreground">
                       {search ? 'No departments match your search.' : 'No departments yet.'}
                     </p>
-                    {!search && (
+                    {!search && canManagePeople && (
                       <Button
                         variant="outline"
                         size="sm"

@@ -14,7 +14,9 @@ import { createClient as createAdminSb } from '@supabase/supabase-js'
  * the caller's own prefix.
  */
 
-const ALLOWED_BUCKETS = new Set(['chat-media', 'flow-media'])
+const ALLOWED_BUCKETS = new Set(['chat-media', 'flow-media', 'employee-documents'])
+// Buckets whose objects must never get a public URL.
+const PRIVATE_BUCKETS = new Set(['employee-documents'])
 const MAX_BYTES = 16 * 1024 * 1024 // matches the buckets' file_size_limit
 
 function admin() {
@@ -111,6 +113,10 @@ export async function POST(request: Request) {
       })
     if (upErr) {
       return NextResponse.json({ error: upErr.message }, { status: 500 })
+    }
+
+    if (PRIVATE_BUCKETS.has(bucket)) {
+      return NextResponse.json({ publicUrl: null, path })
     }
 
     const {

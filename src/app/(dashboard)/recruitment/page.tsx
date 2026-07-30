@@ -100,7 +100,15 @@ export default function RecruitmentPage() {
 
   const handleAddCandidate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!candName.trim() || !candEmail.trim() || !selectedJobId || !activeWorkspace?.id) return;
+    if (!activeWorkspace?.id) return;
+    if (!selectedJobId) {
+      toast.error('Create a job opening first, then add candidates to it');
+      return;
+    }
+    if (!candName.trim() || !candEmail.trim()) {
+      toast.error('Candidate name and email are required');
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch('/api/hr/recruitment', {
@@ -206,7 +214,7 @@ export default function RecruitmentPage() {
                           </Badge>
 
                           <div className="pt-2 flex items-center justify-between border-t border-border/40 text-[10px]">
-                            {stage !== 'HIRED' && (
+                            {stage !== 'HIRED' && stage !== 'REJECTED' && (
                               <button
                                 onClick={() => {
                                   const nextIdx = STAGES.indexOf(stage) + 1;

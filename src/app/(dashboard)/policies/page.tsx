@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import {
   Layers
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ComplianceBanner } from '@/components/policies/compliance-banner';
 import { PolicyEditorModal } from '@/components/policies/policy-editor-modal';
 
@@ -29,13 +30,28 @@ export default function PoliciesDashboardPage() {
   const { activeWorkspace, can } = useWorkspace();
   const canManage = can('people_manage');
 
+  const supabase = createClient();
   const [policies, setPolicies] = useState<any[]>([]);
+  // Real compliance rate: ACTIVE sign-offs vs (published mandatory
+  // policies x workspace members). Replaces a hardcoded "96.4%".
+  const [complianceRate, setComplianceRate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingPolicyId, setEditingPolicyId] = useState<string | null>(null);
+
+  // Deep link: /policies?edit=<policyId> opens the editor directly
+  // (the Employee Handbook's "Manage" buttons land here).
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId) {
+      setEditingPolicyId(editId);
+      setEditorOpen(true);
+    }
+  }, [searchParams]);
 
   const fetchPolicies = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -48,6 +64,29 @@ export default function PoliciesDashboardPage() {
       const res = await fetch(url);
       const json = await res.json();
       setPolicies(json.policies || []);
+
+      const published = (json.policies || []).filter(
+        (p: { status: string; versions?: { mandatory?: boolean }[] }) =>
+          p.status === 'PUBLISHED' && (p.versions || []).some((v) => v.mandatory)
+      );
+      if (published.length === 0) {
+        setComplianceRate(null);
+      } else {
+        const [{ count: memberCount }, { count: ackCount }] = await Promise.all([
+          supabase
+            .from('workspace_members')
+            .select('id', { count: 'exact', head: true })
+            .eq('workspace_id', activeWorkspace.id),
+          supabase
+            .from('hr_policy_acknowledgements')
+            .select('id', { count: 'exact', head: true })
+            .eq('workspace_id', activeWorkspace.id)
+            .eq('status', 'ACTIVE')
+            .in('policy_id', published.map((p: { id: string }) => p.id)),
+        ]);
+        const denominator = (memberCount ?? 0) * published.length;
+        setComplianceRate(denominator > 0 ? Math.min(100, ((ackCount ?? 0) / denominator) * 100) : null);
+      }
     } catch (err) {
       console.error(err);
       toast.error('Failed to load HR policies');
@@ -122,7 +161,9 @@ export default function PoliciesDashboardPage() {
         <Card className="border-border bg-card shadow-sm">
           <CardHeader className="pb-2">
             <CardDescription className="text-xs font-medium">Compliance Rate</CardDescription>
-            <CardTitle className="text-2xl font-bold text-emerald-500">96.4%</CardTitle>
+            <CardTitle className="text-2xl font-bold text-emerald-500">
+              {complianceRate === null ? '—' : `${complianceRate.toFixed(1)}%`}
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">
             Targeted employee digital sign-offs

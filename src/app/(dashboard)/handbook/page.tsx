@@ -377,7 +377,7 @@ export default function HandbookPage() {
                           {s.policy_id && (
                             <div className="flex items-center justify-end gap-1">
                               {isAdmin && (
-                                <Button size="sm" variant="ghost" onClick={() => router.push(`/policies/${s.policy_id}`)}>
+                                <Button size="sm" variant="ghost" onClick={() => router.push(`/policies?edit=${s.policy_id}`)}>
                                   Manage
                                 </Button>
                               )}

@@ -94,7 +94,7 @@ export default function ShiftsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Shifts & Work Schedules"
-        description="Configure work shifts, start/end hours, grace periods, and employee shift assignments."
+        description="Configure work shifts, start/end hours and grace periods."
         action={
           canManage && (
             <Button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground">
@@ -142,7 +142,6 @@ export default function ShiftsPage() {
               </CardHeader>
               <CardContent className="pt-0 text-xs text-muted-foreground border-t border-border/50 flex items-center justify-between mt-3 pt-3">
                 <span>{s.is_rotational ? '🔄 Rotational' : '📌 Fixed Shift'}</span>
-                <span>Active</span>
               </CardContent>
             </Card>
           ))}

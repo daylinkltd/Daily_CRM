@@ -27,6 +27,36 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [showUpload, setShowUpload] = useState(false);
 
+  // Documents live in the PRIVATE employee-documents bucket, so
+  // downloads go through a short-lived signed URL.
+  async function handleDownload(doc: { storage_path?: string | null }) {
+    if (!doc.storage_path) {
+      toast.error('This document has no stored file');
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/storage/sign?bucket=employee-documents&path=${encodeURIComponent(doc.storage_path)}`
+      );
+      const json = await res.json();
+      if (!res.ok || !json.url) throw new Error(json.error || 'Failed to get download link');
+      window.open(json.url, '_blank', 'noopener');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to download document');
+    }
+  }
+
+  async function handleDelete(doc: { id: string; document_type?: string | null }) {
+    if (!confirm(`Delete this ${doc.document_type || 'document'}? This cannot be undone.`)) return;
+    const { error } = await supabase.from('employee_documents').delete().eq('id', doc.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success('Document deleted');
+    void fetchDocuments();
+  }
+
   const fetchDocuments = useCallback(async () => {
     if (!activeWorkspace?.id) return;
     setLoading(true);
@@ -138,13 +168,19 @@ export default function DocumentsPage() {
                       {profile?.full_name ? profile.full_name : <span className="text-muted-foreground italic">Unknown</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {format(new Date(doc.created_at), 'PPP')}
+                      {doc.created_at ? format(new Date(doc.created_at), 'PPP') : '—'}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button variant="ghost" size="icon-sm" onClick={() => toast.success('Downloading document...')}>
+                      <Button
+                        variant="ghost" size="icon-sm" aria-label="Download document"
+                        onClick={() => handleDownload(doc)}
+                      >
                         <Download className="size-4 text-muted-foreground" />
                       </Button>
-                      <Button variant="ghost" size="icon-sm" onClick={() => toast.error('Confirm deletion')}>
+                      <Button
+                        variant="ghost" size="icon-sm" aria-label="Delete document"
+                        onClick={() => handleDelete(doc)}
+                      >
                         <Trash2 className="size-4 text-red-500" />
                       </Button>
                     </TableCell>

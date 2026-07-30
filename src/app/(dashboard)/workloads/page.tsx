@@ -30,7 +30,7 @@ export default function WorkloadsPage() {
     try {
       // 1. Fetch all members via API & workspace_members with capacity
       const [membersRes, { data: rawMembers, error: membersError }] = await Promise.all([
-        fetch('/api/account/members').then(r => r.json()).catch(() => ({ members: [] })),
+        fetch(`/api/account/members?workspace_id=${activeWorkspace.id}`).then(r => r.json()).catch(() => ({ members: [] })),
         supabase
           .from('workspace_members')
           .select('id, user_id, weekly_capacity')

@@ -58,10 +58,10 @@ export default function DesignationsPage() {
       .from('designations')
       .select('*')
       .eq('workspace_id', activeWorkspace.id)
-      .order('name', { ascending: true });
+      .order('title', { ascending: true });
 
     if (search.trim()) {
-      query = query.ilike('name', `%${search.trim()}%`);
+      query = query.ilike('title', `%${search.trim()}%`);
     }
 
     const { data, error } = await query;
@@ -190,7 +190,7 @@ export default function DesignationsPage() {
               designations.map((desig) => (
                 <TableRow key={desig.id} className="border-border hover:bg-muted/50">
                   <TableCell className="text-foreground font-medium">
-                    {desig.name}
+                    {desig.title}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {desig.description || '-'}

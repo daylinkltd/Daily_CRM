@@ -297,7 +297,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
         ) : (
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground bg-card px-3.5 py-2 rounded-xl border border-border">
             <Clock className="size-4 text-[#00aef0]" />
-            Logged {todayRecord.working_hours} hrs ({todayRecord.net_productive_hours || todayRecord.working_hours} hrs net) today
+            Logged {Number(todayRecord.working_hours ?? 0)} hrs ({Number(todayRecord.net_productive_hours ?? todayRecord.working_hours ?? 0)} hrs net) today
           </div>
         )}
       </div>

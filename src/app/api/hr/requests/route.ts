@@ -59,3 +59,56 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { requestId, status } = await request.json();
+    if (!requestId || !['APPROVED', 'REJECTED'].includes(status)) {
+      return NextResponse.json({ error: 'requestId and status (APPROVED|REJECTED) are required' }, { status: 400 });
+    }
+
+    const { data: existing, error: exErr } = await supabase
+      .from('hr_employee_requests')
+      .select('id, workspace_id, status')
+      .eq('id', requestId)
+      .single();
+    if (exErr || !existing) {
+      return NextResponse.json({ error: 'Request not found' }, { status: 404 });
+    }
+
+    // Deciding requests is an admin action.
+    const { data: member } = await supabase
+      .from('workspace_members')
+      .select('id, role')
+      .eq('workspace_id', existing.workspace_id)
+      .eq('user_id', user.id)
+      .single();
+    if (!member || !['owner', 'admin'].includes(member.role)) {
+      return NextResponse.json({ error: 'Only workspace admins can decide requests' }, { status: 403 });
+    }
+    if (existing.status !== 'PENDING') {
+      return NextResponse.json({ error: `Request is already ${existing.status.toLowerCase()}` }, { status: 400 });
+    }
+
+    const { data: updated, error } = await supabase
+      .from('hr_employee_requests')
+      .update({ status, assigned_to_employee_id: member.id, resolved_at: new Date().toISOString() })
+      .eq('id', requestId)
+      .select()
+      .single();
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ request: updated });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

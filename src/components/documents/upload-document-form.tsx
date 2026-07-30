@@ -98,35 +98,30 @@ export function UploadDocumentForm({ open, onOpenChange, onSaved }: UploadDocume
     setSaving(true);
     
     try {
-      // 1. Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${memberId}-${Date.now()}.${fileExt}`;
-      const filePath = `${activeWorkspace.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('documents') // Requires a bucket named 'documents'
-        .upload(filePath, file);
-
-      // If the bucket doesn't exist, we fallback to a mock URL just for UI demo purposes if it fails due to RLS/Missing bucket
-      let finalUrl = `https://storage.placeholder.com/${filePath}`;
-      
-      if (!uploadError) {
-        const { data } = supabase.storage.from('documents').getPublicUrl(filePath);
-        finalUrl = data.publicUrl;
-      } else if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('row-level security')) {
-        toast.info('Bucket not found or RLS restricted. Saving metadata only.');
-      } else {
-        throw uploadError;
+      // 1. Upload through the service-role storage API — direct
+      // client uploads fail (the buckets carry no storage RLS
+      // policies), and HR documents live in the PRIVATE
+      // employee-documents bucket, reachable only via signed URLs.
+      // No placeholder fallback: if storage fails, the upload fails.
+      const form = new FormData();
+      form.append('bucket', 'employee-documents');
+      form.append('workspace_id', activeWorkspace.id);
+      form.append('file', file);
+      const res = await fetch('/api/storage/upload', { method: 'POST', body: form });
+      const json = await res.json();
+      if (!res.ok || !json.path) {
+        throw new Error(json.error || 'File upload failed');
       }
 
-      // 2. Save metadata to Database
+      // 2. Save metadata — the column is storage_path (NOT NULL);
+      // document_url never existed and made every insert fail.
       const { error: dbError } = await supabase
         .from('employee_documents')
         .insert({
           workspace_id: activeWorkspace.id,
           workspace_member_id: memberId,
           document_type: docType,
-          document_url: finalUrl
+          storage_path: json.path
         });
 
       if (dbError) throw dbError;

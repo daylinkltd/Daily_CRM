@@ -13,6 +13,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
 export default function PolicyAuditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -20,7 +21,9 @@ export default function PolicyAuditPage({ params }: { params: Promise<{ id: stri
   const router = useRouter();
   const { activeWorkspace } = useWorkspace();
 
+  const supabase = createClient();
   const [policy, setPolicy] = useState<any>(null);
+  const [memberNames, setMemberNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,6 +37,20 @@ export default function PolicyAuditPage({ params }: { params: Promise<{ id: stri
         if (json.policy) {
           setPolicy(json.policy);
         }
+
+        const { data: members } = await supabase
+          .from('workspace_members')
+          .select('id, user_id')
+          .eq('workspace_id', activeWorkspace.id);
+        const userIds = (members || []).map((m) => m.user_id);
+        const { data: profs } = userIds.length
+          ? await supabase.from('profiles').select('user_id, full_name').in('user_id', userIds)
+          : { data: [] as { user_id: string; full_name: string | null }[] };
+        const byUser: Record<string, string> = {};
+        (profs || []).forEach((p) => { byUser[p.user_id] = p.full_name || '—'; });
+        const names: Record<string, string> = {};
+        (members || []).forEach((m) => { names[m.id] = byUser[m.user_id] || '—'; });
+        setMemberNames(names);
       } catch {
         toast.error('Failed to load compliance audit logs');
       } finally {
@@ -151,7 +168,7 @@ export default function PolicyAuditPage({ params }: { params: Promise<{ id: stri
                   {acknowledgements.map((a: any) => (
                     <tr key={a.id} className="hover:bg-muted/20">
                       <td className="p-3 font-medium text-foreground">
-                        {a.signature_value}
+                        {memberNames[a.workspace_member_id] || '—'}
                       </td>
                       <td className="p-3">
                         <Badge variant="outline" className="text-[10px]">v{a.version_number}</Badge>
@@ -165,7 +182,7 @@ export default function PolicyAuditPage({ params }: { params: Promise<{ id: stri
                       <td className="p-3 font-mono text-[10px] opacity-70 truncate max-w-[140px]" title={a.content_hash}>
                         {a.content_hash}
                       </td>
-                      <td className="p-3 font-mono text-[11px]">{a.ip_address || '127.0.0.1'}</td>
+                      <td className="p-3 font-mono text-[11px]">{a.ip_address || '—'}</td>
                       <td className="p-3 text-muted-foreground">{new Date(a.acknowledged_at).toLocaleString()}</td>
                     </tr>
                   ))}

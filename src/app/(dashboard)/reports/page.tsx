@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/shared/page-header';
@@ -46,6 +47,7 @@ export default function ReportsDashboard() {
   const canManagePeople = can('people_manage');
 
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
   const [stats, setStats] = useState<EmployeeStats[]>([]);
   
   // Aggregate KPIs
@@ -66,6 +68,14 @@ export default function ReportsDashboard() {
         .eq('employee_profiles.status', 'ACTIVE');
 
       if (memErr) throw memErr;
+
+      // Designation titles for the leaderboard subtitle.
+      const { data: desigRows } = await supabase
+        .from('designations')
+        .select('id, title')
+        .eq('workspace_id', activeWorkspace.id);
+      const designationById: Record<string, string> = {};
+      (desigRows || []).forEach((d) => { designationById[d.id] = d.title; });
 
       // Two-step profile enrichment
       let members: any[] = rawMembers || [];
@@ -91,11 +101,11 @@ export default function ReportsDashboard() {
 
       // 3. Fetch Timesheets (logged this month)
       const { data: timesheets, error: timeErr } = await supabase
-        .from('timesheets')
-        .select('workspace_member_id, hours, status')
+        .from('time_logs')
+        .select('workspace_member_id, duration')
         .eq('workspace_id', activeWorkspace.id)
-        .gte('logged_date', format(startOfMonth(new Date()), 'yyyy-MM-dd'))
-        .lte('logged_date', format(endOfMonth(new Date()), 'yyyy-MM-dd'))
+        .gte('log_date', format(startOfMonth(new Date()), 'yyyy-MM-dd'))
+        .lte('log_date', format(endOfMonth(new Date()), 'yyyy-MM-dd'))
         .eq('status', 'approved');
 
       if (timeErr) throw timeErr;
@@ -131,12 +141,12 @@ export default function ReportsDashboard() {
         
         // Tasks
         const memTasks = (tasks || []).filter(t => t.assigned_workspace_member_id === mem.id);
-        const compTasks = memTasks.filter(t => t.status === 'completed').length;
+        const compTasks = memTasks.filter(t => t.status === 'DONE').length;
         totalCT += compTasks;
 
         // Hours
         const memTimesheets = (timesheets || []).filter(t => t.workspace_member_id === mem.id);
-        const logHours = memTimesheets.reduce((acc, curr) => acc + Number(curr.hours), 0);
+        const logHours = memTimesheets.reduce((acc, curr) => acc + Number(curr.duration), 0);
         totalH += logHours;
 
         // Attendance
@@ -150,7 +160,10 @@ export default function ReportsDashboard() {
           id: mem.id,
           name: profile?.full_name || 'Unknown',
           avatar: profile?.avatar_url || null,
-          designation: 'Employee', // Ideally fetch from designations table
+          designation:
+            designationById[
+              (Array.isArray(mem.employee_profiles) ? mem.employee_profiles[0] : mem.employee_profiles)?.designation_id
+            ] || 'Employee',
           totalTasks: memTasks.length,
           completedTasks: compTasks,
           loggedHours: logHours,
@@ -193,7 +206,27 @@ export default function ReportsDashboard() {
         title="Performance Reports" 
         description="Company-wide operational pulse and employee performance metrics for this month."
         action={
-          <Button variant="outline" className="border-border text-foreground">
+          <Button
+            variant="outline"
+            className="border-border text-foreground"
+            onClick={() => {
+              const header = 'Name,Attendance %,Days Present,Expected Days,Logged Hours,Tasks Completed,Total Tasks';
+              const rows = stats.map((e) =>
+                [
+                  `"${e.name.replace(/"/g, '""')}"`,
+                  e.expectedDays > 0 ? ((e.daysPresent / e.expectedDays) * 100).toFixed(1) : '0',
+                  e.daysPresent, e.expectedDays, e.loggedHours.toFixed(1),
+                  e.completedTasks, e.totalTasks,
+                ].join(',')
+              );
+              const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' });
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = `hr-monthly-summary-${new Date().toISOString().slice(0, 7)}.csv`;
+              a.click();
+              URL.revokeObjectURL(a.href);
+            }}
+          >
             <FileDown className="size-4 mr-2" />
             Export Monthly Summary
           </Button>
@@ -299,7 +332,7 @@ export default function ReportsDashboard() {
                         </Avatar>
                         <div className="flex flex-col">
                           <span className="font-medium text-foreground">{employee.name}</span>
-                          <span className="text-xs text-muted-foreground">Active Member</span>
+                          <span className="text-xs text-muted-foreground">{employee.designation}</span>
                         </div>
                       </div>
                     </TableCell>
@@ -332,8 +365,8 @@ export default function ReportsDashboard() {
                     </TableCell>
                     
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10" onClick={() => toast.success(`Generated detailed report for ${employee.name}`)}>
-                        View Report
+                      <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10" onClick={() => router.push(`/employees/${employee.id}`)}>
+                        View Profile
                       </Button>
                     </TableCell>
                   </TableRow>

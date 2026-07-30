@@ -31,6 +31,17 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
   // Scroll verification & signature state
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
+  // Real reading time for the acknowledgement record.
+  const readStartRef = useRef<number>(Date.now());
+
+  // Content shorter than the scroll box never fires a scroll event —
+  // unlock immediately when there is nothing to scroll.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el && el.scrollHeight <= el.clientHeight + 30) {
+      setScrolledToBottom(true);
+    }
+  }, [loading, activeVersion?.id]);
   const [agreed, setAgreed] = useState(false);
   const [typedName, setTypedName] = useState('');
   const [signing, setSigning] = useState(false);
@@ -98,7 +109,7 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
           memberId: activeMember.id,
           signatureValue: typedName.trim(),
           signatureType: 'TYPED_NAME',
-          readTimeSeconds: 45,
+          readTimeSeconds: Math.max(1, Math.round((Date.now() - readStartRef.current) / 1000)),
           readTillBottom: scrolledToBottom
         })
       });

@@ -46,8 +46,8 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
     setSubmitting(true);
 
     try {
-      const punchInISO = `${attendanceDate}T${requestedPunchIn}:00.000Z`;
-      const punchOutISO = `${attendanceDate}T${requestedPunchOut}:00.000Z`;
+      const punchInISO = new Date(`${attendanceDate}T${requestedPunchIn}:00`).toISOString();
+      const punchOutISO = new Date(`${attendanceDate}T${requestedPunchOut}:00`).toISOString();
 
       const { error } = await supabase
         .from('hr_attendance_requests')

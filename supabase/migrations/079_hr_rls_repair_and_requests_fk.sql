@@ -1,5 +1,3 @@
--- ==================== BEGIN 079_hr_rls_repair_and_requests_fk ====================
-
 -- ============================================================
 -- 079 — HR module repair.
 --
@@ -140,5 +138,3 @@ CREATE POLICY "Admins update hr_employee_requests" ON public.hr_employee_request
          AND public.has_workspace_permission(workspace_id, auth.uid(), 'people_manage'::text))
   WITH CHECK (public.is_active_workspace_member(workspace_id, auth.uid())
          AND public.has_workspace_permission(workspace_id, auth.uid(), 'people_manage'::text));
-
--- ==================== END 079 ====================

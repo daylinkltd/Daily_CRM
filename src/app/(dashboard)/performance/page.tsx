@@ -148,6 +148,11 @@ export default function PerformancePage() {
         </TabsContent>
 
         <TabsContent value="goals">
+          {goals.length === 0 && (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              No goals yet. Goals are created per review cycle from an employee's review.
+            </p>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {goals.map(g => (
               <Card key={g.id} className="border-border bg-card shadow-sm">
@@ -174,7 +179,7 @@ export default function PerformancePage() {
                   {promotions.map(p => (
                     <div key={p.id} className="p-3 border border-border rounded-lg flex items-center justify-between text-xs">
                       <div>
-                        <span className="font-semibold text-foreground">{p.oldDesig?.title || 'Previous'} $\rightarrow$ {p.newDesig?.title || 'New Designation'}</span>
+                        <span className="font-semibold text-foreground">{p.oldDesig?.title || 'Previous'} → {p.newDesig?.title || 'New Designation'}</span>
                         <span className="text-muted-foreground block text-[11px] mt-0.5">Reason: {p.promotion_reason}</span>
                       </div>
                       <Badge variant="outline">{p.effective_date}</Badge>

@@ -66,9 +66,9 @@ export default function TimesheetsPage() {
 
     try {
       const [membersRes, attRes, logsRes] = await Promise.all([
-        fetch('/api/account/members').then((r) => r.json()).catch(() => ({ members: [] })),
+        fetch(`/api/account/members?workspace_id=${activeWorkspace.id}`).then((r) => r.json()).catch(() => ({ members: [] })),
         supabase.from('attendance').select('*').eq('workspace_id', activeWorkspace.id).eq('attendance_date', reportDate),
-        supabase.from('time_logs').select('workspace_member_id, hours_logged').eq('workspace_id', activeWorkspace.id).eq('log_date', reportDate)
+        supabase.from('time_logs').select('workspace_member_id, duration').eq('workspace_id', activeWorkspace.id).eq('log_date', reportDate)
       ]);
 
       const loadedMembers = membersRes?.members || [];
@@ -79,7 +79,7 @@ export default function TimesheetsPage() {
       const logMap: Record<string, number> = {};
       logList.forEach((log: any) => {
         if (!logMap[log.workspace_member_id]) logMap[log.workspace_member_id] = 0;
-        logMap[log.workspace_member_id] += Number(log.hours_logged) || 0;
+        logMap[log.workspace_member_id] += Number(log.duration) || 0;
       });
 
       // Map attendance by workspace_member_id
@@ -199,10 +199,10 @@ export default function TimesheetsPage() {
                           {log.description || '-'}
                         </TableCell>
                         <TableCell className="font-mono text-sm font-medium text-foreground">
-                          {log.hours_logged}h
+                          {Number(log.duration ?? 0)}h
                         </TableCell>
                         <TableCell>
-                          {log.is_billable ? (
+                          {log.billable ? (
                             <Badge variant="outline" className="bg-emerald-500/15 text-emerald-700 border-emerald-200">Yes</Badge>
                           ) : (
                             <span className="text-muted-foreground text-sm">-</span>
@@ -274,13 +274,13 @@ export default function TimesheetsPage() {
                           <TableCell className="font-mono text-sm">{row.attendanceHours}h</TableCell>
                           <TableCell className="font-mono text-sm font-medium">{row.loggedTime}h</TableCell>
                           <TableCell>
-                            {row.variance > 0 ? (
+                            {row.discrepancy > 0 ? (
                               <span className="flex items-center gap-1 text-orange-600 text-sm font-medium" title="Unlogged time">
-                                <AlertCircle className="size-3.5" /> -{row.variance}h
+                                <AlertCircle className="size-3.5" /> -{row.discrepancy}h
                               </span>
-                            ) : row.variance < 0 ? (
+                            ) : row.discrepancy < 0 ? (
                               <span className="text-emerald-600 text-sm font-medium">
-                                +{Math.abs(row.variance)}h
+                                +{Math.abs(row.discrepancy)}h
                               </span>
                             ) : (
                               <span className="text-muted-foreground text-sm">Match</span>

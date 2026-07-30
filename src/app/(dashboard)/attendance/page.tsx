@@ -55,18 +55,15 @@ export default function AttendancePage() {
     setLoading(true);
 
     try {
-      // 1. Fetch Attendance Logs
+      // 1. Fetch Attendance Logs.
+      // NOTE: workspace_members.user_id references auth.users, so a
+      // PostgREST `workspace_members(profiles(...))` embed is
+      // impossible — names are enriched with an explicit two-step
+      // fetch (members, then profiles by user_id), like the
+      // Employees page does.
       let query = supabase
         .from('attendance')
-        .select(`
-          *,
-          workspace_members (
-            id,
-            role,
-            user_id,
-            profiles ( full_name, avatar_url )
-          )
-        `)
+        .select('*')
         .eq('workspace_id', activeWorkspace.id)
         .order('attendance_date', { ascending: false });
 
@@ -75,39 +72,28 @@ export default function AttendancePage() {
       }
 
       // eslint-disable-next-line prefer-const -- `data` is reassigned in the fallback path below
-      let { data, error } = await query;
+      const { data: rawData, error } = await query;
+      if (error) throw error;
 
-      if (error || !data) {
-        let directQuery = supabase
-          .from('attendance')
-          .select('*')
-          .eq('workspace_id', activeWorkspace.id)
-          .order('attendance_date', { ascending: false });
+      const { data: members } = await supabase
+        .from('workspace_members')
+        .select('id, user_id, role')
+        .eq('workspace_id', activeWorkspace.id);
+      const userIds = (members || []).map((m) => m.user_id);
+      const { data: profileRows } = userIds.length
+        ? await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', userIds)
+        : { data: [] as { user_id: string; full_name: string | null; avatar_url: string | null }[] };
+      const profileByUser: Record<string, unknown> = {};
+      (profileRows || []).forEach((p) => { profileByUser[p.user_id] = p; });
+      const memberProfilesMap: Record<string, unknown> = {};
+      (members || []).forEach((m) => {
+        memberProfilesMap[m.id] = { ...m, profiles: profileByUser[m.user_id] || null };
+      });
 
-        if (!canManageAttendance) {
-          directQuery = directQuery.eq('workspace_member_id', activeMember.id);
-        }
-
-        const { data: directData } = await directQuery;
-        const memberIds = Array.from(new Set((directData || []).map((r) => r.workspace_member_id)));
-        const memberProfilesMap: Record<string, any> = {};
-
-        if (memberIds.length > 0) {
-          const { data: members } = await supabase
-            .from('workspace_members')
-            .select('id, user_id, profiles(full_name, avatar_url)')
-            .in('id', memberIds);
-
-          (members || []).forEach((m: any) => {
-            memberProfilesMap[m.id] = m;
-          });
-        }
-
-        data = (directData || []).map((r) => ({
-          ...r,
-          workspace_members: memberProfilesMap[r.workspace_member_id] || null,
-        }));
-      }
+      const data = (rawData || []).map((r) => ({
+        ...r,
+        workspace_members: memberProfilesMap[r.workspace_member_id] || null,
+      }));
 
       const list = data || [];
       setRecords(list);
@@ -133,12 +119,7 @@ export default function AttendancePage() {
       // 2. Fetch Regularization Requests
       let reqQuery = supabase
         .from('hr_attendance_requests')
-        .select(`
-          *,
-          workspace_members (
-            profiles ( full_name )
-          )
-        `)
+        .select('*')
         .eq('workspace_id', activeWorkspace.id)
         .order('created_at', { ascending: false });
 
@@ -146,8 +127,14 @@ export default function AttendancePage() {
         reqQuery = reqQuery.eq('workspace_member_id', activeMember.id);
       }
 
-      const { data: reqData } = await reqQuery;
-      setRequests(reqData || []);
+      const { data: reqData, error: reqError } = await reqQuery;
+      if (reqError) throw reqError;
+      setRequests(
+        (reqData || []).map((r) => ({
+          ...r,
+          workspace_members: memberProfilesMap[r.workspace_member_id] || null,
+        }))
+      );
     } catch (err: any) {
       toast.error(sanitizeErrorMessage(err, 'Failed to load attendance logs'));
     } finally {
@@ -162,15 +149,56 @@ export default function AttendancePage() {
   const handleApprovalAction = async (requestId: string, status: 'APPROVED' | 'REJECTED') => {
     if (!activeMember?.id) return;
     try {
-      const { error } = await supabase
+      const { data: request, error } = await supabase
         .from('hr_attendance_requests')
         .update({
           status,
           approved_by: activeMember.id,
         })
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Approval APPLIES the regularization to the attendance record —
+      // previously it only recoloured a badge and the record stayed
+      // wrong forever.
+      if (status === 'APPROVED' && request) {
+        const patch: Record<string, unknown> = {};
+        if (request.requested_punch_in) patch.punch_in_time = request.requested_punch_in;
+        if (request.requested_punch_out) patch.punch_out_time = request.requested_punch_out;
+        if (request.requested_punch_in && request.requested_punch_out) {
+          patch.working_hours = (
+            Math.max(
+              0,
+              new Date(request.requested_punch_out).getTime() -
+                new Date(request.requested_punch_in).getTime()
+            ) / 3600000
+          ).toFixed(2);
+        }
+        if (Object.keys(patch).length > 0) {
+          const { data: existing } = await supabase
+            .from('attendance')
+            .select('id')
+            .eq('workspace_member_id', request.workspace_member_id)
+            .eq('attendance_date', request.attendance_date)
+            .maybeSingle();
+          const { error: applyError } = existing
+            ? await supabase.from('attendance').update(patch).eq('id', existing.id)
+            : await supabase.from('attendance').insert({
+                workspace_id: request.workspace_id,
+                workspace_member_id: request.workspace_member_id,
+                attendance_date: request.attendance_date,
+                status: 'Present',
+                ...patch,
+              });
+          if (applyError) {
+            toast.error(sanitizeErrorMessage(applyError, 'Approved, but failed to apply to the attendance record'));
+          }
+        }
+      }
+
       toast.success(`Request ${status.toLowerCase()} successfully`);
       fetchAttendanceData();
     } catch (err: any) {

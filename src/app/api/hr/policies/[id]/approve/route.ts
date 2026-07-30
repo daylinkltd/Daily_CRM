@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { crypto } from 'next/dist/compiled/@edge-runtime/primitives';
 
 async function computeSHA256(text: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -42,9 +41,11 @@ export async function POST(
     // 2. Compute SHA-256 Content Hash
     const contentHash = await computeSHA256(latestVersion.content || '');
 
-    // 3. Update version as PUBLISHED with hash & timestamps
+    // 3. Update version as PUBLISHED with hash & timestamps.
+    // Errors are checked: RLS denials used to be swallowed here and
+    // the route still returned success while nothing was written.
     const nowStr = new Date().toISOString();
-    await supabase.from('hr_policy_versions').update({
+    const { error: versionErr } = await supabase.from('hr_policy_versions').update({
       content_hash: contentHash,
       published_at: nowStr,
       effective_at: latestVersion.effective_at || nowStr,
@@ -52,12 +53,18 @@ export async function POST(
       approved_at: nowStr,
       approval_comments: comments || 'Approved & Published'
     }).eq('id', latestVersion.id);
+    if (versionErr) {
+      return NextResponse.json({ error: `Failed to publish version: ${versionErr.message}` }, { status: 500 });
+    }
 
     // 4. Update Policy Header status to PUBLISHED
-    await supabase.from('hr_policies').update({
+    const { error: headerErr } = await supabase.from('hr_policies').update({
       status: 'PUBLISHED',
       updated_at: nowStr
     }).eq('id', id);
+    if (headerErr) {
+      return NextResponse.json({ error: `Failed to publish policy: ${headerErr.message}` }, { status: 500 });
+    }
 
     // 5. Update previous acknowledgements for older versions to SUPERSEDED
     await supabase

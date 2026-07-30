@@ -14,16 +14,21 @@ export async function GET(request: Request) {
     const todayStr = new Date().toISOString().split('T')[0];
 
     // Fetch parallel dashboard aggregates
+    // Table is `attendance` (not attendance_logs), its date column is
+    // `attendance_date`, statuses are mixed-case ('Present'), and
+    // leave_requests statuses are lowercase — all per migration 039.
+    // Workforce counts ACTIVE employee_profiles, matching the card's
+    // "Active employee profiles" label (not every invited member).
     const [empRes, attRes, lveRes, reqRes, jobRes] = await Promise.all([
-      supabase.from('workspace_members').select('id', { count: 'exact', head: true }).eq('workspace_id', workspaceId),
-      supabase.from('attendance_logs').select('id, status').eq('workspace_id', workspaceId).eq('date', todayStr),
-      supabase.from('leave_requests').select('id, status').eq('workspace_id', workspaceId).eq('status', 'PENDING'),
+      supabase.from('employee_profiles').select('workspace_member_id', { count: 'exact', head: true }).eq('workspace_id', workspaceId).eq('status', 'ACTIVE'),
+      supabase.from('attendance').select('id, status').eq('workspace_id', workspaceId).eq('attendance_date', todayStr),
+      supabase.from('leave_requests').select('id, status').eq('workspace_id', workspaceId).eq('status', 'pending'),
       supabase.from('hr_employee_requests').select('id, status').eq('workspace_id', workspaceId).eq('status', 'PENDING'),
       supabase.from('hr_recruitment_jobs').select('id').eq('workspace_id', workspaceId).eq('status', 'OPEN')
     ]);
 
     const totalEmployees = empRes.count ?? 0;
-    const presentToday = attRes.data?.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length || 0;
+    const presentToday = attRes.data?.filter(a => a.status === 'Present' || a.status === 'Late' || a.status === 'Remote').length || 0;
     const pendingLeaves = lveRes.data?.length || 0;
     const pendingRequests = reqRes.data?.length || 0;
     const openJobs = jobRes.data?.length || 0;
