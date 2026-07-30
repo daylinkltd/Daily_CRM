@@ -159,8 +159,19 @@ export default function SuppliersPage() {
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
-                    No suppliers registered yet. Click &quot;Add New Supplier&quot; to populate your vendor directory.
+                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm space-y-3">
+                    <Building2 className="h-10 w-10 mx-auto text-slate-600 mb-2" />
+                    <p className="text-slate-300 font-semibold">No Suppliers Registered Yet</p>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Add vendor details, GSTIN, contact numbers, and track supplier payables.
+                    </p>
+                    <Button
+                      onClick={() => setShowAddModal(true)}
+                      className="bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold rounded-xl gap-2 mt-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add New Supplier
+                    </Button>
                   </td>
                 </tr>
               ) : (
@@ -203,8 +214,8 @@ export default function SuppliersPage() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-[#00aef0]" />

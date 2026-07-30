@@ -5,7 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Package, Plus, Search, Barcode, Tag, RefreshCw, Printer, X, ShieldCheck, Banknote, Warehouse, Sliders, Sparkles, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2, Eye, Pencil } from "lucide-react";
+import { Package, Plus, Search, Barcode, Tag, RefreshCw, Printer, X, ShieldCheck, Banknote, Warehouse, Sliders, Sparkles, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2, Eye, Edit3 as Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { BarcodeTagModal } from "@/components/commerce/barcode-tag-modal";
 import { ProductDetailsModal } from "@/components/commerce/product-details-modal";

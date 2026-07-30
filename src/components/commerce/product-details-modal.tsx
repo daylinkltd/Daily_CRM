@@ -22,7 +22,7 @@ import {
   FileText,
   Calendar,
   Percent,
-  Pencil,
+  Edit3 as Pencil,
 } from "lucide-react";
 
 export interface ProductDetails {
