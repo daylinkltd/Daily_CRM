@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     if (customerIds.length > 0) {
       const { data: contacts } = await supabase
         .from("contacts")
-        .select("id, first_name, last_name, phone_number, email")
+        .select("id, name, phone, email, company")
         .in("id", customerIds);
 
       (contacts || []).forEach((c) => {
