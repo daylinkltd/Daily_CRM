@@ -1,5 +1,3 @@
--- ==================== BEGIN 078_company_details ====================
-
 -- ============================================================
 -- 078 — company details (one row per workspace).
 --
@@ -66,5 +64,3 @@ CREATE POLICY company_details_members ON public.company_details
 DROP TRIGGER IF EXISTS set_updated_at ON public.company_details;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.company_details
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- ==================== END 078 ====================

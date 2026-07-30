@@ -176,6 +176,7 @@ const navGroups: NavGroup[] = [
       { href: "/employees", label: "Employees", icon: Users, permission: "people_view" },
       { href: "/recruitment", label: "Recruitment", icon: Briefcase, permission: "people_manage" },
       { href: "/policies", label: "Policies & Compliance", icon: ShieldCheck, permission: "people_view" },
+      { href: "/handbook", label: "Employee Handbook", icon: BookOpen, permission: "people_view" },
       { href: "/attendance", label: "Attendance", icon: CalendarClock, permission: "people_view" },
       { href: "/shifts", label: "Shifts", icon: Clock, permission: "people_manage" },
       { href: "/holidays", label: "Holidays", icon: Calendar, permission: "people_view" },
