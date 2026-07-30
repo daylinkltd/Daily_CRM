@@ -20,6 +20,8 @@ import {
   Info,
   Phone,
   Building,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -172,12 +174,21 @@ export default function CustomerLedgerPage() {
     (c) => Number(c.outstanding_balance || 0) > Number(c.credit_limit || 50000)
   ).length;
 
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+
   const filteredCustomers = customers.filter(
     (c) =>
       c.displayName?.toLowerCase().includes(query.toLowerCase()) ||
       c.phone?.includes(query) ||
       c.phone_number?.includes(query) ||
       c.company?.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / pageSize));
+  const displayedCustomers = filteredCustomers.slice(
+    (page - 1) * pageSize,
+    page * pageSize
   );
 
   return (
@@ -278,11 +289,11 @@ export default function CustomerLedgerPage() {
           <table className="w-full text-left text-sm text-slate-300">
             <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
               <tr>
-                <th className="py-3.5 px-4">Customer Name</th>
-                <th className="py-3.5 px-4">Phone &amp; Email</th>
-                <th className="py-3.5 px-4 text-right">Credit Limit</th>
-                <th className="py-3.5 px-4 text-right">Pending Udhar Balance</th>
-                <th className="py-3.5 px-4 text-center">Actions</th>
+                <th className="py-3.5 px-4 w-[28%]">Customer Name</th>
+                <th className="py-3.5 px-4 w-[24%]">Phone &amp; Email</th>
+                <th className="py-3.5 px-4 text-right w-[16%]">Credit Limit</th>
+                <th className="py-3.5 px-4 text-right w-[16%]">Pending Udhar Balance</th>
+                <th className="py-3.5 px-4 text-center w-[16%]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -292,7 +303,7 @@ export default function CustomerLedgerPage() {
                     Loading Customer Khata Ledger...
                   </td>
                 </tr>
-              ) : filteredCustomers.length === 0 ? (
+              ) : displayedCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-500 text-sm space-y-3">
                     <Users className="h-10 w-10 mx-auto text-slate-600 mb-2" />
@@ -310,7 +321,7 @@ export default function CustomerLedgerPage() {
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((contact) => {
+                displayedCustomers.map((contact) => {
                   const bal = Number(contact.outstanding_balance || 0);
                   const limit = Number(contact.credit_limit || 50000);
                   const isOverLimit = bal > limit;
@@ -381,6 +392,42 @@ export default function CustomerLedgerPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination Bar */}
+      {filteredCustomers.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl text-xs text-slate-300 backdrop-blur-md">
+          <div>
+            Showing <strong className="text-white">{(page - 1) * pageSize + 1}</strong> to{" "}
+            <strong className="text-white">
+              {Math.min(page * pageSize, filteredCustomers.length)}
+            </strong>{" "}
+            of <strong className="text-white">{filteredCustomers.length}</strong> registered customers
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="border-slate-800 text-slate-300 h-8 gap-1 rounded-xl disabled:opacity-40"
+            >
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </Button>
+            <span className="font-bold text-slate-200 px-3 py-1 bg-slate-950 rounded-lg border border-slate-800">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="border-slate-800 text-slate-300 h-8 gap-1 rounded-xl disabled:opacity-40"
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Add New Customer Modal */}
       {showAddCustomerModal && (
