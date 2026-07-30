@@ -88,6 +88,23 @@ export async function GET(request: Request) {
     };
   });
 
+  // Include custom policies added via AddPolicyDialog (title starts with "Handbook §")
+  const standardTitles = new Set(HANDBOOK_SECTIONS.map((s) => s.title));
+  let extraOrder = HANDBOOK_SECTIONS.length + 1;
+  for (const p of policies ?? []) {
+    if (!standardTitles.has(p.title)) {
+      sections.push({
+        order: extraOrder++,
+        key: `custom_${p.id}`,
+        title: p.title,
+        mandatory: false,
+        policy_id: p.id,
+        status: p.status,
+        acknowledged: ackByPolicy.get(p.id) ?? 0,
+      });
+    }
+  }
+
   return NextResponse.json({
     success: true,
     details: details ?? null,

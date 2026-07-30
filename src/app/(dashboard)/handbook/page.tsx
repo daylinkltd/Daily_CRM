@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  BookMarked, Building2, Check, ChevronDown, ChevronRight, Loader2, Sparkles,
+  BookMarked, Building2, Check, ChevronDown, ChevronRight, Loader2, Plus, Printer, Sparkles,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -30,6 +30,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { AddPolicyDialog } from "@/components/handbook/add-policy-dialog";
+import { PrintableHandbookModal } from "@/components/handbook/printable-handbook-modal";
+import { IntegrationShareButtons } from "@/components/integrations/integration-share-buttons";
 
 interface SectionStatus {
   order: number;
@@ -107,6 +110,17 @@ export default function HandbookPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [addPolicyOpen, setAddPolicyOpen] = useState(false);
+  const [printModalOpen, setPrintModalOpen] = useState(false);
+
+  const existingPolicyIds = useMemo(
+    () => sections.map((s) => s.policy_id).filter(Boolean) as string[],
+    [sections]
+  );
+
+  const handlePrint = () => {
+    setPrintModalOpen(true);
+  };
 
   const load = useCallback(async () => {
     if (!workspaceId) return;
@@ -242,12 +256,29 @@ export default function HandbookPage() {
           ) : undefined
         }
         actions={
-          isAdmin ? (
-            <Button onClick={handleGenerate} disabled={generating || migrationPending || missing.length > 0}>
-              {generating ? <Loader2 className="animate-spin" /> : <Sparkles />}
-              {generated > 0 ? "Generate Missing Sections" : "Generate Handbook"}
+          <div className="flex items-center gap-2">
+            {workspaceId && (
+              <IntegrationShareButtons
+                workspaceId={workspaceId}
+                documentTitle="Employee Handbook & Corporate Policies"
+                documentSummary="Company operational guidelines and employee handbook."
+              />
+            )}
+            <Button variant="outline" onClick={handlePrint}>
+              <Printer className="size-4 mr-1.5" /> Print / Export PDF
             </Button>
-          ) : undefined
+            {isAdmin && (
+              <>
+                <Button variant="outline" onClick={() => setAddPolicyOpen(true)}>
+                  <Plus className="size-4 mr-1.5 text-primary" /> Add Policy
+                </Button>
+                <Button onClick={handleGenerate} disabled={generating || migrationPending || missing.length > 0}>
+                  {generating ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                  {generated > 0 ? "Generate Missing Sections" : "Generate Handbook"}
+                </Button>
+              </>
+            )}
+          </div>
         }
       />
 
@@ -394,6 +425,24 @@ export default function HandbookPage() {
               )}
             </CardContent>
           </Card>
+        </>
+      )}
+
+      {workspaceId && (
+        <>
+          <AddPolicyDialog
+            open={addPolicyOpen}
+            onOpenChange={setAddPolicyOpen}
+            workspaceId={workspaceId}
+            existingPolicyIds={existingPolicyIds}
+            onAdded={() => void load()}
+          />
+          <PrintableHandbookModal
+            open={printModalOpen}
+            onOpenChange={setPrintModalOpen}
+            workspaceId={workspaceId}
+            workspaceName={activeWorkspace?.name || "Daily CRM"}
+          />
         </>
       )}
     </div>

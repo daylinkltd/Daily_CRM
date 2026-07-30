@@ -24,6 +24,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { WhatsAppReminderModal } from "@/components/finance/whatsapp-reminder-modal";
 
 export default function CustomerLedgerPage() {
   const { activeWorkspace } = useWorkspace();
@@ -150,18 +151,17 @@ export default function CustomerLedgerPage() {
     }
   };
 
+  const [selectedWaCustomer, setSelectedWaCustomer] = useState<any>(null);
+  const [waModalOpen, setWaModalOpen] = useState(false);
+
   const handleWhatsAppReminder = (c: any) => {
     const rawPhone = c.phone || c.phone_number;
     if (!rawPhone) {
       toast.error("Customer phone number is missing");
       return;
     }
-    const cleanPhone = rawPhone.replace(/[^0-9]/g, "");
-    const bal = Number(c.outstanding_balance || 0).toFixed(2);
-    const message = encodeURIComponent(
-      `Hello ${c.displayName}, this is a gentle reminder from ${activeWorkspace?.name || "Daily CRM"} regarding your pending Khata credit balance of ₹${bal}. Please make the payment at your earliest convenience. Thank you!`
-    );
-    window.open(`https://wa.me/${cleanPhone}?text=${message}`, "_blank");
+    setSelectedWaCustomer(c);
+    setWaModalOpen(true);
   };
 
   // Compute Stats
@@ -602,6 +602,16 @@ export default function CustomerLedgerPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {activeWorkspace?.id && (
+        <WhatsAppReminderModal
+          open={waModalOpen}
+          onOpenChange={setWaModalOpen}
+          customer={selectedWaCustomer}
+          workspaceId={activeWorkspace.id}
+          workspaceName={activeWorkspace.name || "Daily CRM"}
+        />
       )}
     </div>
   );

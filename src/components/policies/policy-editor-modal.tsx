@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { toast } from 'sonner';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
   Dialog,
   DialogContent,
@@ -182,14 +183,14 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[88vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Shield className="size-5 text-primary" />
-            {policyId ? 'Edit HR Policy Document' : 'Create New HR Policy Document'}
+            {policyId ? 'Edit & Version Policy Document' : 'Create New Company Policy'}
           </DialogTitle>
           <DialogDescription>
-            Create version-controlled HR policies, Terms & Conditions, and handbooks for employee sign-off.
+            Draft, version, and configure compliance policies for your workspace.
           </DialogDescription>
         </DialogHeader>
 
@@ -249,14 +250,12 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
             </div>
 
             <div className="space-y-2">
-              <Label>Policy Content (Markdown supported)</Label>
-              <Textarea
+              <Label>Policy Content (Visual Rich Text Editor)</Label>
+              <RichTextEditor
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={setContent}
                 placeholder="Enter complete policy text, terms, clauses, and employee responsibilities..."
-                rows={10}
-                className="font-mono text-xs"
-                required
+                minHeight="220px"
               />
             </div>
 

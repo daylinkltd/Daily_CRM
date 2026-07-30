@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { markdownToHtml } from '@/lib/markdown-utils';
+import { IntegrationShareButtons } from '@/components/integrations/integration-share-buttons';
 
 export default function PolicyReadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -152,6 +154,13 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
           <ArrowLeft className="size-4 mr-2" /> Back to Policies
         </Button>
         <div className="flex items-center gap-2">
+          {activeWorkspace?.id && (
+            <IntegrationShareButtons
+              workspaceId={activeWorkspace.id}
+              documentTitle={`Policy Document: ${policy.title}`}
+              documentSummary={`Policy document version v${activeVersion.version_number}`}
+            />
+          )}
           <Badge variant="outline" className="text-xs bg-card">
             {policy.category.replace(/_/g, ' ')}
           </Badge>
@@ -198,9 +207,10 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
             className="border border-border rounded-lg p-6 max-h-[450px] overflow-y-auto bg-muted/10 font-sans text-sm leading-relaxed space-y-4 shadow-inner"
           >
             {activeVersion.content ? (
-              activeVersion.content.split('\n\n').map((paragraph: string, idx: number) => (
-                <p key={idx} className="text-foreground/90">{paragraph}</p>
-              ))
+              <div
+                className="prose dark:prose-invert max-w-none text-sm leading-relaxed space-y-3"
+                dangerouslySetInnerHTML={{ __html: markdownToHtml(activeVersion.content) }}
+              />
             ) : (
               <p className="text-muted-foreground italic">No document content available.</p>
             )}
@@ -250,31 +260,37 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignPolicy} className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="agree-terms"
-                  checked={agreed}
-                  onCheckedChange={(c) => setAgreed(!!c)}
-                  disabled={!scrolledToBottom}
-                />
-                <label
-                  htmlFor="agree-terms"
-                  className={`text-xs ${scrolledToBottom ? 'cursor-pointer text-foreground font-medium' : 'text-muted-foreground'}`}
-                >
-                  I confirm that I have read, understood, and agree to adhere to all terms in this policy document.
-                </label>
+              <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 space-y-2">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider">
+                  Employee Read & Sign Legal Attestation
+                </p>
+                <div className="flex items-start space-x-2.5">
+                  <Checkbox
+                    id="agree-terms"
+                    checked={agreed}
+                    onCheckedChange={(c) => setAgreed(!!c)}
+                    disabled={!scrolledToBottom}
+                    className="mt-0.5"
+                  />
+                  <label
+                    htmlFor="agree-terms"
+                    className={`text-xs leading-relaxed ${scrolledToBottom ? 'cursor-pointer text-foreground font-medium' : 'text-muted-foreground'}`}
+                  >
+                    <strong>Formal Attestation:</strong> I, {typedName.trim() || '[Employee Name]'}, hereby formally attest and declare under penalty of company disciplinary policy that I have thoroughly read, fully understood, and voluntarily agree to comply with all terms, standards, and obligations outlined in this document.
+                  </label>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                 <div className="sm:col-span-2 space-y-1">
                   <Input
-                    placeholder="Type your full legal name (e.g. John Doe)"
+                    placeholder="Type your full legal name to attest & sign (e.g. John Doe)"
                     value={typedName}
                     onChange={(e) => setTypedName(e.target.value)}
                     disabled={!scrolledToBottom || !agreed}
                     className="bg-popover"
                   />
-                  <p className="text-[10px] text-muted-foreground">Your typed name serves as your legal digital signature.</p>
+                  <p className="text-[10px] text-muted-foreground">Your typed full legal name serves as a binding digital signature with SHA-256 audit proof.</p>
                 </div>
                 <Button
                   type="submit"
@@ -282,7 +298,7 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
                   className="bg-primary text-primary-foreground h-10"
                 >
                   {signing ? <Loader2 className="size-4 animate-spin mr-2" /> : <ShieldCheck className="size-4 mr-2" />}
-                  Sign & Acknowledge
+                  Attest & Sign Policy
                 </Button>
               </div>
             </form>

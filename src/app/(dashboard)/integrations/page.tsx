@@ -11,9 +11,15 @@ import { SheetsConfig } from '@/components/settings/sheets-config';
 import { FormsConfig } from '@/components/settings/forms-config';
 import { Button } from '@/components/ui/button';
 
+import { useState } from 'react';
+import { useWorkspace } from '@/hooks/use-workspace';
+import { OutlookConfigModal } from '@/components/integrations/outlook-config-modal';
+
 export default function IntegrationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { activeWorkspace } = useWorkspace();
+  const [outlookOpen, setOutlookOpen] = useState(false);
 
   const tab = searchParams.get('tab');
 
@@ -42,6 +48,7 @@ export default function IntegrationsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
           {[
             { id: 'whatsapp', name: 'WhatsApp Business', desc: 'Connect WhatsApp API', icon: MessageSquare },
+            { id: 'outlook', name: 'Microsoft Outlook', desc: 'Azure AD App Registration', icon: Mail, customClick: () => setOutlookOpen(true) },
             { id: 'instagram', name: 'Instagram DMs', desc: 'Connect IG Graph API', icon: MessageSquare },
             { id: 'messenger', name: 'Messenger', desc: 'Connect Facebook Pages', icon: MessageSquare },
             { id: 'email', name: 'Email (SMTP/OAuth)', desc: 'Connect Google, Outlook, Zoho, SES', icon: Mail },
@@ -49,7 +56,7 @@ export default function IntegrationsPage() {
             { id: 'sheets', name: 'Google Sheets', desc: '2-way Sync with Sheets', icon: FileSpreadsheet },
             { id: 'forms', name: 'Lead Forms', desc: 'Google Forms, FB Forms, Webhooks', icon: FormInput },
           ].map(integration => (
-            <div key={integration.id} onClick={() => onChange(integration.id)} className="cursor-pointer group flex flex-col items-center p-6 rounded-2xl bg-card border border-border text-center hover:border-primary/50 hover:bg-muted/50 transition-all">
+            <div key={integration.id} onClick={() => integration.customClick ? integration.customClick() : onChange(integration.id)} className="cursor-pointer group flex flex-col items-center p-6 rounded-2xl bg-card border border-border text-center hover:border-primary/50 hover:bg-muted/50 transition-all">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4 group-hover:scale-110 transition-transform">
                 <integration.icon className="h-6 w-6 text-primary" />
               </div>
@@ -84,6 +91,14 @@ export default function IntegrationsPage() {
             </div>
           )}
         </div>
+      )}
+
+      {activeWorkspace?.id && (
+        <OutlookConfigModal
+          open={outlookOpen}
+          onOpenChange={setOutlookOpen}
+          workspaceId={activeWorkspace.id}
+        />
       )}
     </div>
   );
