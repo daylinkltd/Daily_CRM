@@ -173,7 +173,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   if (isTrialExpired) {
     const activePlanConfig = PLANS.find((p) => p.id === selectedPlan) || PLANS[1];
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden text-slate-100">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden text-foreground">
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-red-500/5 blur-[120px]" />
 
@@ -237,7 +237,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                     className={`relative flex flex-col rounded-2xl p-4 border transition-all cursor-pointer select-none ${
                       isSelected
                         ? "border-primary bg-primary/5 shadow-xl shadow-primary/5"
-                        : "border-border bg-background/40 hover:border-slate-700"
+                        : "border-border bg-background/40 hover:border-border"
                     }`}
                   >
                     {plan.isRecommended && (
@@ -248,7 +248,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                     <span className="text-xs font-extrabold text-foreground block">{plan.name}</span>
                     <div className="flex items-baseline gap-0.5 mt-1 mb-4">
                       <span className="text-lg font-black text-foreground">{displayPrice}</span>
-                      <span className="text-slate-500 text-[10px]">{periodLabel}</span>
+                      <span className="text-muted-foreground text-[10px]">{periodLabel}</span>
                     </div>
 
                     <ul className="space-y-1.5 flex-1 mb-4">
@@ -287,7 +287,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
 
           <button
             onClick={() => signOut()}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <LogOut className="h-3.5 w-3.5" /> Sign out
           </button>

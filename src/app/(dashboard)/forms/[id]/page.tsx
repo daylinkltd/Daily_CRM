@@ -414,7 +414,7 @@ export default function FormBuilderPage({
                 className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
                   form.is_active
                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-slate-800 text-muted-foreground border border-slate-700'
+                    : 'bg-muted text-muted-foreground border border-border'
                 }`}
               >
                 {form.is_active ? 'Active' : 'Inactive'}
@@ -428,7 +428,7 @@ export default function FormBuilderPage({
           <Button
             variant="outline"
             onClick={copyShareLink}
-            className="border-border hover:bg-slate-800 text-slate-300"
+            className="border-border hover:bg-muted text-foreground"
           >
             {copied ? <Check className="size-4 mr-2 text-emerald-400" /> : <Copy className="size-4 mr-2" />}
             Copy Public Link
@@ -440,7 +440,7 @@ export default function FormBuilderPage({
               const origin = typeof window !== 'undefined' ? window.location.origin : '';
               window.open(`${origin}/forms/shared/${form.id}`, '_blank');
             }}
-            className="text-slate-300 hover:text-foreground"
+            className="text-foreground hover:text-foreground"
           >
             <ExternalLink className="size-4 mr-1.5" />
             View Form
@@ -468,7 +468,7 @@ export default function FormBuilderPage({
             {/* Left Canvas Panel */}
             <div className="lg:col-span-2 space-y-4">
               {/* Form Metadata */}
-              <Card className="bg-card/60 border-border text-slate-300">
+              <Card className="bg-card/60 border-border text-foreground">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold text-foreground">Form Details</CardTitle>
                 </CardHeader>
@@ -480,7 +480,7 @@ export default function FormBuilderPage({
                       value={formTitle}
                       onChange={(e) => setFormTitle(e.target.value)}
                       placeholder="e.g. Lead Contact Sheet"
-                      className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
+                      className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -490,7 +490,7 @@ export default function FormBuilderPage({
                       value={formDesc}
                       onChange={(e) => setFormDesc(e.target.value)}
                       placeholder="Enter the form description or welcome message shown to leads..."
-                      className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 min-h-[70px]"
+                      className="bg-muted border-border text-foreground placeholder:text-muted-foreground min-h-[70px]"
                     />
                   </div>
                 </CardContent>
@@ -499,13 +499,13 @@ export default function FormBuilderPage({
               {/* Dynamic Field Canvas List */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-300">Form Fields Structure</h3>
-                  <span className="text-xs text-slate-500">{fields.length} fields configured</span>
+                  <h3 className="text-sm font-semibold text-foreground">Form Fields Structure</h3>
+                  <span className="text-xs text-muted-foreground">{fields.length} fields configured</span>
                 </div>
 
                 {fields.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border p-8 text-center bg-card/20">
-                    <p className="text-sm text-slate-500 italic">No fields configured. Click below to add your first question.</p>
+                    <p className="text-sm text-muted-foreground italic">No fields configured. Click below to add your first question.</p>
                   </div>
                 ) : (
                   <div className="space-y-2.5">
@@ -543,7 +543,7 @@ export default function FormBuilderPage({
                                   moveField(idx, 'up');
                                 }}
                                 disabled={idx === 0}
-                                className="text-muted-foreground hover:text-foreground disabled:text-slate-700"
+                                className="text-muted-foreground hover:text-foreground disabled:text-foreground"
                               >
                                 <ChevronUp className="size-4" />
                               </button>
@@ -554,7 +554,7 @@ export default function FormBuilderPage({
                                   moveField(idx, 'down');
                                 }}
                                 disabled={idx === fields.length - 1}
-                                className="text-muted-foreground hover:text-foreground disabled:text-slate-700"
+                                className="text-muted-foreground hover:text-foreground disabled:text-foreground"
                               >
                                 <ChevronDown className="size-4" />
                               </button>
@@ -563,17 +563,17 @@ export default function FormBuilderPage({
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium text-sm text-foreground">
-                                  {field.label || <span className="italic text-slate-500">Untitled Field</span>}
+                                  {field.label || <span className="italic text-muted-foreground">Untitled Field</span>}
                                 </span>
                                 {field.is_required && (
                                   <span className="text-xs text-red-400 font-semibold">* Required</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-slate-800 rounded text-slate-300 uppercase">
+                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-muted rounded text-foreground uppercase">
                                   {field.field_type}
                                 </span>
-                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-slate-800 rounded text-muted-foreground flex items-center gap-1">
+                                <span className="text-[10px] px-1.5 py-0.5 font-semibold bg-muted rounded text-muted-foreground flex items-center gap-1">
                                   <Database className="size-2.5" />
                                   {mappingBadge}
                                 </span>
@@ -588,7 +588,7 @@ export default function FormBuilderPage({
                               e.stopPropagation();
                               removeField(field.id!);
                             }}
-                            className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="text-muted-foreground hover:text-red-400 hover:bg-red-500/10 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <Trash2 className="size-4" />
                           </Button>
@@ -618,7 +618,7 @@ export default function FormBuilderPage({
                         variant="outline"
                         size="sm"
                         onClick={() => addField(item.type as FormFieldType)}
-                        className="bg-card border-border hover:bg-slate-800 text-xs text-slate-300"
+                        className="bg-card border-border hover:bg-muted text-xs text-foreground"
                       >
                         <Plus className="size-3.5 mr-1" />
                         {item.label}
@@ -631,7 +631,7 @@ export default function FormBuilderPage({
 
             {/* Right Settings Configuration Panel */}
             <div className="space-y-4">
-              <Card className="bg-card border-border text-slate-300 sticky top-4">
+              <Card className="bg-card border-border text-foreground sticky top-4">
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Settings2 className="size-4 text-primary" />
@@ -644,7 +644,7 @@ export default function FormBuilderPage({
                 <CardContent className="space-y-4">
                   {!selectedField ? (
                     <div className="text-center py-10">
-                      <p className="text-xs text-slate-500 italic">Select a field on the canvas to edit its details and mapping settings.</p>
+                      <p className="text-xs text-muted-foreground italic">Select a field on the canvas to edit its details and mapping settings.</p>
                     </div>
                   ) : (
                     <>
@@ -655,7 +655,7 @@ export default function FormBuilderPage({
                           id="field-label"
                           value={selectedField.label || ''}
                           onChange={(e) => updateSelectedField({ label: e.target.value })}
-                          className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 text-sm"
+                          className="bg-muted border-border text-foreground placeholder:text-muted-foreground text-sm"
                         />
                       </div>
 
@@ -667,7 +667,7 @@ export default function FormBuilderPage({
                             id="field-placeholder"
                             value={selectedField.placeholder || ''}
                             onChange={(e) => updateSelectedField({ placeholder: e.target.value })}
-                            className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 text-sm"
+                            className="bg-muted border-border text-foreground placeholder:text-muted-foreground text-sm"
                           />
                         </div>
                       )}
@@ -688,20 +688,20 @@ export default function FormBuilderPage({
                               })
                             }
                             placeholder="Option A, Option B, Option C"
-                            className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 text-sm"
+                            className="bg-muted border-border text-foreground placeholder:text-muted-foreground text-sm"
                           />
-                          <p className="text-[10px] text-slate-500 italic">Separate options with commas.</p>
+                          <p className="text-[10px] text-muted-foreground italic">Separate options with commas.</p>
                         </div>
                       )}
 
                       {/* Required Toggle */}
                       <div className="flex items-center justify-between border-y border-border py-3 mt-2">
-                        <Label htmlFor="field-req" className="text-slate-300 text-xs font-semibold uppercase">Is Field Required?</Label>
+                        <Label htmlFor="field-req" className="text-foreground text-xs font-semibold uppercase">Is Field Required?</Label>
                         <Switch
                           id="field-req"
                           checked={!!selectedField.is_required}
                           onCheckedChange={(checked) => updateSelectedField({ is_required: checked })}
-                          className="data-checked:bg-primary data-unchecked:bg-slate-800"
+                          className="data-checked:bg-primary data-unchecked:bg-muted"
                         />
                       </div>
 
@@ -725,10 +725,10 @@ export default function FormBuilderPage({
                               })
                             }
                           >
-                            <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground text-xs">
+                            <SelectTrigger className="bg-muted border-border text-foreground text-xs">
                               <SelectValue placeholder="No mapping" />
                             </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-slate-700 text-slate-300 text-xs">
+                            <SelectContent className="bg-muted border-border text-foreground text-xs">
                               <SelectItem value="none">Do not map (Save raw answer only)</SelectItem>
                               <SelectItem value="contact_field">Contact (Standard Attribute)</SelectItem>
                               <SelectItem value="contact_custom_field">Contact (Custom Field)</SelectItem>
@@ -746,10 +746,10 @@ export default function FormBuilderPage({
                             value={selectedField.mapping_key || ''}
                             onValueChange={(val) => updateSelectedField({ mapping_key: val || undefined })}
                           >
-                            <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground text-xs">
+                            <SelectTrigger className="bg-muted border-border text-foreground text-xs">
                               <SelectValue placeholder="Choose attribute" />
                             </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-slate-700 text-slate-300 text-xs">
+                            <SelectContent className="bg-muted border-border text-foreground text-xs">
                               <SelectItem value="name">Full Name</SelectItem>
                               <SelectItem value="phone">Phone Number (For Deduplication)</SelectItem>
                               <SelectItem value="email">Email Address</SelectItem>
@@ -763,17 +763,17 @@ export default function FormBuilderPage({
                         <div className="space-y-1.5">
                           <Label htmlFor="mapping-key-custom" className="text-muted-foreground text-xs">Select Custom Field</Label>
                           {customFields.length === 0 ? (
-                            <p className="text-[10px] text-slate-500 italic">No custom fields created in your CRM contacts.</p>
+                            <p className="text-[10px] text-muted-foreground italic">No custom fields created in your CRM contacts.</p>
                           ) : (
                             <Select
                               key={`cf-${selectedField.mapping_key}-${customFields.length}`}
                               value={selectedField.mapping_key || ''}
                               onValueChange={(val) => updateSelectedField({ mapping_key: val || undefined })}
                             >
-                              <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground text-xs">
+                              <SelectTrigger className="bg-muted border-border text-foreground text-xs">
                                 <SelectValue placeholder="Choose custom field" />
                               </SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-slate-700 text-slate-300 text-xs">
+                              <SelectContent className="bg-muted border-border text-foreground text-xs">
                                 {customFields.map((cf) => (
                                   <SelectItem key={cf.id} value={cf.id}>
                                     {cf.field_name} ({cf.field_type})
@@ -792,10 +792,10 @@ export default function FormBuilderPage({
                             value={selectedField.mapping_key || ''}
                             onValueChange={(val) => updateSelectedField({ mapping_key: val || undefined })}
                           >
-                            <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground text-xs">
+                            <SelectTrigger className="bg-muted border-border text-foreground text-xs">
                               <SelectValue placeholder="Choose deal attribute" />
                             </SelectTrigger>
-                            <SelectContent className="bg-slate-800 border-slate-700 text-slate-300 text-xs">
+                            <SelectContent className="bg-muted border-border text-foreground text-xs">
                               <SelectItem value="title">Deal Title</SelectItem>
                               <SelectItem value="value">Deal Value (Financial)</SelectItem>
                               <SelectItem value="notes">Deal Description / Notes</SelectItem>
@@ -847,7 +847,7 @@ export default function FormBuilderPage({
 
         {/* Tab 2: Integrations */}
         <TabsContent value="integrations" className="focus-visible:outline-none">
-          <Card className="bg-card border-border text-slate-300 max-w-xl">
+          <Card className="bg-card border-border text-foreground max-w-xl">
             <CardHeader>
               <CardTitle className="text-foreground">Pipeline Automation Settings</CardTitle>
               <CardDescription className="text-muted-foreground text-sm">
@@ -867,7 +867,7 @@ export default function FormBuilderPage({
                   id="auto-deal"
                   checked={createDealOnSubmit}
                   onCheckedChange={setCreateDealOnSubmit}
-                  className="data-checked:bg-primary data-unchecked:bg-slate-800"
+                  className="data-checked:bg-primary data-unchecked:bg-muted"
                 />
               </div>
 
@@ -877,7 +877,7 @@ export default function FormBuilderPage({
                   <div className="space-y-1.5">
                     <Label htmlFor="target-pipeline" className="text-muted-foreground">Target Pipeline</Label>
                     {pipelines.length === 0 ? (
-                      <p className="text-xs text-slate-500 italic">No pipelines created yet. Go to Pipelines to build one.</p>
+                      <p className="text-xs text-muted-foreground italic">No pipelines created yet. Go to Pipelines to build one.</p>
                     ) : (
                       <Select
                         key={`pipeline-${selectedPipelineId}-${pipelines.length}`}
@@ -887,10 +887,10 @@ export default function FormBuilderPage({
                           setSelectedStageId('');
                         }}
                       >
-                        <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground">
+                        <SelectTrigger className="bg-muted border-border text-foreground">
                           <SelectValue placeholder="Select a pipeline..." />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700 text-slate-300">
+                        <SelectContent className="bg-muted border-border text-foreground">
                           {pipelines.map((p) => (
                             <SelectItem key={p.id} value={p.id}>
                               {p.name}
@@ -910,10 +910,10 @@ export default function FormBuilderPage({
                       onValueChange={(val) => setSelectedStageId(val || '')}
                       disabled={!selectedPipelineId}
                     >
-                      <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground disabled:opacity-50">
+                      <SelectTrigger className="bg-muted border-border text-foreground disabled:opacity-50">
                         <SelectValue placeholder={selectedPipelineId ? "Choose pipeline stage..." : "Choose pipeline first..."} />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700 text-slate-300">
+                      <SelectContent className="bg-muted border-border text-foreground">
                         {activeStages.map((stage) => (
                           <SelectItem key={stage.id} value={stage.id}>
                             {stage.name}
@@ -940,7 +940,7 @@ export default function FormBuilderPage({
 
         {/* Tab 3: Responses */}
         <TabsContent value="responses" className="focus-visible:outline-none">
-          <Card className="bg-card border-border text-slate-300">
+          <Card className="bg-card border-border text-foreground">
             <CardHeader className="pb-3">
               <CardTitle className="text-foreground">Submission History</CardTitle>
               <CardDescription className="text-muted-foreground text-sm">
@@ -950,9 +950,9 @@ export default function FormBuilderPage({
             <CardContent className="p-0 overflow-x-auto">
               {submissions.length === 0 ? (
                 <div className="text-center py-20">
-                  <FileText className="size-12 mx-auto text-slate-600 mb-3" />
+                  <FileText className="size-12 mx-auto text-muted-foreground mb-3" />
                   <h3 className="text-md font-semibold text-foreground">No submissions yet</h3>
-                  <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                  <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
                     Share the public form link. When leads fill it out, their details and answers will appear here.
                   </p>
                 </div>
@@ -986,7 +986,7 @@ export default function FormBuilderPage({
                               {sub.contacts.name || sub.contacts.phone}
                             </button>
                           ) : (
-                            <span className="text-slate-500 italic">Deleted contact</span>
+                            <span className="text-muted-foreground italic">Deleted contact</span>
                           )}
                         </td>
                         <td className="p-4 whitespace-nowrap">
@@ -995,7 +995,7 @@ export default function FormBuilderPage({
                               {sub.deals.title}
                             </span>
                           ) : (
-                            <span className="text-slate-500 italic">—</span>
+                            <span className="text-muted-foreground italic">—</span>
                           )}
                         </td>
                         {fields.map((field) => {
@@ -1010,11 +1010,11 @@ export default function FormBuilderPage({
                               : val;
 
                           return (
-                            <td key={field.id} className="p-4 text-slate-300 max-w-[200px] truncate">
+                            <td key={field.id} className="p-4 text-foreground max-w-[200px] truncate">
                               {displayVal !== undefined && displayVal !== null && displayVal !== '' ? (
                                 String(displayVal)
                               ) : (
-                                <span className="text-slate-600 italic">empty</span>
+                                <span className="text-muted-foreground italic">empty</span>
                               )}
                             </td>
                           );

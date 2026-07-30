@@ -55,7 +55,7 @@ function StatCard({ label, value, total, icon, color }: StatCardProps) {
         <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${color}`}>
           {icon}
         </div>
-        <span className="text-xs text-slate-500">{pct}%</span>
+        <span className="text-xs text-muted-foreground">{pct}%</span>
       </div>
       <p className="mt-3 text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -91,14 +91,14 @@ function FunnelChart({ steps }: { steps: FunnelStep[] }) {
               <span className="w-20 shrink-0 text-xs text-muted-foreground">
                 {step.label}
               </span>
-              <div className="relative h-7 flex-1 rounded-full bg-slate-800">
+              <div className="relative h-7 flex-1 rounded-full bg-muted">
                 <div
                   className={`h-7 rounded-full ${step.color} transition-[width] duration-500`}
                   style={{ width: `${pctOfMax}%` }}
                 />
                 <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-foreground">
                   {step.value.toLocaleString()}
-                  <span className="ml-2 text-slate-300/80">
+                  <span className="ml-2 text-foreground/80">
                     ({pctOfSent}%)
                   </span>
                 </span>
@@ -280,7 +280,7 @@ export default function BroadcastDetailPage() {
             variant="outline"
             size="icon"
             onClick={() => router.push('/broadcasts')}
-            className="border-slate-700"
+            className="border-border"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -315,7 +315,7 @@ export default function BroadcastDetailPage() {
               size="sm"
               onClick={() => setConfirmDelete(false)}
               disabled={deleting}
-              className="h-7 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+              className="h-7 border-border bg-transparent text-foreground hover:bg-muted"
             >
               Cancel
             </Button>
@@ -354,7 +354,7 @@ export default function BroadcastDetailPage() {
           value={broadcast.total_recipients}
           total={broadcast.total_recipients}
           icon={<Users className="h-4 w-4" />}
-          color="bg-slate-800 text-slate-300"
+          color="bg-muted text-foreground"
         />
         <StatCard
           label="Sent"
@@ -409,7 +409,7 @@ export default function BroadcastDetailPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                    className="border-border text-foreground hover:bg-muted"
                   />
                 }
               >
@@ -419,11 +419,11 @@ export default function BroadcastDetailPage() {
                   : getRecipientStatus(statusFilter).label}
                 <ChevronDown className="h-3 w-3" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="border-slate-700 bg-card">
+              <DropdownMenuContent className="border-border bg-card">
                 <DropdownMenuItem
                   onClick={() => setStatusFilter('all')}
                   className={
-                    statusFilter === 'all' ? 'text-primary' : 'text-slate-300'
+                    statusFilter === 'all' ? 'text-primary' : 'text-foreground'
                   }
                 >
                   All statuses
@@ -435,7 +435,7 @@ export default function BroadcastDetailPage() {
                     className={
                       statusFilter === s
                         ? 'text-primary'
-                        : 'text-slate-300'
+                        : 'text-foreground'
                     }
                   >
                     {getRecipientStatus(s).label}
@@ -449,7 +449,7 @@ export default function BroadcastDetailPage() {
               size="sm"
               onClick={handleExport}
               disabled={recipients.length === 0}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+              className="border-border text-foreground hover:bg-muted"
             >
               <Download className="h-3.5 w-3.5" />
               Export CSV
@@ -487,7 +487,7 @@ export default function BroadcastDetailPage() {
                       <TableCell className="font-medium text-foreground">
                         {recipient.contact?.name ?? 'Unknown'}
                       </TableCell>
-                      <TableCell className="text-slate-300">
+                      <TableCell className="text-foreground">
                         {recipient.contact?.phone ?? '-'}
                       </TableCell>
                       <TableCell>

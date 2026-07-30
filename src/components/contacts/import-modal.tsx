@@ -201,7 +201,7 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-card border-slate-700 text-slate-200 sm:max-w-lg">
+      <DialogContent className="bg-card border-border text-foreground sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-foreground">Import Contacts</DialogTitle>
           <DialogDescription className="text-muted-foreground">
@@ -214,23 +214,23 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
           {/* Upload area */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-700 p-6 cursor-pointer hover:border-primary/50 transition-colors"
+            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-6 cursor-pointer hover:border-primary/50 transition-colors"
           >
             {file ? (
               <>
                 <FileText className="size-8 text-primary" />
-                <p className="text-sm text-slate-300">{file.name}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm text-foreground">{file.name}</p>
+                <p className="text-xs text-muted-foreground">
                   {parsedRows.length} row{parsedRows.length !== 1 ? 's' : ''} detected
                 </p>
               </>
             ) : (
               <>
-                <Upload className="size-8 text-slate-500" />
+                <Upload className="size-8 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
                   Click to upload CSV file
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   CSV with &quot;phone&quot; column required
                 </p>
               </>
@@ -251,10 +251,10 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Preview (first {preview.length} rows)
               </p>
-              <div className="rounded-lg border border-slate-700 overflow-hidden">
+              <div className="rounded-lg border border-border overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="bg-slate-800">
+                    <tr className="bg-muted">
                       <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Phone</th>
                       <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Name</th>
                       <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Email</th>
@@ -263,18 +263,18 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
                   </thead>
                   <tbody>
                     {preview.map((row, i) => (
-                      <tr key={i} className="border-t border-slate-700/50">
-                        <td className="px-3 py-1.5 text-slate-300">{row.phone}</td>
-                        <td className="px-3 py-1.5 text-slate-300">{row.name || '-'}</td>
-                        <td className="px-3 py-1.5 text-slate-300">{row.email || '-'}</td>
-                        <td className="px-3 py-1.5 text-slate-300">{row.company || '-'}</td>
+                      <tr key={i} className="border-t border-border/50">
+                        <td className="px-3 py-1.5 text-foreground">{row.phone}</td>
+                        <td className="px-3 py-1.5 text-foreground">{row.name || '-'}</td>
+                        <td className="px-3 py-1.5 text-foreground">{row.email || '-'}</td>
+                        <td className="px-3 py-1.5 text-foreground">{row.company || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               {parsedRows.length > 5 && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   ...and {parsedRows.length - 5} more rows
                 </p>
               )}
@@ -283,7 +283,7 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
 
           {/* Results */}
           {result && (
-            <div className="rounded-lg border border-slate-700 p-4 space-y-2">
+            <div className="rounded-lg border border-border p-4 space-y-2">
               <p className="text-sm font-medium text-foreground">Import Complete</p>
               <div className="flex items-center gap-4">
                 {result.imported > 0 && (
@@ -303,12 +303,12 @@ export function ImportModal({ open, onOpenChange, onImported }: ImportModalProps
           )}
         </div>
 
-        <DialogFooter className="bg-card border-slate-700">
+        <DialogFooter className="bg-card border-border">
           <Button
             type="button"
             variant="outline"
             onClick={() => handleOpenChange(false)}
-            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            className="border-border text-foreground hover:bg-muted"
           >
             {result ? 'Close' : 'Cancel'}
           </Button>

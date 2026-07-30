@@ -215,7 +215,7 @@ export default function FormsPage() {
       ) : forms.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-12 text-center bg-card/20 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3 max-w-sm mx-auto">
-            <div className="size-12 rounded-full bg-slate-800 flex items-center justify-center text-primary">
+            <div className="size-12 rounded-full bg-muted flex items-center justify-center text-primary">
               <FileText className="size-6" />
             </div>
             <h3 className="text-lg font-medium text-foreground">No forms created yet</h3>
@@ -236,7 +236,7 @@ export default function FormsPage() {
           {forms.map((form) => (
             <div
               key={form.id}
-              className="group relative rounded-xl border border-border/80 bg-card/50 hover:bg-card/80 hover:border-slate-700/80 transition-all duration-200 p-5 flex flex-col justify-between gap-4"
+              className="group relative rounded-xl border border-border/80 bg-card/50 hover:bg-card/80 hover:border-border/80 transition-all duration-200 p-5 flex flex-col justify-between gap-4"
             >
               <div>
                 {/* Title and Top Row */}
@@ -248,17 +248,17 @@ export default function FormsPage() {
                     <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-foreground" />} >
                       <MoreVertical className="size-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-card border-slate-700 text-slate-300">
+                    <DropdownMenuContent align="end" className="bg-card border-border text-foreground">
                       <DropdownMenuItem
                         onClick={() => router.push(`/forms/${form.id}`)}
-                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-foreground"
+                        className="hover:bg-muted focus:bg-muted focus:text-foreground"
                       >
                         <Pencil className="size-4 mr-2" />
                         Edit / Build
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => copyShareLink(form.id)}
-                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-foreground"
+                        className="hover:bg-muted focus:bg-muted focus:text-foreground"
                       >
                         <Copy className="size-4 mr-2" />
                         Copy Share Link
@@ -268,12 +268,12 @@ export default function FormsPage() {
                           const origin = typeof window !== 'undefined' ? window.location.origin : '';
                           window.open(`${origin}/forms/shared/${form.id}`, '_blank');
                         }}
-                        className="hover:bg-slate-800 focus:bg-slate-800 focus:text-foreground"
+                        className="hover:bg-muted focus:bg-muted focus:text-foreground"
                       >
                         <ExternalLink className="size-4 mr-2" />
                         Open Public Form
                       </DropdownMenuItem>
-                      <div className="h-px bg-slate-800 my-1" />
+                      <div className="h-px bg-muted my-1" />
                       <DropdownMenuItem
                         onClick={() => setDeleteTarget(form)}
                         className="text-red-400 focus:bg-red-500/10 focus:text-red-300"
@@ -286,7 +286,7 @@ export default function FormsPage() {
                 </div>
 
                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2 min-h-[2rem]">
-                  {form.description || <span className="italic text-slate-500">No description</span>}
+                  {form.description || <span className="italic text-muted-foreground">No description</span>}
                 </p>
               </div>
 
@@ -302,7 +302,7 @@ export default function FormsPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => copyShareLink(form.id)}
-                    className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-slate-800 transition-colors"
+                    className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted transition-colors"
                     title="Copy Public Link"
                   >
                     {copiedId === form.id ? (
@@ -313,11 +313,11 @@ export default function FormsPage() {
                   </button>
 
                   <div className="flex items-center gap-1.5">
-                    <Label className="text-slate-500 text-[10px] uppercase font-medium">Active</Label>
+                    <Label className="text-muted-foreground text-[10px] uppercase font-medium">Active</Label>
                     <Switch
                       checked={form.is_active}
                       onCheckedChange={(checked) => toggleStatus(form, checked)}
-                      className="data-checked:bg-primary data-unchecked:bg-slate-800"
+                      className="data-checked:bg-primary data-unchecked:bg-muted"
                     />
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export default function FormsPage() {
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="bg-card border-border text-slate-200 max-w-md">
+        <DialogContent className="bg-card border-border text-foreground max-w-md">
           <DialogHeader>
             <DialogTitle className="text-foreground">Create New Form</DialogTitle>
             <DialogDescription className="text-muted-foreground text-sm">
@@ -339,23 +339,23 @@ export default function FormsPage() {
 
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="form-title" className="text-slate-300">Form Title</Label>
+              <Label htmlFor="form-title" className="text-foreground">Form Title</Label>
               <Input
                 id="form-title"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="e.g. Website Contact Form"
-                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="form-desc" className="text-slate-300">Description</Label>
+              <Label htmlFor="form-desc" className="text-foreground">Description</Label>
               <Textarea
                 id="form-desc"
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
                 placeholder="Briefly state the goal of this form..."
-                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 min-h-[80px]"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
               />
             </div>
           </div>
@@ -364,7 +364,7 @@ export default function FormsPage() {
             <Button
               variant="outline"
               onClick={() => setCreateOpen(false)}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-foreground"
+              className="border-border text-foreground hover:bg-muted hover:text-foreground"
             >
               Cancel
             </Button>
@@ -381,7 +381,7 @@ export default function FormsPage() {
 
       {/* Delete Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent className="bg-card border-border text-slate-200 max-w-sm">
+        <DialogContent className="bg-card border-border text-foreground max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-foreground">Delete Form</DialogTitle>
             <DialogDescription className="text-muted-foreground text-sm">
@@ -393,7 +393,7 @@ export default function FormsPage() {
             <Button
               variant="outline"
               onClick={() => setDeleteTarget(null)}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-foreground"
+              className="border-border text-foreground hover:bg-muted hover:text-foreground"
             >
               Cancel
             </Button>

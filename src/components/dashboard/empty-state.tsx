@@ -26,11 +26,11 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-slate-500">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
         <Icon className="h-5 w-5" />
       </div>
-      <p className="text-sm font-medium text-slate-300">{title}</p>
-      {hint && <p className="max-w-xs text-xs text-slate-500">{hint}</p>}
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      {hint && <p className="max-w-xs text-xs text-muted-foreground">{hint}</p>}
     </div>
   )
 }

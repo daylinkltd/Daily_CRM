@@ -383,13 +383,13 @@ export default function AdminDashboard() {
       <div className="absolute top-10 right-10 h-96 w-96 rounded-full bg-primary/5 blur-[160px] pointer-events-none" />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-900 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-widest mb-1.5">
             <Shield className="h-4 w-4 animate-pulse" /> Global Platform Admin Control
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">SaaS System Administrator</h1>
-          <p className="text-sm text-slate-400 mt-1">Monitor tenants, manage owners, and review prospects.</p>
+          <p className="text-sm text-muted-foreground mt-1">Monitor tenants, manage owners, and review prospects.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button onClick={() => setShowCreateOwner(!showCreateOwner)}
@@ -397,7 +397,7 @@ export default function AdminDashboard() {
             <Plus className="h-4 w-4" /> Create Owner
           </Button>
           <Button onClick={fetchData} disabled={loading}
-            className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 flex items-center gap-2">
+            className="bg-muted border border-border hover:bg-muted text-foreground flex items-center gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-primary" : ""}`} /> Refresh
           </Button>
         </div>
@@ -412,35 +412,35 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h2 className="text-base font-bold text-white">Create New Owner Account</h2>
-              <p className="text-xs text-slate-400">Creates auth account + root workspace with plan limits</p>
+              <p className="text-xs text-muted-foreground">Creates auth account + root workspace with plan limits</p>
             </div>
           </div>
 
           <form onSubmit={handleCreateOwner} className="space-y-5 max-w-3xl">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs text-slate-400">Full Name *</Label>
+                <Label className="text-xs text-muted-foreground">Full Name *</Label>
                 <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="Jane Smith" required
-                  className="bg-slate-950 border-slate-700 focus:border-primary text-white text-sm" />
+                  className="bg-muted border-border focus:border-primary text-white text-sm" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-slate-400">Organisation Name *</Label>
+                <Label className="text-xs text-muted-foreground">Organisation Name *</Label>
                 <Input value={ownerOrg} onChange={e => setOwnerOrg(e.target.value)} placeholder="Acme Corp" required
-                  className="bg-slate-950 border-slate-700 focus:border-primary text-white text-sm" />
+                  className="bg-muted border-border focus:border-primary text-white text-sm" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-slate-400">Email Address *</Label>
+                <Label className="text-xs text-muted-foreground">Email Address *</Label>
                 <Input type="email" value={ownerEmail} onChange={e => setOwnerEmail(e.target.value)} placeholder="owner@acme.com" required
-                  className="bg-slate-950 border-slate-700 focus:border-primary text-white text-sm" />
+                  className="bg-muted border-border focus:border-primary text-white text-sm" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-slate-400">Password *</Label>
+                <Label className="text-xs text-muted-foreground">Password *</Label>
                 <div className="relative">
                   <Input type={showOwnerPass ? "text" : "password"} value={ownerPassword}
                     onChange={e => setOwnerPassword(e.target.value)} placeholder="Min 8 characters" required minLength={8}
-                    className="bg-slate-950 border-slate-700 focus:border-primary text-white text-sm pr-10" />
+                    className="bg-muted border-border focus:border-primary text-white text-sm pr-10" />
                   <button type="button" onClick={() => setShowOwnerPass(!showOwnerPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showOwnerPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -449,14 +449,14 @@ export default function AdminDashboard() {
 
             {/* Plan selector */}
             <div className="space-y-3">
-              <Label className="text-xs text-slate-400 uppercase tracking-widest font-bold">Plan *</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Plan *</Label>
               <div className="grid grid-cols-2 gap-3">
                 {(["growth", "custom"] as const).map(p => (
                   <button key={p} type="button" onClick={() => setSelectedPlan(p)}
                     className={`rounded-xl border p-4 text-left transition-all ${
                       selectedPlan === p
                         ? "border-primary bg-primary/10 text-white"
-                        : "border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700"
+                        : "border-border bg-muted/60 text-muted-foreground hover:border-border"
                     }`}>
                     <div className="font-bold text-sm">{p === "growth" ? "Growth — $20/mo" : "Custom Solution"}</div>
                     <div className="text-xs mt-1 opacity-70">
@@ -479,52 +479,52 @@ export default function AdminDashboard() {
                   ].map(item => (
                     <div key={item.label} className="text-center">
                       <div className="text-lg font-extrabold text-white">{item.value}</div>
-                      <div className="text-[10px] text-slate-400">{item.label}</div>
+                      <div className="text-[10px] text-muted-foreground">{item.label}</div>
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] text-slate-400 mt-3">Channels: WhatsApp · Instagram · Messenger · Email</p>
+                <p className="text-[11px] text-muted-foreground mt-3">Channels: WhatsApp · Instagram · Messenger · Email</p>
               </div>
             )}
 
             {selectedPlan === "custom" && (
-              <div className="rounded-lg border border-primary/20 bg-slate-950/60 p-4 space-y-4">
+              <div className="rounded-lg border border-primary/20 bg-muted/60 p-4 space-y-4">
                 <p className="text-xs font-bold text-primary uppercase tracking-widest">Custom Plan Limits</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-400">Max Members</Label>
+                    <Label className="text-xs text-muted-foreground">Max Members</Label>
                     <Input type="number" min={1} value={customLimits.max_members}
                       onChange={e => setCustomLimits(p => ({ ...p, max_members: Number(e.target.value) }))}
-                      className="bg-slate-900 border-slate-700 text-white text-sm" />
+                      className="bg-muted border-border text-white text-sm" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-400">Max Workspaces</Label>
+                    <Label className="text-xs text-muted-foreground">Max Workspaces</Label>
                     <Input type="number" min={1} value={customLimits.max_workspaces}
                       onChange={e => setCustomLimits(p => ({ ...p, max_workspaces: Number(e.target.value) }))}
-                      className="bg-slate-900 border-slate-700 text-white text-sm" />
+                      className="bg-muted border-border text-white text-sm" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-400">Storage (GB)</Label>
+                    <Label className="text-xs text-muted-foreground">Storage (GB)</Label>
                     <Input type="number" min={1} value={customLimits.max_storage_gb}
                       onChange={e => setCustomLimits(p => ({ ...p, max_storage_gb: Number(e.target.value) }))}
-                      className="bg-slate-900 border-slate-700 text-white text-sm" />
+                      className="bg-muted border-border text-white text-sm" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-400">Max Automations</Label>
+                    <Label className="text-xs text-muted-foreground">Max Automations</Label>
                     <Input placeholder="unlimited" value={customLimits.max_automations ?? ""}
                       onChange={e => setCustomLimits(p => ({ ...p, max_automations: e.target.value }))}
-                      className="bg-slate-900 border-slate-700 text-white text-sm" />
+                      className="bg-muted border-border text-white text-sm" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-slate-400">Allowed Channels</Label>
+                  <Label className="text-xs text-muted-foreground">Allowed Channels</Label>
                   <div className="flex flex-wrap gap-2">
                     {ALL_CHANNELS.map(ch => (
                       <button key={ch.id} type="button" onClick={() => toggleChannel(ch.id)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                           customLimits.channels.includes(ch.id)
                             ? "bg-primary/15 border-primary/40 text-primary"
-                            : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600"
+                            : "bg-muted border-border text-muted-foreground hover:border-border"
                         }`}>
                         {ch.label}
                       </button>
@@ -540,7 +540,7 @@ export default function AdminDashboard() {
                 {createOwnerLoading ? "Creating..." : "Create Owner + Workspace"}
               </Button>
               <Button type="button" variant="ghost" onClick={() => setShowCreateOwner(false)}
-                className="text-slate-400 hover:text-white hover:bg-slate-800">Cancel</Button>
+                className="text-muted-foreground hover:text-white hover:bg-muted">Cancel</Button>
             </div>
           </form>
         </div>
@@ -571,7 +571,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Tab Bar */}
-      <div className="flex gap-1 p-1 bg-slate-900/60 border border-slate-800 rounded-xl w-fit flex-wrap">
+      <div className="flex gap-1 p-1 bg-muted/60 border border-border rounded-xl w-fit flex-wrap">
         {([
           { key: "tenants", label: "Tenants & Users", icon: Building },
           { key: "prospects", label: `Prospects${newCount > 0 ? ` · ${newCount} new` : ""}`, icon: Inbox },
@@ -582,7 +582,7 @@ export default function AdminDashboard() {
             className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
               activeTab === tab.key
                 ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                : "text-slate-400 hover:text-white hover:bg-slate-800"
+                : "text-muted-foreground hover:text-white hover:bg-muted"
             }`}>
             <tab.icon className="h-4 w-4" />
             {tab.label}
@@ -594,29 +594,29 @@ export default function AdminDashboard() {
       {activeTab === "tenants" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-7">
           {/* Workspaces */}
-          <div className="rounded-xl border border-slate-900 bg-slate-900/20 p-6 flex flex-col h-[520px] shadow-lg">
+          <div className="rounded-xl border border-border bg-muted/20 p-6 flex flex-col h-[520px] shadow-lg">
             <div className="flex items-center justify-between gap-4 mb-5 shrink-0">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2"><Building className="h-4 w-4 text-primary" /> Tenants Directory</h2>
-                <p className="text-xs text-slate-400 mt-0.5">{workspaces.length} workspace{workspaces.length !== 1 ? "s" : ""} on platform</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{workspaces.length} workspace{workspaces.length !== 1 ? "s" : ""} on platform</p>
               </div>
               <div className="relative w-48">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input placeholder="Search..." value={workspaceSearch} onChange={e => setWorkspaceSearch(e.target.value)}
-                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-primary h-8 text-xs text-white" />
+                  className="bg-muted border-border pl-9 focus-visible:border-primary h-8 text-xs text-white" />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto pr-1 space-y-2">
               {loading ? <Skeleton /> : filteredWorkspaces.length === 0
                 ? <Empty text="No workspaces found." />
                 : filteredWorkspaces.map(ws => (
-                  <div key={ws.id} className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800/60 bg-slate-950/40 hover:border-slate-700 transition-all group">
+                  <div key={ws.id} className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-muted/40 hover:border-border transition-all group">
                     <div className="min-w-0 pr-3">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-sm text-slate-200 group-hover:text-white truncate">{ws.name}</h4>
+                        <h4 className="font-semibold text-sm text-foreground group-hover:text-white truncate">{ws.name}</h4>
                         <PlanBadge plan={ws.plan} />
                       </div>
-                      <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-1">
+                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1">
                         <span className="flex items-center gap-1"><Users className="h-2.5 w-2.5" />{ws.member_count} member{ws.member_count !== 1 ? "s" : ""}</span>
                         <span>·</span>
                         <span>{new Date(ws.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
@@ -632,16 +632,16 @@ export default function AdminDashboard() {
           </div>
 
           {/* Users */}
-          <div className="rounded-xl border border-slate-900 bg-slate-900/20 p-6 flex flex-col h-[520px] shadow-lg">
+          <div className="rounded-xl border border-border bg-muted/20 p-6 flex flex-col h-[520px] shadow-lg">
             <div className="flex items-center justify-between gap-4 mb-5 shrink-0">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> User Privileges</h2>
-                <p className="text-xs text-slate-400 mt-0.5">{users.length} account{users.length !== 1 ? "s" : ""} registered</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{users.length} account{users.length !== 1 ? "s" : ""} registered</p>
               </div>
               <div className="relative w-48">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input placeholder="Search..." value={userSearch} onChange={e => setUserSearch(e.target.value)}
-                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-primary h-8 text-xs text-white" />
+                  className="bg-muted border-border pl-9 focus-visible:border-primary h-8 text-xs text-white" />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto pr-1 space-y-2">
@@ -653,24 +653,24 @@ export default function AdminDashboard() {
                   const isCurrent = u.email === profile?.email;
                   const displayName = u.full_name || "CRM Member";
                   return (
-                    <div key={u.id} className={`flex items-center justify-between p-3 rounded-xl border bg-slate-950/40 hover:bg-slate-950/70 transition-all group ${isBlocked ? "border-rose-500/20 opacity-60" : "border-slate-800/60 hover:border-slate-700"}`}>
+                    <div key={u.id} className={`flex items-center justify-between p-3 rounded-xl border bg-muted/40 hover:bg-muted/70 transition-all group ${isBlocked ? "border-rose-500/20 opacity-60" : "border-border/60 hover:border-border"}`}>
                       <div className="flex items-center gap-3 min-w-0 pr-2">
-                        <Avatar className="h-8 w-8 shrink-0 border border-slate-800">
+                        <Avatar className="h-8 w-8 shrink-0 border border-border">
                           {u.avatar_url ? <AvatarImage src={u.avatar_url} alt={displayName} /> : null}
                           <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">{displayName.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <h4 className="font-semibold text-xs text-slate-200 truncate">{displayName}</h4>
-                            {isCurrent && <span className="text-[8px] bg-slate-800 text-primary px-1.5 py-0.5 rounded-full font-bold uppercase">You</span>}
+                            <h4 className="font-semibold text-xs text-foreground truncate">{displayName}</h4>
+                            {isCurrent && <span className="text-[8px] bg-muted text-primary px-1.5 py-0.5 rounded-full font-bold uppercase">You</span>}
                             {isBlocked && <span className="text-[8px] bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded-full font-bold uppercase">Blocked</span>}
                           </div>
-                          <p className="text-[10px] text-slate-500 truncate">{u.email}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{u.email}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span className={`text-[8px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full border ${
-                          isSuperAdmin ? "bg-primary/15 text-primary border-primary/25" : "bg-slate-800 text-slate-500 border-slate-700"
+                          isSuperAdmin ? "bg-primary/15 text-primary border-primary/25" : "bg-muted text-muted-foreground border-border"
                         }`}>{u.system_role || "user"}</span>
                         {!isCurrent && (
                           <>
@@ -724,14 +724,14 @@ export default function AdminDashboard() {
                   className={`relative overflow-hidden rounded-xl border p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-lg ${
                     prospectFilter === s.status
                       ? `${cfg.bg} ${cfg.border} border`
-                      : "border-slate-800 bg-slate-900/30 hover:border-slate-700"
+                      : "border-border bg-muted/30 hover:border-border"
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{s.label}</p>
                       <p className={`text-3xl font-extrabold mt-1 ${prospectFilter === s.status ? cfg.color : "text-white"}`}>{s.count}</p>
-                      <p className="text-[11px] text-slate-500 mt-1">{s.desc}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">{s.desc}</p>
                     </div>
                     <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${cfg.bg} ${cfg.color}`}>
                       <s.icon className="h-5 w-5" />
@@ -746,9 +746,9 @@ export default function AdminDashboard() {
           </div>
 
           {/* Prospects List */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/20 overflow-hidden shadow-lg">
+          <div className="rounded-xl border border-border bg-muted/20 overflow-hidden shadow-lg">
             {/* Toolbar */}
-            <div className="flex items-center justify-between gap-4 p-5 border-b border-slate-800/60">
+            <div className="flex items-center justify-between gap-4 p-5 border-b border-border/60">
               <div className="flex items-center gap-3">
                 <h2 className="text-base font-bold text-white">Contact Sales Requests</h2>
                 {prospectFilter !== "all" && (
@@ -758,16 +758,16 @@ export default function AdminDashboard() {
                 )}
                 {prospectFilter !== "all" && (
                   <button onClick={() => setProspectFilter("all")}
-                    className="text-[10px] text-slate-500 hover:text-slate-300 underline transition-colors">
+                    className="text-[10px] text-muted-foreground hover:text-foreground underline transition-colors">
                     Clear filter
                   </button>
                 )}
               </div>
               <div className="relative w-64">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                 <Input placeholder="Search by name, email, company..." value={prospectSearch}
                   onChange={e => setProspectSearch(e.target.value)}
-                  className="bg-slate-950 border-slate-800 pl-9 focus-visible:border-primary h-8 text-xs text-white" />
+                  className="bg-muted border-border pl-9 focus-visible:border-primary h-8 text-xs text-white" />
               </div>
             </div>
 
@@ -776,27 +776,27 @@ export default function AdminDashboard() {
               <div className="p-6"><Skeleton /></div>
             ) : filteredProspects.length === 0 ? (
               <div className="p-16 text-center">
-                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 border border-slate-800 mb-4">
-                  <Inbox className="h-7 w-7 text-slate-600" />
+                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted border border-border mb-4">
+                  <Inbox className="h-7 w-7 text-muted-foreground" />
                 </div>
-                <p className="text-slate-400 font-semibold">
+                <p className="text-muted-foreground font-semibold">
                   {prospectFilter !== "all" ? `No ${prospectFilter} prospects` : "No prospects yet"}
                 </p>
-                <p className="text-slate-600 text-sm mt-1">
+                <p className="text-muted-foreground text-sm mt-1">
                   {prospectFilter !== "all"
                     ? "Try clearing the filter to see all prospects"
                     : "Submissions will appear here when someone fills the Contact Sales form"}
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-800/60">
+              <div className="divide-y divide-border/60">
                 {filteredProspects.map(p => {
                   const cfg = STATUS_CONFIG[p.status];
                   const isExpanded = expandedProspect === p.id;
                   const timeAgo = getTimeAgo(p.created_at);
 
                   return (
-                    <div key={p.id} className="hover:bg-slate-900/40 transition-colors">
+                    <div key={p.id} className="hover:bg-muted/40 transition-colors">
                       {/* Compact row */}
                       <div className="flex items-center gap-4 px-5 py-4">
                         {/* Status dot */}
@@ -810,11 +810,11 @@ export default function AdminDashboard() {
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-sm text-white truncate">{p.full_name}</span>
-                              <span className="text-[10px] text-slate-500 bg-slate-800/60 px-2 py-0.5 rounded-full shrink-0">{p.company_name}</span>
+                              <span className="text-[10px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full shrink-0">{p.company_name}</span>
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[11px] text-slate-400 truncate">{p.email}</span>
-                              {p.phone && <span className="text-[11px] text-slate-500">· {p.phone}</span>}
+                              <span className="text-[11px] text-muted-foreground truncate">{p.email}</span>
+                              {p.phone && <span className="text-[11px] text-muted-foreground">· {p.phone}</span>}
                             </div>
                           </div>
                         </div>
@@ -824,13 +824,13 @@ export default function AdminDashboard() {
 
                         {/* Team size */}
                         {p.team_size && (
-                          <span className="hidden sm:flex items-center gap-1 text-[11px] text-slate-500 shrink-0">
+                          <span className="hidden sm:flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
                             <Users className="h-3 w-3" /> {p.team_size}
                           </span>
                         )}
 
                         {/* Time */}
-                        <span className="hidden md:block text-[11px] text-slate-600 shrink-0 w-20 text-right">{timeAgo}</span>
+                        <span className="hidden md:block text-[11px] text-muted-foreground shrink-0 w-20 text-right">{timeAgo}</span>
 
                         {/* Status switcher */}
                         <div className="flex items-center gap-1 shrink-0">
@@ -844,10 +844,10 @@ export default function AdminDashboard() {
                                 className={`h-6 w-6 rounded-full border transition-all flex items-center justify-center ${
                                   p.status === s
                                     ? `${sc.bg} ${sc.border} ${sc.color}`
-                                    : "border-slate-700 text-slate-600 hover:border-slate-600 hover:text-slate-400"
+                                    : "border-border text-muted-foreground hover:border-border hover:text-muted-foreground"
                                 }`}
                               >
-                                <div className={`h-2 w-2 rounded-full ${p.status === s ? sc.dot : "bg-slate-700"}`} />
+                                <div className={`h-2 w-2 rounded-full ${p.status === s ? sc.dot : "bg-muted"}`} />
                               </button>
                             );
                           })}
@@ -856,7 +856,7 @@ export default function AdminDashboard() {
                         {/* Expand toggle */}
                         <button
                           onClick={() => setExpandedProspect(isExpanded ? null : p.id)}
-                          className="text-slate-500 hover:text-slate-300 transition-colors shrink-0"
+                          className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
                         >
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
@@ -865,7 +865,7 @@ export default function AdminDashboard() {
                       {/* Expanded detail */}
                       {isExpanded && (
                         <div className="px-5 pb-5 animate-in slide-in-from-top duration-150">
-                          <div className="ml-12 pl-3 border-l border-slate-800 space-y-4">
+                          <div className="ml-12 pl-3 border-l border-border space-y-4">
                             {/* Contact details */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                               <DetailItem icon={Mail} label="Email" value={p.email} link={`mailto:${p.email}`} />
@@ -876,9 +876,9 @@ export default function AdminDashboard() {
 
                             {/* Message */}
                             {p.message && (
-                              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Message</p>
-                                <p className="text-sm text-slate-300 leading-relaxed">{p.message}</p>
+                              <div className="rounded-xl border border-border bg-muted/60 p-4">
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Message</p>
+                                <p className="text-sm text-foreground leading-relaxed">{p.message}</p>
                               </div>
                             )}
 
@@ -915,7 +915,7 @@ export default function AdminDashboard() {
             <AlertTriangle className="h-5 w-5 text-rose-500" />
             <div>
               <h3 className="text-sm font-bold text-rose-400">Danger Zone</h3>
-              <p className="text-xs text-slate-500">Destructive platform-wide operations</p>
+              <p className="text-xs text-muted-foreground">Destructive platform-wide operations</p>
             </div>
           </div>
           {showDangerZone ? <ChevronUp className="h-4 w-4 text-rose-400" /> : <ChevronDown className="h-4 w-4 text-rose-400" />}
@@ -924,7 +924,7 @@ export default function AdminDashboard() {
           <div className="border-t border-rose-500/20 p-5 space-y-4 animate-in slide-in-from-top duration-200">
             <div>
               <h4 className="text-sm font-bold text-rose-400 mb-1">Delete All Tenants</h4>
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-muted-foreground mb-4">
                 Permanently deletes ALL non-admin owner accounts, their workspaces, members, contacts, conversations, and all associated CRM data.
                 The SaaS admin account will not be affected.{" "}
                 <strong className="text-rose-400">This cannot be undone.</strong>
@@ -934,7 +934,7 @@ export default function AdminDashboard() {
                   placeholder='Type "DELETE" to confirm'
                   value={deleteConfirmText}
                   onChange={e => setDeleteConfirmText(e.target.value)}
-                  className="bg-slate-950 border-rose-500/30 text-white focus:border-rose-500 text-sm max-w-xs"
+                  className="bg-muted border-rose-500/30 text-white focus:border-rose-500 text-sm max-w-xs"
                 />
                 <Button
                   onClick={handleDeleteAllTenants}
@@ -959,16 +959,16 @@ export default function AdminDashboard() {
               Deal Sources
             </h2>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-slate-800 bg-slate-950/50">
+          <div className="bg-muted border border-border rounded-xl overflow-hidden">
+            <div className="p-4 border-b border-border bg-muted/50">
               <form onSubmit={handleAddSource} className="flex items-end gap-3 max-w-lg">
                 <div className="space-y-1.5 flex-1">
-                  <Label className="text-xs text-slate-400">New Deal Source</Label>
+                  <Label className="text-xs text-muted-foreground">New Deal Source</Label>
                   <Input 
                     placeholder="e.g. Inbound, Outbound, Referral" 
                     value={newSourceName} 
                     onChange={e => setNewSourceName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white"
+                    className="bg-muted border-border text-white"
                   />
                 </div>
                 <Button type="submit" disabled={isSubmittingSource || !newSourceName.trim()} className="bg-primary hover:bg-primary-hover text-white">
@@ -977,14 +977,14 @@ export default function AdminDashboard() {
               </form>
             </div>
             {sources.length === 0 ? (
-              <div className="p-8 text-center text-slate-500">No deal sources found.</div>
+              <div className="p-8 text-center text-muted-foreground">No deal sources found.</div>
             ) : (
-              <div className="divide-y divide-slate-800/50">
+              <div className="divide-y divide-border/50">
                 {sources.map(s => (
-                  <div key={s.id} className="flex items-center justify-between p-4 hover:bg-slate-800/30">
+                  <div key={s.id} className="flex items-center justify-between p-4 hover:bg-muted/30">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center">
-                        <Tag className="h-4 w-4 text-slate-400" />
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                        <Tag className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div className="text-sm font-medium text-white">{s.name}</div>
                     </div>
@@ -1008,16 +1008,16 @@ export default function AdminDashboard() {
               Lost Reasons
             </h2>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-slate-800 bg-slate-950/50">
+          <div className="bg-muted border border-border rounded-xl overflow-hidden">
+            <div className="p-4 border-b border-border bg-muted/50">
               <form onSubmit={handleAddReason} className="flex items-end gap-3 max-w-lg">
                 <div className="space-y-1.5 flex-1">
-                  <Label className="text-xs text-slate-400">New Lost Reason</Label>
+                  <Label className="text-xs text-muted-foreground">New Lost Reason</Label>
                   <Input 
                     placeholder="e.g. Price too high, Timing, Competitor" 
                     value={newReasonName} 
                     onChange={e => setNewReasonName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-white"
+                    className="bg-muted border-border text-white"
                   />
                 </div>
                 <Button type="submit" disabled={isSubmittingReason || !newReasonName.trim()} className="bg-rose-600 hover:bg-rose-700 text-white">
@@ -1026,14 +1026,14 @@ export default function AdminDashboard() {
               </form>
             </div>
             {reasons.length === 0 ? (
-              <div className="p-8 text-center text-slate-500">No lost reasons found.</div>
+              <div className="p-8 text-center text-muted-foreground">No lost reasons found.</div>
             ) : (
-              <div className="divide-y divide-slate-800/50">
+              <div className="divide-y divide-border/50">
                 {reasons.map(r => (
-                  <div key={r.id} className="flex items-center justify-between p-4 hover:bg-slate-800/30">
+                  <div key={r.id} className="flex items-center justify-between p-4 hover:bg-muted/30">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center">
-                        <Flag className="h-4 w-4 text-slate-400" />
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                        <Flag className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div className="text-sm font-medium text-white">{r.name}</div>
                     </div>
@@ -1071,13 +1071,13 @@ function PlanBadge({ plan, size = "md" }: { plan: string; size?: "sm" | "md" }) 
 function DetailItem({ icon: Icon, label, value, link }: { icon: any; label: string; value: string; link?: string }) {
   return (
     <div>
-      <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
       {link ? (
         <a href={link} className="text-xs text-primary hover:underline flex items-center gap-1">
           <Icon className="h-3 w-3" /> {value}
         </a>
       ) : (
-        <p className="text-xs text-slate-300 flex items-center gap-1"><Icon className="h-3 w-3 text-slate-600" /> {value}</p>
+        <p className="text-xs text-foreground flex items-center gap-1"><Icon className="h-3 w-3 text-muted-foreground" /> {value}</p>
       )}
     </div>
   );
@@ -1088,23 +1088,23 @@ function MetricCard({ icon, label, value, text, sub, accent, badge }: {
   text?: string; sub: string; accent: string; badge?: string;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40 p-5 hover:border-slate-700 transition-all group">
+    <div className="relative overflow-hidden rounded-xl border border-border bg-muted/40 p-5 hover:border-border transition-all group">
       <div className="absolute top-0 right-0 h-20 w-20 rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
         style={{ background: accent + "08" }} />
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{label}</p>
             {badge && <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full border bg-emerald-500/15 text-emerald-400 border-emerald-500/25">{badge}</span>}
           </div>
           <h3 className="text-2xl font-extrabold mt-1 tracking-tight text-white">
             {value === null
-              ? (text || <div className="h-7 w-12 bg-slate-800 animate-pulse rounded" />)
+              ? (text || <div className="h-7 w-12 bg-muted animate-pulse rounded" />)
               : value}
           </h3>
-          <p className="text-[10px] text-slate-600 mt-1">{sub}</p>
+          <p className="text-[10px] text-muted-foreground mt-1">{sub}</p>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/50 bg-slate-800/50 text-slate-400">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/50 bg-muted/50 text-muted-foreground">
           {icon}
         </div>
       </div>
@@ -1115,7 +1115,7 @@ function MetricCard({ icon, label, value, text, sub, accent, badge }: {
 function Skeleton() {
   return (
     <div className="space-y-2">
-      {[1, 2, 3].map(i => <div key={i} className="h-14 w-full animate-pulse rounded-xl bg-slate-900/60 border border-slate-800" />)}
+      {[1, 2, 3].map(i => <div key={i} className="h-14 w-full animate-pulse rounded-xl bg-muted/60 border border-border" />)}
     </div>
   );
 }
@@ -1123,10 +1123,10 @@ function Skeleton() {
 function Empty({ text }: { text: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="h-12 w-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center mb-3">
-        <Inbox className="h-5 w-5 text-slate-700" />
+      <div className="h-12 w-12 rounded-xl bg-muted border border-border flex items-center justify-center mb-3">
+        <Inbox className="h-5 w-5 text-foreground" />
       </div>
-      <p className="text-slate-500 text-sm">{text}</p>
+      <p className="text-muted-foreground text-sm">{text}</p>
     </div>
   );
 }

@@ -115,7 +115,7 @@ export default function GstReportsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchGstData} variant="outline" className="border-border text-slate-300 gap-1.5 rounded-xl h-11">
+          <Button onClick={fetchGstData} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
@@ -206,7 +206,7 @@ export default function GstReportsPage() {
       {/* Table */}
       <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Invoice #</th>
@@ -222,29 +222,29 @@ export default function GstReportsPage() {
                 <th className="py-3.5 px-4 text-center">E-Invoice IRN</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={11} className="py-12 text-center text-muted-foreground text-sm">
                     Loading GST Tax Ledger...
                   </td>
                 </tr>
               ) : filteredEntries.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={11} className="py-12 text-center text-muted-foreground text-sm">
                     No active GST ledger entries found for this report period.
                   </td>
                 </tr>
               ) : (
                 filteredEntries.map((e) => (
-                  <tr key={e.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={e.id} className="hover:bg-muted/40 transition-colors">
                     <td className="py-3.5 px-4 font-mono font-bold text-foreground">
                       #{e.invoice_number}
                     </td>
                     <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       {e.invoice_date}
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-100">
+                    <td className="py-3.5 px-4 font-bold text-foreground">
                       {e.party_name || "POS Retail Customer"}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground">
@@ -253,7 +253,7 @@ export default function GstReportsPage() {
                     <td className="py-3.5 px-4 font-mono text-xs text-[#00aef0]">
                       {e.hsn_sac_code || "7113"}
                     </td>
-                    <td className="py-3.5 px-4 text-right font-medium text-slate-200">
+                    <td className="py-3.5 px-4 text-right font-medium text-foreground">
                       ₹{Number(e.taxable_amount).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
@@ -278,7 +278,7 @@ export default function GstReportsPage() {
                           IRN Active
                         </button>
                       ) : (
-                        <span className="text-slate-500 text-xs">B2C Retail</span>
+                        <span className="text-muted-foreground text-xs">B2C Retail</span>
                       )}
                     </td>
                   </tr>
@@ -292,7 +292,7 @@ export default function GstReportsPage() {
       {/* Signed E-Invoice QR Modal */}
       {selectedEInvoice && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100">
+          <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-foreground">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-emerald-400" />
@@ -317,12 +317,12 @@ export default function GstReportsPage() {
                 </div>
                 <div>
                   <span className="text-muted-foreground block">Ack Date:</span>
-                  <span className="text-slate-300">{selectedEInvoice.ack_date ? new Date(selectedEInvoice.ack_date).toLocaleDateString() : "—"}</span>
+                  <span className="text-foreground">{selectedEInvoice.ack_date ? new Date(selectedEInvoice.ack_date).toLocaleDateString() : "—"}</span>
                 </div>
               </div>
 
               {/* QR Code Payload Simulation */}
-              <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-slate-300 text-black">
+              <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-border text-black">
                 <QrCode className="h-28 w-28 text-black" />
                 <span className="text-[10px] font-mono text-gray-600 mt-2">Government Signed QR Code Payload</span>
               </div>

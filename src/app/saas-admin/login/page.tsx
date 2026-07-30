@@ -111,7 +111,7 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-900/50 backdrop-blur-2xl shadow-2xl shadow-black/60 p-8">
+        <div className="rounded-2xl border border-border/60 bg-muted/50 backdrop-blur-2xl shadow-2xl shadow-black/60 p-8">
           {/* Icon + Title */}
           <div className="text-center mb-7">
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4">
@@ -120,7 +120,7 @@ export default function AdminLoginPage() {
             <h1 className="text-2xl font-extrabold text-white tracking-tight">
               Administrative Access
             </h1>
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               Global SaaS Control Center Portal
             </p>
           </div>
@@ -136,7 +136,7 @@ export default function AdminLoginPage() {
             <div className="flex flex-col gap-2">
               <Label
                 htmlFor="email"
-                className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+                className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
               >
                 Admin Email Address
               </Label>
@@ -146,14 +146,14 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-primary focus-visible:ring-primary/10 h-11 rounded-xl"
+                className="border-border/60 bg-muted/70 text-white placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/10 h-11 rounded-xl"
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <Label
                 htmlFor="password"
-                className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+                className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
               >
                 Password
               </Label>
@@ -164,12 +164,12 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="border-slate-700/60 bg-slate-950/70 text-white placeholder:text-slate-600 focus-visible:border-primary focus-visible:ring-primary/10 h-11 rounded-xl pr-11"
+                  className="border-border/60 bg-muted/70 text-white placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/10 h-11 rounded-xl pr-11"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPass ? (
                     <EyeOff className="h-4 w-4" />
@@ -214,17 +214,17 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          <div className="mt-7 pt-6 border-t border-slate-800/60 text-center">
+          <div className="mt-7 pt-6 border-t border-border/60 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-3 w-3" /> Return to Client Dashboard Login
             </Link>
           </div>
         </div>
 
-        <p className="mt-5 text-center text-xs text-slate-700">
+        <p className="mt-5 text-center text-xs text-foreground">
           © {new Date().getFullYear()} Daylink. Restricted access system.
         </p>
       </div>

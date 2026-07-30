@@ -280,7 +280,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
   const switcherBg = isDark
     ? "border-border bg-transparent hover:bg-muted/10 text-foreground"
-    : "border-border/80 bg-transparent hover:bg-slate-800/30 text-foreground";
+    : "border-border/80 bg-transparent hover:bg-muted/30 text-foreground";
 
   const dividerClass = isDark ? "border-t border-border" : "border-t border-border/60";
 
@@ -288,7 +288,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     if (isActive) {
       return "bg-[rgba(37,99,235,0.16)] text-foreground font-medium";
     }
-    return "text-muted-foreground hover:bg-slate-800/30 hover:text-foreground";
+    return "text-muted-foreground hover:bg-muted/30 hover:text-foreground";
   };
 
   return (
@@ -373,7 +373,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                   className={cn(
                     "flex w-full items-center justify-between gap-1.5 rounded-lg border transition-all focus:outline-none px-2 py-1.5 text-left text-sm font-medium",
                     switcherBg,
-                    isCollapsed ? "px-1 py-1 justify-center border-transparent bg-transparent hover:bg-slate-800/40" : ""
+                    isCollapsed ? "px-1 py-1 justify-center border-transparent bg-transparent hover:bg-muted/40" : ""
                   )}
                   title={isCollapsed ? `Module: ${activeModule}` : "Switch App Module"}
                 >
@@ -491,7 +491,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
             </button>
           )}
           {!isCollapsed && (
-            <div className="px-2 pb-1 flex items-center justify-between text-[10px] text-slate-500 font-semibold tracking-wider uppercase">
+            <div className="px-2 pb-1 flex items-center justify-between text-[10px] text-muted-foreground font-semibold tracking-wider uppercase">
               <span>CRM v2</span>
               <span>by Daylink</span>
             </div>
@@ -503,7 +503,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                 <button
                   type="button"
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors focus:outline-none cursor-pointer hover:bg-slate-800/30",
+                    "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors focus:outline-none cursor-pointer hover:bg-muted/30",
                     isCollapsed ? "justify-center" : ""
                   )}
                 >
@@ -533,7 +533,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               align="end"
               side={isCollapsed ? "right" : "bottom"}
               sideOffset={12}
-              className="min-w-56 bg-card border border-border text-slate-200 p-1.5 rounded-2xl shadow-xl z-50"
+              className="min-w-56 bg-card border border-border text-foreground p-1.5 rounded-2xl shadow-xl z-50"
             >
               {!isCollapsed && (
                 <div className="px-3 py-2 border-b border-border/60 mb-1">
@@ -547,7 +547,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               <DropdownMenuItem render={<Link href="/settings?tab=overview" />}>
                 <Settings className="size-4" /> Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-slate-800/60" />
+              <DropdownMenuSeparator className="bg-muted/60" />
               <DropdownMenuItem onClick={signOut} className="text-rose-400 focus:bg-rose-500/10 focus:text-rose-400">
                 <LogOut className="size-4" /> Sign out
               </DropdownMenuItem>

@@ -29,10 +29,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   // If loading, show elegant spinning loader with our core daylink cyan theme
   if (loading && !isLoginPage) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-muted">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-sm text-slate-400">Verifying administrator access...</p>
+          <p className="text-sm text-muted-foreground">Verifying administrator access...</p>
         </div>
       </div>
     );
@@ -48,15 +48,15 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950 text-white font-sans">
+    <div className="flex h-screen overflow-hidden bg-muted text-white font-sans">
       {/* Admin Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-900 bg-slate-950 transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-muted transition-transform duration-300 lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="flex h-16 items-center border-b border-slate-900 px-6 gap-2 shrink-0">
+        <div className="flex h-16 items-center border-b border-border px-6 gap-2 shrink-0">
           <Shield className="h-6 w-6 text-primary" />
           <span className="font-bold text-lg tracking-tight">SaaS Admin</span>
         </div>
@@ -65,7 +65,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 space-y-1 px-4 py-4 overflow-y-auto">
           <Link
             href="/saas-admin/dashboard"
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-200 hover:text-white hover:bg-slate-900/60 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-foreground hover:text-white hover:bg-muted/60 transition-colors"
           >
             <LayoutDashboard className="h-4 w-4 text-primary" />
             Dashboard
@@ -73,10 +73,10 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Bottom Panel */}
-        <div className="border-t border-slate-900 p-4 shrink-0">
+        <div className="border-t border-border p-4 shrink-0">
           <button
             onClick={() => signOut()}
-            className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-400 hover:text-white hover:bg-slate-900/60 transition-colors"
+            className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-white hover:bg-muted/60 transition-colors"
           >
             <LogOut className="h-4 w-4 text-rose-500" />
             Sign Out
@@ -87,12 +87,12 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Navbar */}
-        <header className="flex h-16 items-center justify-between border-b border-slate-900 bg-slate-950/40 px-6 backdrop-blur-sm shrink-0">
+        <header className="flex h-16 items-center justify-between border-b border-border bg-muted/40 px-6 backdrop-blur-sm shrink-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden text-slate-400 hover:text-white"
+            className="lg:hidden text-muted-foreground hover:text-white"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -102,7 +102,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
                   <p className="text-xs font-semibold text-white">{profile.full_name || "SaaS Admin"}</p>
-                  <p className="text-[10px] text-slate-400">{profile.email}</p>
+                  <p className="text-[10px] text-muted-foreground">{profile.email}</p>
                 </div>
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
                   {(profile.full_name || "A").charAt(0).toUpperCase()}
@@ -113,14 +113,14 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Main Dashboard Space */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-950">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-muted">{children}</main>
       </div>
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-muted/60 backdrop-blur-sm lg:hidden"
         />
       )}
     </div>

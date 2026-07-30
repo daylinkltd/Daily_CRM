@@ -184,7 +184,7 @@ export default function AttendancePage() {
       case 'Late': return <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30">Late Arrival</Badge>;
       case 'Half-Day': return <Badge className="bg-purple-500/15 text-purple-400 border-purple-500/30">Half-Day</Badge>;
       case 'Remote': return <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30">Work From Home</Badge>;
-      default: return <Badge className="bg-slate-800 text-slate-300">{status || 'Present'}</Badge>;
+      default: return <Badge className="bg-muted text-foreground">{status || 'Present'}</Badge>;
     }
   };
 
@@ -204,7 +204,7 @@ export default function AttendancePage() {
   });
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto text-slate-100">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto text-foreground">
       {/* Page Header with Punch Action & Request Trigger */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card/80 p-5 rounded-3xl border border-border backdrop-blur-xl shadow-2xl">
         <div>
@@ -221,7 +221,7 @@ export default function AttendancePage() {
           <Button
             onClick={() => setShowRequestModal(true)}
             variant="outline"
-            className="border-slate-700 bg-background text-slate-200 hover:text-foreground font-bold rounded-xl h-10 gap-1.5 text-xs"
+            className="border-border bg-background text-foreground hover:text-foreground font-bold rounded-xl h-10 gap-1.5 text-xs"
           >
             <Plus className="h-4 w-4 text-[#00aef0]" />
             Regularization Request
@@ -308,8 +308,8 @@ export default function AttendancePage() {
               Loading Attendance Records...
             </div>
           ) : filteredRecords.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 text-slate-500 text-xs">
-              <CalendarClock className="h-8 w-8 text-slate-600 mb-2" />
+            <div className="flex flex-col items-center justify-center p-12 text-muted-foreground text-xs">
+              <CalendarClock className="h-8 w-8 text-muted-foreground mb-2" />
               <span>No attendance logs found for this period.</span>
             </div>
           ) : (
@@ -326,7 +326,7 @@ export default function AttendancePage() {
                   <TableHead className="text-right">Net Productive</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody className="divide-y divide-slate-800/60 text-xs">
+              <TableBody className="divide-y divide-border/60 text-xs">
                 {filteredRecords.map((r) => {
                   const profile = Array.isArray(r.workspace_members?.profiles) 
                     ? r.workspace_members?.profiles[0] 
@@ -335,15 +335,15 @@ export default function AttendancePage() {
                   const avatar = profile?.avatar_url || '';
 
                   return (
-                    <TableRow key={r.id} className="hover:bg-slate-800/40 transition-colors">
-                      <TableCell className="font-mono text-slate-300 font-bold">
+                    <TableRow key={r.id} className="hover:bg-muted/40 transition-colors">
+                      <TableCell className="font-mono text-foreground font-bold">
                         {r.attendance_date}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-7 w-7">
                             <AvatarImage src={avatar} />
-                            <AvatarFallback className="bg-slate-800 text-[10px] text-foreground">
+                            <AvatarFallback className="bg-muted text-[10px] text-foreground">
                               {name.slice(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
@@ -351,7 +351,7 @@ export default function AttendancePage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center gap-1 text-slate-300">
+                        <span className="inline-flex items-center gap-1 text-foreground">
                           {getLocationIcon(r.work_location)}
                           {r.work_location || 'OFFICE'}
                         </span>
@@ -359,7 +359,7 @@ export default function AttendancePage() {
                       <TableCell>{getStatusBadge(r.status)}</TableCell>
                       <TableCell>
                         {r.punch_in_time ? (
-                          <div className="flex items-center gap-1 font-mono text-slate-300">
+                          <div className="flex items-center gap-1 font-mono text-foreground">
                             <span>{new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             {r.punch_in_location && <MapPin className="h-3 w-3 text-emerald-400" />}
                           </div>
@@ -367,7 +367,7 @@ export default function AttendancePage() {
                       </TableCell>
                       <TableCell>
                         {r.punch_out_time ? (
-                          <div className="flex items-center gap-1 font-mono text-slate-300">
+                          <div className="flex items-center gap-1 font-mono text-foreground">
                             <span>{new Date(r.punch_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             {r.punch_out_location && <MapPin className="h-3 w-3 text-emerald-400" />}
                           </div>
@@ -397,7 +397,7 @@ export default function AttendancePage() {
           </h2>
 
           {requests.length === 0 ? (
-            <div className="py-12 text-center text-slate-500 text-xs">
+            <div className="py-12 text-center text-muted-foreground text-xs">
               No regularization requests submitted yet.
             </div>
           ) : (
@@ -413,24 +413,24 @@ export default function AttendancePage() {
                   {canManageAttendance && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
-              <TableBody className="divide-y divide-slate-800/60 text-xs">
+              <TableBody className="divide-y divide-border/60 text-xs">
                 {requests.map((req) => (
                   <TableRow key={req.id}>
                     <TableCell className="font-semibold text-foreground">
                       {req.workspace_members?.profiles?.full_name || 'Employee'}
                     </TableCell>
                     <TableCell>
-                      <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-[#00aef0]">
+                      <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-muted text-[#00aef0]">
                         {req.request_type}
                       </span>
                     </TableCell>
                     <TableCell className="font-mono text-muted-foreground">{req.attendance_date}</TableCell>
-                    <TableCell className="font-mono text-slate-300">
+                    <TableCell className="font-mono text-foreground">
                       {req.requested_punch_in ? new Date(req.requested_punch_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                       {' → '}
                       {req.requested_punch_out ? new Date(req.requested_punch_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                     </TableCell>
-                    <TableCell className="text-slate-300 max-w-xs truncate">{req.reason}</TableCell>
+                    <TableCell className="text-foreground max-w-xs truncate">{req.reason}</TableCell>
                     <TableCell>
                       {req.status === 'APPROVED' ? (
                         <Badge className="bg-emerald-500/15 text-emerald-400">Approved</Badge>

@@ -66,7 +66,7 @@ export function InstagramConfig() {
       {/* Main config form */}
       <div className="space-y-6">
         {/* Connection Status */}
-        <Alert className="bg-card border-slate-700">
+        <Alert className="bg-card border-border">
           <div className="flex items-center gap-2">
             {connectionStatus === 'connected' ? (
               <CheckCircle2 className="size-4 text-primary" />
@@ -85,7 +85,7 @@ export function InstagramConfig() {
         </Alert>
 
         {/* API Credentials */}
-        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">API Credentials</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -94,27 +94,27 @@ export function InstagramConfig() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Instagram Account ID</Label>
+              <Label className="text-foreground">Instagram Account ID</Label>
               <Input
                 placeholder="e.g. 17841400000000000"
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 The ID of the Instagram Professional account you want to connect.
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-300">Long-Lived Page Access Token</Label>
+              <Label className="text-foreground">Long-Lived Page Access Token</Label>
               <div className="relative">
                 <Input
                   type={showToken ? 'text' : 'password'}
                   placeholder="Enter your Page Access Token"
                   value={accessToken}
                   onChange={(e) => setAccessToken(e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 pr-10"
+                  className="bg-muted border-border text-foreground placeholder:text-muted-foreground pr-10"
                 />
                 <button
                   type="button"
@@ -124,25 +124,25 @@ export function InstagramConfig() {
                   {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Must be linked to the Facebook Page connected to your Instagram account.
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-300">Webhook Verify Token</Label>
+              <Label className="text-foreground">Webhook Verify Token</Label>
               <Input
                 placeholder="Create a custom verify token"
                 value={verifyToken}
                 onChange={(e) => setVerifyToken(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </CardContent>
         </Card>
 
         {/* Webhook URL */}
-        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">Webhook Configuration</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -151,18 +151,18 @@ export function InstagramConfig() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label className="text-slate-300">Webhook Callback URL</Label>
+              <Label className="text-foreground">Webhook Callback URL</Label>
               <div className="flex gap-2">
                 <Input
                   readOnly
                   value={webhookUrl}
-                  className="bg-slate-800 border-slate-700 text-slate-300 font-mono text-sm"
+                  className="bg-muted border-border text-foreground font-mono text-sm"
                 />
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={handleCopyWebhookUrl}
-                  className="shrink-0 border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800"
+                  className="shrink-0 border-border text-foreground hover:text-foreground hover:bg-muted"
                 >
                   <Copy className="size-4" />
                 </Button>
@@ -175,7 +175,7 @@ export function InstagramConfig() {
           <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Saving...</> : 'Save Configuration'}
           </Button>
-          <Button variant="outline" onClick={handleTestConnection} disabled={testing} className="border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800">
+          <Button variant="outline" onClick={handleTestConnection} disabled={testing} className="border-border text-foreground hover:text-foreground hover:bg-muted">
             {testing ? 'Testing...' : 'Test Connection'}
           </Button>
         </div>
@@ -183,7 +183,7 @@ export function InstagramConfig() {
 
       {/* Sidebar */}
       <div>
-        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground text-base">Setup Instructions</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -192,8 +192,8 @@ export function InstagramConfig() {
           </CardHeader>
           <CardContent>
             <Accordion>
-              <AccordionItem className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-foreground hover:no-underline">
+              <AccordionItem className="border-border">
+                <AccordionTrigger className="text-foreground hover:text-foreground hover:no-underline">
                   <span className="flex items-center gap-2">
                     <span className="flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">1</span>
                     Link Instagram to Facebook Page
@@ -207,8 +207,8 @@ export function InstagramConfig() {
                   </ol>
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem className="border-slate-700">
-                <AccordionTrigger className="text-slate-300 hover:text-foreground hover:no-underline">
+              <AccordionItem className="border-border">
+                <AccordionTrigger className="text-foreground hover:text-foreground hover:no-underline">
                   <span className="flex items-center gap-2">
                     <span className="flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">2</span>
                     Enable Message Access

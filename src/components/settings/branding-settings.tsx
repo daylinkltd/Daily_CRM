@@ -433,16 +433,9 @@ export function BrandingSettings() {
                 className="h-20 sm:h-28 max-w-[280px] object-contain mb-2"
               />
             ) : (
-              <>
-                <div className="flex flex-col items-center gap-2 mb-3">
-                  <div className="size-8 bg-primary rounded flex items-center justify-center">
-                    <Sparkles className="size-5 text-primary-foreground" />
-                  </div>
-                </div>
-                <h1 className="text-xl sm:text-2xl font-serif font-bold text-slate-800 uppercase tracking-wide mb-1">
+                <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground uppercase tracking-wide mb-1">
                   {data.company_name?.toUpperCase() || "YOUR COMPANY"}
                 </h1>
-              </>
             )}
 
             {data.company_tagline && (
@@ -451,7 +444,7 @@ export function BrandingSettings() {
               </p>
             )}
 
-            <div className="text-xs text-slate-600 space-y-1">
+            <div className="text-xs text-muted-foreground space-y-1">
               {data.company_address && <p>{data.company_address}</p>}
               <p className="flex items-center justify-center gap-2">
                 {data.company_phone && <span>{data.company_phone}</span>}

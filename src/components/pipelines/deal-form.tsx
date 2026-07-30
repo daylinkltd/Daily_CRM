@@ -360,10 +360,10 @@ export function DealForm({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="bg-card border-slate-700 text-slate-200 sm:max-w-lg w-full p-0"
+        className="bg-card border-border text-foreground sm:max-w-lg w-full p-0"
       >
         <div className="flex h-full flex-col">
-          <SheetHeader className="border-b border-slate-700/50 p-4">
+          <SheetHeader className="border-b border-border/50 p-4">
             <SheetTitle className="text-foreground">
               {deal ? "Edit Deal" : "New Deal"}
             </SheetTitle>
@@ -371,21 +371,21 @@ export function DealForm({
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div className="grid gap-2">
-              <Label className="text-slate-300">Title</Label>
+              <Label className="text-foreground">Title</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Deal title"
-                className="border-slate-700 bg-slate-800 text-foreground"
+                className="border-border bg-muted text-foreground"
               />
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-slate-300">Contact</Label>
+              <Label className="text-foreground">Contact</Label>
               <select
                 value={contactId}
                 onChange={(e) => setContactId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 <option value="">Select a contact</option>
                 {contacts.map((c) => (
@@ -408,9 +408,9 @@ export function DealForm({
 
             <div className="grid grid-cols-[1fr_110px] gap-3">
               <div className="grid gap-2">
-                <Label className="text-slate-300">Value</Label>
+                <Label className="text-foreground">Value</Label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                  <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                     {getCurrencySymbol(currency)}
                   </span>
                   <Input
@@ -418,16 +418,16 @@ export function DealForm({
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     placeholder="0"
-                    className="border-slate-700 bg-slate-800 pl-7 text-foreground"
+                    className="border-border bg-muted pl-7 text-foreground"
                   />
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label className="text-slate-300">Currency</Label>
+                <Label className="text-foreground">Currency</Label>
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary"
+                  className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
                 >
                   {/* Keep a legacy/unknown saved code selectable so
                       editing an old deal doesn't silently rewrite it. */}
@@ -445,23 +445,23 @@ export function DealForm({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
-                <Label className="text-slate-300">Expected Close Date</Label>
+                <Label className="text-foreground">Expected Close Date</Label>
                 <Input
                   type="date"
                   value={expectedCloseDate}
                   onChange={(e) => setExpectedCloseDate(e.target.value)}
-                  className="border-slate-700 bg-slate-800 text-foreground [color-scheme:dark]"
+                  className="border-border bg-muted text-foreground [color-scheme:dark]"
                 />
               </div>
               <div className="grid gap-2">
-                <Label className="text-slate-300">Source</Label>
+                <Label className="text-foreground">Source</Label>
                 {isAddingSource ? (
                   <div className="flex gap-2">
                     <Input
                       value={newSourceName}
                       onChange={(e) => setNewSourceName(e.target.value)}
                       placeholder="Name"
-                      className="border-slate-700 bg-slate-800 text-foreground flex-1 h-9"
+                      className="border-border bg-muted text-foreground flex-1 h-9"
                     />
                     <Button
                       type="button"
@@ -491,7 +491,7 @@ export function DealForm({
                       if (e.target.value === "ADD_NEW") setIsAddingSource(true);
                       else setSourceId(e.target.value);
                     }}
-                    className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   >
                     <option value="">Select source</option>
                     {sources.map((s) => (
@@ -504,11 +504,11 @@ export function DealForm({
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-slate-300">Stage</Label>
+              <Label className="text-foreground">Stage</Label>
               <select
                 value={stageId}
                 onChange={(e) => setStageId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary"
+                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
               >
                 {stages.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -519,11 +519,11 @@ export function DealForm({
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-slate-300">Assigned To</Label>
+              <Label className="text-foreground">Assigned To</Label>
               <select
                 value={assignedTo}
                 onChange={(e) => setAssignedTo(e.target.value)}
-                className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary"
+                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
               >
                 <option value="">Unassigned</option>
                 {profiles.map((p) => (
@@ -535,23 +535,23 @@ export function DealForm({
             </div>
 
             <div className="grid gap-2">
-              <Label className="text-slate-300">Notes</Label>
+              <Label className="text-foreground">Notes</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add notes..."
-                className="min-h-[100px] border-slate-700 bg-slate-800 text-foreground"
+                className="min-h-[100px] border-border bg-muted text-foreground"
               />
             </div>
 
-            <div className="grid gap-2 pt-4 border-t border-slate-700/50 mt-4">
+            <div className="grid gap-2 pt-4 border-t border-border/50 mt-4">
               <div className="flex items-center justify-between">
-                <Label className="text-slate-300">Documents</Label>
+                <Label className="text-foreground">Documents</Label>
                 <Button 
                   type="button"
                   variant="outline" 
                   size="sm"
-                  className="h-7 text-xs border-slate-700 bg-slate-800 text-slate-300"
+                  className="h-7 text-xs border-border bg-muted text-foreground"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
@@ -574,7 +574,7 @@ export function DealForm({
                       href={f.local_path} 
                       target="_blank" 
                       rel="noreferrer"
-                      className="flex items-center gap-2 p-2 rounded-lg bg-card/50 border border-slate-700 hover:border-slate-600 transition-colors text-sm text-slate-300 hover:text-foreground"
+                      className="flex items-center gap-2 p-2 rounded-lg bg-card/50 border border-border hover:border-border transition-colors text-sm text-foreground hover:text-foreground"
                     >
                       <File className="w-4 h-4 text-primary" />
                       <span className="truncate">{f.name}</span>
@@ -582,12 +582,12 @@ export function DealForm({
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-500 mt-1">No documents attached.</p>
+                <p className="text-xs text-muted-foreground mt-1">No documents attached.</p>
               )}
             </div>
 
             {deal && (
-              <div className="space-y-2 rounded-lg border border-slate-700 bg-card/50 p-3">
+              <div className="space-y-2 rounded-lg border border-border bg-card/50 p-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Status
                 </p>
@@ -629,7 +629,7 @@ export function DealForm({
                     <select
                       value={lostReasonId}
                       onChange={(e) => setLostReasonId(e.target.value)}
-                      className="h-9 w-full rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                      className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
                     >
                       <option value="">Select a reason</option>
                       {reasons.map((r) => (
@@ -671,12 +671,12 @@ export function DealForm({
             )}
           </div>
 
-          <div className="border-t border-slate-700/50 bg-card/80 p-4">
+          <div className="border-t border-border/50 bg-card/80 p-4">
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+                className="flex-1 border-border bg-transparent text-foreground hover:bg-muted"
               >
                 Cancel
               </Button>
@@ -698,7 +698,7 @@ export function DealForm({
                       type="button"
                       onClick={() => setConfirmDelete(false)}
                       disabled={deleting}
-                      className="rounded px-2 py-1 text-slate-300 hover:bg-slate-800"
+                      className="rounded px-2 py-1 text-foreground hover:bg-muted"
                     >
                       Cancel
                     </button>

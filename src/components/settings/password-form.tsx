@@ -96,7 +96,7 @@ export function PasswordForm() {
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="current-password" className="text-slate-200">
+            <Label htmlFor="current-password" className="text-foreground">
               Current password
             </Label>
             <Input
@@ -112,7 +112,7 @@ export function PasswordForm() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="new-password" className="text-slate-200">
+              <Label htmlFor="new-password" className="text-foreground">
                 New password
               </Label>
               <Input
@@ -127,7 +127,7 @@ export function PasswordForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm-password" className="text-slate-200">
+              <Label htmlFor="confirm-password" className="text-foreground">
                 Confirm new password
               </Label>
               <Input

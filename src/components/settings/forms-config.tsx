@@ -33,17 +33,17 @@ export function FormsConfig() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] mt-4">
       <div className="space-y-6">
-        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">Universal Form Webhook</CardTitle>
             <CardDescription className="text-muted-foreground">Send form submissions from any platform (Google Forms, Facebook Lead Ads, Webflow, Typeform) directly into Daily CRM.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Your Unique Capture URL</Label>
+              <Label className="text-foreground">Your Unique Capture URL</Label>
               <div className="flex gap-2">
-                <Input readOnly value={webhookUrl} className="bg-slate-800 border-slate-700 text-slate-300 font-mono text-xs" />
-                <Button variant="outline" onClick={copyWebhook} className="border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800 shrink-0">
+                <Input readOnly value={webhookUrl} className="bg-muted border-border text-foreground font-mono text-xs" />
+                <Button variant="outline" onClick={copyWebhook} className="border-border text-foreground hover:text-foreground hover:bg-muted shrink-0">
                   <Copy className="size-4" />
                 </Button>
               </div>
@@ -51,23 +51,23 @@ export function FormsConfig() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">Processing Rules</CardTitle>
             <CardDescription className="text-muted-foreground">How should new leads be handled when a form is submitted?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Assign to Pipeline</Label>
-              <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className="w-full h-10 rounded-md bg-slate-800 border-slate-700 text-foreground px-3">
+              <Label className="text-foreground">Assign to Pipeline</Label>
+              <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className="w-full h-10 rounded-md bg-muted border-border text-foreground px-3">
                 <option value="Sales">Sales Pipeline</option>
                 <option value="Support">Support Tickets</option>
                 <option value="None">Don&apos;t create a deal</option>
               </select>
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Auto-Apply Tag</Label>
-              <Input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. facebook-ad" className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500" />
+              <Label className="text-foreground">Auto-Apply Tag</Label>
+              <Input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. facebook-ad" className="bg-muted border-border text-foreground placeholder:text-muted-foreground" />
             </div>
             
             <div className="pt-4">
@@ -79,7 +79,7 @@ export function FormsConfig() {
         </Card>
       </div>
       <div>
-        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground text-base">Field Mapping</CardTitle>
           </CardHeader>
@@ -88,7 +88,7 @@ export function FormsConfig() {
               Ensure your external form fields match these payload keys so Daily CRM can automatically parse them:
             </p>
             <div className="bg-background p-3 rounded-md border border-border">
-              <pre className="text-xs text-slate-300 font-mono whitespace-pre-wrap">
+              <pre className="text-xs text-foreground font-mono whitespace-pre-wrap">
 {`{
   "name": "John Doe",
   "email": "john@ex.com",

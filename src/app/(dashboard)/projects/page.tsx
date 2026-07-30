@@ -102,7 +102,7 @@ function ProjectsListPageContent() {
       case 'completed': return 'bg-blue-500/15 text-blue-700 border-blue-200';
       case 'on_hold': return 'bg-orange-500/15 text-orange-700 border-orange-200';
       case 'cancelled': return 'bg-red-500/15 text-red-700 border-red-200';
-      default: return 'bg-slate-500/15 text-slate-700 border-slate-200';
+      default: return 'bg-muted/15 text-foreground border-border';
     }
   };
 
@@ -124,7 +124,7 @@ function ProjectsListPageContent() {
   const getSourceBadge = (source: string) => {
     if (source === 'CRM') return <Badge variant="secondary" className="text-[10px] uppercase">CRM Deal</Badge>;
     if (source === 'AUTOMATION') return <Badge variant="secondary" className="text-[10px] uppercase bg-purple-500/15 text-purple-700">Automation</Badge>;
-    return <Badge variant="secondary" className="text-[10px] uppercase bg-slate-100 text-slate-500">Manual</Badge>;
+    return <Badge variant="secondary" className="text-[10px] uppercase bg-muted text-muted-foreground">Manual</Badge>;
   };
 
   return (

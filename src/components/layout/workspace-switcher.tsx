@@ -41,14 +41,14 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
 
   // Dynamic switcher styling depending on light vs dark sidebar look
   const switcherBg = minimalist
-    ? "border-transparent bg-transparent hover:bg-slate-800/40 text-foreground px-2 py-1.5"
+    ? "border-transparent bg-transparent hover:bg-muted/40 text-foreground px-2 py-1.5"
     : isDark
     ? "border-border bg-card hover:bg-muted/80 text-foreground"
-    : "border-slate-700 bg-background/40 hover:bg-slate-800/80 text-foreground";
+    : "border-border bg-background/40 hover:bg-muted/80 text-foreground";
 
   const switcherTextClass = isDark ? "text-foreground" : "text-foreground";
   const switcherRoleClass = isDark ? "text-primary" : "text-primary-foreground/80";
-  const switcherArrowClass = isDark ? "text-muted-foreground" : "text-slate-300";
+  const switcherArrowClass = isDark ? "text-muted-foreground" : "text-foreground";
   const switcherLogoBorder = isDark ? "border-border bg-muted" : "border-border bg-background";
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -109,14 +109,14 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
         </button>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-md bg-card border-border text-slate-100">
+          <DialogContent className="sm:max-w-md bg-card border-border text-foreground">
             {isLimitReached ? (
               <div className="py-6 text-center space-y-4">
                 <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
                 <DialogTitle className="text-lg font-semibold text-foreground">
                   Workspace limit reached
                 </DialogTitle>
-                <p className="text-sm text-slate-300">
+                <p className="text-sm text-foreground">
                   You have reached the maximum of <strong>{maxWorkspaces}</strong> workspaces allowed by your current plan.
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -127,7 +127,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     type="button"
                     variant="ghost"
                     onClick={() => setIsDialogOpen(false)}
-                    className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted"
                   >
                     Cancel
                   </Button>
@@ -152,7 +152,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="name-empty" className="text-sm font-medium text-slate-300">
+                    <Label htmlFor="name-empty" className="text-sm font-medium text-foreground">
                       Workspace Name
                     </Label>
                     <Input
@@ -171,7 +171,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     type="button"
                     variant="ghost"
                     onClick={() => setIsDialogOpen(false)}
-                    className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted"
                   >
                     Cancel
                   </Button>
@@ -284,14 +284,14 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
       </DropdownMenu>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-card border-border text-slate-100">
+        <DialogContent className="sm:max-w-md bg-card border-border text-foreground">
           {isLimitReached ? (
             <div className="py-6 text-center space-y-4">
               <AlertTriangle className="mx-auto h-8 w-8 text-amber-500" />
               <DialogTitle className="text-lg font-semibold text-foreground">
                 Workspace limit reached
               </DialogTitle>
-              <p className="text-sm text-slate-300">
+              <p className="text-sm text-foreground">
                 You have reached the maximum of <strong>{maxWorkspaces}</strong> workspaces allowed by your current plan.
               </p>
               <p className="text-xs text-muted-foreground">
@@ -302,7 +302,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                   type="button"
                   variant="ghost"
                   onClick={() => setIsDialogOpen(false)}
-                  className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   Cancel
                 </Button>
@@ -327,7 +327,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-sm font-medium text-slate-300">
+                  <Label htmlFor="name" className="text-sm font-medium text-foreground">
                     Workspace Name
                   </Label>
                   <Input
@@ -346,7 +346,7 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                   type="button"
                   variant="ghost"
                   onClick={() => setIsDialogOpen(false)}
-                  className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   Cancel
                 </Button>

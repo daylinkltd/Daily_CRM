@@ -313,7 +313,7 @@ function OnboardingInner() {
   const activePlanConfig = PLANS.find((p) => p.id === selectedPlan) || PLANS[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden text-slate-100">
+    <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-6 relative overflow-hidden text-foreground">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
       {/* Ambient backgrounds */}
@@ -326,25 +326,25 @@ function OnboardingInner() {
         </div>
 
         {/* Wizard Progress Steps Bar */}
-        <div className="w-full max-w-md flex items-center justify-between mb-8 text-xs font-semibold text-slate-500">
+        <div className="w-full max-w-md flex items-center justify-between mb-8 text-xs font-semibold text-muted-foreground">
           <div className={`flex items-center gap-1.5 ${step >= 1 ? "text-primary" : ""}`}>
-            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 1 ? "border-primary bg-primary/15" : "border-slate-800"}`}>1</span>
+            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 1 ? "border-primary bg-primary/15" : "border-border"}`}>1</span>
             Profile
           </div>
-          <div className="h-px bg-slate-800 flex-1 mx-3" />
+          <div className="h-px bg-muted flex-1 mx-3" />
           <div className={`flex items-center gap-1.5 ${step >= 2 ? "text-primary" : ""}`}>
-            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 2 ? "border-primary bg-primary/15" : "border-slate-800"}`}>2</span>
+            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 2 ? "border-primary bg-primary/15" : "border-border"}`}>2</span>
             Plan selection
           </div>
-          <div className="h-px bg-slate-800 flex-1 mx-3" />
+          <div className="h-px bg-muted flex-1 mx-3" />
           <div className={`flex items-center gap-1.5 ${step >= 3 ? "text-primary" : ""}`}>
-            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 3 ? "border-primary bg-primary/15" : "border-slate-800"}`}>3</span>
+            <span className={`h-5 w-5 rounded-full flex items-center justify-center border text-[10px] ${step >= 3 ? "border-primary bg-primary/15" : "border-border"}`}>3</span>
             Workspace setup
           </div>
         </div>
 
         {/* Wizard Step Forms */}
-        <div className="w-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl rounded-3xl p-8 md:p-10 shadow-2xl">
+        <div className="w-full bg-muted/60 border border-border/80 backdrop-blur-xl rounded-3xl p-8 md:p-10 shadow-2xl">
           {step === 1 && (
             <form onSubmit={handleStep1Submit} className="space-y-6 max-w-md mx-auto">
               <div className="text-center">
@@ -352,18 +352,18 @@ function OnboardingInner() {
                   <User className="h-6 w-6" />
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight">Set up your profile name</h1>
-                <p className="text-slate-400 text-xs mt-1">Let your team members know who you are.</p>
+                <p className="text-muted-foreground text-xs mt-1">Let your team members know who you are.</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-slate-300 text-xs font-semibold">Your full name</Label>
+                <Label htmlFor="fullName" className="text-foreground text-xs font-semibold">Your full name</Label>
                 <Input
                   id="fullName"
                   type="text"
                   placeholder="e.g. Sarah Chen"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-foreground h-10 rounded-xl focus:border-primary"
+                  className="bg-muted border-border text-foreground h-10 rounded-xl focus:border-primary"
                   required
                   autoFocus
                 />
@@ -387,7 +387,7 @@ function OnboardingInner() {
                   <CreditCard className="h-6 w-6" />
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight">Select your plan tier</h1>
-                <p className="text-slate-400 text-xs mt-1">All plans exclude GST. Annual plans enjoy 2 months free.</p>
+                <p className="text-muted-foreground text-xs mt-1">All plans exclude GST. Annual plans enjoy 2 months free.</p>
 
                 {/* Billing cycle toggle */}
                 <div className="flex items-center justify-center gap-3 mt-4">
@@ -397,7 +397,7 @@ function OnboardingInner() {
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                       billingCycle === "monthly"
                         ? "bg-primary text-primary-foreground"
-                        : "text-slate-400 hover:text-foreground bg-slate-900 border border-slate-800"
+                        : "text-muted-foreground hover:text-foreground bg-muted border border-border"
                     }`}
                   >
                     Monthly
@@ -408,7 +408,7 @@ function OnboardingInner() {
                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors relative ${
                       billingCycle === "annual"
                         ? "bg-primary text-primary-foreground"
-                        : "text-slate-400 hover:text-foreground bg-slate-900 border border-slate-800"
+                        : "text-muted-foreground hover:text-foreground bg-muted border border-border"
                     }`}
                   >
                     Annual
@@ -441,7 +441,7 @@ function OnboardingInner() {
                       className={`relative flex flex-col rounded-2xl p-4 border transition-all cursor-pointer select-none ${
                         isSelected
                           ? "border-primary bg-primary/5 shadow-xl shadow-primary/5"
-                          : "border-slate-800 bg-slate-950/40 hover:border-slate-700"
+                          : "border-border bg-muted/40 hover:border-border"
                       }`}
                     >
                       {plan.isRecommended && (
@@ -454,10 +454,10 @@ function OnboardingInner() {
                         <span className="text-xs font-extrabold text-white block">{plan.name}</span>
                         <div className="flex items-baseline gap-0.5 mt-1">
                           <span className="text-lg font-black text-white">{displayPrice}</span>
-                          <span className="text-slate-500 text-[10px]">{periodLabel}</span>
+                          <span className="text-muted-foreground text-[10px]">{periodLabel}</span>
                         </div>
                         {!isFree && !isCustom && (
-                          <span className="text-[9px] text-slate-500 block leading-tight">
+                          <span className="text-[9px] text-muted-foreground block leading-tight">
                             {billingCycle === "annual"
                               ? `Equivalent to ₹${Math.round(plan.priceYearly / 12).toLocaleString()}/mo`
                               : `Equivalent to ₹${(plan.priceMonthly * 12).toLocaleString()}/yr`}
@@ -467,7 +467,7 @@ function OnboardingInner() {
 
                       <ul className="space-y-1.5 mb-4 flex-1">
                         {plan.features.slice(0, 3).map((f) => (
-                          <li key={f} className="flex items-start gap-1 text-[10px] text-slate-400">
+                          <li key={f} className="flex items-start gap-1 text-[10px] text-muted-foreground">
                             <Check className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
                             <span>{f}</span>
                           </li>
@@ -475,7 +475,7 @@ function OnboardingInner() {
                       </ul>
 
                       <div className="flex justify-center mt-2">
-                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-slate-800"}`}>
+                        <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-border"}`}>
                           {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
                         </div>
                       </div>
@@ -489,7 +489,7 @@ function OnboardingInner() {
                   type="button"
                   variant="ghost"
                   onClick={() => setStep(1)}
-                  className="w-1/2 border border-slate-800 text-slate-400 hover:text-foreground"
+                  className="w-1/2 border border-border text-muted-foreground hover:text-foreground"
                 >
                   Back
                 </Button>
@@ -511,38 +511,38 @@ function OnboardingInner() {
                   <Building2 className="h-6 w-6" />
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight">Create your workspace</h1>
-                <p className="text-slate-400 text-xs mt-1">Configure company name and brand identity.</p>
+                <p className="text-muted-foreground text-xs mt-1">Configure company name and brand identity.</p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="orgName" className="text-slate-300 text-xs font-semibold">Company / Workspace Name</Label>
+                  <Label htmlFor="orgName" className="text-foreground text-xs font-semibold">Company / Workspace Name</Label>
                   <Input
                     id="orgName"
                     type="text"
                     placeholder="e.g. Acme Sales Corp"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    className="bg-slate-950 border-slate-800 text-foreground h-10 rounded-xl focus:border-primary"
+                    className="bg-muted border-border text-foreground h-10 rounded-xl focus:border-primary"
                     required
                     autoFocus
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-slate-300 text-xs font-semibold">Workspace Logo (Optional)</Label>
+                  <Label className="text-foreground text-xs font-semibold">Workspace Logo (Optional)</Label>
                   <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center overflow-hidden shrink-0 relative">
+                    <div className="h-16 w-16 rounded-xl border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 relative">
                       {logoPreview ? (
                         <Image src={logoPreview} alt="Logo preview" fill className="object-cover" />
                       ) : (
-                        <Building2 className="h-6 w-6 text-slate-600" />
+                        <Building2 className="h-6 w-6 text-muted-foreground" />
                       )}
                     </div>
                     <div className="flex-1">
                       <Label
                         htmlFor="logoFile"
-                        className="inline-flex items-center gap-2 border border-slate-800 bg-slate-950/60 text-slate-300 hover:text-foreground px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-2 border border-border bg-muted/60 text-foreground hover:text-foreground px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
                       >
                         <Upload className="h-4.5 w-4.5" /> Upload Logo
                       </Label>
@@ -553,18 +553,18 @@ function OnboardingInner() {
                         onChange={handleLogoChange}
                         className="hidden"
                       />
-                      <span className="block text-[10px] text-slate-500 mt-1.5">Max size 2MB (PNG, JPG, SVG)</span>
+                      <span className="block text-[10px] text-muted-foreground mt-1.5">Max size 2MB (PNG, JPG, SVG)</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="industryTemplate" className="text-slate-300 text-xs font-semibold">Business Industry Preset</Label>
+                  <Label htmlFor="industryTemplate" className="text-foreground text-xs font-semibold">Business Industry Preset</Label>
                   <select
                     id="industryTemplate"
                     value={selectedIndustryTemplate}
                     onChange={(e) => setSelectedIndustryTemplate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl h-10 text-xs px-3 focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0] outline-none transition-all cursor-pointer"
+                    className="w-full bg-muted border border-border text-white rounded-xl h-10 text-xs px-3 focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0] outline-none transition-all cursor-pointer"
                   >
                     {INDUSTRY_TEMPLATES.map((tmpl) => (
                       <option key={tmpl.id} value={tmpl.id}>
@@ -572,7 +572,7 @@ function OnboardingInner() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed bg-slate-950/50 p-2.5 rounded-xl border border-slate-900/60">
+                  <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed bg-muted/50 p-2.5 rounded-xl border border-border/60">
                     <strong>Preset Features:</strong> {INDUSTRY_TEMPLATES.find(t => t.id === selectedIndustryTemplate)?.desc}
                   </p>
                 </div>
@@ -583,7 +583,7 @@ function OnboardingInner() {
                 <span className="font-bold text-primary flex items-center gap-1">
                   <Sparkles className="h-3.5 w-3.5" /> Selected plan benefits ({activePlanConfig.name})
                 </span>
-                <ul className="space-y-1 text-slate-300">
+                <ul className="space-y-1 text-foreground">
                   <li>• Member Seats: <strong>{activePlanConfig.maxUsers === 999999 ? "Unlimited" : activePlanConfig.maxUsers}</strong> users</li>
                   <li>• Workspaces Allowance: <strong>{activePlanConfig.maxWorkspaces === 999999 ? "Unlimited" : activePlanConfig.maxWorkspaces}</strong></li>
                   <li>• Monthly Messages: <strong>{activePlanConfig.monthlyMessageAllowance === 999999 ? "Unlimited" : activePlanConfig.monthlyMessageAllowance.toLocaleString()}</strong></li>
@@ -595,7 +595,7 @@ function OnboardingInner() {
                   type="button"
                   variant="ghost"
                   onClick={() => setStep(2)}
-                  className="w-1/2 border border-slate-800 text-slate-400 hover:text-foreground"
+                  className="w-1/2 border border-border text-muted-foreground hover:text-foreground"
                 >
                   Back
                 </Button>
@@ -623,7 +623,7 @@ function OnboardingInner() {
         <div className="mt-8">
           <button
             onClick={() => signOut()}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <LogOut className="h-3.5 w-3.5" /> Sign out
           </button>
@@ -670,7 +670,7 @@ function OnboardingPageContent() {
 
   if (loading || wsLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 text-sm">
+      <div className="min-h-screen bg-muted flex flex-col items-center justify-center text-muted-foreground text-sm">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
         Loading...
       </div>
@@ -682,7 +682,7 @@ function OnboardingPageContent() {
   // Redirecting to /join — don't flash the plan-selection wizard.
   if (pendingInvite) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 text-sm">
+      <div className="min-h-screen bg-muted flex flex-col items-center justify-center text-muted-foreground text-sm">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
         Taking you to your invitation...
       </div>

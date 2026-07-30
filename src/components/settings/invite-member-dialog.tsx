@@ -291,7 +291,7 @@ export function InviteMemberDialog({
             <DialogTitle className="text-lg font-semibold text-foreground">
               Teammate limit reached
             </DialogTitle>
-            <p className="text-sm text-slate-300">
+            <p className="text-sm text-foreground">
               You have reached the maximum of <strong>{maxMembers}</strong> team members allowed by your current plan.
             </p>
             <p className="text-xs text-muted-foreground">
@@ -302,7 +302,7 @@ export function InviteMemberDialog({
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="text-muted-foreground hover:text-foreground hover:bg-slate-800"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
               >
                 Cancel
               </Button>

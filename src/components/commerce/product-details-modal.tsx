@@ -107,7 +107,7 @@ export function ProductDetailsModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-card border border-border rounded-3xl max-w-3xl w-full p-6 space-y-6 shadow-2xl my-8 text-slate-100 relative">
+      <div className="bg-card border border-border rounded-3xl max-w-3xl w-full p-6 space-y-6 shadow-2xl my-8 text-foreground relative">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-border pb-4 gap-4">
           <div className="space-y-1">
@@ -137,8 +137,8 @@ export function ProductDetailsModal({
 
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap font-mono pt-1">
               <span className="flex items-center gap-1">
-                <Hash className="h-3.5 w-3.5 text-slate-500" /> SKU:{" "}
-                <strong className="text-slate-200">{product.sku}</strong>
+                <Hash className="h-3.5 w-3.5 text-muted-foreground" /> SKU:{" "}
+                <strong className="text-foreground">{product.sku}</strong>
               </span>
               {product.barcode && (
                 <span className="flex items-center gap-1 text-[#00aef0]">
@@ -148,8 +148,8 @@ export function ProductDetailsModal({
               )}
               {product.hsn_sac_code && (
                 <span className="flex items-center gap-1">
-                  <Tag className="h-3.5 w-3.5 text-slate-500" /> HSN/SAC:{" "}
-                  <strong className="text-slate-200">{product.hsn_sac_code}</strong>
+                  <Tag className="h-3.5 w-3.5 text-muted-foreground" /> HSN/SAC:{" "}
+                  <strong className="text-foreground">{product.hsn_sac_code}</strong>
                 </span>
               )}
             </div>
@@ -157,7 +157,7 @@ export function ProductDetailsModal({
 
           <button
             onClick={onClose}
-            className="p-2 text-muted-foreground hover:text-foreground hover:bg-slate-800 rounded-xl transition-colors"
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -173,7 +173,7 @@ export function ProductDetailsModal({
               ₹{sellingPrice.toFixed(2)}
             </span>
             {mrp > sellingPrice && (
-              <span className="text-[11px] text-slate-500 line-through block">
+              <span className="text-[11px] text-muted-foreground line-through block">
                 MRP: ₹{mrp.toFixed(2)}
               </span>
             )}
@@ -183,7 +183,7 @@ export function ProductDetailsModal({
             <span className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider block">
               Purchase Price
             </span>
-            <span className="text-xl font-extrabold text-slate-200 block">
+            <span className="text-xl font-extrabold text-foreground block">
               ₹{purchasePrice.toFixed(2)}
             </span>
             {marginPct > 0 && (
@@ -235,7 +235,7 @@ export function ProductDetailsModal({
                 className={`px-3 py-2 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all whitespace-nowrap ${
                   activeTab === tab.id
                     ? "bg-[#00aef0] text-foreground shadow-lg shadow-[#00aef0]/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-slate-800/60"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -283,19 +283,19 @@ export function ProductDetailsModal({
                 </h4>
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
-                    <span className="text-slate-500 block">Profit per Unit</span>
+                    <span className="text-muted-foreground block">Profit per Unit</span>
                     <span className="font-extrabold text-emerald-400 text-sm">
                       ₹{marginAmt.toFixed(2)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Gross Margin %</span>
+                    <span className="text-muted-foreground block">Gross Margin %</span>
                     <span className="font-extrabold text-emerald-400 text-sm">
                       {marginPct.toFixed(2)}%
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Markup %</span>
+                    <span className="text-muted-foreground block">Markup %</span>
                     <span className="font-extrabold text-purple-400 text-sm">
                       {markupPct.toFixed(2)}%
                     </span>
@@ -391,7 +391,7 @@ export function ProductDetailsModal({
               )}
 
               {attributeEntries.length === 0 && Object.keys(customUserFields).length === 0 && (
-                <div className="py-8 text-center text-slate-500 text-xs">
+                <div className="py-8 text-center text-muted-foreground text-xs">
                   No additional industry attributes or custom fields configured for this product.
                 </div>
               )}
@@ -401,7 +401,7 @@ export function ProductDetailsModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-border pt-4">
-          <div className="text-[11px] text-slate-500">
+          <div className="text-[11px] text-muted-foreground">
             Created: {product.created_at ? new Date(product.created_at).toLocaleDateString() : "Catalog Item"}
           </div>
           <div className="flex items-center gap-2">
@@ -425,7 +425,7 @@ export function ProductDetailsModal({
                   onClose();
                   onPrintTag(product);
                 }}
-                className="border-border hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] gap-2 rounded-xl text-xs h-10"
+                className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] gap-2 rounded-xl text-xs h-10"
               >
                 <Printer className="h-4 w-4" />
                 Print Barcode Tag
@@ -433,7 +433,7 @@ export function ProductDetailsModal({
             )}
             <Button
               onClick={onClose}
-              className="bg-slate-800 hover:bg-slate-700 text-foreground font-bold rounded-xl text-xs h-10 px-5"
+              className="bg-muted hover:bg-muted text-foreground font-bold rounded-xl text-xs h-10 px-5"
             >
               Close
             </Button>
@@ -460,7 +460,7 @@ function DetailCard({
       <span className="text-[11px] text-muted-foreground font-medium block">{label}</span>
       <span
         className={`block text-xs font-semibold ${
-          highlight ? "text-[#00aef0] text-sm font-extrabold" : "text-slate-200"
+          highlight ? "text-[#00aef0] text-sm font-extrabold" : "text-foreground"
         } ${isMono ? "font-mono" : ""}`}
       >
         {value}
@@ -475,13 +475,13 @@ function FlagBadge({ label, active }: { label: string; active: boolean }) {
       className={`p-2.5 rounded-xl border flex items-center gap-2 text-xs font-semibold ${
         active
           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-          : "bg-card text-slate-500 border-border"
+          : "bg-card text-muted-foreground border-border"
       }`}
     >
       {active ? (
         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
       ) : (
-        <XCircle className="h-3.5 w-3.5 text-slate-600 shrink-0" />
+        <XCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
       )}
       <span className="truncate">{label}</span>
     </div>

@@ -77,7 +77,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border text-slate-100 sm:max-w-md shadow-2xl">
+      <DialogContent className="bg-card border-border text-foreground sm:max-w-md shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-2 text-lg font-bold">
             <FileCheck2 className="h-5 w-5 text-[#00aef0]" />
@@ -86,7 +86,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-2 text-xs">
           <div>
-            <Label className="text-slate-300 mb-1 block">Request Type</Label>
+            <Label className="text-foreground mb-1 block">Request Type</Label>
             <select
               value={requestType}
               onChange={(e) => setRequestType(e.target.value as any)}
@@ -102,7 +102,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
 
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <Label className="text-slate-300 mb-1 block">Date *</Label>
+              <Label className="text-foreground mb-1 block">Date *</Label>
               <Input
                 type="date"
                 value={attendanceDate}
@@ -112,7 +112,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
               />
             </div>
             <div>
-              <Label className="text-slate-300 mb-1 block">Punch In</Label>
+              <Label className="text-foreground mb-1 block">Punch In</Label>
               <Input
                 type="time"
                 value={requestedPunchIn}
@@ -121,7 +121,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
               />
             </div>
             <div>
-              <Label className="text-slate-300 mb-1 block">Punch Out</Label>
+              <Label className="text-foreground mb-1 block">Punch Out</Label>
               <Input
                 type="time"
                 value={requestedPunchOut}
@@ -132,7 +132,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
           </div>
 
           <div>
-            <Label className="text-slate-300 mb-1 block">Reason / Justification *</Label>
+            <Label className="text-foreground mb-1 block">Reason / Justification *</Label>
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}

@@ -76,7 +76,7 @@ export default function AccountingLedgerPage() {
         <Button
           onClick={fetchData}
           variant="outline"
-          className="border-border text-slate-300 gap-1.5 rounded-xl h-11"
+          className="border-border text-foreground gap-1.5 rounded-xl h-11"
         >
           <RefreshCw className="h-4 w-4" />
           Refresh Books
@@ -162,14 +162,14 @@ export default function AccountingLedgerPage() {
       {activeTab === "DAYBOOK" ? (
         <div className="space-y-4">
           {loading ? (
-            <div className="py-12 text-center text-slate-500 text-sm bg-card/50 rounded-2xl border border-border">
+            <div className="py-12 text-center text-muted-foreground text-sm bg-card/50 rounded-2xl border border-border">
               Loading POS Journal Vouchers...
             </div>
           ) : journals.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-12 text-center text-slate-500 space-y-3">
-              <BookOpen className="h-10 w-10 mx-auto text-slate-600" />
-              <p className="text-base font-semibold text-slate-300">Automated Accounting Active</p>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
+            <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl p-12 text-center text-muted-foreground space-y-3">
+              <BookOpen className="h-10 w-10 mx-auto text-muted-foreground" />
+              <p className="text-base font-semibold text-foreground">Automated Accounting Active</p>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
                 Every sales transaction completed on the POS Terminal will automatically generate double-entry Debit & Credit vouchers and post to your General Ledger.
               </p>
             </div>
@@ -196,19 +196,19 @@ export default function AccountingLedgerPage() {
 
                     <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono">
                       <span className="flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5 text-slate-500" />
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                         {new Date(voucher.created_at).toLocaleString()}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-300 font-medium">
+                  <p className="text-xs text-foreground font-medium">
                     {voucher.narration || "POS Sales Automated Double-Entry Voucher"}
                   </p>
 
                   {/* Journal Debit / Credit Breakdown */}
                   <div className="rounded-xl border border-border bg-background overflow-hidden">
-                    <table className="w-full text-left text-xs text-slate-300">
+                    <table className="w-full text-left text-xs text-foreground">
                       <thead className="bg-card/90 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
                         <tr>
                           <th className="py-2 px-3">GL Ledger Account</th>
@@ -216,7 +216,7 @@ export default function AccountingLedgerPage() {
                           <th className="py-2 px-3 text-right">Credit (Cr)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
+                      <tbody className="divide-y divide-border/60">
                         {(voucher.items || []).map((item: any, idx: number) => (
                           <tr key={item.id || idx}>
                             <td className="py-2 px-3 font-semibold text-foreground">
@@ -248,7 +248,7 @@ export default function AccountingLedgerPage() {
       ) : (
         <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
+            <table className="w-full text-left text-sm text-foreground">
               <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
                 <tr>
                   <th className="py-3.5 px-4">Code</th>
@@ -258,9 +258,9 @@ export default function AccountingLedgerPage() {
                   <th className="py-3.5 px-4 text-right">Current Balance</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border/60">
                 {accounts.map((acc) => (
-                  <tr key={acc.id || acc.account_code} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={acc.id || acc.account_code} className="hover:bg-muted/40 transition-colors">
                     <td className="py-3.5 px-4 font-mono font-bold text-[#00aef0]">
                       {acc.account_code}
                     </td>
@@ -268,7 +268,7 @@ export default function AccountingLedgerPage() {
                       {acc.account_name}
                     </td>
                     <td className="py-3.5 px-4 text-xs font-mono text-muted-foreground">
-                      <span className="bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700">
+                      <span className="bg-muted px-2 py-0.5 rounded-lg border border-border">
                         {acc.account_type}
                       </span>
                     </td>

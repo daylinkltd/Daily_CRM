@@ -206,7 +206,7 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchInventory} variant="outline" className="border-border text-slate-300 gap-1.5 rounded-xl h-11">
+          <Button onClick={fetchInventory} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
@@ -244,7 +244,7 @@ export default function InventoryPage() {
       {/* Inventory Table */}
       <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Product Name</th>
@@ -255,16 +255,16 @@ export default function InventoryPage() {
                 <th className="py-3.5 px-4 text-center">Stock Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-sm">
                     Loading Stock Levels...
                   </td>
                 </tr>
               ) : filteredInventory.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-sm">
                     No inventory records found. Add products in the Master Catalog first, then click &quot;Add / Adjust Stock&quot;.
                   </td>
                 </tr>
@@ -273,7 +273,7 @@ export default function InventoryPage() {
                   const currentQty = item.current_stock || 0;
                   const isLowStock = currentQty <= (item.reorder_level || 10);
                   return (
-                    <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={item.id} className="hover:bg-muted/40 transition-colors">
                       <td className="py-3.5 px-4 font-semibold text-foreground">
                         {item.name}
                       </td>
@@ -357,7 +357,7 @@ export default function InventoryPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-slate-300">Or Select Product from List *</Label>
+                <Label className="text-xs font-medium text-foreground">Or Select Product from List *</Label>
                 <select
                   required
                   value={selectedProductId}
@@ -374,7 +374,7 @@ export default function InventoryPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-slate-300">Action Type</Label>
+                <Label className="text-xs font-medium text-foreground">Action Type</Label>
                 <select
                   value={movementType}
                   onChange={(e) => setMovementType(e.target.value as any)}
@@ -386,7 +386,7 @@ export default function InventoryPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-slate-300">Quantity to Add *</Label>
+                <Label className="text-xs font-medium text-foreground">Quantity to Add *</Label>
                 <Input
                   ref={quantityInputRef}
                   type="number"
@@ -399,7 +399,7 @@ export default function InventoryPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-slate-300">Notes / Invoice Ref</Label>
+                <Label className="text-xs font-medium text-foreground">Notes / Invoice Ref</Label>
                 <Input
                   type="text"
                   placeholder="e.g. Received from Supplier Bill #1042"
@@ -414,7 +414,7 @@ export default function InventoryPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowStockModal(false)}
-                  className="border-border text-slate-300 rounded-xl"
+                  className="border-border text-foreground rounded-xl"
                 >
                   Cancel
                 </Button>

@@ -182,10 +182,10 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
 
   const getCategoryColor = (cat: string) => {
     switch (cat) {
-      case 'TODO': return 'text-slate-500 bg-slate-500/10 border-slate-200';
+      case 'TODO': return 'text-muted-foreground bg-muted/10 border-border';
       case 'IN_PROGRESS': return 'text-blue-500 bg-blue-500/10 border-blue-200';
       case 'DONE': return 'text-emerald-500 bg-emerald-500/10 border-emerald-200';
-      default: return 'text-slate-500 bg-slate-500/10';
+      default: return 'text-muted-foreground bg-muted/10';
     }
   };
 
@@ -336,7 +336,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
           </div>
 
           {/* Workflow Diagram Canvas */}
-          <div className="relative border border-border/80 rounded-xl bg-slate-50/50 dark:bg-background/50 p-8 min-h-[220px] flex items-center justify-center overflow-x-auto">
+          <div className="relative border border-border/80 rounded-xl bg-muted/50/50 dark:bg-background/50 p-8 min-h-[220px] flex items-center justify-center overflow-x-auto">
             <div 
               className="flex items-center gap-6 transition-all duration-200"
               style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'center center' }}
@@ -370,7 +370,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
 
                       {/* Transition Label 'Any' */}
                       {showTransitionLabels && (
-                        <div className="absolute -top-3 -right-2 bg-slate-800 text-foreground text-[9px] font-medium px-1.5 py-0.5 rounded-full shadow">
+                        <div className="absolute -top-3 -right-2 bg-muted text-foreground text-[9px] font-medium px-1.5 py-0.5 rounded-full shadow">
                           Any
                         </div>
                       )}

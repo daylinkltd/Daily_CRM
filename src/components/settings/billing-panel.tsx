@@ -180,7 +180,7 @@ export function BillingPanel() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
       {/* Current Plan Overview Banner */}
-      <div className="relative rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-slate-950/60 to-slate-950 p-6 shadow-xl">
+      <div className="relative rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-slate-950/60 to-muted p-6 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export function BillingPanel() {
             <span className="text-2xl font-black text-foreground">
               {currentPlan.priceMonthly === 0 ? "₹0" : currentPlan.priceMonthly === -1 ? "Custom" : `₹${currentPlan.priceMonthly.toLocaleString()}/mo`}
             </span>
-            <span className="text-[10px] text-slate-500 block">excl. GST</span>
+            <span className="text-[10px] text-muted-foreground block">excl. GST</span>
           </div>
         </div>
       </div>
@@ -233,7 +233,7 @@ export function BillingPanel() {
               style={{ width: `${msgPercent}%` }}
             />
           </div>
-          <span className="text-[10px] text-slate-500 block mt-2">
+          <span className="text-[10px] text-muted-foreground block mt-2">
             {usage?.isTrial ? "Allowance covers trial period." : "Resets monthly on 1st."} WhatsApp template charges separate.
           </span>
         </div>
@@ -259,7 +259,7 @@ export function BillingPanel() {
               style={{ width: `${maxMembers === 999999 ? 100 : membersPercent}%` }}
             />
           </div>
-          <span className="text-[10px] text-slate-500 block mt-2">
+          <span className="text-[10px] text-muted-foreground block mt-2">
             Max members allowed to join this workspace.
           </span>
         </div>
@@ -285,7 +285,7 @@ export function BillingPanel() {
               style={{ width: `${maxWorkspaces === 999999 ? 100 : workspacesPercent}%` }}
             />
           </div>
-          <span className="text-[10px] text-slate-500 block mt-2">
+          <span className="text-[10px] text-muted-foreground block mt-2">
             Number of team workspaces you can build.
           </span>
         </div>
@@ -345,7 +345,7 @@ export function BillingPanel() {
                 className={`relative flex flex-col rounded-xl p-5 border transition-all ${
                   isCurrent
                     ? "border-primary bg-primary/5"
-                    : "border-border bg-card/20 hover:border-slate-700"
+                    : "border-border bg-card/20 hover:border-border"
                 }`}
               >
                 {plan.isRecommended && (
@@ -358,10 +358,10 @@ export function BillingPanel() {
                   <span className="text-sm font-extrabold text-foreground">{plan.name}</span>
                   <div className="flex items-baseline gap-1 mt-1">
                     <span className="text-xl font-black text-foreground">{price}</span>
-                    <span className="text-slate-500 text-[10px]">{periodLabel}</span>
+                    <span className="text-muted-foreground text-[10px]">{periodLabel}</span>
                   </div>
                   {!isCustom && (
-                    <span className="text-[9px] text-slate-500 block">
+                    <span className="text-[9px] text-muted-foreground block">
                       {isAnnual
                         ? `Equivalent to ₹${Math.round(plan.priceYearly / 12).toLocaleString()}/mo`
                         : `Equivalent to ₹${(plan.priceMonthly * 12).toLocaleString()}/yr`}
@@ -372,7 +372,7 @@ export function BillingPanel() {
 
                 <ul className="space-y-1.5 mb-6 flex-1">
                   {plan.features.slice(0, 4).map((f) => (
-                    <li key={f} className="flex items-start gap-1.5 text-[11px] text-slate-300">
+                    <li key={f} className="flex items-start gap-1.5 text-[11px] text-foreground">
                       <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
                       <span>{f}</span>
                     </li>
@@ -385,10 +385,10 @@ export function BillingPanel() {
                   onClick={() => handleUpgrade(plan)}
                   className={`w-full flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
                     isCurrent
-                      ? "bg-slate-800 text-muted-foreground cursor-default"
+                      ? "bg-muted text-muted-foreground cursor-default"
                       : plan.isRecommended
                       ? "bg-primary text-primary-foreground hover:bg-primary-hover"
-                      : "border border-slate-700 text-slate-200 hover:border-slate-600 hover:text-foreground"
+                      : "border border-border text-foreground hover:border-border hover:text-foreground"
                   }`}
                 >
                   {isCurrent ? (

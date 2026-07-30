@@ -208,7 +208,7 @@ export default function CustomerLedgerPage() {
           <Button
             onClick={fetchLedger}
             variant="outline"
-            className="border-border text-slate-300 gap-1.5 rounded-xl h-11"
+            className="border-border text-foreground gap-1.5 rounded-xl h-11"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh Books
@@ -224,7 +224,7 @@ export default function CustomerLedgerPage() {
       </div>
 
       {/* Workflow Guidance Banner */}
-      <div className="bg-card/90 border border-border p-4 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
+      <div className="bg-card/90 border border-border p-4 rounded-2xl flex items-center gap-3 text-xs text-foreground">
         <Info className="h-5 w-5 text-[#00aef0] shrink-0" />
         <div>
           <strong className="text-foreground block font-bold text-sm">
@@ -286,7 +286,7 @@ export default function CustomerLedgerPage() {
       {/* Khata Ledger Table */}
       <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4 w-[28%]">Customer Name</th>
@@ -296,19 +296,19 @@ export default function CustomerLedgerPage() {
                 <th className="py-3.5 px-4 text-center w-[16%]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={5} className="py-12 text-center text-muted-foreground text-sm">
                     Loading Customer Khata Ledger...
                   </td>
                 </tr>
               ) : displayedCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-500 text-sm space-y-3">
-                    <Users className="h-10 w-10 mx-auto text-slate-600 mb-2" />
-                    <p className="text-slate-300 font-semibold">No Customers Found</p>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  <td colSpan={5} className="py-12 text-center text-muted-foreground text-sm space-y-3">
+                    <Users className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-foreground font-semibold">No Customers Found</p>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Add customer details to start tracking credit limits and Khata payments.
                     </p>
                     <Button
@@ -327,8 +327,8 @@ export default function CustomerLedgerPage() {
                   const isOverLimit = bal > limit;
 
                   return (
-                    <tr key={contact.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-4 font-extrabold text-slate-100">
+                    <tr key={contact.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="py-3.5 px-4 font-extrabold text-foreground">
                         <div>{contact.displayName}</div>
                         {contact.company && (
                           <span className="block text-[11px] text-muted-foreground font-normal">
@@ -336,9 +336,9 @@ export default function CustomerLedgerPage() {
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-slate-300">
+                      <td className="py-3.5 px-4 text-xs text-foreground">
                         {(contact.phone || contact.phone_number) && (
-                          <div className="flex items-center gap-1 font-mono text-slate-200">
+                          <div className="flex items-center gap-1 font-mono text-foreground">
                             <Phone className="h-3 w-3 text-[#00aef0]" />
                             {contact.phone || contact.phone_number}
                           </div>
@@ -347,7 +347,7 @@ export default function CustomerLedgerPage() {
                           <div className="text-[11px] text-muted-foreground">{contact.email}</div>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-medium text-slate-300">
+                      <td className="py-3.5 px-4 text-right font-medium text-foreground">
                         ₹{limit.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </td>
                       <td className="py-3.5 px-4 text-right font-extrabold">
@@ -395,7 +395,7 @@ export default function CustomerLedgerPage() {
 
       {/* Pagination Bar */}
       {filteredCustomers.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card/80 border border-border p-3.5 rounded-2xl text-xs text-slate-300 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card/80 border border-border p-3.5 rounded-2xl text-xs text-foreground backdrop-blur-md">
           <div>
             Showing <strong className="text-foreground">{(page - 1) * pageSize + 1}</strong> to{" "}
             <strong className="text-foreground">
@@ -409,11 +409,11 @@ export default function CustomerLedgerPage() {
               variant="outline"
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="border-border text-slate-300 h-8 gap-1 rounded-xl disabled:opacity-40"
+              className="border-border text-foreground h-8 gap-1 rounded-xl disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" /> Previous
             </Button>
-            <span className="font-bold text-slate-200 px-3 py-1 bg-background rounded-lg border border-border">
+            <span className="font-bold text-foreground px-3 py-1 bg-background rounded-lg border border-border">
               Page {page} of {totalPages}
             </span>
             <Button
@@ -421,7 +421,7 @@ export default function CustomerLedgerPage() {
               variant="outline"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="border-border text-slate-300 h-8 gap-1 rounded-xl disabled:opacity-40"
+              className="border-border text-foreground h-8 gap-1 rounded-xl disabled:opacity-40"
             >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
@@ -432,7 +432,7 @@ export default function CustomerLedgerPage() {
       {/* Add New Customer Modal */}
       {showAddCustomerModal && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
+          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-foreground overflow-x-hidden">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <UserPlus className="h-5 w-5 text-[#00aef0]" />
@@ -446,7 +446,7 @@ export default function CustomerLedgerPage() {
             <form onSubmit={handleCreateCustomer} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">First Name *</Label>
+                  <Label className="text-xs text-foreground">First Name *</Label>
                   <Input
                     required
                     type="text"
@@ -457,7 +457,7 @@ export default function CustomerLedgerPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Last Name</Label>
+                  <Label className="text-xs text-foreground">Last Name</Label>
                   <Input
                     type="text"
                     placeholder="e.g. Kumar"
@@ -470,7 +470,7 @@ export default function CustomerLedgerPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Phone Number *</Label>
+                  <Label className="text-xs text-foreground">Phone Number *</Label>
                   <Input
                     required
                     type="text"
@@ -481,7 +481,7 @@ export default function CustomerLedgerPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Email Address</Label>
+                  <Label className="text-xs text-foreground">Email Address</Label>
                   <Input
                     type="email"
                     placeholder="e.g. ramesh@gmail.com"
@@ -494,7 +494,7 @@ export default function CustomerLedgerPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Company / Shop Name</Label>
+                  <Label className="text-xs text-foreground">Company / Shop Name</Label>
                   <Input
                     type="text"
                     placeholder="e.g. Ramesh Traders"
@@ -504,7 +504,7 @@ export default function CustomerLedgerPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Credit Limit (₹)</Label>
+                  <Label className="text-xs text-foreground">Credit Limit (₹)</Label>
                   <Input
                     type="number"
                     value={creditLimit}
@@ -515,7 +515,7 @@ export default function CustomerLedgerPage() {
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setShowAddCustomerModal(false)} className="border-border text-slate-300 rounded-xl h-10">
+                <Button type="button" variant="outline" onClick={() => setShowAddCustomerModal(false)} className="border-border text-foreground rounded-xl h-10">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">
@@ -530,7 +530,7 @@ export default function CustomerLedgerPage() {
       {/* Record Payment Collection Modal */}
       {selectedPayCustomer && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
+          <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-foreground overflow-x-hidden">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <IndianRupee className="h-5 w-5 text-[#00aef0]" />
@@ -556,7 +556,7 @@ export default function CustomerLedgerPage() {
 
             <form onSubmit={handleRecordPayment} className="space-y-3 text-xs">
               <div className="space-y-1">
-                <Label className="text-xs text-slate-300">Payment Collected Amount (₹) *</Label>
+                <Label className="text-xs text-foreground">Payment Collected Amount (₹) *</Label>
                 <Input
                   required
                   type="number"
@@ -568,7 +568,7 @@ export default function CustomerLedgerPage() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs text-slate-300">Payment Collection Mode</Label>
+                <Label className="text-xs text-foreground">Payment Collection Mode</Label>
                 <select
                   value={payMode}
                   onChange={(e) => setPayMode(e.target.value as any)}
@@ -581,7 +581,7 @@ export default function CustomerLedgerPage() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs text-slate-300">Notes / Remarks</Label>
+                <Label className="text-xs text-foreground">Notes / Remarks</Label>
                 <Input
                   type="text"
                   placeholder="e.g. Partial cash payment received"
@@ -592,7 +592,7 @@ export default function CustomerLedgerPage() {
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setSelectedPayCustomer(null)} className="border-border text-slate-300 rounded-xl h-10">
+                <Button type="button" variant="outline" onClick={() => setSelectedPayCustomer(null)} className="border-border text-foreground rounded-xl h-10">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">

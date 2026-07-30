@@ -217,7 +217,7 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
       case 'medium':
         return <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-600 border border-blue-200/50">Medium</span>;
       default:
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-500/10 text-slate-600 border border-slate-200/50">Low</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-muted/10 text-muted-foreground border border-border/50">Low</span>;
     }
   };
 

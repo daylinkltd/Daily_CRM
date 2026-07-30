@@ -98,8 +98,8 @@ export default function GlobalTasksPage() {
       case 'urgent': return 'text-red-600 bg-red-500/15 border-red-200';
       case 'high': return 'text-orange-600 bg-orange-500/15 border-orange-200';
       case 'medium': return 'text-blue-600 bg-blue-500/15 border-blue-200';
-      case 'low': return 'text-slate-600 bg-slate-500/15 border-slate-200';
-      default: return 'text-slate-600 bg-slate-500/15 border-slate-200';
+      case 'low': return 'text-muted-foreground bg-muted/15 border-border';
+      default: return 'text-muted-foreground bg-muted/15 border-border';
     }
   };
 
@@ -109,7 +109,7 @@ export default function GlobalTasksPage() {
       case 'completed': return 'bg-emerald-500/15 text-emerald-700 border-emerald-200';
       case 'in_progress': return 'bg-blue-500/15 text-blue-700 border-blue-200';
       case 'review': return 'bg-purple-500/15 text-purple-700 border-purple-200';
-      default: return 'bg-slate-500/15 text-slate-700 border-slate-200';
+      default: return 'bg-muted/15 text-foreground border-border';
     }
   };
 

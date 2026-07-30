@@ -108,7 +108,7 @@ export default function SuppliersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchSuppliers} variant="outline" className="border-border text-slate-300 gap-1.5 rounded-xl h-11">
+          <Button onClick={fetchSuppliers} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
@@ -139,7 +139,7 @@ export default function SuppliersPage() {
       {/* Table */}
       <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Company Name</th>
@@ -150,19 +150,19 @@ export default function SuppliersPage() {
                 <th className="py-3.5 px-4 text-right">Outstanding Balance</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-sm">
                     Loading Suppliers...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm space-y-3">
-                    <Building2 className="h-10 w-10 mx-auto text-slate-600 mb-2" />
-                    <p className="text-slate-300 font-semibold">No Suppliers Registered Yet</p>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-sm space-y-3">
+                    <Building2 className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-foreground font-semibold">No Suppliers Registered Yet</p>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Add vendor details, GSTIN, contact numbers, and track supplier payables.
                     </p>
                     <Button
@@ -176,22 +176,22 @@ export default function SuppliersPage() {
                 </tr>
               ) : (
                 filtered.map((supplier) => (
-                  <tr key={supplier.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={supplier.id} className="hover:bg-muted/40 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-foreground">
                       {supplier.company_name}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-300">
+                    <td className="py-3.5 px-4 text-xs text-foreground">
                       {supplier.contact_person || "N/A"}
                     </td>
                     <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       {supplier.phone && (
-                        <div className="flex items-center gap-1 text-slate-200">
+                        <div className="flex items-center gap-1 text-foreground">
                           <Phone className="h-3 w-3 text-[#00aef0]" /> {supplier.phone}
                         </div>
                       )}
                       {supplier.email && (
                         <div className="flex items-center gap-1 text-muted-foreground text-[11px]">
-                          <Mail className="h-3 w-3 text-slate-500" /> {supplier.email}
+                          <Mail className="h-3 w-3 text-muted-foreground" /> {supplier.email}
                         </div>
                       )}
                     </td>
@@ -215,7 +215,7 @@ export default function SuppliersPage() {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 overflow-x-hidden">
+          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-foreground overflow-x-hidden">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-[#00aef0]" />
@@ -228,7 +228,7 @@ export default function SuppliersPage() {
 
             <form onSubmit={handleCreateSupplier} className="space-y-3 text-xs">
               <div className="space-y-1">
-                <Label className="text-xs text-slate-300">Supplier / Company Name *</Label>
+                <Label className="text-xs text-foreground">Supplier / Company Name *</Label>
                 <Input
                   required
                   type="text"
@@ -241,7 +241,7 @@ export default function SuppliersPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Contact Person</Label>
+                  <Label className="text-xs text-foreground">Contact Person</Label>
                   <Input
                     type="text"
                     placeholder="e.g. Ramesh Kumar"
@@ -251,7 +251,7 @@ export default function SuppliersPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Phone Number</Label>
+                  <Label className="text-xs text-foreground">Phone Number</Label>
                   <Input
                     type="text"
                     placeholder="e.g. 9876543210"
@@ -264,7 +264,7 @@ export default function SuppliersPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Email Address</Label>
+                  <Label className="text-xs text-foreground">Email Address</Label>
                   <Input
                     type="email"
                     placeholder="e.g. vendor@acme.com"
@@ -274,7 +274,7 @@ export default function SuppliersPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">GSTIN Number</Label>
+                  <Label className="text-xs text-foreground">GSTIN Number</Label>
                   <Input
                     type="text"
                     placeholder="e.g. 27ABCDE1234F1Z5"
@@ -286,7 +286,7 @@ export default function SuppliersPage() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs text-slate-300">Office / Warehouse Address</Label>
+                <Label className="text-xs text-foreground">Office / Warehouse Address</Label>
                 <Input
                   type="text"
                   placeholder="e.g. Plot 42, Industrial Area, Mumbai"
@@ -297,7 +297,7 @@ export default function SuppliersPage() {
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-slate-300 rounded-xl h-10">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-foreground rounded-xl h-10">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">

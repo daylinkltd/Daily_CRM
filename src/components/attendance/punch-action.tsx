@@ -265,7 +265,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
                 <select
                   value={breakType}
                   onChange={(e) => setBreakType(e.target.value as any)}
-                  className="bg-background text-slate-200 border-none text-xs rounded-lg px-2 py-1 focus:ring-0"
+                  className="bg-background text-foreground border-none text-xs rounded-lg px-2 py-1 focus:ring-0"
                 >
                   <option value="LUNCH">Lunch Break</option>
                   <option value="TEA">Tea / Coffee</option>
@@ -276,7 +276,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
                   onClick={() => handleBreak('start')}
                   disabled={loading}
                   variant="outline"
-                  className="h-8 border-slate-700 bg-slate-800 text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 text-xs font-bold gap-1 rounded-lg"
+                  className="h-8 border-border bg-muted text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 text-xs font-bold gap-1 rounded-lg"
                 >
                   <Coffee className="h-3.5 w-3.5" />
                   Start Break
@@ -295,7 +295,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
             </Button>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 bg-card px-3.5 py-2 rounded-xl border border-border">
+          <div className="flex items-center gap-2 text-xs font-semibold text-foreground bg-card px-3.5 py-2 rounded-xl border border-border">
             <Clock className="size-4 text-[#00aef0]" />
             Logged {todayRecord.working_hours} hrs ({todayRecord.net_productive_hours || todayRecord.working_hours} hrs net) today
           </div>

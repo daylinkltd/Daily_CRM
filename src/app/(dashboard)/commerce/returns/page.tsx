@@ -135,7 +135,7 @@ export default function ReturnsPage() {
           <Button
             onClick={fetchReturnsData}
             variant="outline"
-            className="border-border text-slate-300 gap-1.5 rounded-xl h-11"
+            className="border-border text-foreground gap-1.5 rounded-xl h-11"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
@@ -151,7 +151,7 @@ export default function ReturnsPage() {
       </div>
 
       {/* Business Workflow Banner */}
-      <div className="bg-card/90 border border-border p-4 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
+      <div className="bg-card/90 border border-border p-4 rounded-2xl flex items-center gap-3 text-xs text-foreground">
         <Info className="h-5 w-5 text-[#00aef0] shrink-0" />
         <div>
           <strong className="text-foreground block font-bold text-sm">
@@ -179,7 +179,7 @@ export default function ReturnsPage() {
       {/* Table */}
       <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Return #</th>
@@ -191,19 +191,19 @@ export default function ReturnsPage() {
                 <th className="py-3.5 px-4 text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={7} className="py-12 text-center text-muted-foreground text-sm">
                     Loading Return Tickets...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500 text-sm space-y-3">
-                    <ArrowLeftRight className="h-10 w-10 mx-auto text-slate-600 mb-2" />
-                    <p className="text-slate-300 font-semibold">No Sales Returns Logged</p>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  <td colSpan={7} className="py-12 text-center text-muted-foreground text-sm space-y-3">
+                    <ArrowLeftRight className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-foreground font-semibold">No Sales Returns Logged</p>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Issue credit notes for sales returns or record damaged stock returns.
                     </p>
                     <Button
@@ -217,7 +217,7 @@ export default function ReturnsPage() {
                 </tr>
               ) : (
                 filtered.map((ret) => (
-                  <tr key={ret.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={ret.id} className="hover:bg-muted/40 transition-colors">
                     <td className="py-3.5 px-4 font-mono font-bold text-foreground">
                       #{ret.return_number}
                     </td>
@@ -227,10 +227,10 @@ export default function ReturnsPage() {
                     <td className="py-3.5 px-4 font-mono text-xs text-[#00aef0]">
                       {ret.sales_order?.order_number ? `#${ret.sales_order.order_number}` : "Direct Return"}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-300 font-medium">
+                    <td className="py-3.5 px-4 text-xs text-foreground font-medium">
                       {ret.return_reason?.replace(/_/g, " ")}
                     </td>
-                    <td className="py-3.5 px-4 text-xs font-semibold text-slate-300">
+                    <td className="py-3.5 px-4 text-xs font-semibold text-foreground">
                       {ret.refund_mode}
                     </td>
                     <td className="py-3.5 px-4 text-right font-extrabold text-rose-400">
@@ -253,7 +253,7 @@ export default function ReturnsPage() {
       {/* Process Return Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-slate-100 my-8 overflow-x-hidden">
+          <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-foreground my-8 overflow-x-hidden">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <RefreshCw className="h-5 w-5 text-[#00aef0]" />
@@ -266,7 +266,7 @@ export default function ReturnsPage() {
 
             <form onSubmit={handleProcessReturn} className="space-y-3 text-xs">
               <div className="space-y-1">
-                <Label className="text-xs text-slate-300">Select Ref Sales Order / Invoice</Label>
+                <Label className="text-xs text-foreground">Select Ref Sales Order / Invoice</Label>
                 <select
                   value={selectedOrderId}
                   onChange={(e) => {
@@ -287,7 +287,7 @@ export default function ReturnsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Return Reason</Label>
+                  <Label className="text-xs text-foreground">Return Reason</Label>
                   <select
                     value={returnReason}
                     onChange={(e) => setReturnReason(e.target.value as any)}
@@ -302,7 +302,7 @@ export default function ReturnsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Refund Mode</Label>
+                  <Label className="text-xs text-foreground">Refund Mode</Label>
                   <select
                     value={refundMode}
                     onChange={(e) => setRefundMode(e.target.value as any)}
@@ -317,7 +317,7 @@ export default function ReturnsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Product to Restock (Optional)</Label>
+                  <Label className="text-xs text-foreground">Product to Restock (Optional)</Label>
                   <ProductCombobox
                     products={products}
                     selectedProductId={selectedProductId}
@@ -327,7 +327,7 @@ export default function ReturnsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Refund Amount (₹) *</Label>
+                  <Label className="text-xs text-foreground">Refund Amount (₹) *</Label>
                   <Input
                     required
                     type="number"
@@ -346,16 +346,16 @@ export default function ReturnsPage() {
                     id="restockCheck"
                     checked={restockInventory}
                     onChange={(e) => setRestockInventory(e.target.checked)}
-                    className="rounded bg-card border-slate-700 text-[#00aef0]"
+                    className="rounded bg-card border-border text-[#00aef0]"
                   />
-                  <Label htmlFor="restockCheck" className="text-xs text-slate-300 cursor-pointer">
+                  <Label htmlFor="restockCheck" className="text-xs text-foreground cursor-pointer">
                     Restock returned item into active Inventory stock
                   </Label>
                 </div>
               )}
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-slate-300 rounded-xl h-10">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-foreground rounded-xl h-10">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">

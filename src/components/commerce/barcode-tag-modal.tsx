@@ -78,7 +78,7 @@ export function BarcodeTagModal({
       />
 
       <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl text-slate-100">
+        <div className="bg-card border border-border rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl text-foreground">
           <div className="flex items-center justify-between border-b border-border pb-3">
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <BarcodeIcon className="h-5 w-5 text-[#00aef0]" />
@@ -95,7 +95,7 @@ export function BarcodeTagModal({
           {/* Printable Tag Container */}
           <div className="flex justify-center p-4 bg-background border border-border rounded-2xl">
             <div
-              className="tag-print-modal-container bg-white text-black p-3 rounded-lg border border-slate-300 shadow-md flex flex-col justify-between items-center text-center select-none"
+              className="tag-print-modal-container bg-white text-black p-3 rounded-lg border border-border shadow-md flex flex-col justify-between items-center text-center select-none"
               style={{
                 width: `${tagWidth * 5}px`,
                 height: `${tagHeight * 6}px`,
@@ -180,7 +180,7 @@ export function BarcodeTagModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="border-border text-slate-300 rounded-xl text-xs"
+              className="border-border text-foreground rounded-xl text-xs"
             >
               Close
             </Button>

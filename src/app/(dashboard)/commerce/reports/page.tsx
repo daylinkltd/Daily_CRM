@@ -22,7 +22,7 @@ export default function ReportsHubPage() {
             Real-time Trial Balance, Profit & Loss Statement, Balance Sheet, and AR/AP Aging Analysis.
           </p>
         </div>
-        <Button variant="outline" className="border-border text-slate-300 gap-1.5 rounded-xl h-11">
+        <Button variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
           <Download className="h-4 w-4" />
           Export Financial PDF/Excel
         </Button>

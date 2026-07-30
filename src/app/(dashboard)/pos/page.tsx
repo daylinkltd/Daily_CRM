@@ -329,7 +329,7 @@ function POSTerminalPageContent() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row gap-4 p-4 bg-background text-slate-100 overflow-hidden">
+    <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row gap-4 p-4 bg-background text-foreground overflow-hidden">
       {/* LEFT: Product Catalog & Search */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
         {/* Search Bar & Actions */}
@@ -457,7 +457,7 @@ function POSTerminalPageContent() {
           {/* Cart Items List */}
           <div className="flex-1 overflow-y-auto space-y-2 pr-1">
             {cart.length === 0 ? (
-              <div className="text-center py-16 text-slate-500 text-xs">
+              <div className="text-center py-16 text-muted-foreground text-xs">
                 Cart is empty. Scan barcode or click product to add.
               </div>
             ) : (
@@ -563,7 +563,7 @@ function POSTerminalPageContent() {
           {/* Split Payment Controls */}
           {selectedPayment === "SPLIT" && (
             <div className="bg-background p-2.5 rounded-xl border border-border space-y-2">
-              <div className="flex justify-between items-center text-xs font-bold text-slate-300">
+              <div className="flex justify-between items-center text-xs font-bold text-foreground">
                 <span>Split Cash & UPI Payment</span>
                 <span className="text-[#00aef0]">Total: ₹{grandTotal.toFixed(2)}</span>
               </div>
@@ -618,7 +618,7 @@ function POSTerminalPageContent() {
 
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {heldBills.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-xs">
+                <div className="text-center py-8 text-muted-foreground text-xs">
                   No bills currently on hold.
                 </div>
               ) : (

@@ -298,7 +298,7 @@ export function ProfileForm() {
                   Remove
                 </Button>
               )}
-              <p className="w-full text-xs text-slate-500">
+              <p className="w-full text-xs text-muted-foreground">
                 PNG, JPG, WebP, or GIF. Up to 2 MB.
               </p>
             </div>
@@ -306,7 +306,7 @@ export function ProfileForm() {
 
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="profile-full-name" className="text-slate-200">
+            <Label htmlFor="profile-full-name" className="text-foreground">
               Display name
             </Label>
             <Input
@@ -322,7 +322,7 @@ export function ProfileForm() {
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="profile-email" className="text-slate-200">
+            <Label htmlFor="profile-email" className="text-foreground">
               Email
             </Label>
             <Input
@@ -347,22 +347,22 @@ export function ProfileForm() {
 
           {/* Read-only block */}
           <div className="rounded-lg border border-border bg-card/60 p-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Account details
             </p>
             <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-slate-500">Role</dt>
-                <dd className="mt-0.5 font-mono text-slate-200 capitalize">
+                <dt className="text-muted-foreground">Role</dt>
+                <dd className="mt-0.5 font-mono text-foreground capitalize">
                   {workspaceRoleName ?? profile?.role ?? 'user'}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Joined</dt>
-                <dd className="mt-0.5 text-slate-200">{joined}</dd>
+                <dt className="text-muted-foreground">Joined</dt>
+                <dd className="mt-0.5 text-foreground">{joined}</dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="text-slate-500">User ID</dt>
+                <dt className="text-muted-foreground">User ID</dt>
                 <dd className="mt-0.5 break-all font-mono text-xs text-muted-foreground">
                   {user?.id ?? '—'}
                 </dd>

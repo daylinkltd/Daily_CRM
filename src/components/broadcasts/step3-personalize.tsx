@@ -241,10 +241,10 @@ export function Step3Personalize({
                         })
                       }
                     >
-                      <SelectTrigger className="w-full border-slate-700 bg-slate-800 text-foreground">
+                      <SelectTrigger className="w-full border-border bg-muted text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="border-slate-700 bg-slate-800">
+                      <SelectContent className="border-border bg-muted">
                         <SelectItem value="static">Static Value</SelectItem>
                         <SelectItem value="field">Contact Field</SelectItem>
                         <SelectItem value="custom_field">
@@ -265,7 +265,7 @@ export function Step3Personalize({
                           updateVariable(key, { value: e.target.value })
                         }
                         placeholder="Enter value..."
-                        className="border-slate-700 bg-slate-800 text-foreground placeholder:text-slate-500"
+                        className="border-border bg-muted text-foreground placeholder:text-muted-foreground"
                       />
                     ) : mapping.type === 'field' ? (
                       <Select
@@ -274,10 +274,10 @@ export function Step3Personalize({
                           updateVariable(key, { value: val || '' })
                         }
                       >
-                        <SelectTrigger className="w-full border-slate-700 bg-slate-800 text-foreground">
+                        <SelectTrigger className="w-full border-border bg-muted text-foreground">
                           <SelectValue placeholder="Select field..." />
                         </SelectTrigger>
-                        <SelectContent className="border-slate-700 bg-slate-800">
+                        <SelectContent className="border-border bg-muted">
                           {contactFields.map((field) => (
                             <SelectItem key={field.value} value={field.value}>
                               {field.label}
@@ -292,7 +292,7 @@ export function Step3Personalize({
                           updateVariable(key, { value: val || '' })
                         }
                       >
-                        <SelectTrigger className="w-full border-slate-700 bg-slate-800 text-foreground">
+                        <SelectTrigger className="w-full border-border bg-muted text-foreground">
                           <SelectValue
                             placeholder={
                               loadingFields
@@ -303,7 +303,7 @@ export function Step3Personalize({
                             }
                           />
                         </SelectTrigger>
-                        <SelectContent className="border-slate-700 bg-slate-800">
+                        <SelectContent className="border-border bg-muted">
                           {customFields.map((f) => (
                             <SelectItem key={f.id} value={f.id}>
                               {f.field_name}
@@ -326,14 +326,14 @@ export function Step3Personalize({
         <div className="mb-3 flex items-center gap-2">
           <Eye className="h-4 w-4 text-primary" />
           <p className="text-sm font-medium text-foreground">Live Preview</p>
-          <span className="text-xs text-slate-500">({previewLabel})</span>
+          <span className="text-xs text-muted-foreground">({previewLabel})</span>
           {loadingPreview && (
             <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           )}
         </div>
         <div className="rounded-lg bg-[#0e1a12] p-3">
           <div className="ml-auto max-w-[85%] rounded-lg bg-primary/30 px-3 py-2 shadow-sm">
-            <p className="whitespace-pre-wrap text-sm text-slate-100">
+            <p className="whitespace-pre-wrap text-sm text-foreground">
               {previewText}
             </p>
           </div>
@@ -354,7 +354,7 @@ export function Step3Personalize({
         <Button
           variant="outline"
           onClick={onBack}
-          className="border-slate-700 text-slate-300"
+          className="border-border text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Back

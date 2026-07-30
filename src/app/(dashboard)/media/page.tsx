@@ -161,11 +161,11 @@ export default function MediaPage() {
         </div>
         <div className="flex gap-3">
           <Dialog open={isFolderDialogOpen} onOpenChange={setIsFolderDialogOpen}>
-            <DialogTrigger render={<Button variant="outline" className="border-border text-slate-300" />}>
+            <DialogTrigger render={<Button variant="outline" className="border-border text-foreground" />}>
                 <Folder className="w-4 h-4 mr-2" />
                 New Folder
             </DialogTrigger>
-            <DialogContent className="bg-card border-border text-slate-200">
+            <DialogContent className="bg-card border-border text-foreground">
               <DialogHeader>
                 <DialogTitle>Create Folder</DialogTitle>
               </DialogHeader>
@@ -210,8 +210,8 @@ export default function MediaPage() {
       ) : (
         <div className="flex-1 bg-card/50 border border-border rounded-xl p-6 overflow-y-auto">
           {folders.length === 0 && files.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-4">
-              <Folder className="w-16 h-16 text-slate-700" />
+            <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4">
+              <Folder className="w-16 h-16 text-foreground" />
               <p>This folder is empty</p>
             </div>
           ) : (
@@ -220,12 +220,12 @@ export default function MediaPage() {
               {folders.map(folder => (
                 <div 
                   key={folder.id}
-                  className="group flex flex-col items-center justify-center p-4 bg-card border border-border hover:border-slate-700 rounded-xl cursor-pointer transition-colors relative"
+                  className="group flex flex-col items-center justify-center p-4 bg-card border border-border hover:border-border rounded-xl cursor-pointer transition-colors relative"
                   onDoubleClick={() => navigateIntoFolder(folder)}
                   onClick={() => navigateIntoFolder(folder)}
                 >
                   <Folder className="w-12 h-12 text-blue-500/80 mb-3" fill="currentColor" />
-                  <span className="text-sm font-medium text-slate-200 truncate w-full text-center">
+                  <span className="text-sm font-medium text-foreground truncate w-full text-center">
                     {folder.name}
                   </span>
                   
@@ -253,10 +253,10 @@ export default function MediaPage() {
                     ) : (
                       <File className="w-12 h-12 text-muted-foreground mb-3" />
                     )}
-                    <span className="text-sm font-medium text-slate-200 truncate w-full text-center hover:text-blue-400 transition-colors">
+                    <span className="text-sm font-medium text-foreground truncate w-full text-center hover:text-blue-400 transition-colors">
                       {file.name}
                     </span>
-                    <span className="text-xs text-slate-500 mt-1">
+                    <span className="text-xs text-muted-foreground mt-1">
                       {formatSize(file.file_size)}
                     </span>
                   </a>

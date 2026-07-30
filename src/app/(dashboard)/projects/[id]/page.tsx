@@ -114,7 +114,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
       case 'completed': return 'bg-blue-500/15 text-blue-700 border-blue-200';
       case 'on_hold': return 'bg-orange-500/15 text-orange-700 border-orange-200';
       case 'cancelled': return 'bg-red-500/15 text-red-700 border-red-200';
-      default: return 'bg-slate-500/15 text-slate-700 border-slate-200';
+      default: return 'bg-muted/15 text-foreground border-border';
     }
   };
 

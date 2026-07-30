@@ -234,7 +234,7 @@ export function ChatbotConfig() {
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] mt-4">
       <div className="space-y-6">
         {/* ── Chatbot Activation Toggle ── */}
-        <Card className="bg-card border-slate-700">
+        <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -254,7 +254,7 @@ export function ChatbotConfig() {
         </Card>
 
         {/* ── AI Provider Configurations ── */}
-        <Card className="bg-card border-slate-700">
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2 text-base">
               <Sparkles className="size-4 text-primary" />
@@ -267,12 +267,12 @@ export function ChatbotConfig() {
           <CardContent className="space-y-4">
             {/* Provider Selection */}
             <div className="grid gap-2">
-              <Label className="text-slate-300">LLM Provider</Label>
+              <Label className="text-foreground">LLM Provider</Label>
               <Select value={provider} onValueChange={(val) => handleProviderChange((val ?? "openai") as AIProvider)}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground">
+                <SelectTrigger className="bg-muted border-border text-foreground">
                   <SelectValue placeholder="Select provider" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-foreground">
+                <SelectContent className="bg-muted border-border text-foreground">
                   <SelectItem value="openai">OpenAI (GPT)</SelectItem>
                   <SelectItem value="grok">xAI (Grok AI)</SelectItem>
                   <SelectItem value="groq">Groq (groq.com)</SelectItem>
@@ -284,19 +284,19 @@ export function ChatbotConfig() {
 
             {/* Model Name */}
             <div className="grid gap-2">
-              <Label className="text-slate-300">Model Name</Label>
+              <Label className="text-foreground">Model Name</Label>
               <Input
                 placeholder="e.g. grok-beta, gpt-4o-mini"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
             {/* API Key Input */}
             <div className="grid gap-2">
               <div className="flex justify-between items-center">
-                <Label className="text-slate-300">Provider API Key</Label>
+                <Label className="text-foreground">Provider API Key</Label>
                 {apiKeyConfigured && !keyEdited && (
                   <span className="text-[10px] text-emerald-400 flex items-center gap-1">
                     <ShieldCheck className="size-3" /> Configured
@@ -322,7 +322,7 @@ export function ChatbotConfig() {
                       setKeyEdited(true);
                     }
                   }}
-                  className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 pr-10"
+                  className="bg-muted border-border text-foreground placeholder:text-muted-foreground pr-10"
                 />
                 <button
                   type="button"
@@ -332,7 +332,7 @@ export function ChatbotConfig() {
                   {showKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-muted-foreground">
                 Left blank? The chatbot will attempt to fall back to the CRM&apos;s system-wide{" "}
                 <code className="text-muted-foreground bg-background px-1 py-0.5 rounded text-[10px]">
                   {provider === "grok"
@@ -348,7 +348,7 @@ export function ChatbotConfig() {
         </Card>
 
         {/* ── Prompts & Business Knowledge ── */}
-        <Card className="bg-card border-slate-700">
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2 text-base">
               <BookOpen className="size-4 text-primary" />
@@ -361,32 +361,32 @@ export function ChatbotConfig() {
           <CardContent className="space-y-4">
             {/* Assistant Name */}
             <div className="grid gap-2">
-              <Label className="text-slate-300">Assistant Bot Name</Label>
+              <Label className="text-foreground">Assistant Bot Name</Label>
               <Input
                 placeholder="e.g. Voyage Bot"
                 value={botName}
                 onChange={(e) => setBotName(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
             {/* System Prompt */}
             <div className="grid gap-2">
-              <Label className="text-slate-300">System Instructions / Persona</Label>
+              <Label className="text-foreground">System Instructions / Persona</Label>
               <Textarea
                 placeholder="Act as a helpful customer support agent. Be concise, polite, and professional..."
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
                 rows={4}
-                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 resize-y"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground resize-y"
               />
             </div>
 
             {/* Business Context */}
             <div className="grid gap-2">
               <div className="flex justify-between items-center">
-                <Label className="text-slate-300">Business Knowledge (FAQs, Pricing, Details)</Label>
-                <span className="text-[10px] text-slate-500">Add custom details here</span>
+                <Label className="text-foreground">Business Knowledge (FAQs, Pricing, Details)</Label>
+                <span className="text-[10px] text-muted-foreground">Add custom details here</span>
               </div>
               <Textarea
                 placeholder="Our business hours: Mon-Fri 9 AM to 6 PM.
@@ -395,14 +395,14 @@ Support contacts: support@example.com"
                 value={businessContext}
                 onChange={(e) => setBusinessContext(e.target.value)}
                 rows={6}
-                className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 resize-y font-mono text-xs leading-normal"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground resize-y font-mono text-xs leading-normal"
               />
             </div>
           </CardContent>
         </Card>
 
         {/* ── Control Rules (Auto-Pause & Typing Delay) ── */}
-        <Card className="bg-card border-slate-700">
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2 text-base">
               <Sliders className="size-4 text-primary" />
@@ -415,12 +415,12 @@ Support contacts: support@example.com"
           <CardContent className="grid gap-6 sm:grid-cols-2">
             {/* Auto-Pause */}
             <div className="grid gap-2">
-              <Label className="text-slate-300">Agent Handover Auto-Pause</Label>
+              <Label className="text-foreground">Agent Handover Auto-Pause</Label>
               <Select value={autoPauseDuration} onValueChange={(val) => setAutoPauseDuration(val ?? "60")}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground">
+                <SelectTrigger className="bg-muted border-border text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-foreground">
+                <SelectContent className="bg-muted border-border text-foreground">
                   <SelectItem value="0">Off (Do not auto-pause)</SelectItem>
                   <SelectItem value="15">15 Minutes</SelectItem>
                   <SelectItem value="30">30 Minutes</SelectItem>
@@ -430,19 +430,19 @@ Support contacts: support@example.com"
                   <SelectItem value="-1">Permanent Takeover (Manual resume required)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[10px] text-muted-foreground">
                 Pauses the AI bot when a human agent replies to a message, preventing double responses.
               </p>
             </div>
 
             {/* Response Delay */}
             <div className="grid gap-2">
-              <Label className="text-slate-300">Simulated Response Delay</Label>
+              <Label className="text-foreground">Simulated Response Delay</Label>
               <Select value={responseDelay} onValueChange={(val) => setResponseDelay(val ?? "0")}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-foreground">
+                <SelectTrigger className="bg-muted border-border text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-foreground">
+                <SelectContent className="bg-muted border-border text-foreground">
                   <SelectItem value="0">Instant reply</SelectItem>
                   <SelectItem value="2">2 Seconds</SelectItem>
                   <SelectItem value="4">4 Seconds</SelectItem>
@@ -451,7 +451,7 @@ Support contacts: support@example.com"
                   <SelectItem value="10">10 Seconds</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[10px] text-muted-foreground">
                 Simulates typing by introducing a slight delay before sending messages on WhatsApp.
               </p>
             </div>
@@ -496,7 +496,7 @@ Support contacts: support@example.com"
 
       {/* ── Instructions Sidebar ── */}
       <div>
-        <Card className="bg-card border-slate-700">
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground text-base">Quick Start Guide</CardTitle>
           </CardHeader>

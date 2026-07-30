@@ -66,7 +66,7 @@ export function ProductCombobox({
             setQuery("");
           }}
           placeholder={placeholder}
-          className="pl-9 pr-8 h-10 bg-background border-slate-700 text-foreground rounded-xl text-xs font-semibold focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0]"
+          className="pl-9 pr-8 h-10 bg-background border-border text-foreground rounded-xl text-xs font-semibold focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0]"
         />
         <button
           type="button"
@@ -79,7 +79,7 @@ export function ProductCombobox({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute z-[100] left-0 mt-1 min-w-[320px] sm:min-w-[380px] w-full max-h-64 overflow-y-auto overflow-x-hidden bg-background border border-slate-700 rounded-2xl shadow-2xl divide-y divide-slate-800 text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="absolute z-[100] left-0 mt-1 min-w-[320px] sm:min-w-[380px] w-full max-h-64 overflow-y-auto overflow-x-hidden bg-background border border-border rounded-2xl shadow-2xl divide-y divide-border text-xs [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {filtered.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground text-xs">
               No products found matching &quot;{query}&quot;
@@ -95,8 +95,8 @@ export function ProductCombobox({
                     setIsOpen(false);
                     setQuery("");
                   }}
-                  className={`p-3 hover:bg-slate-800/90 cursor-pointer flex items-center justify-between gap-3 transition-colors ${
-                    isSelected ? "bg-slate-800/80 border-l-4 border-l-[#00aef0]" : ""
+                  className={`p-3 hover:bg-muted/90 cursor-pointer flex items-center justify-between gap-3 transition-colors ${
+                    isSelected ? "bg-muted/80 border-l-4 border-l-[#00aef0]" : ""
                   }`}
                 >
                   <div className="space-y-1 min-w-0 flex-1">
@@ -104,8 +104,8 @@ export function ProductCombobox({
                       <Package className="h-4 w-4 text-[#00aef0] shrink-0" />
                       <span className="truncate text-foreground">{p.name}</span>
                     </div>
-                    <div className="text-[11px] text-slate-300 flex items-center gap-2 flex-wrap">
-                      <span className="font-mono bg-card px-1.5 py-0.5 rounded text-slate-300 border border-border">
+                    <div className="text-[11px] text-foreground flex items-center gap-2 flex-wrap">
+                      <span className="font-mono bg-card px-1.5 py-0.5 rounded text-foreground border border-border">
                         SKU: {p.sku}
                       </span>
                       {p.barcode && (

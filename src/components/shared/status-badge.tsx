@@ -4,7 +4,7 @@ type EmployeeStatus = 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE' | 'TERMINATED' | 'PROBA
 
 const statusStyles: Record<EmployeeStatus, string> = {
   ACTIVE: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
-  INACTIVE: "bg-slate-500/15 text-slate-700 dark:text-muted-foreground",
+  INACTIVE: "bg-muted/15 text-foreground dark:text-muted-foreground",
   ON_LEAVE: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
   TERMINATED: "bg-red-500/15 text-red-700 dark:text-red-400",
   PROBATION: "bg-orange-500/15 text-orange-700 dark:text-orange-400",

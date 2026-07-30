@@ -20,8 +20,8 @@ export function KanbanTask({ task, onEdit, isOverlay }: KanbanTaskProps) {
       case 'urgent': return 'text-red-600 bg-red-500/15 border-red-200';
       case 'high': return 'text-orange-600 bg-orange-500/15 border-orange-200';
       case 'medium': return 'text-blue-600 bg-blue-500/15 border-blue-200';
-      case 'low': return 'text-slate-600 bg-slate-500/15 border-slate-200';
-      default: return 'text-slate-600 bg-slate-500/15 border-slate-200';
+      case 'low': return 'text-muted-foreground bg-muted/15 border-border';
+      default: return 'text-muted-foreground bg-muted/15 border-border';
     }
   };
 

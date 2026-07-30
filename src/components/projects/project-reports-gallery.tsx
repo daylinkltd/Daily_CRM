@@ -300,7 +300,7 @@ export function ProjectReportsGallery({ projectId, projectType: initialProjectTy
                   <strong>Cumulative Flow Diagram:</strong> Evaluates Work-In-Progress queues. Current status distribution: {stats.todoTasks} To Do, {stats.inProgressTasks} In Progress, {stats.completedTasks} Done.
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="p-4 border rounded-lg bg-slate-500/10">
+                  <div className="p-4 border rounded-lg bg-muted/10">
                     <h4 className="text-xs uppercase font-bold text-muted-foreground">To Do</h4>
                     <p className="text-2xl font-bold mt-1">{stats.todoTasks}</p>
                   </div>

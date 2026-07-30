@@ -510,16 +510,9 @@ export default function QuotationPreviewPage({ params }: PageProps) {
               className="h-24 sm:h-32 max-w-[400px] object-contain mb-2"
             />
           ) : (
-            <>
-              <div className="flex flex-col items-center gap-2 mb-4">
-                <div className="size-10 bg-primary rounded flex items-center justify-center">
-                  <Sparkles className="size-6 text-primary-foreground" />
-                </div>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-800 uppercase tracking-wide mb-1">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground uppercase tracking-wide mb-1">
                 {workspace?.company_name || "DAYLINK TECH LABS PRIVATE LIMITED"}
               </h1>
-            </>
           )}
           
           {workspace?.company_tagline && (
@@ -528,7 +521,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
             </p>
           )}
 
-          <div className="text-sm text-slate-600 space-y-1">
+          <div className="text-sm text-muted-foreground space-y-1">
             {workspace?.company_address && <p>{workspace.company_address}</p>}
             <p className="flex items-center justify-center gap-2">
               {workspace?.company_phone && <span>{workspace.company_phone}</span>}

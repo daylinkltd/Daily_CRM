@@ -169,7 +169,7 @@ export default function AutomationsPage() {
 
       {showTemplates && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-slate-300">Quick-start templates</h2>
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Quick-start templates</h2>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             {TEMPLATE_ORDER.map((slug) => {
               const t = AUTOMATION_TEMPLATES[slug]
@@ -268,7 +268,7 @@ function AutomationCard({
 }) {
   const meta = triggerMeta(automation.trigger_type)
   return (
-    <li className="rounded-xl border border-border bg-card transition-colors hover:border-slate-700">
+    <li className="rounded-xl border border-border bg-card transition-colors hover:border-border">
       <div className="flex items-center gap-4 p-4">
         <div
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10"
@@ -296,7 +296,7 @@ function AutomationCard({
           {automation.description && (
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{automation.description}</p>
           )}
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span
               className={cn(
                 "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
@@ -323,7 +323,7 @@ function AutomationCard({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Open menu"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-slate-800 hover:text-foreground data-[popup-open]:bg-slate-800"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[popup-open]:bg-muted"
             >
               <MoreVertical className="h-4 w-4" />
             </DropdownMenuTrigger>

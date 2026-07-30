@@ -233,7 +233,7 @@ export function ProjectInvoices({ projectId }: ProjectInvoicesProps) {
                           <Badge 
                             variant="outline" 
                             className={`text-[10px] uppercase
-                              ${inv.status === 'DRAFT' ? 'bg-slate-100 text-slate-700' : ''}
+                              ${inv.status === 'DRAFT' ? 'bg-muted text-foreground' : ''}
                               ${inv.status === 'SENT' ? 'bg-blue-100 text-blue-700' : ''}
                               ${inv.status === 'PAID' ? 'bg-emerald-100 text-emerald-700' : ''}
                             `}

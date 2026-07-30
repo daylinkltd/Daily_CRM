@@ -32,7 +32,7 @@ export default async function PortalPage({ params }: { params: Promise<{ token: 
   const defaultTab = settings.show_timeline ? 'timeline' : 'board';
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-muted/50 dark:bg-muted flex flex-col">
       {/* Portal Header */}
       <header className="bg-card border-b h-16 flex items-center px-6 justify-between sticky top-0 z-50">
         <div className="flex items-center gap-4">

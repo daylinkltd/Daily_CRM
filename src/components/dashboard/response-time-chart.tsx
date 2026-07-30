@@ -31,7 +31,7 @@ export function ResponseTimeChart({
           <h2 className="text-sm font-semibold text-foreground">
             Average First Response Time
           </h2>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Minutes to reply to a customer&apos;s first unreplied message, by
             weekday
           </p>
@@ -44,7 +44,7 @@ export function ResponseTimeChart({
                 {fmt(data.thisWeekAvg)}
               </span>
             </div>
-            <div className="text-slate-500">
+            <div className="text-muted-foreground">
               Last week:{' '}
               <span className="tabular-nums">{fmt(data.lastWeekAvg)}</span>
             </div>

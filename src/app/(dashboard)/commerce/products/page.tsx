@@ -549,7 +549,7 @@ export default function ProductsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/settings?tab=retail">
-            <Button variant="outline" className="border-border text-slate-300 gap-1.5 rounded-xl h-11">
+            <Button variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
               <Settings className="h-4 w-4 text-[#00aef0]" />
               Master Template: <span className="text-[#00aef0] font-extrabold">{activeTemplate}</span>
             </Button>
@@ -581,7 +581,7 @@ export default function ProductsPage() {
             className="pl-10 h-10 bg-background/80 border-border text-foreground rounded-xl focus:border-[#00aef0]"
           />
         </div>
-        <Button variant="outline" onClick={fetchProducts} className="h-10 border-border text-slate-300 gap-1.5 rounded-xl">
+        <Button variant="outline" onClick={fetchProducts} className="h-10 border-border text-foreground gap-1.5 rounded-xl">
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh
         </Button>
@@ -590,7 +590,7 @@ export default function ProductsPage() {
       {/* Products Table */}
       <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Product Name</th>
@@ -603,22 +603,22 @@ export default function ProductsPage() {
                 <th className="py-3.5 px-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground text-sm">
                     Loading Products...
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground text-sm">
                     No products added yet. Click &quot;Add New Product&quot; to populate catalog.
                   </td>
                 </tr>
               ) : (
                 products.map((product) => (
-                  <tr key={product.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={product.id} className="hover:bg-muted/40 transition-colors">
                     <td className="py-3.5 px-4 font-semibold text-foreground">
                       <button
                         onClick={() => {
@@ -680,7 +680,7 @@ export default function ProductsPage() {
                             setSelectedViewProduct(product);
                             setShowViewModal(true);
                           }}
-                          className="border-border hover:border-[#00aef0] bg-card hover:bg-slate-800 text-slate-200 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
+                          className="border-border hover:border-[#00aef0] bg-card hover:bg-muted text-foreground hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
                         >
                           <Eye className="h-3.5 w-3.5 text-[#00aef0]" />
                           View Details
@@ -701,7 +701,7 @@ export default function ProductsPage() {
                             setSelectedBarcodeProduct(product);
                             setShowTagModal(true);
                           }}
-                          className="border-border hover:border-[#00aef0] text-slate-300 hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
+                          className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
                         >
                           <Printer className="h-3.5 w-3.5" />
                           Print Tag
@@ -780,7 +780,7 @@ export default function ProductsPage() {
                     className={`px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all whitespace-nowrap ${
                       activeTab === tab.id
                         ? "bg-[#00aef0] text-foreground shadow-md shadow-[#00aef0]/20"
-                        : "text-muted-foreground hover:text-foreground hover:bg-slate-800/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -795,7 +795,7 @@ export default function ProductsPage() {
               {activeTab === "BASIC" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label className="text-xs text-slate-300">Product Name *</Label>
+                    <Label className="text-xs text-foreground">Product Name *</Label>
                     <Input
                       required
                       type="text"
@@ -814,7 +814,7 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Artisan / Craftsperson Name</Label>
+                          <Label className="text-[11px] text-foreground">Artisan / Craftsperson Name</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Rajasthani Clay Guild / Jaipur Artisans"
@@ -824,7 +824,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Handcrafting Lead Time (Days)</Label>
+                          <Label className="text-[11px] text-foreground">Handcrafting Lead Time (Days)</Label>
                           <Input
                             type="text"
                             placeholder="e.g. 3-5 Days"
@@ -834,7 +834,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Gift Box &amp; Packaging Type</Label>
+                          <Label className="text-[11px] text-foreground">Gift Box &amp; Packaging Type</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Handmade Wooden Box / Jute Potli"
@@ -844,7 +844,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Personalization / Custom Engraving Notes</Label>
+                          <Label className="text-[11px] text-foreground">Personalization / Custom Engraving Notes</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Name Engraving, Custom Photo Print"
@@ -865,7 +865,7 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Target Event Category</Label>
+                          <Label className="text-[11px] text-foreground">Target Event Category</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Wedding Return Gift / Corporate Gifting / Festival Hamper"
@@ -875,7 +875,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Minimum Order Qty (MOQ)</Label>
+                          <Label className="text-[11px] text-foreground">Minimum Order Qty (MOQ)</Label>
                           <Input
                             type="text"
                             placeholder="e.g. 50 Pcs minimum"
@@ -885,7 +885,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Tiered Bulk Rates (50-200 pcs / 200+ pcs)</Label>
+                          <Label className="text-[11px] text-foreground">Tiered Bulk Rates (50-200 pcs / 200+ pcs)</Label>
                           <Input
                             type="text"
                             placeholder="e.g. 50-200 pcs @ ₹180 / 200+ pcs @ ₹150"
@@ -895,7 +895,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Custom Branding Tag &amp; Thank-You Card</Label>
+                          <Label className="text-[11px] text-foreground">Custom Branding Tag &amp; Thank-You Card</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Custom Event Logo Card Included"
@@ -916,7 +916,7 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Apparel Size</Label>
+                          <Label className="text-[11px] text-foreground">Apparel Size</Label>
                           <Input
                             type="text"
                             placeholder="e.g. S / M / L / XL / 38 / 40"
@@ -926,7 +926,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Color / Shade</Label>
+                          <Label className="text-[11px] text-foreground">Color / Shade</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Navy Blue / Crimson / Off-White"
@@ -936,7 +936,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Fabric / Material</Label>
+                          <Label className="text-[11px] text-foreground">Fabric / Material</Label>
                           <Input
                             type="text"
                             placeholder="e.g. 100% Cotton / Denim / Silk"
@@ -946,7 +946,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Fit / Style</Label>
+                          <Label className="text-[11px] text-foreground">Fit / Style</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Slim Fit / Regular / Oversized"
@@ -967,7 +967,7 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Shoe Size (UK / US / EU)</Label>
+                          <Label className="text-[11px] text-foreground">Shoe Size (UK / US / EU)</Label>
                           <Input
                             type="text"
                             placeholder="e.g. UK 6 / UK 7 / UK 8 / UK 9 / EU 42"
@@ -977,7 +977,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Color / Shade</Label>
+                          <Label className="text-[11px] text-foreground">Color / Shade</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Tan Brown / Matte Black / White"
@@ -987,7 +987,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Upper / Sole Material</Label>
+                          <Label className="text-[11px] text-foreground">Upper / Sole Material</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Genuine Leather / Rubber / EVA"
@@ -997,7 +997,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Heel Height / Type</Label>
+                          <Label className="text-[11px] text-foreground">Heel Height / Type</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Flat / 2 Inches / Block Heel"
@@ -1007,7 +1007,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Closure Type</Label>
+                          <Label className="text-[11px] text-foreground">Closure Type</Label>
                           <Input
                             type="text"
                             placeholder="e.g. Lace-Up / Slip-On / Velcro"
@@ -1039,7 +1039,7 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Karat Purity</Label>
+                          <Label className="text-[11px] text-foreground">Karat Purity</Label>
                           <select
                             value={karatPurity}
                             onChange={(e) => setKaratPurity(e.target.value)}
@@ -1054,7 +1054,7 @@ export default function ProductsPage() {
                           </select>
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Net Weight (grams)</Label>
+                          <Label className="text-[11px] text-foreground">Net Weight (grams)</Label>
                           <Input
                             type="number"
                             placeholder="e.g. 8.50"
@@ -1064,7 +1064,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Gross Weight (grams)</Label>
+                          <Label className="text-[11px] text-foreground">Gross Weight (grams)</Label>
                           <Input
                             type="number"
                             placeholder="e.g. 10.00"
@@ -1074,7 +1074,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Stone / Diamond Weight (grams)</Label>
+                          <Label className="text-[11px] text-foreground">Stone / Diamond Weight (grams)</Label>
                           <Input
                             type="number"
                             placeholder="e.g. 1.50"
@@ -1084,7 +1084,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Making Charges</Label>
+                          <Label className="text-[11px] text-foreground">Making Charges</Label>
                           <Input
                             type="text"
                             placeholder="e.g. ₹500 or 12%"
@@ -1094,7 +1094,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Wastage %</Label>
+                          <Label className="text-[11px] text-foreground">Wastage %</Label>
                           <Input
                             type="number"
                             placeholder="e.g. 3.5"
@@ -1104,7 +1104,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">BIS Hallmark Number</Label>
+                          <Label className="text-[11px] text-foreground">BIS Hallmark Number</Label>
                           <Input
                             type="text"
                             placeholder="e.g. HUID: AB1234"
@@ -1114,7 +1114,7 @@ export default function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Diamond Weight (Carat)</Label>
+                          <Label className="text-[11px] text-foreground">Diamond Weight (Carat)</Label>
                           <Input
                             type="text"
                             placeholder="e.g. 0.50 ct"
@@ -1135,27 +1135,27 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Model Number</Label>
+                          <Label className="text-[11px] text-foreground">Model Number</Label>
                           <Input type="text" placeholder="e.g. iPhone 15 Pro / Samsung S24" value={modelNumber} onChange={(e) => setModelNumber(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Processor / Chipset</Label>
+                          <Label className="text-[11px] text-foreground">Processor / Chipset</Label>
                           <Input type="text" placeholder="e.g. Apple A17 Pro / Snapdragon 8 Gen 3" value={processor} onChange={(e) => setProcessor(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">RAM / Storage</Label>
+                          <Label className="text-[11px] text-foreground">RAM / Storage</Label>
                           <Input type="text" placeholder="e.g. 8GB RAM / 256GB" value={ramSize} onChange={(e) => setRamSize(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Display Size</Label>
+                          <Label className="text-[11px] text-foreground">Display Size</Label>
                           <Input type="text" placeholder='e.g. 6.7" AMOLED 120Hz' value={displaySize} onChange={(e) => setDisplaySize(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Battery Capacity (mAh)</Label>
+                          <Label className="text-[11px] text-foreground">Battery Capacity (mAh)</Label>
                           <Input type="text" placeholder="e.g. 5000 mAh" value={batteryCapacity} onChange={(e) => setBatteryCapacity(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Warranty (Months)</Label>
+                          <Label className="text-[11px] text-foreground">Warranty (Months)</Label>
                           <Input type="number" placeholder="e.g. 12" value={warrantyMonths} onChange={(e) => setWarrantyMonths(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
@@ -1170,11 +1170,11 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Material Grade / Type</Label>
+                          <Label className="text-[11px] text-foreground">Material Grade / Type</Label>
                           <Input type="text" placeholder="e.g. IS 2062 Grade A / M.S. / CPVC" value={materialGrade} onChange={(e) => setMaterialGrade(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Dimensions (L × W × H / Dia)</Label>
+                          <Label className="text-[11px] text-foreground">Dimensions (L × W × H / Dia)</Label>
                           <Input type="text" placeholder="e.g. 12mm × 6m / 3/4 inch dia" value={furnitureDimensions} onChange={(e) => setFurnitureDimensions(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
@@ -1189,15 +1189,15 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Dimensions (L × W × H cm)</Label>
+                          <Label className="text-[11px] text-foreground">Dimensions (L × W × H cm)</Label>
                           <Input type="text" placeholder="e.g. 180 × 90 × 75 cm" value={furnitureDimensions} onChange={(e) => setFurnitureDimensions(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Wood / Material Type</Label>
+                          <Label className="text-[11px] text-foreground">Wood / Material Type</Label>
                           <Input type="text" placeholder="e.g. Sheesham / Teak / MDF / Engineered Wood" value={woodMaterialType} onChange={(e) => setWoodMaterialType(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Weight Capacity (kg)</Label>
+                          <Label className="text-[11px] text-foreground">Weight Capacity (kg)</Label>
                           <Input type="text" placeholder="e.g. 120 kg" value={weightCapacityKg} onChange={(e) => setWeightCapacityKg(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div className="flex items-end">
@@ -1212,25 +1212,25 @@ export default function ProductsPage() {
 
                   {/* DYNAMIC CARD: AUTOMOBILE */}
                   {activeTemplate === "AUTOMOBILE" && (
-                    <div className="space-y-2.5 bg-slate-500/10 p-3.5 rounded-2xl border border-slate-500/30 sm:col-span-2">
-                      <Label className="text-xs text-slate-300 font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
+                    <div className="space-y-2.5 bg-muted/10 p-3.5 rounded-2xl border border-border/30 sm:col-span-2">
+                      <Label className="text-xs text-foreground font-extrabold flex items-center gap-1.5 uppercase tracking-wider">
                         <Car className="h-4 w-4 text-muted-foreground" /> Automobile & Spare Parts Attributes
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">OEM Part Number</Label>
+                          <Label className="text-[11px] text-foreground">OEM Part Number</Label>
                           <Input type="text" placeholder="e.g. MRF-TYR-185/65R15" value={oemPartNumber} onChange={(e) => setOemPartNumber(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Vehicle Fitment</Label>
+                          <Label className="text-[11px] text-foreground">Vehicle Fitment</Label>
                           <Input type="text" placeholder="e.g. Honda City 2020-2024 / Maruti Swift" value={vehicleFitment} onChange={(e) => setVehicleFitment(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Engine Type</Label>
+                          <Label className="text-[11px] text-foreground">Engine Type</Label>
                           <Input type="text" placeholder="e.g. 1.5L Petrol / 2.0L Diesel / EV" value={engineType} onChange={(e) => setEngineType(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Model Year Range</Label>
+                          <Label className="text-[11px] text-foreground">Model Year Range</Label>
                           <Input type="text" placeholder="e.g. 2018-2024" value={vehicleYear} onChange={(e) => setVehicleYear(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
@@ -1245,19 +1245,19 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">ISBN Number</Label>
+                          <Label className="text-[11px] text-foreground">ISBN Number</Label>
                           <Input type="text" placeholder="e.g. 978-3-16-148410-0" value={isbnNumber} onChange={(e) => setIsbnNumber(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Author Name</Label>
+                          <Label className="text-[11px] text-foreground">Author Name</Label>
                           <Input type="text" placeholder="e.g. R.K. Narayan / Amish Tripathi" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Publisher</Label>
+                          <Label className="text-[11px] text-foreground">Publisher</Label>
                           <Input type="text" placeholder="e.g. Penguin Books India" value={publisher} onChange={(e) => setPublisher(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Edition / Language</Label>
+                          <Label className="text-[11px] text-foreground">Edition / Language</Label>
                           <Input type="text" placeholder="e.g. 3rd Edition / Hindi" value={edition} onChange={(e) => setEdition(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
@@ -1272,7 +1272,7 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">Food Type</Label>
+                          <Label className="text-[11px] text-foreground">Food Type</Label>
                           <div className="flex items-center gap-3 mt-2">
                             <label className="flex items-center gap-1.5 text-xs text-emerald-400 cursor-pointer">
                               <input type="radio" name="vegtype" checked={isVeg} onChange={() => { setIsVeg(true); setIsJain(false); }} /> 🟢 Veg
@@ -1286,7 +1286,7 @@ export default function ProductsPage() {
                           </div>
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Spice Level</Label>
+                          <Label className="text-[11px] text-foreground">Spice Level</Label>
                           <select value={spicyLevel} onChange={(e) => setSpicyLevel(e.target.value)} className="w-full bg-background border border-border text-foreground rounded-xl h-9 text-xs mt-1 px-2">
                             <option value="MILD">Mild 🌶</option>
                             <option value="MEDIUM">Medium 🌶🌶</option>
@@ -1295,11 +1295,11 @@ export default function ProductsPage() {
                           </select>
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">KOT Station</Label>
+                          <Label className="text-[11px] text-foreground">KOT Station</Label>
                           <Input type="text" placeholder="e.g. Main Kitchen / Tandoor / Bar" value={kotStation} onChange={(e) => setKotStation(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Recipe Code</Label>
+                          <Label className="text-[11px] text-foreground">Recipe Code</Label>
                           <Input type="text" placeholder="e.g. RCP-BTR-CHK-01" value={recipeCode} onChange={(e) => setRecipeCode(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono" />
                         </div>
                       </div>
@@ -1314,11 +1314,11 @@ export default function ProductsPage() {
                       </Label>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label className="text-[11px] text-slate-300">BOM Reference Code</Label>
+                          <Label className="text-[11px] text-foreground">BOM Reference Code</Label>
                           <Input type="text" placeholder="e.g. BOM-PROD-2024-001" value={bomReference} onChange={(e) => setBomReference(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1 font-mono" />
                         </div>
                         <div>
-                          <Label className="text-[11px] text-slate-300">Yield % / Scrap %</Label>
+                          <Label className="text-[11px] text-foreground">Yield % / Scrap %</Label>
                           <Input type="text" placeholder="e.g. 95% yield / 5% scrap" value={yieldPercent} onChange={(e) => setYieldPercent(e.target.value)} className="bg-background border-border text-foreground rounded-xl h-9 text-xs mt-1" />
                         </div>
                       </div>
@@ -1494,7 +1494,7 @@ export default function ProductsPage() {
                   )}
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">SKU Code *</Label>
+                    <Label className="text-xs text-foreground">SKU Code *</Label>
                     <Input
                       required
                       type="text"
@@ -1504,7 +1504,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Barcode (13-Digit EAN/UPC)</Label>
+                    <Label className="text-xs text-foreground">Barcode (13-Digit EAN/UPC)</Label>
                     <Input
                       type="text"
                       value={barcode}
@@ -1514,7 +1514,7 @@ export default function ProductsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Alias Name</Label>
+                    <Label className="text-xs text-foreground">Alias Name</Label>
                     <Input
                       type="text"
                       placeholder="Alternate search term"
@@ -1524,7 +1524,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Manufacturer / Brand</Label>
+                    <Label className="text-xs text-foreground">Manufacturer / Brand</Label>
                     <Input
                       type="text"
                       placeholder="e.g. Levi's / Nike / Zara / Cipla / Ray-Ban"
@@ -1540,7 +1540,7 @@ export default function ProductsPage() {
               {activeTab === "UNITS_PRICING" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Base Sales Unit</Label>
+                    <Label className="text-xs text-foreground">Base Sales Unit</Label>
                     <Input
                       type="text"
                       value={baseUnit}
@@ -1550,7 +1550,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Purchase Packaging Unit</Label>
+                    <Label className="text-xs text-foreground">Purchase Packaging Unit</Label>
                     <Input
                       type="text"
                       value={purchaseUnit}
@@ -1560,7 +1560,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label className="text-xs text-slate-300">Conversion Factor (e.g. 1 Pack = 6 Pieces)</Label>
+                    <Label className="text-xs text-foreground">Conversion Factor (e.g. 1 Pack = 6 Pieces)</Label>
                     <Input
                       type="number"
                       value={conversionFactor}
@@ -1569,7 +1569,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Purchase Rate (₹)</Label>
+                    <Label className="text-xs text-foreground">Purchase Rate (₹)</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -1580,7 +1580,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">MRP (Maximum Retail Price ₹)</Label>
+                    <Label className="text-xs text-foreground">MRP (Maximum Retail Price ₹)</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -1591,7 +1591,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Standard Selling Rate (₹)</Label>
+                    <Label className="text-xs text-foreground">Standard Selling Rate (₹)</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -1602,7 +1602,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Wholesale Rate (₹)</Label>
+                    <Label className="text-xs text-foreground">Wholesale Rate (₹)</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -1619,7 +1619,7 @@ export default function ProductsPage() {
               {activeTab === "TAX" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">HSN / SAC Code</Label>
+                    <Label className="text-xs text-foreground">HSN / SAC Code</Label>
                     <Input
                       type="text"
                       value={hsnSacCode}
@@ -1628,7 +1628,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">GST Slab Rate (%)</Label>
+                    <Label className="text-xs text-foreground">GST Slab Rate (%)</Label>
                     <Input
                       type="number"
                       value={taxRate}
@@ -1638,7 +1638,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
-                    <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer pt-2">
+                    <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer pt-2">
                       <input
                         type="checkbox"
                         checked={isTaxInclusive}
@@ -1655,7 +1655,7 @@ export default function ProductsPage() {
               {activeTab === "INVENTORY" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Initial Opening Stock</Label>
+                    <Label className="text-xs text-foreground">Initial Opening Stock</Label>
                     <Input
                       type="number"
                       value={initialStock}
@@ -1664,7 +1664,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Reorder Threshold Level</Label>
+                    <Label className="text-xs text-foreground">Reorder Threshold Level</Label>
                     <Input
                       type="number"
                       value={reorderLevel}
@@ -1673,7 +1673,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Shelf Number</Label>
+                    <Label className="text-xs text-foreground">Shelf Number</Label>
                     <Input
                       type="text"
                       placeholder="e.g. Rack A-2"
@@ -1683,7 +1683,7 @@ export default function ProductsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Bin Location Code</Label>
+                    <Label className="text-xs text-foreground">Bin Location Code</Label>
                     <Input
                       type="text"
                       placeholder="e.g. BIN-204"
@@ -1698,7 +1698,7 @@ export default function ProductsPage() {
               {/* Tab 5: Tracking & Flags */}
               {activeTab === "SETTINGS" && (
                 <div className="space-y-3 pt-2">
-                  <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={trackBatch}
@@ -1707,7 +1707,7 @@ export default function ProductsPage() {
                     />
                     Enable Batch Number & Expiry Date Tracking (FEFO)
                   </label>
-                  <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={trackSerial}
@@ -1716,7 +1716,7 @@ export default function ProductsPage() {
                     />
                     Enable Serial Number / IMEI Tracking
                   </label>
-                  <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={allowNegativeStock}
@@ -1746,7 +1746,7 @@ export default function ProductsPage() {
                       <select
                         value={newFieldType}
                         onChange={(e) => setNewFieldType(e.target.value as any)}
-                        className="bg-card border-border text-slate-200 text-xs rounded-xl px-2 h-9"
+                        className="bg-card border-border text-foreground text-xs rounded-xl px-2 h-9"
                       >
                         <option value="TEXT">Text Field</option>
                         <option value="NUMBER">Number Field</option>
@@ -1766,14 +1766,14 @@ export default function ProductsPage() {
                   {/* Render Added Custom Fields */}
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {customFields.length === 0 ? (
-                      <div className="text-center py-6 text-slate-500 text-xs">
+                      <div className="text-center py-6 text-muted-foreground text-xs">
                         No ad-hoc custom fields added yet. Use the builder above to add fields like Bluetooth Version, Designer Name, or Wi-Fi Standard.
                       </div>
                     ) : (
                       customFields.map((cf) => (
                         <div key={cf.id} className="flex items-center justify-between bg-background p-2.5 rounded-xl border border-border text-xs">
                           <div className="flex-1 pr-2">
-                            <Label className="text-xs text-slate-300 font-bold">{cf.name}</Label>
+                            <Label className="text-xs text-foreground font-bold">{cf.name}</Label>
                             <Input
                               type={cf.type === "NUMBER" ? "number" : "text"}
                               placeholder={`Enter ${cf.name}...`}
@@ -1801,7 +1801,7 @@ export default function ProductsPage() {
               )}
 
               <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-slate-300 rounded-xl h-10">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-foreground rounded-xl h-10">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-6">

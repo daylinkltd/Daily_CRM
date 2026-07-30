@@ -377,14 +377,14 @@ export function Step2SelectAudience({
               className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${
                 isSelected
                   ? 'border-primary bg-primary/5 ring-1 ring-violet-500/30'
-                  : 'border-border bg-card/50 hover:border-slate-700'
+                  : 'border-border bg-card/50 hover:border-border'
               }`}
             >
               <div
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
                   isSelected
                     ? 'bg-primary/10 text-primary'
-                    : 'bg-slate-800 text-muted-foreground'
+                    : 'bg-muted text-muted-foreground'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -420,7 +420,7 @@ export function Step2SelectAudience({
                     className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${
                       isSelected
                         ? 'border-primary/30 bg-primary/10 text-primary'
-                        : 'border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600'
+                        : 'border-border bg-muted text-foreground hover:border-border'
                     }`}
                   >
                     <span
@@ -450,7 +450,7 @@ export function Step2SelectAudience({
               <select
                 value={audience.customField?.fieldId ?? ''}
                 onChange={(e) => updateCustomField({ fieldId: e.target.value })}
-                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-violet-500"
+                className="h-9 rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-violet-500"
               >
                 <option value="">Select field…</option>
                 {customFields.map((f) => (
@@ -466,7 +466,7 @@ export function Step2SelectAudience({
                     operator: e.target.value as CustomFieldOperator,
                   })
                 }
-                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-violet-500"
+                className="h-9 rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-violet-500"
               >
                 {OPERATOR_OPTIONS.map((op) => (
                   <option key={op.value} value={op.value}>
@@ -479,7 +479,7 @@ export function Step2SelectAudience({
                 value={audience.customField?.value ?? ''}
                 onChange={(e) => updateCustomField({ value: e.target.value })}
                 placeholder="Value"
-                className="h-9 rounded-lg border border-slate-700 bg-slate-800 px-2.5 text-sm text-foreground outline-none placeholder:text-slate-500 focus:border-primary focus:ring-1 focus:ring-violet-500"
+                className="h-9 rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-violet-500"
               />
             </div>
           )}
@@ -492,23 +492,23 @@ export function Step2SelectAudience({
           
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-700 p-6 cursor-pointer hover:border-primary/50 transition-colors bg-background/20"
+            className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-6 cursor-pointer hover:border-primary/50 transition-colors bg-background/20"
           >
             {audience.csvContacts && audience.csvContacts.length > 0 ? (
               <>
                 <Upload className="size-8 text-primary" />
-                <p className="text-sm text-slate-300">
+                <p className="text-sm text-foreground">
                   {csvFileName || 'Contacts Loaded Successfully'}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   {audience.csvContacts.length} recipient{audience.csvContacts.length !== 1 ? 's' : ''} detected
                 </p>
               </>
             ) : (
               <>
-                <Upload className="size-8 text-slate-500" />
+                <Upload className="size-8 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">Click to upload CSV file</p>
-                <p className="text-xs text-slate-500">CSV with a &quot;phone&quot; column is required</p>
+                <p className="text-xs text-muted-foreground">CSV with a &quot;phone&quot; column is required</p>
               </>
             )}
           </div>
@@ -529,7 +529,7 @@ export function Step2SelectAudience({
               <div className="rounded-lg border border-border bg-background/30 overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="bg-slate-800/80">
+                    <tr className="bg-muted/80">
                       <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Phone</th>
                       <th className="px-3 py-1.5 text-left text-muted-foreground font-medium">Name</th>
                     </tr>
@@ -537,8 +537,8 @@ export function Step2SelectAudience({
                   <tbody>
                     {audience.csvContacts.slice(0, 5).map((row, i) => (
                       <tr key={i} className="border-t border-border">
-                        <td className="px-3 py-1.5 text-slate-300">{row.phone}</td>
-                        <td className="px-3 py-1.5 text-slate-300">{row.name || '-'}</td>
+                        <td className="px-3 py-1.5 text-foreground">{row.phone}</td>
+                        <td className="px-3 py-1.5 text-foreground">{row.name || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -546,7 +546,7 @@ export function Step2SelectAudience({
               </div>
               {audience.csvContacts.length > 5 && (
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     ...and {audience.csvContacts.length - 5} more rows
                   </p>
                   <button
@@ -574,10 +574,10 @@ export function Step2SelectAudience({
           <p className="text-sm font-medium text-foreground">
             Exclude contacts with these tags
           </p>
-          <span className="text-xs text-slate-500">(optional)</span>
+          <span className="text-xs text-muted-foreground">(optional)</span>
         </div>
         {tags.length === 0 ? (
-          <p className="text-xs text-slate-500">No tags available.</p>
+          <p className="text-xs text-muted-foreground">No tags available.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => {
@@ -589,7 +589,7 @@ export function Step2SelectAudience({
                   className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${
                     isExcluded
                       ? 'border-red-500/30 bg-red-500/10 text-red-300'
-                      : 'border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600'
+                      : 'border-border bg-muted text-foreground hover:border-border'
                   }`}
                 >
                   <span
@@ -621,7 +621,7 @@ export function Step2SelectAudience({
             <span className="text-xs text-muted-foreground">estimated recipients</span>
           </div>
         ) : (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Select an audience type to see the estimate.
           </p>
         )}
@@ -631,7 +631,7 @@ export function Step2SelectAudience({
         <Button
           variant="outline"
           onClick={onBack}
-          className="border-slate-700 text-slate-300"
+          className="border-border text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Back

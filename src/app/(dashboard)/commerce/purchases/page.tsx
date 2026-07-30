@@ -184,7 +184,7 @@ export default function PurchasesPage() {
           <Button
             onClick={fetchPurchasesData}
             variant="outline"
-            className="border-border text-slate-300 gap-1.5 rounded-xl h-11"
+            className="border-border text-foreground gap-1.5 rounded-xl h-11"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
@@ -200,7 +200,7 @@ export default function PurchasesPage() {
       </div>
 
       {/* Business Workflow Banner */}
-      <div className="bg-card/90 border border-border p-4 rounded-2xl flex items-center gap-3 text-xs text-slate-300">
+      <div className="bg-card/90 border border-border p-4 rounded-2xl flex items-center gap-3 text-xs text-foreground">
         <Info className="h-5 w-5 text-[#00aef0] shrink-0" />
         <div>
           <strong className="text-foreground block font-bold text-sm">
@@ -228,7 +228,7 @@ export default function PurchasesPage() {
       {/* Table */}
       <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">PO #</th>
@@ -239,19 +239,19 @@ export default function PurchasesPage() {
                 <th className="py-3.5 px-4 text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-sm">
                     Loading Purchase Orders...
                   </td>
                 </tr>
               ) : filteredPOs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500 text-sm space-y-3">
-                    <Package className="h-10 w-10 mx-auto text-slate-600 mb-2" />
-                    <p className="text-slate-300 font-semibold">No Purchase Orders Created Yet</p>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-sm space-y-3">
+                    <Package className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-foreground font-semibold">No Purchase Orders Created Yet</p>
+                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Create purchase orders to order stock from suppliers and track inward stock receipts.
                     </p>
                     <Button
@@ -265,14 +265,14 @@ export default function PurchasesPage() {
                 </tr>
               ) : (
                 filteredPOs.map((po) => (
-                  <tr key={po.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={po.id} className="hover:bg-muted/40 transition-colors">
                     <td className="py-3.5 px-4 font-mono font-bold text-foreground">
                       #{po.po_number}
                     </td>
                     <td className="py-3.5 px-4 text-xs text-muted-foreground">
                       {new Date(po.created_at).toLocaleDateString()}
                     </td>
-                    <td className="py-3.5 px-4 text-xs font-semibold text-slate-200">
+                    <td className="py-3.5 px-4 text-xs font-semibold text-foreground">
                       {po.supplier?.company_name || "Direct Vendor"}
                     </td>
                     <td className="py-3.5 px-4 text-center text-xs font-bold text-[#00aef0]">
@@ -305,7 +305,7 @@ export default function PurchasesPage() {
       {/* Create Purchase Order Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <div className="bg-card border border-border rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl text-slate-100 my-8 overflow-x-hidden">
+          <div className="bg-card border border-border rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl text-foreground my-8 overflow-x-hidden">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Truck className="h-5 w-5 text-[#00aef0]" />
@@ -320,7 +320,7 @@ export default function PurchasesPage() {
               {/* Supplier & Status */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">Select Supplier / Vendor</Label>
+                  <Label className="text-xs text-foreground">Select Supplier / Vendor</Label>
                   <select
                     value={selectedSupplierId}
                     onChange={(e) => setSelectedSupplierId(e.target.value)}
@@ -336,7 +336,7 @@ export default function PurchasesPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-300">PO Status</Label>
+                  <Label className="text-xs text-foreground">PO Status</Label>
                   <select
                     value={poStatus}
                     onChange={(e) => setPoStatus(e.target.value as any)}
@@ -405,7 +405,7 @@ export default function PurchasesPage() {
               {/* Added Line Items Table */}
               {poItems.length > 0 && (
                 <div className="rounded-2xl border border-border bg-background overflow-hidden">
-                  <table className="w-full text-left text-xs text-slate-300">
+                  <table className="w-full text-left text-xs text-foreground">
                     <thead className="bg-card font-semibold text-muted-foreground border-b border-border">
                       <tr>
                         <th className="py-2 px-3">Product</th>
@@ -415,7 +415,7 @@ export default function PurchasesPage() {
                         <th className="py-2 px-3 text-center">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60">
+                    <tbody className="divide-y divide-border/60">
                       {poItems.map((item) => (
                         <tr key={item.id}>
                           <td className="py-2 px-3 font-semibold text-foreground">
@@ -451,7 +451,7 @@ export default function PurchasesPage() {
 
               {/* Notes */}
               <div className="space-y-1">
-                <Label className="text-xs text-slate-300">Notes / Remarks</Label>
+                <Label className="text-xs text-foreground">Notes / Remarks</Label>
                 <Input
                   type="text"
                   placeholder="e.g. Stock batch received at Main Warehouse"
@@ -462,7 +462,7 @@ export default function PurchasesPage() {
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-slate-300 rounded-xl h-10">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)} className="border-border text-foreground rounded-xl h-10">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">

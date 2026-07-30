@@ -49,13 +49,13 @@ export default function IntegrationsPage() {
             { id: 'sheets', name: 'Google Sheets', desc: '2-way Sync with Sheets', icon: FileSpreadsheet },
             { id: 'forms', name: 'Lead Forms', desc: 'Google Forms, FB Forms, Webhooks', icon: FormInput },
           ].map(integration => (
-            <div key={integration.id} onClick={() => onChange(integration.id)} className="cursor-pointer group flex flex-col items-center p-6 rounded-2xl bg-card border border-border text-center hover:border-primary/50 hover:bg-slate-800/50 transition-all">
+            <div key={integration.id} onClick={() => onChange(integration.id)} className="cursor-pointer group flex flex-col items-center p-6 rounded-2xl bg-card border border-border text-center hover:border-primary/50 hover:bg-muted/50 transition-all">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4 group-hover:scale-110 transition-transform">
                 <integration.icon className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-1">{integration.name}</h3>
               <p className="text-muted-foreground text-sm mb-4">{integration.desc}</p>
-              <Button variant="outline" className="w-full border-slate-700 text-slate-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
+              <Button variant="outline" className="w-full border-border text-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary">
                 Configure
               </Button>
             </div>

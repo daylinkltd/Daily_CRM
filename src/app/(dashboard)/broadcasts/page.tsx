@@ -43,10 +43,10 @@ function RateCell({
   const pct = percent(value, total);
   return (
     <div className="flex items-center gap-2">
-      <span className="w-10 text-right text-xs tabular-nums text-slate-300">
+      <span className="w-10 text-right text-xs tabular-nums text-foreground">
         {pct}%
       </span>
-      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-800">
+      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
         <div
           className={`h-1.5 rounded-full ${color}`}
           style={{ width: `${pct}%` }}
@@ -154,7 +154,7 @@ export default function BroadcastsPage() {
         <div
           role="progressbar"
           aria-label="Broadcast in progress"
-          className="broadcast-indeterminate fixed inset-x-0 top-0 z-40 h-0.5 overflow-hidden bg-slate-800"
+          className="broadcast-indeterminate fixed inset-x-0 top-0 z-40 h-0.5 overflow-hidden bg-muted"
         >
           <div className="broadcast-indeterminate-bar h-0.5 bg-primary" />
           <style jsx>{`
@@ -220,16 +220,16 @@ export default function BroadcastsPage() {
                 return (
                   <TableRow
                     key={broadcast.id}
-                    className="cursor-pointer border-border hover:bg-slate-800/50"
+                    className="cursor-pointer border-border hover:bg-muted/50"
                     onClick={() => router.push(`/broadcasts/${broadcast.id}`)}
                   >
                     <TableCell className="font-medium text-foreground">
                       {broadcast.name}
                     </TableCell>
-                    <TableCell className="hidden text-slate-300 md:table-cell">
+                    <TableCell className="hidden text-foreground md:table-cell">
                       {broadcast.template_name}
                     </TableCell>
-                    <TableCell className="hidden text-right text-slate-300 tabular-nums sm:table-cell">
+                    <TableCell className="hidden text-right text-foreground tabular-nums sm:table-cell">
                       {broadcast.total_recipients}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">

@@ -116,7 +116,7 @@ export function Step4ScheduleSend({
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="e.g. Summer Sale Announcement"
-          className="border-slate-700 bg-slate-800 text-foreground placeholder:text-slate-500"
+          className="border-border bg-muted text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
@@ -162,7 +162,7 @@ export function Step4ScheduleSend({
             </div>
             <span className="text-xs font-medium text-primary">{progress}%</span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-slate-800">
+          <div className="h-1.5 w-full rounded-full bg-muted">
             <div
               className="h-1.5 rounded-full bg-primary transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -176,7 +176,7 @@ export function Step4ScheduleSend({
           variant="outline"
           onClick={onBack}
           disabled={isProcessing}
-          className="border-slate-700 text-slate-300"
+          className="border-border text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -188,7 +188,7 @@ export function Step4ScheduleSend({
               variant="outline"
               onClick={onSaveDraft}
               disabled={!name.trim() || isProcessing}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+              className="border-border text-foreground hover:bg-muted disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               Save as Draft
@@ -207,7 +207,7 @@ export function Step4ScheduleSend({
             <Send className="h-4 w-4" />
             Send Broadcast
           </DialogTrigger>
-          <DialogContent className="border-slate-700 bg-card sm:max-w-md">
+          <DialogContent className="border-border bg-card sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-foreground">Confirm Broadcast</DialogTitle>
               <DialogDescription className="text-muted-foreground">
@@ -222,7 +222,7 @@ export function Step4ScheduleSend({
               <Button
                 variant="outline"
                 onClick={() => setShowConfirm(false)}
-                className="border-slate-700 text-slate-300"
+                className="border-border text-foreground"
               >
                 Cancel
               </Button>

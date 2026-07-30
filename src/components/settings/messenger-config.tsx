@@ -44,7 +44,7 @@ export function MessengerConfig() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px] mt-4">
       <div className="space-y-6">
-        <Alert className="bg-card border-slate-700">
+        <Alert className="bg-card border-border">
           <div className="flex items-center gap-2">
             {connectionStatus === 'connected' ? <CheckCircle2 className="size-4 text-primary" /> : <XCircle className="size-4 text-red-500" />}
             <AlertTitle className="text-foreground mb-0">{connectionStatus === 'connected' ? 'Connected' : 'Not Connected'}</AlertTitle>
@@ -54,20 +54,20 @@ export function MessengerConfig() {
           </AlertDescription>
         </Alert>
 
-        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">API Credentials</CardTitle>
             <CardDescription className="text-muted-foreground">Enter your Facebook Page credentials.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Facebook Page ID</Label>
-              <Input value={pageId} onChange={(e) => setPageId(e.target.value)} className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500" />
+              <Label className="text-foreground">Facebook Page ID</Label>
+              <Input value={pageId} onChange={(e) => setPageId(e.target.value)} className="bg-muted border-border text-foreground placeholder:text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Page Access Token</Label>
+              <Label className="text-foreground">Page Access Token</Label>
               <div className="relative">
-                <Input type={showToken ? 'text' : 'password'} value={accessToken} onChange={(e) => setAccessToken(e.target.value)} className="bg-slate-800 border-slate-700 text-foreground placeholder:text-slate-500 pr-10" />
+                <Input type={showToken ? 'text' : 'password'} value={accessToken} onChange={(e) => setAccessToken(e.target.value)} className="bg-muted border-border text-foreground placeholder:text-muted-foreground pr-10" />
                 <button type="button" onClick={() => setShowToken(!showToken)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -80,13 +80,13 @@ export function MessengerConfig() {
           <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Saving...</> : 'Save Configuration'}
           </Button>
-          <Button variant="outline" onClick={handleTestConnection} disabled={testing} className="border-slate-700 text-slate-300 hover:text-foreground hover:bg-slate-800">
+          <Button variant="outline" onClick={handleTestConnection} disabled={testing} className="border-border text-foreground hover:text-foreground hover:bg-muted">
             {testing ? 'Testing...' : 'Test Connection'}
           </Button>
         </div>
       </div>
       <div>
-        <Card className="bg-card border-slate-700 ring-0 ring-transparent">
+        <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground text-base">Setup Instructions</CardTitle>
           </CardHeader>
@@ -95,7 +95,7 @@ export function MessengerConfig() {
               <li>Create a Meta App.</li>
               <li>Add the Messenger Product.</li>
               <li>Generate a Page Access Token.</li>
-              <li>Subscribe to Webhooks using: <code className="block mt-1 bg-slate-800 p-2 rounded">{webhookUrl}</code></li>
+              <li>Subscribe to Webhooks using: <code className="block mt-1 bg-muted p-2 rounded">{webhookUrl}</code></li>
             </ol>
           </CardContent>
         </Card>
