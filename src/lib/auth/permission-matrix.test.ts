@@ -33,11 +33,11 @@ const CRM_RESOURCES = resourcesByModule("crm");
 const firstCrm = CRM_RESOURCES[0].key;
 
 describe("catalog shape", () => {
-  it("has 128 CRUD keys (32 resources × 4 actions)", () => {
-    expect(RESOURCES).toHaveLength(32);
+  it("has 136 CRUD keys (34 resources × 4 actions)", () => {
+    expect(RESOURCES).toHaveLength(34);
     expect(ACTIONS).toHaveLength(4);
-    expect(TOTAL_CRUD_PERMISSIONS).toBe(128);
-    expect(crudPermissionKeys()).toHaveLength(128);
+    expect(TOTAL_CRUD_PERMISSIONS).toBe(136);
+    expect(crudPermissionKeys()).toHaveLength(136);
   });
 
   it("produces unique permission keys", () => {
@@ -99,7 +99,7 @@ describe("counting", () => {
       module_projects: true,
     });
     expect(countGranted(perms)).toBe(0);
-    expect(grantedSummary(perms)).toEqual({ granted: 0, total: 128 });
+    expect(grantedSummary(perms)).toEqual({ granted: 0, total: 136 });
   });
 
   it("counts a module subtotal independently", () => {

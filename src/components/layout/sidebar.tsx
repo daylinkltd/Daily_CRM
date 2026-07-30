@@ -27,6 +27,7 @@ import {
   FileText,
   Calculator,
   Handshake,
+  Landmark,
   Briefcase,
   CheckSquare,
   Clock,
@@ -92,6 +93,7 @@ type NavGroup = {
  */
 const NAV_GROUP_MODULE: Record<string, ModuleKey | null> = {
   CRM: "crm",
+  Accounting: "accounting",
   Retail: "retail",
   "Project Management": "projects",
   "HR Management": "hr",
@@ -118,16 +120,28 @@ const navGroups: NavGroup[] = [
     ]
   },
   {
+    // Finance lives in its own module now — the ledger, GST and GL
+    // pages moved here out of Retail, which keeps only store
+    // operations. Physical table names keep their commerce_ prefix;
+    // the module split is presentation + RBAC only.
+    label: "Accounting",
+    icon: Landmark,
+    items: [
+      { href: "/commerce/accounting", label: "Journals & Daybook", icon: BookOpen },
+      { href: "/commerce/ledger", label: "Receivables / Khata", icon: Wallet },
+      { href: "/commerce/gst", label: "GST Reports", icon: FileText },
+      { href: "/invoices", label: "Invoices", icon: Receipt },
+      { href: "/expenses", label: "Expenses", icon: Receipt, permission: "people_view" },
+    ]
+  },
+  {
     label: "Retail",
     icon: Store,
     items: [
       { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
       { href: "/commerce/products", label: "Products", icon: Package },
       { href: "/commerce/inventory", label: "Inventory", icon: Layers },
-      { href: "/commerce/ledger", label: "Customer Ledger / Khata", icon: Wallet },
-      { href: "/commerce/accounting", label: "Accounting & GL", icon: BookOpen },
-      { href: "/commerce/gst", label: "GST Reports", icon: FileText },
-      { href: "/commerce/sales", label: "Sales & Invoices", icon: Receipt },
+      { href: "/commerce/sales", label: "Sales Orders", icon: Receipt },
       { href: "/commerce/purchases", label: "Purchases & POs", icon: Truck },
       { href: "/commerce/suppliers", label: "Suppliers", icon: Building2 },
       { href: "/commerce/returns", label: "Returns", icon: RefreshCw },

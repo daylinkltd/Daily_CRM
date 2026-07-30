@@ -10,6 +10,7 @@ describe("deriveModuleAccess", () => {
   it("grants all modules to owner regardless of permissions", () => {
     expect(deriveModuleAccess("owner", null)).toEqual({
       crm: true,
+      accounting: true,
       hr: true,
       retail: true,
       projects: true,
@@ -17,6 +18,7 @@ describe("deriveModuleAccess", () => {
     // even an empty/hostile JSONB can't reduce an owner's access
     expect(deriveModuleAccess("owner", { module_crm: false })).toEqual({
       crm: true,
+      accounting: true,
       hr: true,
       retail: true,
       projects: true,
@@ -26,6 +28,7 @@ describe("deriveModuleAccess", () => {
   it("grants all modules to admin", () => {
     expect(deriveModuleAccess("admin", null)).toEqual({
       crm: true,
+      accounting: true,
       hr: true,
       retail: true,
       projects: true,
@@ -39,6 +42,7 @@ describe("deriveModuleAccess", () => {
     );
     expect(DEFAULT_MODULE_ACCESS).toEqual({
       crm: true,
+      accounting: false,
       hr: false,
       retail: false,
       projects: false,
@@ -61,6 +65,7 @@ describe("deriveModuleAccess", () => {
     };
     expect(deriveModuleAccess("member", perms)).toEqual({
       crm: true,
+      accounting: false,
       hr: true,
       retail: false,
       projects: true,
@@ -72,6 +77,7 @@ describe("deriveModuleAccess", () => {
     const perms = { module_hr: true };
     expect(deriveModuleAccess("member", perms)).toEqual({
       crm: false,
+      accounting: false,
       hr: true,
       retail: false,
       projects: false,
@@ -86,6 +92,7 @@ describe("deriveModuleAccess", () => {
     };
     expect(deriveModuleAccess("member", perms)).toEqual({
       crm: false,
+      accounting: false,
       hr: false,
       retail: true,
       projects: false,

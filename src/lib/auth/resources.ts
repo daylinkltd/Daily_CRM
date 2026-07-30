@@ -16,11 +16,12 @@
 // shape for each.
 // ============================================================
 
-export const MODULE_KEYS = ["crm", "hr", "retail", "projects"] as const;
+export const MODULE_KEYS = ["crm", "accounting", "hr", "retail", "projects"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 export const MODULE_LABELS: Record<ModuleKey, string> = {
   crm: "CRM",
+  accounting: "Accounting",
   hr: "HR",
   retail: "Retail",
   projects: "Projects",
@@ -137,6 +138,20 @@ export const RESOURCES: Resource[] = [
     module: "crm",
     description: "Customer quotes",
     tables: [ws("quotations")],
+  },
+  {
+    key: "commercials",
+    label: "Commercials",
+    module: "crm",
+    description: "Internal costing and margin between deal and quotation",
+    tables: [ws("commercials"), ws("commercial_line_items")],
+  },
+  {
+    key: "invoices",
+    label: "Invoices",
+    module: "crm",
+    description: "Customer invoices and their payments",
+    tables: [ws("invoices"), ws("invoice_items"), ws("invoice_payments")],
   },
   {
     key: "templates",
@@ -345,7 +360,7 @@ export const RESOURCES: Resource[] = [
   {
     key: "accounting",
     label: "Accounting & GST",
-    module: "retail",
+    module: "accounting",
     description: "Ledger, journals, khata, bank accounts, GST",
     tables: [
       ws("commerce_chart_of_accounts"),
