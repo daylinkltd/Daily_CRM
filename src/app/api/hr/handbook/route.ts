@@ -143,6 +143,24 @@ export async function POST(request: Request) {
     .like("title", "Handbook §%");
   const existingTitles = new Set((existing ?? []).map((p) => p.title));
 
+  // The handbook depends on the workspace's real policies, not just
+  // company details: every PUBLISHED standalone policy whose category
+  // matches a section is linked into that section, with a note that
+  // the detailed policy prevails. Policies published later supersede
+  // the handbook's summary text by design.
+  const { data: standalone } = await supabase
+    .from("hr_policies")
+    .select("title, category, status")
+    .eq("workspace_id", workspace_id)
+    .eq("status", "PUBLISHED")
+    .not("title", "like", "Handbook §%");
+  const byCategory = new Map<string, string[]>();
+  for (const p of standalone ?? []) {
+    const list = byCategory.get(p.category) ?? [];
+    list.push(p.title);
+    byCategory.set(p.category, list);
+  }
+
   let created = 0;
   let skipped = 0;
   for (const section of HANDBOOK_SECTIONS) {
@@ -150,7 +168,11 @@ export async function POST(request: Request) {
       skipped++;
       continue;
     }
-    const content = section.build(details as CompanyDetails);
+    let content = section.build(details as CompanyDetails);
+    const linked = byCategory.get(section.category) ?? [];
+    if (linked.length > 0) {
+      content += `\n\n---\n\n## Linked Company Policies\n\nThe following standalone policies apply to this section. Where they are more specific than the text above, **the standalone policy prevails**:\n\n${linked.map((t) => `- ${t}`).join("\n")}\n`;
+    }
 
     const { data: policy, error: pErr } = await supabase
       .from("hr_policies")
