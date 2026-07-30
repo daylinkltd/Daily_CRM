@@ -1,290 +1,569 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useWorkspace } from '@/hooks/use-workspace';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Receipt, Search, FileText, HandCoins } from 'lucide-react';
+/**
+ * Unified invoices — CRM, project and retail invoices in one list,
+ * backed by the `invoices` table from migration 075 (replacing the
+ * project-only `project_invoices`, whose creation UI was dead code).
+ *
+ * Lifecycle: draft → sent (posts to accounting) → partially_paid /
+ * paid (each payment posts individually) — plus void for drafts.
+ * Status and amount_paid are DB-derived from payment rows; this page
+ * never writes either (the old page's client-side counter bump lost
+ * concurrent payments).
+ *
+ * Until 075 is applied the table doesn't exist in production, so the
+ * page detects the missing relation and shows a setup notice instead
+ * of crashing (same guard as /commercials).
+ */
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { format } from 'date-fns';
+  Receipt, Plus, Search, Send, Banknote, Database, Loader2, Trash2, X,
+} from "lucide-react";
+
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { formatCurrency } from "@/lib/currency";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from 'sonner';
+
+const STATUS_META: Record<string, { label: string; classes: string }> = {
+  draft: { label: "Draft", classes: "bg-muted/10 text-muted-foreground border-border/20" },
+  sent: { label: "Sent", classes: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+  partially_paid: { label: "Partially Paid", classes: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
+  paid: { label: "Paid", classes: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+  overdue: { label: "Overdue", classes: "bg-red-500/10 text-red-400 border-red-500/20" },
+  void: { label: "Void", classes: "bg-muted/10 text-muted-foreground border-border/20 line-through" },
+};
+
+interface InvoiceRow {
+  id: string;
+  invoice_number: string;
+  source: string;
+  status: string;
+  currency: string;
+  issue_date: string;
+  due_date: string | null;
+  total_amount: number;
+  amount_paid: number;
+  quotation_id: string | null;
+  contact?: { id: string; name: string | null; company: string | null } | null;
+  project?: { id: string; name: string | null } | null;
+}
+
+interface ContactOption { id: string; name: string | null; company: string | null }
+interface DraftItem { description: string; quantity: string; unit_price: string }
+
+function isMissingTableError(err: { code?: string; message?: string }): boolean {
+  return (
+    err?.code === "42P01" ||
+    err?.code === "PGRST205" ||
+    /could not find the table|relation .* does not exist/i.test(err?.message ?? "")
+  );
+}
 
 export default function InvoicesPage() {
-  const { activeWorkspace } = useWorkspace();
   const supabase = createClient();
+  const { accountId } = useAuth();
+  const { activeWorkspace, defaultCurrency } = useWorkspace();
+  const workspaceId = activeWorkspace?.id || accountId;
 
+  const [rows, setRows] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [tableMissing, setTableMissing] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  // Payment Modal State
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Create dialog
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [contacts, setContacts] = useState<ContactOption[]>([]);
+  const [newContactId, setNewContactId] = useState("");
+  const [newDueDate, setNewDueDate] = useState("");
+  const [newTaxRate, setNewTaxRate] = useState("0");
+  const [newDiscount, setNewDiscount] = useState("0");
+  const [newItems, setNewItems] = useState<DraftItem[]>([
+    { description: "", quantity: "1", unit_price: "0" },
+  ]);
+
+  // Payment dialog
+  const [payFor, setPayFor] = useState<InvoiceRow | null>(null);
+  const [payAmount, setPayAmount] = useState("");
+  const [payMode, setPayMode] = useState("bank_transfer");
+  const [payRef, setPayRef] = useState("");
+  const [paying, setPaying] = useState(false);
+
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const fetchInvoices = useCallback(async () => {
-    if (!activeWorkspace?.id) return;
+    if (!workspaceId) return;
     setLoading(true);
-
     try {
       const { data, error } = await supabase
-        .from('project_invoices')
-        .select(`
-          *,
-          projects ( name )
-        `)
-        .eq('workspace_id', activeWorkspace.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setInvoices(data || []);
-    } catch {
-      toast.error('Failed to load invoices');
+        .from("invoices")
+        .select(`id, invoice_number, source, status, currency, issue_date, due_date,
+                 total_amount, amount_paid, quotation_id,
+                 contact:contacts(id, name, company),
+                 project:projects(id, name)`)
+        .eq("workspace_id", workspaceId)
+        .order("updated_at", { ascending: false });
+      if (error) {
+        if (isMissingTableError(error)) {
+          setTableMissing(true);
+          return;
+        }
+        throw error;
+      }
+      setTableMissing(false);
+      setRows((data as unknown as InvoiceRow[]) || []);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load invoices");
     } finally {
       setLoading(false);
     }
-  }, [activeWorkspace?.id, supabase]);
+  }, [supabase, workspaceId]);
 
   useEffect(() => {
-    fetchInvoices();
+    void fetchInvoices();
   }, [fetchInvoices]);
 
-  const openPaymentModal = (invoice: any) => {
-    setSelectedInvoice(invoice);
-    const balance = Number(invoice.total_amount) - Number(invoice.amount_paid);
-    setPaymentAmount(balance > 0 ? balance.toString() : '');
-    setPaymentModalOpen(true);
-  };
+  // Contacts load lazily when the create dialog first opens.
+  useEffect(() => {
+    if (!createOpen || !workspaceId || contacts.length > 0) return;
+    void supabase
+      .from("contacts")
+      .select("id, name, company")
+      .eq("workspace_id", workspaceId)
+      .order("name")
+      .limit(500)
+      .then(({ data }) => setContacts((data as ContactOption[]) || []));
+  }, [createOpen, workspaceId, contacts.length, supabase]);
 
-  const handleRecordPayment = async () => {
-    if (!selectedInvoice) return;
-    const payment = Number(paymentAmount);
-    
-    if (isNaN(payment) || payment <= 0) {
-      toast.error('Please enter a valid payment amount');
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (!q) return true;
+      return [r.invoice_number, r.contact?.name, r.contact?.company, r.project?.name]
+        .some((f) => (f ?? "").toLowerCase().includes(q));
+    });
+  }, [rows, search, statusFilter]);
+
+  const outstanding = useMemo(
+    () =>
+      rows
+        .filter((r) => ["sent", "partially_paid", "overdue"].includes(r.status))
+        .reduce((acc, r) => acc + (Number(r.total_amount) - Number(r.amount_paid)), 0),
+    [rows]
+  );
+
+  const draftTotal = useMemo(
+    () =>
+      newItems.reduce((acc, it) => acc + (Number(it.quantity) || 0) * (Number(it.unit_price) || 0), 0),
+    [newItems]
+  );
+
+  async function handleCreate() {
+    if (!workspaceId) return;
+    const items = newItems
+      .map((it) => ({
+        description: it.description.trim(),
+        quantity: Number(it.quantity) || 0,
+        unit_price: Number(it.unit_price) || 0,
+      }))
+      .filter((it) => it.description);
+    if (items.length === 0) {
+      toast.error("Add at least one line item with a description");
       return;
     }
-
-    const currentPaid = Number(selectedInvoice.amount_paid || 0);
-    const totalAmount = Number(selectedInvoice.total_amount || 0);
-    const newTotalPaid = currentPaid + payment;
-
-    if (newTotalPaid > totalAmount) {
-      toast.error('Payment exceeds total invoice amount');
-      return;
-    }
-
-    setIsSubmitting(true);
+    setCreating(true);
     try {
-      let newStatus = selectedInvoice.status;
-      if (newTotalPaid >= totalAmount) {
-        newStatus = 'PAID';
-      } else if (newTotalPaid > 0) {
-        newStatus = 'PARTIALLY_PAID';
-      }
-
-      const { error } = await supabase
-        .from('project_invoices')
-        .update({
-          amount_paid: newTotalPaid,
-          status: newStatus
-        })
-        .eq('id', selectedInvoice.id);
-
-      if (error) throw error;
-      
-      toast.success('Payment recorded successfully');
-      setPaymentModalOpen(false);
-      fetchInvoices();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to record payment');
+      const res = await fetch("/api/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspace_id: workspaceId,
+          contact_id: newContactId || null,
+          due_date: newDueDate || null,
+          tax_rate: Number(newTaxRate) || 0,
+          discount_amount: Number(newDiscount) || 0,
+          items,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to create invoice");
+      toast.success(`Invoice ${json.invoice.invoice_number} created`);
+      setCreateOpen(false);
+      setNewContactId("");
+      setNewDueDate("");
+      setNewTaxRate("0");
+      setNewDiscount("0");
+      setNewItems([{ description: "", quantity: "1", unit_price: "0" }]);
+      await fetchInvoices();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create invoice");
     } finally {
-      setIsSubmitting(false);
+      setCreating(false);
     }
-  };
+  }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'DRAFT': return <Badge variant="secondary">Draft</Badge>;
-      case 'SENT': return <Badge variant="outline" className="text-blue-500 border-blue-500">Sent</Badge>;
-      case 'PARTIALLY_PAID': return <Badge variant="outline" className="text-orange-500 border-orange-500">Partial</Badge>;
-      case 'PAID': return <Badge className="bg-emerald-500 hover:bg-emerald-600">Paid</Badge>;
-      case 'CANCELLED': return <Badge variant="destructive">Cancelled</Badge>;
-      case 'VOID': return <Badge variant="destructive">Void</Badge>;
-      default: return <Badge variant="secondary">{status}</Badge>;
+  async function handleSend(inv: InvoiceRow) {
+    setBusyId(inv.id);
+    try {
+      const res = await fetch(`/api/invoices/${inv.id}/send`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to send invoice");
+      toast.success(`${inv.invoice_number} sent and posted to accounting`);
+      await fetchInvoices();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send invoice");
+    } finally {
+      setBusyId(null);
     }
-  };
+  }
 
-  const filteredInvoices = invoices.filter(inv => {
-    const matchesSearch = inv.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (inv.projects?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'ALL' || inv.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  async function handleVoid(inv: InvoiceRow) {
+    setBusyId(inv.id);
+    try {
+      const { error } = await supabase
+        .from("invoices")
+        .update({ status: "void" })
+        .eq("id", inv.id)
+        .eq("status", "draft"); // only drafts are voidable client-side
+      if (error) throw error;
+      toast.success(`${inv.invoice_number} voided`);
+      await fetchInvoices();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to void invoice");
+    } finally {
+      setBusyId(null);
+    }
+  }
 
-  const totalOutstanding = invoices.reduce((sum, inv) => {
-    if (['DRAFT', 'CANCELLED', 'VOID', 'PAID'].includes(inv.status)) return sum;
-    return sum + (Number(inv.total_amount) - Number(inv.amount_paid));
-  }, 0);
+  async function handleRecordPayment() {
+    if (!payFor) return;
+    setPaying(true);
+    try {
+      const res = await fetch(`/api/invoices/${payFor.id}/payments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Number(payAmount),
+          mode: payMode,
+          reference_number: payRef || null,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to record payment");
+      toast.success("Payment recorded and posted to accounting");
+      setPayFor(null);
+      setPayAmount("");
+      setPayRef("");
+      await fetchInvoices();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to record payment");
+    } finally {
+      setPaying(false);
+    }
+  }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-          <p className="text-muted-foreground">Manage billing and track payments across all projects.</p>
-        </div>
-        <div className="flex items-center gap-4 text-right">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Outstanding Balance</p>
-            <p className="text-2xl font-bold text-orange-500">${totalOutstanding.toFixed(2)}</p>
-          </div>
-        </div>
-      </div>
+    <div className="p-(--page-padding-desktop)">
+      <PageHeader
+        title="Invoices"
+        description="Bill customers and track payments — every sent invoice and recorded payment posts to accounting automatically."
+        badge={
+          outstanding > 0 ? (
+            <span className="inline-flex h-6 items-center border border-yellow-500/20 bg-yellow-500/10 px-2 text-xs font-medium text-yellow-400">
+              {formatCurrency(outstanding, defaultCurrency, { decimals: 2 })} outstanding
+            </span>
+          ) : undefined
+        }
+        actions={
+          <Button onClick={() => setCreateOpen(true)} disabled={tableMissing}>
+            <Plus /> New Invoice
+          </Button>
+        }
+      />
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-          <CardTitle className="text-lg">All Invoices</CardTitle>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search invoices..."
-                className="pl-8 w-[250px]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+      {tableMissing ? (
+        <EmptyState
+          icon={Database}
+          title="Invoices table not set up yet"
+          description="Migration 075 hasn't been applied to this database. Once it's run, invoices created here replace the old project-only invoices."
+        />
+      ) : (
+        <Card>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by number, customer or project..."
+                  className="pl-8"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
+                <SelectTrigger className="sm:w-56">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {Object.entries(STATUS_META).map(([value, meta]) => (
+                    <SelectItem key={value} value={value}>{meta.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {loading ? (
+              <div className="flex min-h-[200px] items-center justify-center text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+              </div>
+            ) : filtered.length === 0 ? (
+              <EmptyState
+                icon={Receipt}
+                title={rows.length === 0 ? "No invoices yet" : "No matches"}
+                description={
+                  rows.length === 0
+                    ? "Create an invoice here, or generate one from an accepted quotation."
+                    : "No invoice matches your search or status filter."
+                }
               />
-            </div>
-            <Select value={statusFilter} onValueChange={(val) => val && setStatusFilter(val)}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Statuses</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
-                <SelectItem value="SENT">Sent</SelectItem>
-                <SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
-                <SelectItem value="PAID">Paid</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex justify-center p-12"><Loader2 className="size-6 animate-spin text-primary" /></div>
-          ) : filteredInvoices.length === 0 ? (
-            <div className="text-center py-16">
-              <Receipt className="size-12 mx-auto text-muted-foreground opacity-20 mb-4" />
-              <p className="text-lg font-medium text-muted-foreground">No invoices found</p>
-              <p className="text-sm text-muted-foreground">Generate an invoice from a Project dashboard.</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Balance</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInvoices.map((inv) => {
-                  const balance = Number(inv.total_amount) - Number(inv.amount_paid);
-                  return (
-                    <TableRow key={inv.id}>
-                      <TableCell className="font-medium flex items-center gap-2">
-                        <FileText className="size-4 text-muted-foreground" />
-                        {inv.invoice_number}
-                      </TableCell>
-                      <TableCell>{Array.isArray(inv.projects) ? inv.projects[0]?.name : inv.projects?.name}</TableCell>
-                      <TableCell>{format(new Date(inv.issue_date || inv.created_at), 'MMM d, yyyy')}</TableCell>
-                      <TableCell>{getStatusBadge(inv.status)}</TableCell>
-                      <TableCell className="text-right">${Number(inv.total_amount).toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {balance > 0 ? <span className="text-orange-500">${balance.toFixed(2)}</span> : '$0.00'}
-                      </TableCell>
-                      <TableCell className="text-right space-x-2">
-                        {balance > 0 && inv.status !== 'DRAFT' && (
-                          <Button variant="outline" size="sm" onClick={() => openPaymentModal(inv)}>
-                            <HandCoins className="size-4 mr-2" /> Record Payment
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Number</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Issued</TableHead>
+                    <TableHead>Due</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Paid</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((inv) => {
+                    const meta = STATUS_META[inv.status] ?? STATUS_META.draft;
+                    const busy = busyId === inv.id;
+                    return (
+                      <TableRow key={inv.id}>
+                        <TableCell className="font-medium">
+                          {inv.invoice_number}
+                          {inv.quotation_id && (
+                            <span className="ml-1.5 text-[10px] uppercase text-muted-foreground">from quote</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {inv.contact?.company || inv.contact?.name || inv.project?.name || "—"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{inv.issue_date}</TableCell>
+                        <TableCell className="text-muted-foreground">{inv.due_date || "—"}</TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(Number(inv.total_amount), inv.currency, { decimals: 2 })}
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {formatCurrency(Number(inv.amount_paid), inv.currency, { decimals: 2 })}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex h-6 items-center border px-2 text-xs font-medium ${meta.classes}`}>
+                            {meta.label}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {inv.status === "draft" && (
+                              <>
+                                <Button size="sm" variant="outline" disabled={busy} onClick={() => handleSend(inv)}>
+                                  {busy ? <Loader2 className="animate-spin" /> : <Send />} Send
+                                </Button>
+                                <Button size="icon-sm" variant="ghost" disabled={busy} onClick={() => handleVoid(inv)} aria-label="Void invoice">
+                                  <X />
+                                </Button>
+                              </>
+                            )}
+                            {["sent", "partially_paid", "overdue"].includes(inv.status) && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busy}
+                                onClick={() => {
+                                  setPayFor(inv);
+                                  setPayAmount(
+                                    (Number(inv.total_amount) - Number(inv.amount_paid)).toFixed(2)
+                                  );
+                                }}
+                              >
+                                <Banknote /> Record Payment
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Record Payment Modal */}
-      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
-        <DialogContent>
+      {/* ── create dialog ─────────────────────────────────── */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
-            <DialogDescription>
-              Record an incoming payment for {selectedInvoice?.invoice_number}.
-            </DialogDescription>
+            <DialogTitle>New Invoice</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="flex justify-between text-sm bg-muted p-3 rounded-md">
-              <div>
-                <p className="text-muted-foreground">Total Invoice Amount</p>
-                <p className="font-medium">${Number(selectedInvoice?.total_amount || 0).toFixed(2)}</p>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Customer</label>
+                <Select value={newContactId} onValueChange={(v) => v && setNewContactId(v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select customer" />
+                  </SelectTrigger>
+                  <SelectContent searchPlaceholder="Search customers...">
+                    {contacts.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.company ? `${c.name ?? "—"} (${c.company})` : c.name ?? "—"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="text-right">
-                <p className="text-muted-foreground">Outstanding Balance</p>
-                <p className="font-medium text-orange-500">
-                  ${(Number(selectedInvoice?.total_amount || 0) - Number(selectedInvoice?.amount_paid || 0)).toFixed(2)}
-                </p>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Due date</label>
+                <Input type="date" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Tax rate %</label>
+                <Input type="number" min="0" max="100" value={newTaxRate} onChange={(e) => setNewTaxRate(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Discount amount</label>
+                <Input type="number" min="0" value={newDiscount} onChange={(e) => setNewDiscount(e.target.value)} />
               </div>
             </div>
+
             <div className="space-y-2">
-              <Label>Payment Amount ($)</Label>
-              <Input
-                type="number"
-                min="0.01"
-                step="0.01"
-                max={(Number(selectedInvoice?.total_amount || 0) - Number(selectedInvoice?.amount_paid || 0)).toFixed(2)}
-                value={paymentAmount}
-                onChange={(e) => setPaymentAmount(e.target.value)}
-                placeholder="0.00"
-              />
+              <label className="text-xs font-medium text-muted-foreground">Line items</label>
+              {newItems.map((it, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    className="flex-1"
+                    placeholder="Description"
+                    value={it.description}
+                    onChange={(e) =>
+                      setNewItems((prev) => prev.map((p, j) => (j === i ? { ...p, description: e.target.value } : p)))
+                    }
+                  />
+                  <Input
+                    className="w-20"
+                    type="number" min="0" placeholder="Qty"
+                    value={it.quantity}
+                    onChange={(e) =>
+                      setNewItems((prev) => prev.map((p, j) => (j === i ? { ...p, quantity: e.target.value } : p)))
+                    }
+                  />
+                  <Input
+                    className="w-28"
+                    type="number" min="0" placeholder="Unit price"
+                    value={it.unit_price}
+                    onChange={(e) =>
+                      setNewItems((prev) => prev.map((p, j) => (j === i ? { ...p, unit_price: e.target.value } : p)))
+                    }
+                  />
+                  <Button
+                    size="icon-sm" variant="ghost" aria-label="Remove line"
+                    disabled={newItems.length === 1}
+                    onClick={() => setNewItems((prev) => prev.filter((_, j) => j !== i))}
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                size="sm" variant="outline"
+                onClick={() => setNewItems((prev) => [...prev, { description: "", quantity: "1", unit_price: "0" }])}
+              >
+                <Plus /> Add line
+              </Button>
+            </div>
+
+            <p className="text-right text-sm text-muted-foreground">
+              Subtotal: <span className="font-medium text-foreground">{formatCurrency(draftTotal, defaultCurrency, { decimals: 2 })}</span>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreate} disabled={creating}>
+              {creating ? <Loader2 className="animate-spin" /> : <Plus />} Create Draft
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── payment dialog ────────────────────────────────── */}
+      <Dialog open={!!payFor} onOpenChange={(open) => !open && setPayFor(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Record Payment — {payFor?.invoice_number}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Outstanding:{" "}
+              <span className="font-medium text-foreground">
+                {payFor &&
+                  formatCurrency(Number(payFor.total_amount) - Number(payFor.amount_paid), payFor.currency, { decimals: 2 })}
+              </span>
+            </p>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Amount</label>
+              <Input type="number" min="0" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Mode</label>
+              <Select value={payMode} onValueChange={(v) => v && setPayMode(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bank_transfer">Bank transfer</SelectItem>
+                  <SelectItem value="upi">UPI</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="card">Card</SelectItem>
+                  <SelectItem value="cheque">Cheque</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Reference / UTR (optional)</label>
+              <Input value={payRef} onChange={(e) => setPayRef(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPaymentModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleRecordPayment} disabled={isSubmitting || !paymentAmount}>
-              {isSubmitting && <Loader2 className="size-4 animate-spin mr-2" />}
-              Save Payment
+            <Button variant="outline" onClick={() => setPayFor(null)}>Cancel</Button>
+            <Button onClick={handleRecordPayment} disabled={paying || !payAmount}>
+              {paying ? <Loader2 className="animate-spin" /> : <Banknote />} Record
             </Button>
           </DialogFooter>
         </DialogContent>

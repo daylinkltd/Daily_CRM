@@ -15,6 +15,7 @@ import {
   Briefcase,
   Calendar,
   Sparkles,
+  Receipt,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -237,6 +238,29 @@ export default function QuotationPreviewPage({ params }: PageProps) {
     }
   };
 
+  // Turn the accepted quotation into a draft invoice. Items, client
+  // and deal are copied server-side; billing then continues on the
+  // Invoices page (send → post to accounting → collect payments).
+  const handleGenerateInvoice = async () => {
+    if (!quote || !workspaceId) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspace_id: workspaceId, quotation_id: quote.id }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to generate invoice");
+      toast.success(`Draft invoice ${json.invoice.invoice_number} created`);
+      router.push("/invoices");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to generate invoice");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Accept Quotation and Sync with Pipeline Deal
   const handleAcceptQuotation = async () => {
     if (!quote) return;
@@ -441,6 +465,17 @@ export default function QuotationPreviewPage({ params }: PageProps) {
                 <CheckCircle className="size-4 mr-1.5" /> Accept & Convert
               </Button>
             </>
+          )}
+
+          {quote.status === "Accepted" && (
+            <Button
+              size="sm"
+              onClick={handleGenerateInvoice}
+              disabled={actionLoading}
+              className="bg-emerald-600 hover:bg-emerald-700 text-foreground"
+            >
+              <Receipt className="size-4 mr-1.5" /> Generate Invoice
+            </Button>
           )}
 
           <Button
