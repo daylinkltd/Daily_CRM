@@ -96,7 +96,7 @@ export function PrintableHandbookModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[92vh] p-0 overflow-hidden flex flex-col bg-card">
+      <DialogContent className="w-[96vw] max-w-6xl max-h-[94vh] p-0 overflow-hidden flex flex-col bg-card shadow-2xl">
         {/* Top Control Bar (Hidden during printing) */}
         <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30 print:hidden">
           <div className="flex items-center gap-2 font-bold text-foreground">
@@ -114,13 +114,13 @@ export function PrintableHandbookModal({
         </div>
 
         {/* Scrollable Printable Document Canvas */}
-        <div className="flex-1 overflow-y-auto p-8 sm:p-12 space-y-10 bg-white text-black font-sans leading-relaxed print:p-0 print:overflow-visible">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 bg-slate-100 text-black font-sans leading-relaxed print:p-0 print:overflow-visible print:bg-white">
           {loading ? (
             <div className="flex h-64 items-center justify-center text-muted-foreground print:hidden">
               <Loader2 className="size-8 animate-spin text-primary mr-2" /> Generating Official Handbook Letterhead...
             </div>
           ) : (
-            <div id="printable-handbook-document" className="max-w-3xl mx-auto space-y-8 bg-white p-6 sm:p-10 border border-slate-200 shadow-sm print:border-none print:shadow-none print:p-0">
+            <div id="printable-handbook-document" className="w-full max-w-4xl mx-auto space-y-8 bg-white p-8 sm:p-12 border border-slate-200 shadow-md print:border-none print:shadow-none print:p-0">
               {/* ── 1. OFFICIAL COMPANY LETTERHEAD HEADER ── */}
               <div className="border-b-2 border-slate-900 pb-4 flex items-start justify-between">
                 <div>
