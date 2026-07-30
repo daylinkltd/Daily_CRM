@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { postPurchaseReceived } from "@/lib/accounting/posting";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -157,7 +158,48 @@ export async function POST(request: Request) {
     }));
 
     await supabase.from("commerce_inventory_movements").insert(inwardMovements);
+
+    // Receiving goods creates a liability: DR Purchases, CR Accounts
+    // Payable. Purchases previously moved stock without ever touching
+    // the books, so supplier money was invisible to accounting.
+    let accounting_posted = false;
+    let accounting_error: string | null = null;
+    try {
+      await postPurchaseReceived(supabase, {
+        workspace_id,
+        purchase_order_id: po.id,
+        po_number: po.po_number,
+        total_amount: totalAmount,
+        created_by: member?.id || null,
+      });
+      accounting_posted = true;
+
+      if (supplier_id) {
+        const { data: supplier } = await supabase
+          .from("commerce_suppliers")
+          .select("id, outstanding_balance")
+          .eq("id", supplier_id)
+          .single();
+        if (supplier) {
+          await supabase
+            .from("commerce_suppliers")
+            .update({ outstanding_balance: Number(supplier.outstanding_balance || 0) + totalAmount })
+            .eq("id", supplier.id);
+        }
+      }
+    } catch (err) {
+      // The PO and stock are already committed; surface the posting
+      // failure to the caller instead of a silent console.error.
+      accounting_error = err instanceof Error ? err.message : "Accounting posting failed";
+    }
+
+    return NextResponse.json({
+      success: true,
+      purchase_order: po,
+      accounting_posted,
+      ...(accounting_error ? { accounting_error } : {}),
+    });
   }
 
-  return NextResponse.json({ success: true, purchase_order: po });
+  return NextResponse.json({ success: true, purchase_order: po, accounting_posted: false });
 }

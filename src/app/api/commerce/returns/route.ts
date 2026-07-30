@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isKhataMode, postSalesReturn } from "@/lib/accounting/posting";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -117,5 +118,53 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json({ success: true, return_ticket: returnTicket });
+  // Refunds previously left the books untouched — cash left the
+  // drawer and the GL never learned. Post the reversal: DR Sales
+  // Returns (contra revenue), CR the refund leg.
+  let accounting_posted = false;
+  let accounting_error: string | null = null;
+  try {
+    await postSalesReturn(supabase, {
+      workspace_id,
+      return_id: returnTicket.id,
+      return_number: returnTicket.return_number,
+      amount: Number(total_refund_amount),
+      refund_mode,
+      contact_id: customer_id || null,
+    });
+    accounting_posted = true;
+
+    // Khata-credit and store-credit refunds reduce what the customer
+    // owes (a balance below zero is store credit the customer holds).
+    const creditsKhata = isKhataMode(refund_mode) || refund_mode === "STORE_CREDIT_VOUCHER";
+    if (creditsKhata && customer_id) {
+      const { data: khata } = await supabase
+        .from("commerce_customer_khata")
+        .select("id, outstanding_balance")
+        .eq("workspace_id", workspace_id)
+        .eq("contact_id", customer_id)
+        .maybeSingle();
+      if (khata) {
+        await supabase
+          .from("commerce_customer_khata")
+          .update({ outstanding_balance: Number(khata.outstanding_balance || 0) - Number(total_refund_amount) })
+          .eq("id", khata.id);
+      } else {
+        await supabase.from("commerce_customer_khata").insert({
+          workspace_id,
+          contact_id: customer_id,
+          outstanding_balance: -Number(total_refund_amount),
+        });
+      }
+    }
+  } catch (err) {
+    accounting_error = err instanceof Error ? err.message : "Accounting posting failed";
+  }
+
+  return NextResponse.json({
+    success: true,
+    return_ticket: returnTicket,
+    accounting_posted,
+    ...(accounting_error ? { accounting_error } : {}),
+  });
 }

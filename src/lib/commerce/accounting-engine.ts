@@ -1,8 +1,17 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { sanitizeErrorMessage } from "./barcode-utils";
+import {
+  ensureAccounts,
+  isKhataMode,
+  resolveBankLedger,
+  roleForPaymentMode,
+} from "@/lib/accounting/posting";
 
 export interface PaymentLinePayload {
-  mode: "CASH" | "UPI" | "CARD" | "BANK_TRANSFER" | "CHEQUE" | "KHATA_CREDIT";
+  /** 'KHATA' (the sales-order enum spelling) and 'KHATA_CREDIT' are
+   *  both accepted — the historical mismatch between them silently
+   *  debited credit sales to Cash in Hand. */
+  mode: "CASH" | "UPI" | "CARD" | "BANK_TRANSFER" | "CHEQUE" | "KHATA_CREDIT" | "KHATA";
   bank_account_id?: string;
   amount: number;
   utr_number?: string;
@@ -27,29 +36,11 @@ export interface POSAccountingPayload {
 /**
  * On-the-fly Chart of Accounts Auto-Seeder (Rule #6)
  * Ensures standard default GL accounts exist for the workspace.
+ * Seeding is delegated to the central posting engine's catalog so
+ * the POS path and every other module share one chart of accounts.
  */
 export async function getOrCreateDefaultAccounts(supabase: SupabaseClient, workspaceId: string) {
-  const defaultAccounts = [
-    { account_code: "1010", account_name: "Cash in Hand Ledger", account_type: "ASSET", sub_category: "CASH", is_system: true },
-    { account_code: "1020", account_name: "SBI Current Bank Ledger", account_type: "ASSET", sub_category: "BANK", is_system: true },
-    { account_code: "1021", account_name: "HDFC Bank Ledger", account_type: "ASSET", sub_category: "BANK", is_system: true },
-    { account_code: "1030", account_name: "Cheque in Hand Ledger", account_type: "ASSET", sub_category: "CHEQUE_IN_HAND", is_system: true },
-    { account_code: "1040", account_name: "Customer Khata (Accounts Receivable)", account_type: "ASSET", sub_category: "CUSTOMER_KHATA", is_system: true },
-    { account_code: "4010", account_name: "Sales Revenue Account", account_type: "REVENUE", sub_category: "SALES_REVENUE", is_system: true },
-  ];
-
-  const { data: existing } = await supabase
-    .from("commerce_chart_of_accounts")
-    .select("*")
-    .eq("workspace_id", workspaceId);
-
-  const existingCodes = new Set((existing || []).map((a) => a.account_code));
-  const missing = defaultAccounts.filter((a) => !existingCodes.has(a.account_code));
-
-  if (missing.length > 0) {
-    const toInsert = missing.map((a) => ({ ...a, workspace_id: workspaceId }));
-    await supabase.from("commerce_chart_of_accounts").insert(toInsert);
-  }
+  await ensureAccounts(supabase, workspaceId);
 
   const { data: allAccounts } = await supabase
     .from("commerce_chart_of_accounts")
@@ -121,28 +112,34 @@ export async function postPOSSalesJournal(supabase: SupabaseClient, payload: POS
   const linesToInsert: any[] = [];
   let customerKhataAddition = 0;
 
-  // 3. Build Debit Lines per payment mode
+  // 3. Build Debit Lines per payment mode.
+  //    roleForPaymentMode treats 'KHATA' and 'KHATA_CREDIT' alike,
+  //    and bank_account_id is resolved through the bank account's
+  //    ledger_id — it is a commerce_bank_accounts id, not a
+  //    chart-of-accounts id, and non-UUID junk (the POS UI used to
+  //    send a free-text label) falls back to the default bank ledger.
   for (const p of payments) {
     const amt = Number(p.amount || 0);
     if (amt <= 0) continue;
 
-    let targetAccountId = cashAccount.id;
+    const role = roleForPaymentMode(p.mode);
+    let targetAccountId =
+      role === "CASH" ? cashAccount.id
+      : role === "BANK" ? bankAccount.id
+      : role === "CHEQUE_IN_HAND" ? chequeAccount.id
+      : khataAccount.id;
 
-    if (p.mode === "CASH") {
-      targetAccountId = cashAccount.id;
-    } else if (p.mode === "UPI" || p.mode === "CARD" || p.mode === "BANK_TRANSFER") {
-      targetAccountId = p.bank_account_id || bankAccount.id;
-    } else if (p.mode === "CHEQUE") {
-      targetAccountId = chequeAccount.id;
-    } else if (p.mode === "KHATA_CREDIT") {
-      targetAccountId = khataAccount.id;
+    if (role === "BANK" && p.bank_account_id) {
+      targetAccountId = await resolveBankLedger(supabase, workspace_id, p.bank_account_id, bankAccount);
+    }
+    if (isKhataMode(p.mode)) {
       customerKhataAddition += amt;
     }
 
     linesToInsert.push({
       journal_entry_id: journalEntry.id,
       account_id: targetAccountId,
-      contact_id: p.mode === "KHATA_CREDIT" ? customer_id || null : null,
+      contact_id: isKhataMode(p.mode) ? customer_id || null : null,
       debit_amount: amt,
       credit_amount: 0,
     });
@@ -157,7 +154,15 @@ export async function postPOSSalesJournal(supabase: SupabaseClient, payload: POS
     credit_amount: total_sales_amount,
   });
 
-  await supabase.from("commerce_journal_lines").insert(linesToInsert);
+  const { error: linesError } = await supabase
+    .from("commerce_journal_lines")
+    .insert(linesToInsert);
+  if (linesError) {
+    // The DB rejects unbalanced entries at commit (075). Never leave
+    // the header behind as an orphan voucher.
+    await supabase.from("commerce_journal_entries").delete().eq("id", journalEntry.id);
+    throw new Error(sanitizeErrorMessage(linesError, "Failed to write journal lines"));
+  }
 
   // 5. Update Customer Khata balance if credit purchase was made
   if (customerKhataAddition > 0 && customer_id) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { postKhataCollection } from "@/lib/accounting/posting";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -127,6 +128,9 @@ export async function POST(request: Request) {
     }
 
     const payAmt = Number(payment_amount);
+    if (!Number.isFinite(payAmt) || payAmt <= 0) {
+      return NextResponse.json({ error: "Payment amount must be a positive number" }, { status: 400 });
+    }
 
     // Fetch existing khata
     const { data: existingKhata } = await supabase
@@ -137,8 +141,37 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     const currentBal = Number(existingKhata?.outstanding_balance || 0);
-    const newBal = Math.max(0, currentBal - payAmt);
 
+    // Collecting more than is owed is almost certainly a typo — and
+    // silently clamping it (the old behaviour) made the books disagree
+    // with the khata forever.
+    if (payAmt > currentBal + 0.005) {
+      return NextResponse.json(
+        { error: `Payment ${payAmt} exceeds outstanding balance ${currentBal}` },
+        { status: 400 },
+      );
+    }
+
+    // Post the balanced voucher FIRST: DR Cash/Bank, CR Customer
+    // Khata. If posting fails, the balance is left untouched — the
+    // books and the khata never diverge. (The old code wrote a
+    // header with no lines: an orphan voucher with no amount, which
+    // migration 075 deletes.)
+    let posting;
+    try {
+      posting = await postKhataCollection(supabase, {
+        workspace_id,
+        contact_id,
+        amount: payAmt,
+        payment_mode,
+        narration: notes || undefined,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to post collection voucher";
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
+
+    const newBal = currentBal - payAmt;
     if (existingKhata) {
       await supabase
         .from("commerce_customer_khata")
@@ -152,20 +185,11 @@ export async function POST(request: Request) {
       });
     }
 
-    // Post Accounting Voucher for Payment Collection
-    const voucherNo = `RCV-${Date.now().toString().slice(-6)}`;
-    const { data: voucher } = await supabase
-      .from("commerce_journal_entries")
-      .insert({
-        workspace_id,
-        voucher_number: voucherNo,
-        reference_type: "KHATA_COLLECTION",
-        narration: notes || `Khata payment received via ${payment_mode}`,
-      })
-      .select("id")
-      .single();
-
-    return NextResponse.json({ success: true, new_balance: newBal, voucher });
+    return NextResponse.json({
+      success: true,
+      new_balance: newBal,
+      voucher: { id: posting.journal_entry_id, voucher_number: posting.voucher_number },
+    });
   }
 
   // Action 3: Update Credit Limit

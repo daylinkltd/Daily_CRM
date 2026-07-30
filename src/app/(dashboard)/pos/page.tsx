@@ -278,11 +278,14 @@ function POSTerminalPageContent() {
       }
       paymentBreakdown = [
         { mode: "CASH", amount: splitCashAmount },
-        { mode: "UPI", amount: splitUpiAmount, bank_account: upiBankAccount },
+        // The engine expects `bank_account_id` (a commerce_bank_accounts
+        // id); it validates and falls back to the default bank ledger
+        // when this is a legacy free-text label.
+        { mode: "UPI", amount: splitUpiAmount, bank_account_id: upiBankAccount },
       ];
     } else if (selectedPayment === "UPI") {
       paymentBreakdown = [
-        { mode: "UPI", amount: grandTotal, bank_account: upiBankAccount },
+        { mode: "UPI", amount: grandTotal, bank_account_id: upiBankAccount },
       ];
     } else {
       paymentBreakdown = [
