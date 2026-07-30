@@ -26,6 +26,7 @@ import {
   ImageIcon,
   FileText,
   Calculator,
+  Handshake,
   Briefcase,
   CheckSquare,
   Clock,
@@ -104,9 +105,13 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/inbox", label: "Inbox", icon: MessageSquare, permission: "inbox", badge: true },
+      // Ordered to follow the customer lifecycle end to end:
+      // Contacts -> Pipelines -> Commercials -> Quotations -> Invoices.
       { href: "/contacts", label: "Contacts", icon: Users, permission: "contacts" },
       { href: "/pipelines", label: "Pipelines", icon: GitBranch, permission: "pipelines" },
+      { href: "/commercials", label: "Commercials", icon: Handshake },
       { href: "/quotations", label: "Quotations", icon: Calculator },
+      { href: "/invoices", label: "Invoices", icon: Receipt },
       { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts" },
       { href: "/media", label: "Media", icon: ImageIcon },
       { href: "/forms", label: "Forms", icon: FileText },
