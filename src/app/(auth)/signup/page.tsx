@@ -50,9 +50,19 @@ function SignupPageInner() {
 
     setLoading(true);
 
+    // Prefer the configured public URL over window.location.origin:
+    // signing up from a dev machine used to email a link pointing at
+    // http://localhost:3000, which is dead for the recipient. When
+    // NEXT_PUBLIC_SITE_URL is unset we fall back to the current
+    // origin, which is correct for a normal production visit.
+    // NOTE: when this is undefined, Supabase falls back to the
+    // "Site URL" configured in the Supabase dashboard — set that to
+    // the production URL too, or confirmation links land on localhost.
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/+$/, "");
+    const base = siteUrl || window.location.origin;
     const emailRedirectTo = inviteToken
-      ? `${window.location.origin}/join/${encodeURIComponent(inviteToken)}`
-      : undefined;
+      ? `${base}/join/${encodeURIComponent(inviteToken)}`
+      : `${base}/dashboard`;
 
     const { error } = await supabase.auth.signUp({
       email,
