@@ -815,7 +815,7 @@ export default function EditQuotationPage({ params }: PageProps) {
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="q-payment">Payment Milestones / Schedule</Label>
-                <Textarea
+                <Textarea plain
                   id="q-payment"
                   value={paymentTerms}
                   onChange={(e) => setPaymentTerms(e.target.value)}
@@ -827,7 +827,7 @@ export default function EditQuotationPage({ params }: PageProps) {
 
               <div className="grid gap-2">
                 <Label htmlFor="q-terms">Contract Notes & General Terms</Label>
-                <Textarea
+                <Textarea plain
                   id="q-terms"
                   value={notesTerms}
                   onChange={(e) => setNotesTerms(e.target.value)}

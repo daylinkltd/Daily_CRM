@@ -189,7 +189,7 @@ export function IntegrationShareButtons({
             </div>
             <div className="space-y-1.5">
               <Label>Message</Label>
-              <Textarea
+              <Textarea plain
                 value={waMessage}
                 onChange={(e) => setWaMessage(e.target.value)}
                 rows={4}
@@ -242,7 +242,7 @@ export function IntegrationShareButtons({
             </div>
             <div className="space-y-1.5">
               <Label>Email Body</Label>
-              <Textarea
+              <Textarea plain
                 value={emailBody}
                 onChange={(e) => setEmailBody(e.target.value)}
                 rows={4}

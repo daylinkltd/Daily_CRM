@@ -174,7 +174,7 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
 
           <div className="space-y-2">
             <Label className="text-foreground">Description (What did you work on?)</Label>
-            <Textarea
+            <Textarea plain
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief details..."

@@ -133,7 +133,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
 
           <div>
             <Label className="text-foreground mb-1 block">Reason / Justification *</Label>
-            <Textarea
+            <Textarea plain
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide a detailed explanation for your manager..."

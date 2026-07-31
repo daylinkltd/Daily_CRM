@@ -757,7 +757,7 @@ function StepEditor({
     case "send_message":
       return (
         <FieldBlock label="Message text">
-          <Textarea
+          <Textarea plain
             value={(cfg.text as string) ?? ""}
             onChange={(e) => set({ text: e.target.value })}
             placeholder="Hi! Thanks for reaching out…"
@@ -954,7 +954,7 @@ function StepEditor({
             />
           </FieldBlock>
           <FieldBlock label="Body template (JSON)">
-            <Textarea
+            <Textarea plain
               value={(cfg.body_template as string) ?? ""}
               onChange={(e) => set({ body_template: e.target.value })}
               className="min-h-20 bg-muted font-mono text-xs text-foreground"

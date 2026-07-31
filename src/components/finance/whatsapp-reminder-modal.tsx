@@ -199,7 +199,7 @@ export function WhatsAppReminderModal({
               <span>Reminder Message Text</span>
               <span className="text-[10px] text-muted-foreground">{message.length} characters</span>
             </label>
-            <Textarea
+            <Textarea plain
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}

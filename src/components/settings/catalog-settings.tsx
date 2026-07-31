@@ -371,7 +371,7 @@ export function CatalogSettings() {
               </div>
             ) : (
               <div className="grid gap-4">
-                <Textarea
+                <Textarea plain
                   value={terms}
                   onChange={(e) => setTerms(e.target.value)}
                   disabled={!canEditSettings}
@@ -426,7 +426,7 @@ export function CatalogSettings() {
 
             <div className="grid gap-2">
               <Label htmlFor="item-desc">Description</Label>
-              <Textarea
+              <Textarea plain
                 id="item-desc"
                 placeholder="Product description detail..."
                 value={description}

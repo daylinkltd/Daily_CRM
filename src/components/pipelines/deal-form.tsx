@@ -536,7 +536,7 @@ export function DealForm({
 
             <div className="grid gap-2">
               <Label className="text-foreground">Notes</Label>
-              <Textarea
+              <Textarea plain
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add notes..."

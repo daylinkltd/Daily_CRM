@@ -136,7 +136,7 @@ export default function NewEntryPage() {
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-muted-foreground">Narration</label>
-              <Textarea
+              <Textarea plain
                 value={narration}
                 onChange={(e) => setNarration(e.target.value)}
                 placeholder="What is this entry for?"

@@ -311,7 +311,7 @@ export default function ExpensesPage() {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Description</label>
-              <Textarea
+              <Textarea plain
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="What was this expense for?"

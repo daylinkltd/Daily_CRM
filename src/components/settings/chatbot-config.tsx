@@ -373,7 +373,7 @@ export function ChatbotConfig() {
             {/* System Prompt */}
             <div className="grid gap-2">
               <Label className="text-foreground">System Instructions / Persona</Label>
-              <Textarea
+              <Textarea plain
                 placeholder="Act as a helpful customer support agent. Be concise, polite, and professional..."
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
@@ -388,7 +388,7 @@ export function ChatbotConfig() {
                 <Label className="text-foreground">Business Knowledge (FAQs, Pricing, Details)</Label>
                 <span className="text-[10px] text-muted-foreground">Add custom details here</span>
               </div>
-              <Textarea
+              <Textarea plain
                 placeholder="Our business hours: Mon-Fri 9 AM to 6 PM.
 Pricing details: Standard $29, Premium $99.
 Support contacts: support@example.com"
