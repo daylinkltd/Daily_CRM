@@ -50,9 +50,9 @@ export async function GET(request: Request) {
     supabase.from("company_details").select("*").eq("workspace_id", workspaceId).maybeSingle(),
     supabase
       .from("hr_policies")
-      .select("id, title, status, versions:hr_policy_versions(id, version_number)")
+      .select("id, title, status, handbook_position, versions:hr_policy_versions(id, version_number, published_at)")
       .eq("workspace_id", workspaceId)
-      .like("title", "Handbook §%"),
+      .order("handbook_position", { ascending: true, nullsFirst: false }),
     supabase.from("workspace_members").select("id").eq("workspace_id", workspaceId),
   ]);
 
@@ -90,11 +90,14 @@ export async function GET(request: Request) {
 
   // Include custom policies added via AddPolicyDialog (title starts with "Handbook §")
   const standardTitles = new Set(HANDBOOK_SECTIONS.map((s) => s.title));
+  const extras = (policies ?? [])
+    .filter((p) => !standardTitles.has(p.title) && p.handbook_position != null)
+    .sort((a, b) => (a.handbook_position ?? 0) - (b.handbook_position ?? 0));
   let extraOrder = HANDBOOK_SECTIONS.length + 1;
-  for (const p of policies ?? []) {
-    if (!standardTitles.has(p.title)) {
+  for (const p of extras) {
+    {
       sections.push({
-        order: extraOrder++,
+        order: p.handbook_position ?? extraOrder++,
         key: `custom_${p.id}`,
         title: p.title,
         mandatory: false,
@@ -197,6 +200,7 @@ export async function POST(request: Request) {
         workspace_id,
         title: section.title,
         category: section.category,
+        handbook_position: section.order,
         owner_workspace_member_id: member.id,
         linked_module: "NONE",
         status: "DRAFT",
@@ -204,6 +208,12 @@ export async function POST(request: Request) {
       .select("id")
       .single();
     if (pErr || !policy) {
+      if (pErr && /handbook_position|column .* does not exist|schema cache/i.test(pErr.message)) {
+        return NextResponse.json(
+          { error: "Handbook ordering is not set up yet — apply migration 083, then generate.", created, skipped },
+          { status: 400 },
+        );
+      }
       return NextResponse.json(
         { error: `Failed at "${section.title}": ${pErr?.message}`, created, skipped },
         { status: 500 },

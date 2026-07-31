@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Printer, X, Building2, ShieldCheck, Download, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { markdownToHtml } from "@/lib/markdown-utils";
 
@@ -40,6 +41,8 @@ export function PrintableHandbookModal({
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<CompanyDetails | null>(null);
   const [sections, setSections] = useState<PrintableSection[]>([]);
+  // The subtree that actually gets printed.
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open || !workspaceId) return;
@@ -47,13 +50,14 @@ export function PrintableHandbookModal({
 
     // Fetch company details + full policy sections for print
     Promise.all([
+      // NOTE: these routes read `workspaceId` (camelCase). Sending
+      // `workspace_id` returned 400 and printed an empty handbook.
       fetch(`/api/hr/handbook?workspace_id=${workspaceId}`).then((r) => r.json()),
-      fetch(`/api/hr/policies?workspace_id=${workspaceId}`).then((r) => r.json()),
-      fetch(`/api/settings/branding?workspace_id=${workspaceId}`).then((r) => r.json()).catch(() => ({})),
+      fetch(`/api/hr/policies?workspaceId=${workspaceId}`).then((r) => r.json()),
     ])
-      .then(([hbData, polData, brandData]) => {
+      .then(([hbData, polData]) => {
         const details = hbData.details || {};
-        const logo = brandData.logo_url || null;
+        const logo = details.logo_url || null;
         setCompany({
           legal_name: details.legal_name || workspaceName,
           brand_name: details.brand_name || workspaceName,
@@ -69,7 +73,10 @@ export function PrintableHandbookModal({
         const hbSections = hbData.sections || [];
         const fullSections: PrintableSection[] = hbSections.map((sec: any) => {
           const match = allPolicies.find((p: any) => p.id === sec.policy_id);
-          const versions = match?.versions || [];
+          // Only PUBLISHED versions may be printed for signature —
+          // picking the highest version number could print an
+          // in-progress draft as official policy.
+          const versions = (match?.versions || []).filter((v: any) => v.published_at);
           const maxVerNum = versions.reduce((max: number, v: any) => Math.max(max, v.version_number || 1), 0);
           const latestVer = versions.find((v: any) => v.version_number === maxVerNum);
 
@@ -78,7 +85,7 @@ export function PrintableHandbookModal({
             title: sec.title.replace(/^Handbook §\d+ — /, ""),
             category: match?.category || sec.key,
             mandatory: sec.mandatory,
-            content: latestVer?.content || "Section content pending policy publication.",
+            content: latestVer?.content || "This section has no published version yet — publish it in Policies & Compliance before printing for signature.",
           };
         });
 
@@ -91,7 +98,43 @@ export function PrintableHandbookModal({
   }, [open, workspaceId, workspaceName]);
 
   const handlePrintWindow = () => {
-    window.print();
+    // The dialog is fixed-position with its own scroll container, so a
+    // bare window.print() emitted the whole dashboard clipped to one
+    // page. Print from a dedicated window containing just the
+    // handbook markup instead.
+    const node = printRef.current;
+    if (!node) {
+      window.print();
+      return;
+    }
+    const win = window.open("", "_blank", "width=980,height=1200");
+    if (!win) {
+      toast.error("Allow pop-ups for this site to print the handbook");
+      return;
+    }
+    const styles = Array.from(
+      document.querySelectorAll('link[rel="stylesheet"], style')
+    )
+      .map((el) => el.outerHTML)
+      .join("\n");
+    win.document.write(
+      `<!doctype html><html><head><title>${
+        company?.legal_name ?? "Employee Handbook"
+      } — Employee Handbook</title>${styles}` +
+        `<style>
+           @page { size: A4; margin: 18mm 16mm; }
+           body { background:#fff; color:#0f172a; }
+           .hb-section { break-inside: avoid; }
+           .hb-page-break { break-before: page; }
+         </style></head><body>${node.innerHTML}</body></html>`
+    );
+    win.document.close();
+    // Wait for the copied stylesheets to apply before printing.
+    win.onload = () => {
+      win.focus();
+      win.print();
+      win.close();
+    };
   };
 
   return (
@@ -120,7 +163,7 @@ export function PrintableHandbookModal({
               <Loader2 className="size-8 animate-spin text-primary mr-2" /> Generating Official Handbook Letterhead...
             </div>
           ) : (
-            <div id="printable-handbook-document" className="w-full max-w-4xl mx-auto space-y-8 bg-white p-8 sm:p-12 border border-slate-200 shadow-md print:border-none print:shadow-none print:p-0">
+            <div ref={printRef} id="printable-handbook-document" className="w-full max-w-4xl mx-auto space-y-8 bg-white p-8 sm:p-12 border border-slate-200 shadow-md print:border-none print:shadow-none print:p-0">
               {/* ── 1. OFFICIAL COMPANY LETTERHEAD HEADER ── */}
               <div className="border-b-2 border-slate-900 pb-4 flex items-start justify-between">
                 <div>
@@ -179,7 +222,7 @@ export function PrintableHandbookModal({
               {/* ── 4. FULL HANDBOOK SECTION CONTENTS ── */}
               <div className="space-y-8 pt-4">
                 {sections.map((sec) => (
-                  <div key={sec.order} className="space-y-3 page-break-inside-avoid border-b border-slate-200 pb-6">
+                  <div key={sec.order} className="space-y-3 hb-section border-b border-slate-200 pb-6">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-1">
                       <h3 className="text-base font-bold text-slate-900">
                         Section {sec.order}: {sec.title}
@@ -200,7 +243,7 @@ export function PrintableHandbookModal({
               </div>
 
               {/* ── 5. OFFICIAL SIGN-OFF & ATTESTATION PAGE ── */}
-              <div className="pt-8 space-y-6 page-break-before-always border-t-2 border-slate-900">
+              <div className="pt-8 space-y-6 hb-page-break border-t-2 border-slate-900">
                 <div className="text-center space-y-1">
                   <h3 className="text-sm font-black uppercase text-slate-900">
                     Employee Acknowledgement & Attestation Sign-off
