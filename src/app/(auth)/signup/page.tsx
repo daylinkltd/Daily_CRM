@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, UsersRound } from "lucide-react";
+import { UsersRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,6 @@ function SignupPageInner() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const supabase = createClient();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -50,47 +49,53 @@ function SignupPageInner() {
 
     setLoading(true);
 
-    // Prefer the configured public URL over window.location.origin:
-    // signing up from a dev machine used to email a link pointing at
-    // http://localhost:3000, which is dead for the recipient. When
-    // NEXT_PUBLIC_SITE_URL is unset we fall back to the current
-    // origin, which is correct for a normal production visit.
-    // NOTE: when this is undefined, Supabase falls back to the
-    // "Site URL" configured in the Supabase dashboard — set that to
-    // the production URL too, or confirmation links land on localhost.
-    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/+$/, "");
-    const base = siteUrl || window.location.origin;
-    const emailRedirectTo = inviteToken
-      ? `${base}/join/${encodeURIComponent(inviteToken)}`
-      : `${base}/dashboard`;
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+    // Create the account server-side, pre-confirmed. Supabase's own
+    // signUp() would leave it unconfirmed and mail a verification
+    // link pointing at the dashboard's "Site URL" — the source of the
+    // dead localhost links. No email is sent at all now; the password
+    // set here works immediately.
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
           full_name: fullName.trim(),
-          // Persist the invite token on the auth user itself.
-          // sessionStorage alone is per-tab: the email-confirmation
-          // link usually opens in a NEW tab (or another device),
-          // where sessionStorage is empty — which used to dump
-          // invited users into the onboarding/plan-selection flow.
-          // user_metadata travels with the session everywhere, so
-          // the dashboard/onboarding guards can always find it.
+          // Carried on the auth user so the join guards find it even
+          // in another tab or on another device.
           ...(inviteToken ? { invite_token: inviteToken } : {}),
-        },
-        ...(emailRedirectTo ? { emailRedirectTo } : {}),
-      },
-    });
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(payload.error || "Could not create your account");
+        setLoading(false);
+        return;
+      }
 
-    if (error) {
-      setError(error.message);
+      // Sign straight in with the credentials just set.
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (signInError) {
+        // Account exists but the session didn't start — send them to
+        // sign in rather than leaving them on a dead-end screen.
+        setError(`${signInError.message}. Your account was created — please sign in.`);
+        setLoading(false);
+        return;
+      }
+
+      // Full reload (not router.push) so AuthProvider picks up the new
+      // session before the destination's guards run.
+      window.location.href = inviteToken
+        ? `/join/${encodeURIComponent(inviteToken)}`
+        : "/dashboard";
+    } catch {
+      setError("Could not create your account. Please try again.");
       setLoading(false);
-      return;
     }
-
-    setSuccess(true);
-    setLoading(false);
   };
 
   const plan = searchParams.get("plan");
@@ -107,29 +112,6 @@ function SignupPageInner() {
       sessionStorage.setItem("pending_invite_token", inviteToken);
     }
   }, [plan, cycle, inviteToken]);
-
-  if (success) {
-    return (
-      <div className="marketing min-h-screen bg-[var(--mkt-canvas)] flex flex-col items-center justify-center px-4 text-center relative overflow-hidden">
-        <div className="relative z-10 w-full max-w-md rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[var(--mkt-shadow)] p-8">
-          <div className="flex justify-center mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)]">
-              <CheckCircle className="h-6 w-6 text-[var(--mkt-accent-text)]" />
-            </div>
-          </div>
-          <h2 className="text-xl font-bold text-[var(--mkt-fg)] mb-2">Check your email</h2>
-          <p className="text-[var(--mkt-fg-muted)] text-sm mb-6">
-            We&apos;ve sent a confirmation link to <span className="text-[var(--mkt-fg)] font-medium">{email}</span>. Please check your inbox and click the link to verify your account.
-          </p>
-          <Link href={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"}>
-            <Button variant="outline" className="mkt-btn mkt-btn-secondary h-11 w-full text-sm">
-              Back to sign in
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="marketing min-h-screen flex flex-col items-center justify-center px-4 text-center relative overflow-hidden bg-[var(--mkt-canvas)]">
