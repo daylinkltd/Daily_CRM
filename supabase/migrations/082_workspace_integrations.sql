@@ -1,5 +1,3 @@
--- ==================== BEGIN 082_workspace_integrations ====================
-
 -- ============================================================
 -- 082 — workspace_integrations.
 --
@@ -66,5 +64,3 @@ CREATE POLICY workspace_integrations_admin ON public.workspace_integrations
 DROP TRIGGER IF EXISTS set_updated_at ON public.workspace_integrations;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.workspace_integrations
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
--- ==================== END 082 ====================
