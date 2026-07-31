@@ -149,7 +149,7 @@ export function AssignAssetForm({ open, onOpenChange, onSaved }: AssignAssetForm
                       
                       return (
                         <SelectItem key={emp.workspace_member_id} value={emp.workspace_member_id}>
-                          {profile?.full_name || profile?.email || 'Unknown User'}
+                          {profile?.full_name?.trim() || profile?.email || emp.workspace_members?.full_name?.trim() || 'Workspace Member'}
                         </SelectItem>
                       );
                     })}

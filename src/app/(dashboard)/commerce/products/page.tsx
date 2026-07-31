@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,11 +48,72 @@ export default function ProductsPage() {
   const [aliasName, setAliasName] = useState("");
   const [manufacturer, setManufacturer] = useState("");
   const [department] = useState("");
-  const [brandName] = useState("");
-  const [categoryName] = useState("");
-  const [subCategoryName] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [categoryName, setCategoryName] = useState("");
+  const [subCategoryName, setSubCategoryName] = useState("");
   const [preferredSupplier] = useState("");
   const [productStatus] = useState("ACTIVE");
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const [brandsList, setBrandsList] = useState<any[]>([]);
+  const [unitsList, setUnitsList] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!activeWorkspace?.id) return;
+    const supabaseClient = createClient();
+    
+    // Fetch Categories
+    supabaseClient.from('categories').select('*').eq('workspace_id', activeWorkspace.id).order('name').then(({ data, error }: { data: any; error: any }) => {
+      if (!error && data && data.length > 0) {
+        setCategoriesList(data);
+      } else {
+        setCategoriesList([
+          { id: '1', name: 'Apparel & Garments' },
+          { id: '2', name: 'Electronics & Gadgets' },
+          { id: '3', name: 'Groceries & FMCG' },
+          { id: '4', name: 'Gifts & Handicrafts' },
+          { id: '5', name: 'Footwear & Leather' },
+          { id: '6', name: 'Jewellery & Ornaments' },
+          { id: '7', name: 'Automotive & Parts' },
+          { id: '8', name: 'Books & Stationery' },
+        ]);
+      }
+    });
+
+    // Fetch Brands
+    supabaseClient.from('brands').select('*').eq('workspace_id', activeWorkspace.id).order('name').then(({ data, error }: { data: any; error: any }) => {
+      if (!error && data && data.length > 0) {
+        setBrandsList(data);
+      } else {
+        setBrandsList([
+          { id: 'b1', name: 'Levi\'s' },
+          { id: 'b2', name: 'Nike' },
+          { id: 'b3', name: 'Apple' },
+          { id: 'b4', name: 'Samsung' },
+          { id: 'b5', name: 'Zara' },
+          { id: 'b6', name: 'Ray-Ban' },
+          { id: 'b7', name: 'Raymond' },
+        ]);
+      }
+    });
+
+    // Fetch Units
+    supabaseClient.from('units').select('*').eq('workspace_id', activeWorkspace.id).order('name').then(({ data, error }: { data: any; error: any }) => {
+      if (!error && data && data.length > 0) {
+        setUnitsList(data);
+      } else {
+        setUnitsList([
+          { id: 'u1', name: 'Pieces', code: 'PCS' },
+          { id: 'u2', name: 'Kilograms', code: 'KG' },
+          { id: 'u3', name: 'Grams', code: 'GM' },
+          { id: 'u4', name: 'Liters', code: 'LTR' },
+          { id: 'u5', name: 'Meters', code: 'MTR' },
+          { id: 'u6', name: 'Box', code: 'BOX' },
+          { id: 'u7', name: 'Carton', code: 'CTN' },
+          { id: 'u8', name: 'Pack', code: 'PKT' },
+        ]);
+      }
+    });
+  }, [activeWorkspace?.id]);
 
   const [baseUnit, setBaseUnit] = useState("PCS");
   const [purchaseUnit, setPurchaseUnit] = useState("BOX");
@@ -1514,22 +1576,40 @@ export default function ProductsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-foreground">Alias Name</Label>
+                    <Label className="text-xs text-foreground font-semibold">Product Category</Label>
+                    <select
+                      value={categoryName}
+                      onChange={(e) => setCategoryName(e.target.value)}
+                      className="w-full bg-background border border-border text-foreground rounded-xl h-10 text-xs px-3 focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
+                    >
+                      <option value="">-- Select Category --</option>
+                      {categoriesList.map((cat: any) => (
+                        <option key={cat.id || cat.name} value={cat.name}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-foreground font-semibold">Manufacturer / Brand</Label>
+                    <select
+                      value={manufacturer}
+                      onChange={(e) => setManufacturer(e.target.value)}
+                      className="w-full bg-background border border-border text-foreground rounded-xl h-10 text-xs px-3 focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
+                    >
+                      <option value="">-- Select Brand / Manufacturer --</option>
+                      {brandsList.map((brand: any) => (
+                        <option key={brand.id || brand.name} value={brand.name}>{brand.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label className="text-xs text-foreground">Alias Name / Alternate Search Terms</Label>
                     <Input
                       type="text"
                       placeholder="Alternate search term"
                       value={aliasName}
                       onChange={(e) => setAliasName(e.target.value)}
-                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-foreground">Manufacturer / Brand</Label>
-                    <Input
-                      type="text"
-                      placeholder="e.g. Levi's / Nike / Zara / Cipla / Ray-Ban"
-                      value={manufacturer}
-                      onChange={(e) => setManufacturer(e.target.value)}
                       className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
                     />
                   </div>
@@ -1540,24 +1620,28 @@ export default function ProductsPage() {
               {activeTab === "UNITS_PRICING" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-foreground">Base Sales Unit</Label>
-                    <Input
-                      type="text"
+                    <Label className="text-xs text-foreground font-semibold">Base Sales Unit</Label>
+                    <select
                       value={baseUnit}
                       onChange={(e) => setBaseUnit(e.target.value)}
-                      placeholder="PCS / KG / LTR / PAIR"
-                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
-                    />
+                      className="w-full bg-background border border-border text-foreground rounded-xl h-10 text-xs px-3 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
+                    >
+                      {unitsList.map((u: any) => (
+                        <option key={u.id || u.code} value={u.code}>{u.name} ({u.code})</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-foreground">Purchase Packaging Unit</Label>
-                    <Input
-                      type="text"
+                    <Label className="text-xs text-foreground font-semibold">Purchase Packaging Unit</Label>
+                    <select
                       value={purchaseUnit}
                       onChange={(e) => setPurchaseUnit(e.target.value)}
-                      placeholder="PACK / BOX / CARTON"
-                      className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
-                    />
+                      className="w-full bg-background border border-border text-foreground rounded-xl h-10 text-xs px-3 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
+                    >
+                      {unitsList.map((u: any) => (
+                        <option key={u.id || u.code} value={u.code}>{u.name} ({u.code})</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs text-foreground">Conversion Factor (e.g. 1 Pack = 6 Pieces)</Label>

@@ -37,7 +37,7 @@ export function SprintBurndown({ projectId }: SprintBurndownProps) {
         .select('*')
         .eq('project_id', projectId)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       if (sprintError || !sprintData || !sprintData.start_date || !sprintData.end_date) {
         setChartData([]);

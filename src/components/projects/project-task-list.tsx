@@ -366,14 +366,13 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                               <DropdownMenu>
                                 <DropdownMenuTrigger
                                   render={
-                                    <div
-                                      role="button"
-                                      tabIndex={0}
-                                      className="inline-flex items-center gap-1 h-6 px-2 rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer select-none"
+                                    <button
+                                      type="button"
+                                      className="inline-flex items-center gap-1 h-6 px-2 rounded-none text-xs text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer select-none border-0 bg-transparent"
                                     >
                                       <Plus className="size-3" />
                                       Add
-                                    </div>
+                                    </button>
                                   }
                                 />
                                 <DropdownMenuContent align="end" className="w-36 bg-popover border-border">

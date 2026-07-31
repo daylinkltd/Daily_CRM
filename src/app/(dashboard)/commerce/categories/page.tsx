@@ -1,0 +1,267 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { useWorkspace } from '@/hooks/use-workspace';
+import { PageHeader } from '@/components/shared/page-header';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Plus, Search, Tag, Loader2, Edit3, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+export default function CategoriesPage() {
+  const supabase = createClient();
+  const { activeWorkspace } = useWorkspace();
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  
+  // Modal states
+  const [openModal, setOpenModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<any | null>(null);
+
+  // Form State
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+
+  const fetchCategories = useCallback(async () => {
+    if (!activeWorkspace?.id) return;
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('workspace_id', activeWorkspace.id)
+        .order('name', { ascending: true });
+
+      if (error) {
+        // Fallback: search products categories
+        const { data: prodData } = await supabase
+          .from('products')
+          .select('category_name')
+          .eq('workspace_id', activeWorkspace.id);
+
+        const uniqueCats = Array.from(
+          new Set((prodData || []).map(p => p.category_name).filter(Boolean))
+        ).map((catName, idx) => ({
+          id: `cat_${idx}`,
+          name: catName,
+          description: 'Product Category',
+          created_at: new Date().toISOString()
+        }));
+
+        setCategories(uniqueCats);
+      } else {
+        setCategories(data || []);
+      }
+    } catch {
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase, activeWorkspace?.id]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  const handleOpenAdd = () => {
+    setEditingCategory(null);
+    setName('');
+    setDescription('');
+    setOpenModal(true);
+  };
+
+  const handleOpenEdit = (cat: any) => {
+    setEditingCategory(cat);
+    setName(cat.name || '');
+    setDescription(cat.description || '');
+    setOpenModal(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeWorkspace?.id || !name.trim()) return;
+
+    setSaving(true);
+    try {
+      if (editingCategory?.id && !editingCategory.id.startsWith('cat_')) {
+        const { error } = await supabase
+          .from('categories')
+          .update({ name: name.trim(), description: description.trim() })
+          .eq('id', editingCategory.id);
+
+        if (error) throw error;
+        toast.success('Category updated successfully');
+      } else {
+        const { error } = await supabase
+          .from('categories')
+          .insert({
+            workspace_id: activeWorkspace.id,
+            name: name.trim(),
+            description: description.trim()
+          });
+
+        if (error) throw error;
+        toast.success('Category created successfully');
+      }
+
+      setOpenModal(false);
+      fetchCategories();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save category');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this category?')) return;
+    try {
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (error) throw error;
+      toast.success('Category deleted');
+      fetchCategories();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete category');
+    }
+  };
+
+  const filteredCategories = categories.filter(c =>
+    c.name?.toLowerCase().includes(search.toLowerCase()) ||
+    c.description?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Product Categories"
+        description="Organize your store inventory into structured product categories."
+        action={
+          <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground">
+            <Plus className="size-4 mr-2" />
+            Add Category
+          </Button>
+        }
+      />
+
+      <div className="flex items-center gap-2 max-w-sm">
+        <div className="relative w-full">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search categories..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-8 bg-card border-border"
+          />
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border overflow-hidden bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground">Category Name</TableHead>
+              <TableHead className="text-muted-foreground">Description</TableHead>
+              <TableHead className="text-muted-foreground w-24 text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow className="border-border">
+                <TableCell colSpan={3} className="text-center py-12">
+                  <Loader2 className="size-6 animate-spin mx-auto text-primary" />
+                  <p className="text-sm text-muted-foreground mt-2">Loading categories...</p>
+                </TableCell>
+              </TableRow>
+            ) : filteredCategories.length === 0 ? (
+              <TableRow className="border-border">
+                <TableCell colSpan={3} className="text-center py-12">
+                  <Tag className="size-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">No categories found.</p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredCategories.map(cat => (
+                <TableRow key={cat.id} className="border-border hover:bg-muted/50">
+                  <TableCell className="font-medium text-foreground">{cat.name}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{cat.description || '-'}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="size-8" onClick={() => handleOpenEdit(cat)}>
+                        <Edit3 className="size-4 text-muted-foreground" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600" onClick={() => handleDelete(cat.id)}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent className="sm:max-w-[480px] bg-card border-border rounded-xl p-6 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
+            <DialogDescription>Define category names and descriptions for your catalog.</DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Category Name <span className="text-red-500">*</span></Label>
+              <Input
+                placeholder="e.g. Apparel, Electronics, Groceries"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+                className="bg-card border-border"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input
+                placeholder="Optional category description..."
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                className="bg-card border-border"
+              />
+            </div>
+
+            <DialogFooter className="pt-4 border-t border-border">
+              <Button type="button" variant="outline" onClick={() => setOpenModal(false)}>Cancel</Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+                {editingCategory ? 'Save Changes' : 'Create Category'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

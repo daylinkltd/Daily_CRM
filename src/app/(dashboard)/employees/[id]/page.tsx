@@ -28,55 +28,125 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const [loading, setLoading] = useState(true);
 
   const fetchProfileData = useCallback(async () => {
-    if (!activeWorkspace?.id) return;
+    if (!id) return;
     setLoading(true);
 
-    // 1. Fetch employee (two-step: workspace_members.user_id refs auth.users not public.profiles)
-    const { data: rawEmpData, error: empErr } = await supabase
-      .from('employee_profiles')
-      .select(`*, workspace_members!inner ( id, user_id, role )`)
-      .eq('workspace_id', activeWorkspace.id)
-      .eq('workspace_member_id', id)
-      .single();
+    try {
+      let empData: any = null;
 
-    if (empErr) {
+      // Step 1: Query employee_profiles by workspace_member_id or id
+      const { data: rawEmp } = await supabase
+        .from('employee_profiles')
+        .select('*')
+        .or(`workspace_member_id.eq.${id},id.eq.${id}`)
+        .maybeSingle();
+
+      if (rawEmp) {
+        empData = { ...rawEmp };
+      } else {
+        // Step 2: Try finding workspace_member directly by id or user_id
+        const { data: member } = await supabase
+          .from('workspace_members')
+          .select('id, user_id, role, workspace_id')
+          .or(`id.eq.${id},user_id.eq.${id}`)
+          .maybeSingle();
+
+        if (member) {
+          const { data: empByMember } = await supabase
+            .from('employee_profiles')
+            .select('*')
+            .eq('workspace_member_id', member.id)
+            .maybeSingle();
+
+          if (empByMember) {
+            empData = { ...empByMember };
+          } else {
+            // Auto-fallback profile for active workspace member
+            empData = {
+              workspace_member_id: member.id,
+              workspace_id: member.workspace_id || activeWorkspace?.id,
+              status: 'ACTIVE',
+              joining_date: new Date().toISOString().slice(0, 10),
+              employment_type: 'FULL_TIME',
+            };
+          }
+          empData.workspace_members = member;
+        }
+      }
+
+      if (!empData) {
+        setEmployee(null);
+        setLoading(false);
+        return;
+      }
+
+      // Step 3: Ensure workspace_members is populated
+      if (!empData.workspace_members && empData.workspace_member_id) {
+        const { data: member } = await supabase
+          .from('workspace_members')
+          .select('id, user_id, role, workspace_id')
+          .eq('id', empData.workspace_member_id)
+          .maybeSingle();
+        empData.workspace_members = member || null;
+      }
+
+      // Step 4: Enrich workspace_members with profiles (full_name, email, avatar_url)
+      if (empData?.workspace_members?.user_id) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, email, avatar_url')
+          .eq('user_id', empData.workspace_members.user_id)
+          .maybeSingle();
+        if (prof) {
+          empData.workspace_members.profiles = prof;
+        }
+      }
+
+      setEmployee(empData);
+
+      // Step 5: Fetch reference data for departments, designations, managers
+      const targetWsId = empData.workspace_id || activeWorkspace?.id;
+      if (targetWsId) {
+        const [deptRes, desigRes, rawMgrRes] = await Promise.all([
+          supabase.from('departments').select('id, name').eq('workspace_id', targetWsId).order('name'),
+          supabase.from('designations').select('id, title').eq('workspace_id', targetWsId).order('title'),
+          supabase.from('employee_profiles').select(`workspace_member_id, workspace_id`).eq('workspace_id', targetWsId)
+        ]);
+
+        if (deptRes.data) setDepartments(deptRes.data);
+        if (desigRes.data) setDesignations(desigRes.data);
+
+        if (rawMgrRes.data && rawMgrRes.data.length > 0) {
+          const mgrMemberIds = rawMgrRes.data.map((m: any) => m.workspace_member_id).filter(Boolean);
+          const { data: mgrMembers } = await supabase
+            .from('workspace_members')
+            .select('id, user_id')
+            .in('id', mgrMemberIds);
+          
+          const mgrUserIds = (mgrMembers || []).map((m: any) => m.user_id).filter(Boolean);
+          const { data: mgrProfilesData } = await supabase
+            .from('profiles')
+            .select('user_id, full_name')
+            .in('user_id', mgrUserIds);
+          
+          const mgrProfileMap = Object.fromEntries((mgrProfilesData || []).map((p: any) => [p.user_id, p]));
+          const memberMap = Object.fromEntries((mgrMembers || []).map((m: any) => [m.id, m]));
+
+          setManagers(rawMgrRes.data.map((m: any) => {
+            const wm = memberMap[m.workspace_member_id];
+            return {
+              workspace_member_id: m.workspace_member_id,
+              workspace_members: wm ? { ...wm, profiles: mgrProfileMap[wm.user_id] || null } : null
+            };
+          }));
+        }
+      }
+    } catch (err: any) {
+      console.error('Error fetching employee profile:', err);
       toast.error('Failed to load employee profile');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Enrich with profile
-    const empData: any = rawEmpData;
-    if (empData?.workspace_members?.user_id) {
-      const { data: prof } = await supabase.from('profiles').select('user_id, full_name, email, avatar_url').eq('user_id', empData.workspace_members.user_id).single();
-      if (prof) empData.workspace_members.profiles = prof;
-    }
-    setEmployee(empData);
-
-    // 2. Fetch reference data for the edit form
-    const [deptRes, desigRes, rawMgrRes] = await Promise.all([
-      supabase.from('departments').select('id, name').eq('workspace_id', activeWorkspace.id).order('name'),
-      supabase.from('designations').select('id, title').eq('workspace_id', activeWorkspace.id).order('title'),
-      supabase.from('employee_profiles').select(`workspace_member_id, workspace_members!inner ( id, user_id )`).eq('workspace_id', activeWorkspace.id)
-    ]);
-
-    if (deptRes.data) setDepartments(deptRes.data);
-    if (desigRes.data) setDesignations(desigRes.data);
-
-    // Enrich managers with profiles
-    if (rawMgrRes.data && rawMgrRes.data.length > 0) {
-      const mgrUserIds = rawMgrRes.data.map((m: any) => m.workspace_members?.user_id).filter(Boolean);
-      const { data: mgrProfilesData } = await supabase.from('profiles').select('user_id, full_name').in('user_id', mgrUserIds);
-      const mgrProfileMap = Object.fromEntries((mgrProfilesData || []).map((p: any) => [p.user_id, p]));
-      setManagers(rawMgrRes.data.map((m: any) => ({
-        ...m,
-        workspace_members: m.workspace_members
-          ? { ...m.workspace_members, profiles: mgrProfileMap[m.workspace_members.user_id] || null }
-          : null,
-      })));
-    }
-
-    setLoading(false);
   }, [supabase, activeWorkspace?.id, id]);
 
   useEffect(() => {
@@ -104,7 +174,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const profile = Array.isArray(employee.workspace_members?.profiles) 
     ? employee.workspace_members?.profiles[0] 
     : employee.workspace_members?.profiles;
-  const fullName = profile?.full_name || 'Unknown User';
+  const fullName = profile?.full_name?.trim() || profile?.email?.split('@')[0] || 'Employee Profile';
 
   return (
     <div className="space-y-6">

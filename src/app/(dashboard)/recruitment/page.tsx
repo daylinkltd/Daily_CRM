@@ -19,6 +19,13 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Loader2, UserCheck, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const STAGES = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'HIRED', 'REJECTED'];
 
@@ -259,21 +266,21 @@ export default function RecruitmentPage() {
 
       {/* Create Job Modal */}
       <Dialog open={jobModalOpen} onOpenChange={setJobModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[480px] bg-card border-border rounded-xl p-6 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Create Job Opening</DialogTitle>
-            <DialogDescription>Post a new open job role for recruitment.</DialogDescription>
+            <DialogTitle className="text-lg font-semibold text-foreground">Create Job Opening</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">Post a new open job role for recruitment.</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCreateJob} className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>Job Title</Label>
-              <Input placeholder="e.g. Senior Frontend Developer" value={jobTitle} onChange={e => setJobTitle(e.target.value)} required />
+              <Label>Job Title <span className="text-red-500">*</span></Label>
+              <Input placeholder="e.g. Senior Frontend Developer" value={jobTitle} onChange={e => setJobTitle(e.target.value)} required className="bg-card border-border" />
             </div>
 
             <div className="space-y-2">
               <Label>Location</Label>
-              <Input placeholder="Remote / New York / Hybrid" value={jobLocation} onChange={e => setJobLocation(e.target.value)} />
+              <Input placeholder="Remote / New York / Hybrid" value={jobLocation} onChange={e => setJobLocation(e.target.value)} className="bg-card border-border" />
             </div>
 
             <DialogFooter className="pt-4 border-t border-border">
@@ -288,39 +295,42 @@ export default function RecruitmentPage() {
 
       {/* Add Candidate Modal */}
       <Dialog open={candModalOpen} onOpenChange={setCandModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px] bg-card border-border rounded-xl p-6 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Add Candidate to Job</DialogTitle>
-            <DialogDescription>Add a candidate application into the recruitment pipeline.</DialogDescription>
+            <DialogTitle className="text-lg font-semibold text-foreground">Add Candidate to Job</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">Add a candidate application into the recruitment pipeline.</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleAddCandidate} className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>Select Job Opening</Label>
-              <select
-                className="w-full h-9 rounded-md border border-input bg-popover px-3 text-xs"
-                value={selectedJobId}
-                onChange={e => setSelectedJobId(e.target.value)}
-              >
-                {jobs.map(j => (
-                  <option key={j.id} value={j.id}>{j.title}</option>
-                ))}
-              </select>
+              <Label>Select Job Opening <span className="text-red-500">*</span></Label>
+              <Select value={selectedJobId} onValueChange={(v) => setSelectedJobId(v || '')}>
+                <SelectTrigger className="w-full bg-card border-border h-10 text-sm">
+                  <SelectValue placeholder="Select a job opening..." />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  {jobs.map(j => (
+                    <SelectItem key={j.id} value={j.id} className="cursor-pointer text-sm">
+                      {j.title} {j.location ? `(${j.location})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Candidate Full Name</Label>
-              <Input placeholder="Jane Doe" value={candName} onChange={e => setCandName(e.target.value)} required />
+              <Label>Candidate Full Name <span className="text-red-500">*</span></Label>
+              <Input placeholder="Jane Doe" value={candName} onChange={e => setCandName(e.target.value)} required className="bg-card border-border" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Email Address</Label>
-                <Input type="email" placeholder="jane@example.com" value={candEmail} onChange={e => setCandEmail(e.target.value)} required />
+                <Label>Email Address <span className="text-red-500">*</span></Label>
+                <Input type="email" placeholder="jane@example.com" value={candEmail} onChange={e => setCandEmail(e.target.value)} required className="bg-card border-border" />
               </div>
               <div className="space-y-2">
                 <Label>Phone Number</Label>
-                <Input placeholder="+1 555-0199" value={candPhone} onChange={e => setCandPhone(e.target.value)} />
+                <Input placeholder="+1 555-0199" value={candPhone} onChange={e => setCandPhone(e.target.value)} className="bg-card border-border" />
               </div>
             </div>
 

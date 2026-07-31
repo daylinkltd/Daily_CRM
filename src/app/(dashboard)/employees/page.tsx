@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -42,22 +42,51 @@ export default function EmployeesPage() {
     if (!activeWorkspace?.id) return;
     setLoading(true);
 
-    const { data: rawData, error } = await supabase
-      .from('employee_profiles')
-      .select(`
-        *,
-        departments ( name ),
-        designations ( title ),
-        workspace_members!inner ( id, user_id, role )
-      `)
-      .eq('workspace_id', activeWorkspace.id);
+    try {
+      // 1. Try querying employee_profiles with joined relations
+      let { data: rawData, error } = await supabase
+        .from('employee_profiles')
+        .select(`
+          *,
+          departments ( name ),
+          designations ( title ),
+          workspace_members ( id, user_id, role )
+        `)
+        .eq('workspace_id', activeWorkspace.id);
 
-    // Two-step: enrich workspace_members with profile data
-    let data: any[] = rawData || [];
-    if (!error && data.length > 0) {
+      // Fallback query if relational join returned an error
+      if (error || !rawData) {
+        console.warn('Relational fetch for employee_profiles failed, running fallback:', error?.message);
+        const { data: fbData, error: fbErr } = await supabase
+          .from('employee_profiles')
+          .select('*')
+          .eq('workspace_id', activeWorkspace.id);
+
+        if (fbErr) throw fbErr;
+        rawData = fbData || [];
+
+        // Manual join for workspace_members
+        const memberIds = rawData.map(e => e.workspace_member_id).filter(Boolean);
+        if (memberIds.length > 0) {
+          const { data: membersData } = await supabase
+            .from('workspace_members')
+            .select('id, user_id, role')
+            .in('id', memberIds);
+          const memberMap = Object.fromEntries((membersData || []).map(m => [m.id, m]));
+          rawData.forEach(e => {
+            e.workspace_members = memberMap[e.workspace_member_id] || null;
+          });
+        }
+      }
+
+      // Enrich workspace_members with profile data
+      let data: any[] = rawData || [];
       const userIds = data.map((e: any) => e.workspace_members?.user_id).filter(Boolean);
       if (userIds.length > 0) {
-        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, email, avatar_url').in('user_id', userIds);
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, email, avatar_url')
+          .in('user_id', userIds);
         const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
         data = data.map((e: any) => ({
           ...e,
@@ -66,34 +95,34 @@ export default function EmployeesPage() {
             : null,
         }));
       }
-    }
 
-    if (error) {
+      setEmployees(data);
+    } catch (err: any) {
+      console.error('Failed to load employees:', err);
       toast.error('Failed to load employees');
-    } else {
-      let emps = data || [];
-      if (search.trim()) {
-        const query = search.toLowerCase();
-        emps = emps.filter(e => {
-          const profile = Array.isArray(e.workspace_members?.profiles) 
-            ? e.workspace_members?.profiles[0] 
-            : e.workspace_members?.profiles;
-          
-          return (
-            e.employee_code?.toLowerCase().includes(query) ||
-            profile?.full_name?.toLowerCase().includes(query) ||
-            profile?.email?.toLowerCase().includes(query)
-          );
-        });
-      }
-      setEmployees(emps);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [supabase, activeWorkspace?.id, search]);
+  }, [supabase, activeWorkspace?.id]);
 
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
+
+  const filteredEmployees = useMemo(() => {
+    if (!search.trim()) return employees;
+    const query = search.toLowerCase();
+    return employees.filter((emp) => {
+      const profile = Array.isArray(emp.workspace_members?.profiles)
+        ? emp.workspace_members?.profiles[0]
+        : emp.workspace_members?.profiles;
+      return (
+        emp.employee_code?.toLowerCase().includes(query) ||
+        profile?.full_name?.toLowerCase().includes(query) ||
+        profile?.email?.toLowerCase().includes(query)
+      );
+    });
+  }, [employees, search]);
 
   const viewEmployeeDetails = (employeeId: string) => {
     router.push(`/employees/${employeeId}`);
@@ -152,7 +181,7 @@ export default function EmployeesPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : employees.length === 0 ? (
+            ) : filteredEmployees.length === 0 ? (
               <TableRow className="border-border">
                 <TableCell colSpan={6} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
@@ -164,7 +193,7 @@ export default function EmployeesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              employees.map((emp) => {
+              filteredEmployees.map((emp) => {
                 const profile = Array.isArray(emp.workspace_members?.profiles) 
                   ? emp.workspace_members?.profiles[0] 
                   : emp.workspace_members?.profiles;

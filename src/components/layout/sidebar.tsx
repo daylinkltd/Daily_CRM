@@ -57,7 +57,9 @@ import {
   FileCheck,
   ChevronLeft,
   ChevronsUpDown,
-  AppWindow
+  AppWindow,
+  Tag,
+  Bookmark
 } from "lucide-react";
 import {
   Avatar,
@@ -147,6 +149,9 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/pos", label: "POS Terminal", icon: ShoppingCart },
       { href: "/commerce/products", label: "Products", icon: Package },
+      { href: "/commerce/categories", label: "Categories", icon: Tag },
+      { href: "/commerce/brands", label: "Brands", icon: Bookmark },
+      { href: "/commerce/units", label: "Units", icon: Scale },
       { href: "/commerce/inventory", label: "Inventory", icon: Layers },
       { href: "/commerce/sales", label: "Sales Orders", icon: Receipt },
       { href: "/commerce/purchases", label: "Purchases & POs", icon: Truck },

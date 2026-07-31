@@ -15,12 +15,12 @@ function displayNameFrom(
   email: string | null | undefined,
 ): string {
   const fromProfile = profileName?.trim();
-  if (fromProfile) return fromProfile;
+  if (fromProfile && fromProfile.toLowerCase() !== 'user' && fromProfile.toLowerCase() !== 'member') return fromProfile;
   const fromMeta = metaName?.trim();
-  if (fromMeta) return fromMeta;
+  if (fromMeta && fromMeta.toLowerCase() !== 'user' && fromMeta.toLowerCase() !== 'member') return fromMeta;
   const localPart = email?.split("@")[0]?.trim();
-  if (localPart) return localPart;
-  return "Member";
+  if (localPart) return localPart.charAt(0).toUpperCase() + localPart.slice(1);
+  return "Workspace Member";
 }
 
 export async function GET(request: NextRequest) {
@@ -85,24 +85,17 @@ export async function GET(request: NextRequest) {
     if (needsAuthLookup.length > 0) {
       try {
         const admin = createAdminClient();
-        const lookups = await Promise.all(
-          needsAuthLookup.map(async (id) => {
-            const { data, error } = await admin.auth.admin.getUserById(id);
-            if (error || !data?.user) return null;
-            const metaName = data.user.user_metadata?.full_name;
-            return {
-              id,
-              metaName: typeof metaName === "string" ? metaName : null,
-              email: data.user.email ?? null,
-            };
-          }),
-        );
-        for (const entry of lookups) {
-          if (entry) {
-            authUsersMap.set(entry.id, {
-              metaName: entry.metaName,
-              email: entry.email,
-            });
+        const { data: listData, error: listErr } = await admin.auth.admin.listUsers();
+        if (!listErr && listData?.users) {
+          const needsSet = new Set(needsAuthLookup);
+          for (const user of listData.users) {
+            if (needsSet.has(user.id)) {
+              const metaName = user.user_metadata?.full_name;
+              authUsersMap.set(user.id, {
+                metaName: typeof metaName === "string" ? metaName : null,
+                email: user.email ?? null,
+              });
+            }
           }
         }
       } catch (err) {

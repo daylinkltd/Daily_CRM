@@ -72,18 +72,41 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
       // 2. Fetch designations
       const { data: desigs } = await supabase.from('designations').select('*').eq('workspace_id', activeWorkspace!.id);
       
-      // 3. Fetch all workspace members (two-step: user_id refs auth.users not public.profiles)
-      const { data: rawMembers } = await supabase
-        .from('workspace_members')
-        .select('id, user_id')
-        .eq('workspace_id', activeWorkspace!.id);
-      
+      // 3. Fetch workspace members via API to guarantee full name & email resolution
       let members: any[] = [];
-      if (rawMembers && rawMembers.length > 0) {
-        const userIds = rawMembers.map((m: any) => m.user_id);
-        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, email').in('user_id', userIds);
-        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
-        members = rawMembers.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null }));
+      try {
+        const res = await fetch(`/api/account/members?workspace_id=${activeWorkspace!.id}`);
+        if (res.ok) {
+          const json = await res.json();
+          members = json.members || [];
+        }
+      } catch (err) {
+        console.warn('Members API fetch failed, using fallback:', err);
+      }
+
+      if (members.length === 0) {
+        const { data: rawMembers } = await supabase
+          .from('workspace_members')
+          .select('id, user_id')
+          .eq('workspace_id', activeWorkspace!.id);
+
+        if (rawMembers && rawMembers.length > 0) {
+          const userIds = rawMembers.map((m: any) => m.user_id);
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('user_id, full_name, email')
+            .in('user_id', userIds);
+          const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
+          members = rawMembers.map((m: any) => {
+            const p = profileMap[m.user_id];
+            return {
+              id: m.id,
+              user_id: m.user_id,
+              full_name: p?.full_name?.trim() || p?.email?.split('@')[0] || 'Workspace Member',
+              email: p?.email || null,
+            };
+          });
+        }
       }
 
       // 4. Fetch existing employee profiles
@@ -191,10 +214,22 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
                   </SelectTrigger>
                   <SelectContent>
                     {availableMembers.map(m => {
-                      const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+                      const rawName = m.full_name?.trim() || (Array.isArray(m.profiles) ? m.profiles[0]?.full_name : m.profiles?.full_name);
+                      const email = m.email || (Array.isArray(m.profiles) ? m.profiles[0]?.email : m.profiles?.email);
+
+                      let name = rawName;
+                      if (!name || ['workspace member', 'member', 'user', 'unknown user'].includes(name.toLowerCase())) {
+                        if (email) {
+                          const local = email.split('@')[0];
+                          name = local.charAt(0).toUpperCase() + local.slice(1);
+                        } else {
+                          name = `Member (${m.id.slice(0, 6)})`;
+                        }
+                      }
+
                       return (
                         <SelectItem key={m.id} value={m.id}>
-                          {p?.full_name || p?.email || 'Unknown User'}
+                          {name} {email && !name.toLowerCase().includes(email.toLowerCase()) ? `(${email})` : ''}
                         </SelectItem>
                       );
                     })}

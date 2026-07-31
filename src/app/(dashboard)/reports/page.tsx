@@ -60,16 +60,23 @@ export default function ReportsDashboard() {
     setLoading(true);
 
     try {
-      // 1. Fetch all active employees in this workspace
-      const { data: rawMembers, error: memErr } = await supabase
+      // 1. Fetch workspace members
+      const { data: rawMembers } = await supabase
         .from('workspace_members')
-        .select(`id, user_id, employee_profiles!inner ( designation_id, status )`)
-        .eq('workspace_id', activeWorkspace.id)
-        .eq('employee_profiles.status', 'ACTIVE');
+        .select('id, user_id')
+        .eq('workspace_id', activeWorkspace.id);
 
-      if (memErr) throw memErr;
+      const members = rawMembers || [];
 
-      // Designation titles for the leaderboard subtitle.
+      // 2. Fetch employee_profiles
+      const { data: empProfiles } = await supabase
+        .from('employee_profiles')
+        .select('workspace_member_id, designation_id, status')
+        .eq('workspace_id', activeWorkspace.id);
+
+      const empProfileMap = new Map((empProfiles || []).map((e: any) => [e.workspace_member_id, e]));
+
+      // 3. Fetch designations
       const { data: desigRows } = await supabase
         .from('designations')
         .select('id, title')
@@ -77,30 +84,30 @@ export default function ReportsDashboard() {
       const designationById: Record<string, string> = {};
       (desigRows || []).forEach((d) => { designationById[d.id] = d.title; });
 
-      // Two-step profile enrichment
-      let members: any[] = rawMembers || [];
-      if (members.length > 0) {
-        const userIds = members.map((m: any) => m.user_id).filter(Boolean);
-        const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, avatar_url').in('user_id', userIds);
-        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
-        members = members.map((m: any) => ({ ...m, profiles: profileMap[m.user_id] || null }));
+      // 4. Two-step profile enrichment
+      const userIds = members.map((m: any) => m.user_id).filter(Boolean);
+      let profileMap = new Map();
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('user_id, full_name, email, avatar_url')
+          .in('user_id', userIds);
+        profileMap = new Map((profilesData || []).map((p: any) => [p.user_id, p]));
       }
 
       const startDate = startOfMonth(new Date()).toISOString();
       const endDate = endOfMonth(new Date()).toISOString();
 
-      // 2. Fetch Tasks (created/due this month)
-      const { data: tasks, error: taskErr } = await supabase
+      // 5. Fetch Tasks (safe query)
+      const { data: tasks } = await supabase
         .from('tasks')
         .select('id, assigned_workspace_member_id, status')
         .eq('workspace_id', activeWorkspace.id)
         .gte('created_at', startDate)
         .lte('created_at', endDate);
 
-      if (taskErr) throw taskErr;
-
-      // 3. Fetch Timesheets (logged this month)
-      const { data: timesheets, error: timeErr } = await supabase
+      // 6. Fetch Timesheets / Time Logs (safe query)
+      const { data: timesheets } = await supabase
         .from('time_logs')
         .select('workspace_member_id, duration')
         .eq('workspace_id', activeWorkspace.id)
@@ -108,19 +115,15 @@ export default function ReportsDashboard() {
         .lte('log_date', format(endOfMonth(new Date()), 'yyyy-MM-dd'))
         .eq('status', 'approved');
 
-      if (timeErr) throw timeErr;
-
-      // 4. Fetch Attendance (this month)
-      const { data: attendance, error: attErr } = await supabase
+      // 7. Fetch Attendance (safe query)
+      const { data: attendance } = await supabase
         .from('attendance')
         .select('workspace_member_id, status')
         .eq('workspace_id', activeWorkspace.id)
         .gte('attendance_date', format(startOfMonth(new Date()), 'yyyy-MM-dd'))
         .lte('attendance_date', format(endOfMonth(new Date()), 'yyyy-MM-dd'));
 
-      if (attErr) throw attErr;
-
-      // Calculate working days in current month so far (excluding weekends roughly for expected days)
+      // Calculate working days in current month so far
       let expectedDays = 0;
       const d = startOfMonth(new Date());
       const today = new Date();
@@ -136,17 +139,18 @@ export default function ReportsDashboard() {
       let totalAtt = 0;
       let totalEmp = 0;
 
-      const aggregated: EmployeeStats[] = (members || []).map((mem: any) => {
-        const profile = Array.isArray(mem.profiles) ? mem.profiles[0] : mem.profiles;
+      const aggregated: EmployeeStats[] = members.map((mem: any) => {
+        const profile = profileMap.get(mem.user_id);
+        const empProfile = empProfileMap.get(mem.id);
         
         // Tasks
         const memTasks = (tasks || []).filter(t => t.assigned_workspace_member_id === mem.id);
-        const compTasks = memTasks.filter(t => t.status === 'DONE').length;
+        const compTasks = memTasks.filter(t => t.status === 'completed' || t.status === 'DONE').length;
         totalCT += compTasks;
 
         // Hours
         const memTimesheets = (timesheets || []).filter(t => t.workspace_member_id === mem.id);
-        const logHours = memTimesheets.reduce((acc, curr) => acc + Number(curr.duration), 0);
+        const logHours = memTimesheets.reduce((acc, curr) => acc + Number(curr.duration || 0), 0);
         totalH += logHours;
 
         // Attendance
@@ -156,14 +160,13 @@ export default function ReportsDashboard() {
         totalAtt += presentDays;
         totalEmp++;
 
+        const name = profile?.full_name?.trim() || profile?.email?.split('@')[0] || 'Employee';
+
         return {
           id: mem.id,
-          name: profile?.full_name || 'Unknown',
+          name,
           avatar: profile?.avatar_url || null,
-          designation:
-            designationById[
-              (Array.isArray(mem.employee_profiles) ? mem.employee_profiles[0] : mem.employee_profiles)?.designation_id
-            ] || 'Employee',
+          designation: designationById[empProfile?.designation_id || ''] || 'Employee',
           totalTasks: memTasks.length,
           completedTasks: compTasks,
           loggedHours: logHours,
@@ -177,7 +180,8 @@ export default function ReportsDashboard() {
       setTotalCompletedTasks(totalCT);
       setOverallAttendance(totalEmp > 0 ? (totalAtt / (expectedDays * totalEmp)) * 100 : 0);
 
-    } catch {
+    } catch (err: any) {
+      console.error('Error loading reports:', err);
       toast.error('Failed to load report data');
     } finally {
       setLoading(false);
