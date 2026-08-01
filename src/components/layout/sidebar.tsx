@@ -194,7 +194,7 @@ const navGroups: NavGroup[] = [
       { href: "/performance", label: "Performance", icon: TrendingUp, permission: "people_manage" },
       { href: "/requests", label: "Requests", icon: FileCheck, permission: "people_view" },
       { href: "/assets", label: "Assets", icon: Laptop, permission: "people_manage" },
-      { href: "/documents", label: "Documents", icon: ShieldCheck, permission: "people_manage" },
+      { href: "/documents", label: "Official Documents", icon: FileText },
       { href: "/departments", label: "Departments", icon: Building, permission: "people_manage" },
       { href: "/designations", label: "Designations", icon: BadgeCheck, permission: "people_manage" },
       { href: "/reports", label: "Analytics & Reports", icon: BarChart3, permission: "people_manage" },
