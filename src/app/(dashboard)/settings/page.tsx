@@ -23,6 +23,9 @@ import { BrandingSettings } from '@/components/settings/branding-settings';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { HRSettingsPanel } from '@/components/settings/hr-settings-panel';
 import RetailSettingsPage from '@/app/(dashboard)/settings/retail/page';
+import { CRMSettingsPanel } from '@/components/settings/crm-settings-panel';
+import { AccountingSettingsPanel } from '@/components/settings/accounting-settings-panel';
+import { ProjectsSettingsPanel } from '@/components/settings/projects-settings-panel';
 import {
   resolveSection,
   type SettingsSection,
@@ -72,6 +75,12 @@ export default function SettingsPage() {
         return <SecurityPanel />;
       case 'appearance':
         return <AppearancePanel />;
+      case 'crm':
+        return <CRMSettingsPanel />;
+      case 'accounting':
+        return <AccountingSettingsPanel />;
+      case 'projects':
+        return <ProjectsSettingsPanel />;
       case 'whatsapp':
         return <WhatsAppConfig />;
       case 'chatbot':

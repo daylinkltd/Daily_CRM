@@ -12,15 +12,21 @@ import {
   Clock,
   Building2,
   Home,
-  Briefcase
+  Briefcase,
+  MapPin
 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { TimeLogForm } from '@/components/timesheets/time-log-form';
+import { LocationMapModal } from '@/components/attendance/location-map-modal';
 import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
 
-export function PunchAction({ onPunch }: { onPunch: () => void }) {
+export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   const supabase = createClient();
-  const { activeWorkspace, activeMember } = useWorkspace();
+  const { activeWorkspace, activeMember, moduleAccess } = useWorkspace();
+  
+  if (!moduleAccess?.hr) {
+    return null;
+  }
   
   const [loading, setLoading] = useState(false);
   const [todayRecord, setTodayRecord] = useState<any | null>(null);
@@ -69,7 +75,11 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
     try {
       // Get GPS Location
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        });
       }).catch(() => null);
 
       const locationData = position ? {
@@ -127,7 +137,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
       }
 
       await fetchTodayStatus();
-      onPunch();
+      onPunch?.();
     } catch (error: any) {
       toast.error(sanitizeErrorMessage(error, 'Failed to update attendance'));
     } finally {
@@ -187,7 +197,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
       }
 
       await fetchTodayStatus();
-      onPunch();
+      onPunch?.();
     } catch (error: any) {
       toast.error(sanitizeErrorMessage(error, 'Failed to update break status'));
     } finally {
@@ -195,18 +205,20 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
     }
   };
 
+  const [showLocationMap, setShowLocationMap] = useState(false);
+
   return (
     <>
       <div className="flex flex-wrap items-center gap-3">
         {!todayRecord || !todayRecord.punch_in_time ? (
           <div className="flex items-center gap-2">
             {/* Work Location Selector */}
-            <div className="flex items-center bg-card border border-border rounded-xl p-1 text-xs">
+            <div className="flex items-center bg-muted/50 border border-border rounded-lg p-0.5 text-xs">
               <button
                 type="button"
                 onClick={() => setWorkLocation('OFFICE')}
-                className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                  workLocation === 'OFFICE' ? 'bg-[#00aef0] text-foreground font-bold' : 'text-muted-foreground hover:text-foreground'
+                className={`px-2 py-1 rounded-md font-medium transition-all flex items-center gap-1 ${
+                  workLocation === 'OFFICE' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Building2 className="h-3.5 w-3.5" />
@@ -215,8 +227,8 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
               <button
                 type="button"
                 onClick={() => setWorkLocation('WFH')}
-                className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                  workLocation === 'WFH' ? 'bg-[#00aef0] text-foreground font-bold' : 'text-muted-foreground hover:text-foreground'
+                className={`px-2 py-1 rounded-md font-medium transition-all flex items-center gap-1 ${
+                  workLocation === 'WFH' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Home className="h-3.5 w-3.5" />
@@ -225,8 +237,8 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
               <button
                 type="button"
                 onClick={() => setWorkLocation('CLIENT_SITE')}
-                className={`px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                  workLocation === 'CLIENT_SITE' ? 'bg-[#00aef0] text-foreground font-bold' : 'text-muted-foreground hover:text-foreground'
+                className={`px-2 py-1 rounded-md font-medium transition-all flex items-center gap-1 ${
+                  workLocation === 'CLIENT_SITE' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Briefcase className="h-3.5 w-3.5" />
@@ -237,17 +249,27 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
             <Button 
               onClick={() => handlePunch('in')} 
               disabled={loading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-foreground font-extrabold shadow-lg shadow-emerald-600/20 rounded-xl h-10 px-4"
+              className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold shadow-xs rounded-lg h-9 px-3 text-xs"
             >
-              {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : <Fingerprint className="size-4 mr-2" />}
+              {loading ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Fingerprint className="size-3.5 mr-1.5" />}
               Punch In
             </Button>
           </div>
         ) : todayRecord.punch_in_time && !todayRecord.punch_out_time ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/40 px-3 py-2 rounded-xl border border-emerald-800">
-              <Clock className="size-4 text-emerald-400" />
-              Punched In ({todayRecord.work_location || 'OFFICE'}) at {new Date(todayRecord.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/20">
+              <Clock className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Punched In ({todayRecord.work_location || 'OFFICE'}) at {new Date(todayRecord.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              {todayRecord.punch_in_location && (
+                <button
+                  type="button"
+                  onClick={() => setShowLocationMap(true)}
+                  className="p-0.5 hover:bg-emerald-500/20 rounded transition-colors text-emerald-600 dark:text-emerald-400 ml-0.5"
+                  title="View GPS Location Map"
+                >
+                  <MapPin className="size-3.5" />
+                </button>
+              )}
             </div>
 
             {/* Break Control Bar */}
@@ -255,17 +277,17 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
               <Button
                 onClick={() => handleBreak('resume')}
                 disabled={loading}
-                className="bg-amber-600 hover:bg-amber-700 text-foreground font-bold rounded-xl h-10 gap-1.5 shadow-lg shadow-amber-600/20"
+                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs h-9 px-3 rounded-lg shadow-xs gap-1.5"
               >
-                {loading ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
-                Resume Work (On {activeBreak.break_type} Break)
+                {loading ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />}
+                Resume Work ({activeBreak.break_type})
               </Button>
             ) : (
-              <div className="flex items-center gap-1.5 bg-card border border-border p-1 rounded-xl">
+              <div className="flex items-center gap-1 bg-card border border-border p-0.5 rounded-lg">
                 <select
                   value={breakType}
                   onChange={(e) => setBreakType(e.target.value as any)}
-                  className="bg-background text-foreground border-none text-xs rounded-lg px-2 py-1 focus:ring-0"
+                  className="bg-background text-foreground border-none text-xs rounded-md px-2 py-1 focus:ring-0"
                 >
                   <option value="LUNCH">Lunch Break</option>
                   <option value="TEA">Tea / Coffee</option>
@@ -276,7 +298,7 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
                   onClick={() => handleBreak('start')}
                   disabled={loading}
                   variant="outline"
-                  className="h-8 border-border bg-muted text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 text-xs font-bold gap-1 rounded-lg"
+                  className="h-7 border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-xs font-medium gap-1 rounded-md px-2"
                 >
                   <Coffee className="h-3.5 w-3.5" />
                   Start Break
@@ -287,16 +309,15 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
             <Button 
               onClick={() => handlePunch('out')} 
               disabled={loading}
-              variant="destructive"
-              className="font-extrabold rounded-xl h-10 px-4 shadow-lg shadow-rose-600/20"
+              className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-semibold text-xs h-9 px-3 rounded-lg shadow-xs flex items-center gap-1.5"
             >
-              {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : <Fingerprint className="size-4 mr-2" />}
+              {loading ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Fingerprint className="size-3.5 mr-1.5" />}
               Punch Out
             </Button>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-xs font-semibold text-foreground bg-card px-3.5 py-2 rounded-xl border border-border">
-            <Clock className="size-4 text-[#00aef0]" />
+          <div className="flex items-center gap-2 text-xs font-medium text-foreground bg-muted/40 px-3 py-1.5 rounded-lg border border-border">
+            <Clock className="size-3.5 text-primary" />
             Logged {Number(todayRecord.working_hours ?? 0)} hrs ({Number(todayRecord.net_productive_hours ?? todayRecord.working_hours ?? 0)} hrs net) today
           </div>
         )}
@@ -307,6 +328,15 @@ export function PunchAction({ onPunch }: { onPunch: () => void }) {
         onOpenChange={setShowTimeLogModal} 
         defaultHours={lastLoggedHours}
         onSaved={() => setShowTimeLogModal(false)}
+      />
+
+      <LocationMapModal
+        open={showLocationMap}
+        onOpenChange={setShowLocationMap}
+        location={todayRecord?.punch_in_location || null}
+        title="Punch In GPS Location"
+        timestamp={todayRecord?.punch_in_time ? new Date(todayRecord.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined}
+        workLocation={todayRecord?.work_location || 'OFFICE'}
       />
     </>
   );

@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/layout/mode-toggle";
+import { PunchAction } from "@/components/attendance/punch-action";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -113,7 +114,8 @@ export function Header({ onOpenSidebar }: HeaderProps) {
         </button>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <PunchAction />
         <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger

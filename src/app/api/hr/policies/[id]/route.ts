@@ -135,3 +135,27 @@ export async function PUT(
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+
+    // Cascading delete targets, versions, acknowledgements, and policy header
+    await supabase.from('hr_policy_acknowledgements').delete().eq('policy_id', id);
+    await supabase.from('hr_policy_targets').delete().eq('policy_id', id);
+    await supabase.from('hr_policy_versions').delete().eq('policy_id', id);
+    const { error } = await supabase.from('hr_policies').delete().eq('id', id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Failed to delete policy' }, { status: 500 });
+  }
+}

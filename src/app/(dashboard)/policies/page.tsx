@@ -18,7 +18,8 @@ import {
   FileCode2,
   Send,
   Loader2,
-  Layers
+  Layers,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -124,6 +125,20 @@ export default function PoliciesDashboardPage() {
   const handleExportCSV = () => {
     if (!activeWorkspace?.id) return;
     window.open(`/api/hr/policies/export?workspaceId=${activeWorkspace.id}`, '_blank');
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this policy?')) return;
+    try {
+      const res = await fetch(`/api/hr/policies/${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to delete policy');
+
+      toast.success('Policy deleted successfully!');
+      fetchPolicies();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete policy');
+    }
   };
 
   const filteredPolicies = policies.filter(p => {
@@ -324,6 +339,16 @@ export default function PoliciesDashboardPage() {
                             <Send className="size-3.5 mr-1" /> Approve & Publish
                           </Button>
                         )}
+                        {canManage && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(p.id)}
+                            className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="size-3.5 mr-1" /> Delete
+                          </Button>
+                        )}
                       </>
                     )}
                   </div>
@@ -337,7 +362,12 @@ export default function PoliciesDashboardPage() {
       {/* Editor Modal */}
       <PolicyEditorModal
         open={editorOpen}
-        onOpenChange={setEditorOpen}
+        onOpenChange={(open) => {
+          setEditorOpen(open);
+          if (!open && searchParams.get('edit')) {
+            router.replace('/policies');
+          }
+        }}
         policyId={editingPolicyId}
         onSaved={fetchPolicies}
       />

@@ -121,6 +121,7 @@ const navGroups: NavGroup[] = [
       { href: "/broadcasts", label: "Broadcasts", icon: Radio, permission: "broadcasts" },
       { href: "/media", label: "Media", icon: ImageIcon },
       { href: "/forms", label: "Forms", icon: FileText },
+      { href: "/settings?tab=crm", label: "CRM Settings", icon: Settings },
     ]
   },
   {
@@ -141,6 +142,7 @@ const navGroups: NavGroup[] = [
       { href: "/commerce/gst", label: "GST Reports", icon: FileText },
       { href: "/invoices", label: "Invoices", icon: Receipt },
       { href: "/expenses", label: "Expenses", icon: Receipt, permission: "people_view" },
+      { href: "/settings?tab=accounting", label: "Accounting Settings", icon: Settings },
     ]
   },
   {
@@ -171,6 +173,7 @@ const navGroups: NavGroup[] = [
       { href: "/workloads", label: "Workload", icon: Activity, permission: "projects_view" },
       { href: "/timesheets", label: "Timesheets", icon: Clock, permission: "projects_view" },
       { href: "/invoices", label: "Invoices", icon: Receipt, permission: "projects_view" },
+      { href: "/settings?tab=projects", label: "Project Settings", icon: Settings, permission: "projects_manage" },
     ]
   },
   {
@@ -195,6 +198,7 @@ const navGroups: NavGroup[] = [
       { href: "/departments", label: "Departments", icon: Building, permission: "people_manage" },
       { href: "/designations", label: "Designations", icon: BadgeCheck, permission: "people_manage" },
       { href: "/reports", label: "Analytics & Reports", icon: BarChart3, permission: "people_manage" },
+      { href: "/settings?tab=hr", label: "HR Settings", icon: Settings, permission: "people_manage" },
     ]
   },
   {

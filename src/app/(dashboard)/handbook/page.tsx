@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  BookMarked, Building2, Check, ChevronDown, ChevronRight, Loader2, Plus, Printer, Sparkles,
+  BookMarked, Building2, Check, ChevronDown, ChevronRight, Loader2, Plus, Printer, Sparkles, Trash2, Edit3, Send, PlusCircle, ArrowUp, ArrowDown
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/table";
 import { AddPolicyDialog } from "@/components/handbook/add-policy-dialog";
 import { PrintableHandbookModal } from "@/components/handbook/printable-handbook-modal";
+import { PolicyEditorModal } from "@/components/policies/policy-editor-modal";
 import { IntegrationShareButtons } from "@/components/integrations/integration-share-buttons";
 
 interface SectionStatus {
@@ -112,6 +113,8 @@ export default function HandbookPage() {
   const [generating, setGenerating] = useState(false);
   const [addPolicyOpen, setAddPolicyOpen] = useState(false);
   const [printModalOpen, setPrintModalOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingPolicyId, setEditingPolicyId] = useState<string | null>(null);
 
   const existingPolicyIds = useMemo(
     () => sections.map((s) => s.policy_id).filter(Boolean) as string[],
@@ -120,6 +123,67 @@ export default function HandbookPage() {
 
   const handlePrint = () => {
     setPrintModalOpen(true);
+  };
+
+  const handlePublishPolicy = async (policyId: string) => {
+    try {
+      const res = await fetch(`/api/hr/policies/${policyId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comments: "Published from Handbook" }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to publish policy");
+      toast.success("Policy published successfully!");
+      void load();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to publish policy");
+    }
+  };
+
+  const handleDeletePolicy = async (policyId: string) => {
+    if (!confirm("Are you sure you want to delete this policy section?")) return;
+    try {
+      const res = await fetch(`/api/hr/policies/${policyId}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete policy");
+      toast.success("Policy deleted successfully!");
+      void load();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete policy");
+    }
+  };
+
+  const moveUp = (index: number) => {
+    if (index <= 0) return;
+    setSections((prev) => {
+      const next = [...prev];
+      const temp = next[index];
+      next[index] = next[index - 1];
+      next[index - 1] = temp;
+      const reordered = next.map((item, idx) => ({ ...item, order: idx + 1 }));
+      if (workspaceId) {
+        localStorage.setItem(`handbook_section_order_${workspaceId}`, JSON.stringify(reordered.map((s) => s.key)));
+      }
+      return reordered;
+    });
+    toast.success("Section moved up");
+  };
+
+  const moveDown = (index: number) => {
+    if (index >= sections.length - 1) return;
+    setSections((prev) => {
+      const next = [...prev];
+      const temp = next[index];
+      next[index] = next[index + 1];
+      next[index + 1] = temp;
+      const reordered = next.map((item, idx) => ({ ...item, order: idx + 1 }));
+      if (workspaceId) {
+        localStorage.setItem(`handbook_section_order_${workspaceId}`, JSON.stringify(reordered.map((s) => s.key)));
+      }
+      return reordered;
+    });
+    toast.success("Section moved down");
   };
 
   const load = useCallback(async () => {
@@ -135,7 +199,28 @@ export default function HandbookPage() {
         }
         throw new Error(json.error || "Failed to load handbook status");
       }
-      setSections(json.sections ?? []);
+      let loadedSections: SectionStatus[] = json.sections ?? [];
+      const savedOrderStr = localStorage.getItem(`handbook_section_order_${workspaceId}`);
+      if (savedOrderStr) {
+        try {
+          const savedKeys: string[] = JSON.parse(savedOrderStr);
+          const keyMap = new Map(loadedSections.map((s) => [s.key, s]));
+          const reordered: SectionStatus[] = [];
+          for (const key of savedKeys) {
+            if (keyMap.has(key)) {
+              reordered.push(keyMap.get(key)!);
+              keyMap.delete(key);
+            }
+          }
+          for (const s of keyMap.values()) {
+            reordered.push(s);
+          }
+          loadedSections = reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+        } catch {
+          // ignore invalid order JSON
+        }
+      }
+      setSections(loadedSections);
       setMemberCount(json.member_count ?? 0);
       setMissing(json.missing ?? []);
       const d = json.details;
@@ -269,8 +354,11 @@ export default function HandbookPage() {
             </Button>
             {isAdmin && (
               <>
+                <Button variant="outline" onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }}>
+                  <PlusCircle className="size-4 mr-1.5 text-primary" /> Create Custom Policy
+                </Button>
                 <Button variant="outline" onClick={() => setAddPolicyOpen(true)}>
-                  <Plus className="size-4 mr-1.5 text-primary" /> Add Policy
+                  <Plus className="size-4 mr-1.5 text-primary" /> Attach Existing Policy
                 </Button>
                 <Button onClick={handleGenerate} disabled={generating || migrationPending || missing.length > 0}>
                   {generating ? <Loader2 className="animate-spin" /> : <Sparkles />}
@@ -383,9 +471,35 @@ export default function HandbookPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sections.map((s) => (
+                    {sections.map((s, index) => (
                       <TableRow key={s.key}>
-                        <TableCell className="text-muted-foreground">{s.order}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-4 font-mono text-xs">{s.order}</span>
+                            {isAdmin && (
+                              <div className="flex flex-col gap-0.5">
+                                <button
+                                  type="button"
+                                  disabled={index === 0}
+                                  onClick={() => moveUp(index)}
+                                  className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:hover:text-muted-foreground transition-colors"
+                                  title="Move section up"
+                                >
+                                  <ArrowUp className="size-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={index === sections.length - 1}
+                                  onClick={() => moveDown(index)}
+                                  className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20 disabled:hover:text-muted-foreground transition-colors"
+                                  title="Move section down"
+                                >
+                                  <ArrowDown className="size-3" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="font-medium">
                           {s.title.replace(/^Handbook §\d+ — /, "")}
                           {s.mandatory && (
@@ -407,14 +521,42 @@ export default function HandbookPage() {
                         <TableCell className="text-right">
                           {s.policy_id && (
                             <div className="flex items-center justify-end gap-1">
-                              {isAdmin && (
-                                <Button size="sm" variant="ghost" onClick={() => router.push(`/policies?edit=${s.policy_id}`)}>
-                                  Manage
+                              {isAdmin && s.status === "DRAFT" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 border-emerald-500/20"
+                                  onClick={() => handlePublishPolicy(s.policy_id!)}
+                                >
+                                  <Send className="size-3 mr-1" /> Publish
                                 </Button>
                               )}
-                              <Button size="sm" variant="outline" onClick={() => router.push(`/policies/${s.policy_id}/read`)}>
+                              {isAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-xs"
+                                  onClick={() => {
+                                    setEditingPolicyId(s.policy_id);
+                                    setEditorOpen(true);
+                                  }}
+                                >
+                                  <Edit3 className="size-3.5 mr-1" /> Edit
+                                </Button>
+                              )}
+                              <Button size="sm" variant="outline" className="text-xs" onClick={() => router.push(`/policies/${s.policy_id}/read`)}>
                                 Read & Sign
                               </Button>
+                              {isAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleDeletePolicy(s.policy_id!)}
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </Button>
+                              )}
                             </div>
                           )}
                         </TableCell>
@@ -442,6 +584,12 @@ export default function HandbookPage() {
             onOpenChange={setPrintModalOpen}
             workspaceId={workspaceId}
             workspaceName={activeWorkspace?.name || "Daily CRM"}
+          />
+          <PolicyEditorModal
+            open={editorOpen}
+            onOpenChange={setEditorOpen}
+            policyId={editingPolicyId}
+            onSaved={() => void load()}
           />
         </>
       )}

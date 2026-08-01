@@ -16,6 +16,7 @@ import {
   CreditCard,
   Briefcase,
   Store,
+  Landmark,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -32,19 +33,22 @@ export const SETTINGS_SECTIONS = [
   'profile',
   'security',
   'appearance',
+  'crm',
   'whatsapp',
   'chatbot',
   'templates',
   'fields',
   'deals',
+  'accounting',
+  'projects',
+  'hr',
+  'retail',
   'members',
   'roles',
   'billing',
   'api',
   'catalog',
   'branding',
-  'hr',
-  'retail',
 ] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
@@ -56,7 +60,15 @@ export interface SectionMeta {
   id: SettingsSection;
   label: string;
   icon: LucideIcon;
-  group: 'top' | 'account' | 'workspace';
+  group: 
+    | 'top' 
+    | 'account' 
+    | 'crm_module' 
+    | 'finance_module' 
+    | 'projects_module' 
+    | 'hr_module' 
+    | 'retail_module' 
+    | 'workspace_admin';
 }
 
 export const SECTION_META: Record<SettingsSection, SectionMeta> = {
@@ -64,25 +76,45 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   profile: { id: 'profile', label: 'Your profile', icon: User, group: 'account' },
   security: { id: 'security', label: 'Login & security', icon: Shield, group: 'account' },
   appearance: { id: 'appearance', label: 'Appearance', icon: Palette, group: 'account' },
-  whatsapp: { id: 'whatsapp', label: 'WhatsApp', icon: PlugZap, group: 'workspace' },
-  chatbot: { id: 'chatbot', label: 'AI Chatbot', icon: Bot, group: 'workspace' },
-  templates: { id: 'templates', label: 'Templates', icon: FileText, group: 'workspace' },
-  fields: { id: 'fields', label: 'Fields & tags', icon: Tags, group: 'workspace' },
-  deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'workspace' },
-  members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'workspace' },
-  roles: { id: 'roles', label: 'Roles & permissions', icon: ShieldCheck, group: 'workspace' },
-  billing: { id: 'billing', label: 'Billing & Plan', icon: CreditCard, group: 'workspace' },
-  api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
-  catalog: { id: 'catalog', label: 'Service Catalog', icon: FileSpreadsheet, group: 'workspace' },
-  branding: { id: 'branding', label: 'Company Branding', icon: Building2, group: 'workspace' },
-  hr: { id: 'hr', label: 'HR Operations', icon: Briefcase, group: 'workspace' },
-  retail: { id: 'retail', label: 'Retail & Industry Presets', icon: Store, group: 'workspace' },
+  
+  // CRM Module Settings
+  crm: { id: 'crm', label: 'CRM & Pipelines', icon: PlugZap, group: 'crm_module' },
+  whatsapp: { id: 'whatsapp', label: 'WhatsApp API', icon: PlugZap, group: 'crm_module' },
+  chatbot: { id: 'chatbot', label: 'AI Chatbot', icon: Bot, group: 'crm_module' },
+  templates: { id: 'templates', label: 'Templates', icon: FileText, group: 'crm_module' },
+  fields: { id: 'fields', label: 'Fields & tags', icon: Tags, group: 'crm_module' },
+  deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'crm_module' },
+  
+  // Accounting Module Settings
+  accounting: { id: 'accounting', label: 'Accounting & Ledgers', icon: Landmark, group: 'finance_module' },
+  
+  // Project Management Settings
+  projects: { id: 'projects', label: 'Project Management', icon: Briefcase, group: 'projects_module' },
+  
+  // HR Module Settings
+  hr: { id: 'hr', label: 'HR & Operations', icon: Briefcase, group: 'hr_module' },
+  
+  // Retail Module Settings
+  retail: { id: 'retail', label: 'Retail Presets', icon: Store, group: 'retail_module' },
+  
+  // Workspace Admin Settings
+  members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'workspace_admin' },
+  roles: { id: 'roles', label: 'Roles & permissions', icon: ShieldCheck, group: 'workspace_admin' },
+  billing: { id: 'billing', label: 'Billing & Plan', icon: CreditCard, group: 'workspace_admin' },
+  api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace_admin' },
+  catalog: { id: 'catalog', label: 'Service Catalog', icon: FileSpreadsheet, group: 'workspace_admin' },
+  branding: { id: 'branding', label: 'Company Branding', icon: Building2, group: 'workspace_admin' },
 };
 
 export const RAIL_GROUPS: { label: string | null; group: SectionMeta['group'] }[] = [
   { label: null, group: 'top' },
   { label: 'Account', group: 'account' },
-  { label: 'Workspace', group: 'workspace' },
+  { label: 'CRM Module', group: 'crm_module' },
+  { label: 'Finance & Accounting', group: 'finance_module' },
+  { label: 'Project Management', group: 'projects_module' },
+  { label: 'HR & People Operations', group: 'hr_module' },
+  { label: 'Retail & Commerce', group: 'retail_module' },
+  { label: 'Workspace Administration', group: 'workspace_admin' },
 ];
 
 function isSection(value: string | null): value is SettingsSection {

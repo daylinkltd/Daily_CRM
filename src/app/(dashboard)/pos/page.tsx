@@ -129,8 +129,13 @@ function POSTerminalPageContent() {
       const cleanSearchQuery = extractCleanSku(query);
       try {
         const res = await fetch(`/api/commerce/products?workspace_id=${activeWorkspace.id}&query=${encodeURIComponent(cleanSearchQuery)}`);
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) {
+          console.error("Fetch products failed with status:", res.status);
+          return;
+        }
         const json = await res.json();
-        if (res.ok && json.products) {
+        if (json.products) {
           setProducts(json.products);
 
           if (cleanSearchQuery && json.products.length === 1 && (json.products[0].barcode === cleanSearchQuery || json.products[0].sku === cleanSearchQuery)) {
@@ -139,7 +144,7 @@ function POSTerminalPageContent() {
           }
         }
       } catch (err: any) {
-        console.error(err);
+        console.error("Error fetching products:", err);
       } finally {
         setLoadingProducts(false);
       }
@@ -314,10 +319,17 @@ function POSTerminalPageContent() {
         }),
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Checkout failed");
+      const contentType = res.headers.get("content-type") || "";
+      let json: any = {};
+      if (contentType.includes("application/json")) {
+        json = await res.json();
+      }
 
-      toast.success(`Order #${json.order.order_number} completed & Journal posted!`);
+      if (!res.ok) {
+        throw new Error(json.error || `Checkout endpoint error (${res.status}). Please restart dev server if route was recently added.`);
+      }
+
+      toast.success(`Order #${json.order?.order_number || "completed"} completed & Journal posted!`);
       setCart([]);
       setDiscountAmount(0);
       setCashReceived(0);

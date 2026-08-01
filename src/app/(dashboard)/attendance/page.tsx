@@ -30,6 +30,7 @@ import { PunchAction } from '@/components/attendance/punch-action';
 import { AttendanceRequestModal } from '@/components/attendance/request-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { LocationMapModal } from '@/components/attendance/location-map-modal';
 import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
 
 export default function AttendancePage() {
@@ -43,6 +44,21 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showRequestModal, setShowRequestModal] = useState(false);
+
+  // Leaflet Location Map Modal State
+  const [mapModalOpen, setMapModalOpen] = useState(false);
+  const [selectedLocationMap, setSelectedLocationMap] = useState<{
+    location: any;
+    title: string;
+    employeeName: string;
+    timestamp: string;
+    workLocation: string;
+  } | null>(null);
+
+  const openMapModal = (location: any, title: string, employeeName: string, timestamp: string, workLocation: string) => {
+    setSelectedLocationMap({ location, title, employeeName, timestamp, workLocation });
+    setMapModalOpen(true);
+  };
 
   // Analytics Metrics
   const [totalWorkingHours, setTotalWorkingHours] = useState(0);
@@ -236,12 +252,12 @@ export default function AttendancePage() {
       {/* Page Header with Punch Action & Request Trigger */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card/80 p-5 rounded-3xl border border-border backdrop-blur-xl shadow-2xl">
         <div>
-          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
-            <Clock className="h-6 w-6 text-[#00aef0]" />
-            Enterprise HRMS Attendance &amp; Time Tracking
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+            <Clock className="h-5 w-5 text-primary" />
+            Attendance &amp; Time Tracking
           </h1>
-          <p className="text-muted-foreground text-xs mt-1">
-            Real-time Punch In/Out, Multiple Breaks, WFH &amp; Location Verification, Overtime, and Regularization Approvals.
+          <p className="text-muted-foreground text-xs mt-0.5">
+            Real-time punch logs, shift tracking &amp; break management.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -379,25 +395,63 @@ export default function AttendancePage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center gap-1 text-foreground">
+                        <button
+                          type="button"
+                          onClick={() => openMapModal(
+                            r.punch_in_location || r.punch_out_location,
+                            `Attendance GPS Location (${r.work_location || 'OFFICE'})`,
+                            name,
+                            r.punch_in_time ? new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : r.attendance_date,
+                            r.work_location || 'OFFICE'
+                          )}
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-foreground hover:bg-muted/80 transition-colors font-medium text-xs border border-border/60"
+                          title="Click to view Leaflet Location Map"
+                        >
                           {getLocationIcon(r.work_location)}
-                          {r.work_location || 'OFFICE'}
-                        </span>
+                          <span>{r.work_location || 'OFFICE'}</span>
+                          <MapPin className="h-3 w-3 text-primary ml-0.5" />
+                        </button>
                       </TableCell>
                       <TableCell>{getStatusBadge(r.status)}</TableCell>
                       <TableCell>
                         {r.punch_in_time ? (
-                          <div className="flex items-center gap-1 font-mono text-foreground">
+                          <div className="flex items-center gap-1.5 font-mono text-foreground">
                             <span>{new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            {r.punch_in_location && <MapPin className="h-3 w-3 text-emerald-400" />}
+                            <button
+                              type="button"
+                              onClick={() => openMapModal(
+                                r.punch_in_location,
+                                "Punch In GPS Location",
+                                name,
+                                new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                r.work_location || 'OFFICE'
+                              )}
+                              className="p-1 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors"
+                              title="View Leaflet GPS Map"
+                            >
+                              <MapPin className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         ) : '—'}
                       </TableCell>
                       <TableCell>
                         {r.punch_out_time ? (
-                          <div className="flex items-center gap-1 font-mono text-foreground">
+                          <div className="flex items-center gap-1.5 font-mono text-foreground">
                             <span>{new Date(r.punch_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            {r.punch_out_location && <MapPin className="h-3 w-3 text-emerald-400" />}
+                            <button
+                              type="button"
+                              onClick={() => openMapModal(
+                                r.punch_out_location,
+                                "Punch Out GPS Location",
+                                name,
+                                new Date(r.punch_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                r.work_location || 'OFFICE'
+                              )}
+                              className="p-1 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors"
+                              title="View Leaflet GPS Map"
+                            >
+                              <MapPin className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         ) : '—'}
                       </TableCell>
@@ -502,6 +556,17 @@ export default function AttendancePage() {
         open={showRequestModal}
         onOpenChange={setShowRequestModal}
         onSubmitted={fetchAttendanceData}
+      />
+
+      {/* Leaflet GPS Location Map Modal */}
+      <LocationMapModal
+        open={mapModalOpen}
+        onOpenChange={setMapModalOpen}
+        location={selectedLocationMap?.location || null}
+        title={selectedLocationMap?.title || "GPS Location Map"}
+        employeeName={selectedLocationMap?.employeeName}
+        timestamp={selectedLocationMap?.timestamp}
+        workLocation={selectedLocationMap?.workLocation}
       />
     </div>
   );
