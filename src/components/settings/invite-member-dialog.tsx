@@ -16,7 +16,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Copy, Loader2, MessageCircle, Sparkles, AlertTriangle } from 'lucide-react';
+import { Copy, Loader2, MessageCircle, Sparkles, AlertTriangle, Link2, KeyRound, Mail } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -82,13 +82,26 @@ export function InviteMemberDialog({
   onOpenChange,
   onCreated,
 }: InviteMemberDialogProps) {
-  const { account } = useAuth();
+  const { account, profile } = useAuth();
   const { activeWorkspace } = useWorkspace();
   const [role, setRole] = useState<InviteRole>('agent');
   const [expiry, setExpiry] = useState<string>('7');
   const [label, setLabel] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CreatedInvite | null>(null);
+
+  // Two ways to add someone: send them a one-time invite link, or
+  // create the account outright with a password you set. The direct
+  // path uses admin.createUser with email_confirm, so Supabase sends
+  // no email at all and the person can sign in immediately.
+  const [mode, setMode] = useState<'invite' | 'direct'>('invite');
+  // Emailing the link from the workspace's own Outlook mailbox, so the
+  // admin doesn't have to copy-paste it and Supabase mail isn't used.
+  const [emailTo, setEmailTo] = useState('');
+  const [emailing, setEmailing] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const [memberCount, setMemberCount] = useState<number | null>(null);
   const [maxMembers, setMaxMembers] = useState<number | null>(null);
@@ -112,6 +125,95 @@ export function InviteMemberDialog({
     setLabel('');
     setResult(null);
     setSubmitting(false);
+    setMode('invite');
+    setEmailTo('');
+    setEmailing(false);
+    setFullName('');
+    setEmail('');
+    setPassword('');
+  }
+
+  /** Map the invite role names onto the workspace_members enum. */
+  function workspaceRoleFor(r: InviteRole): 'admin' | 'member' | 'viewer' {
+    if (r === 'admin') return 'admin';
+    if (r === 'viewer') return 'viewer';
+    return 'member';
+  }
+
+  async function handleEmailInvite() {
+    if (!activeWorkspace?.id || !result) return;
+    if (!emailTo.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTo.trim())) {
+      toast.error('Enter a valid email address');
+      return;
+    }
+    setEmailing(true);
+    try {
+      const res = await fetch('/api/account/invitations/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspace_id: activeWorkspace.id,
+          to: emailTo.trim(),
+          url: result.url,
+          role: result.role,
+          inviter_name: profile?.full_name || undefined,
+        }),
+      });
+      const payload = await res.json();
+      if (!res.ok) {
+        toast.error(payload.error || 'Could not email the invite');
+        return;
+      }
+      toast.success(payload.message || 'Invitation emailed');
+      setEmailTo('');
+    } catch {
+      toast.error('Could not email the invite');
+    } finally {
+      setEmailing(false);
+    }
+  }
+
+  async function handleCreateDirect() {
+    if (!activeWorkspace?.id) return;
+    if (!fullName.trim()) {
+      toast.error('Full name is required');
+      return;
+    }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error('Enter a valid email address');
+      return;
+    }
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/workspace/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspace_id: activeWorkspace.id,
+          full_name: fullName.trim(),
+          email: email.trim(),
+          password,
+          workspace_role: workspaceRoleFor(role),
+        }),
+      });
+      const payload = await res.json();
+      if (!res.ok) {
+        toast.error(payload.error || 'Failed to create the account');
+        return;
+      }
+      toast.success(`${fullName.trim()} can now sign in with that email and password`);
+      onCreated?.();
+      onOpenChange(false);
+    } catch {
+      toast.error('Failed to create the account');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleCreate() {
@@ -242,6 +344,38 @@ export function InviteMemberDialog({
                 </Button>
               </div>
 
+              {/* Deliver from the workspace's own mailbox (Outlook) rather
+                  than making the admin copy-paste, and without touching
+                  Supabase's email. */}
+              <div className="space-y-2 rounded-md border border-border bg-muted/40 px-3 py-2.5">
+                <Label className="text-muted-foreground text-xs">
+                  Or email it from your own mailbox
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="teammate@company.com"
+                    value={emailTo}
+                    onChange={(e) => setEmailTo(e.target.value)}
+                    className="bg-muted border-border text-foreground text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleEmailInvite}
+                    disabled={emailing}
+                    className="shrink-0 border-border"
+                  >
+                    {emailing ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
+                    Send
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Requires Outlook connected in Integrations. Sends from your company
+                  address — not Supabase.
+                </p>
+              </div>
+
               {/* Higher-contrast amber than the original 10% / amber-200.
                   Reviewed against slate-900 to meet WCAG AAA for body
                   text (target ratio 7:1). Border bumped to /50, bg to
@@ -321,14 +455,75 @@ export function InviteMemberDialog({
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="text-popover-foreground">Invite a teammate</DialogTitle>
+              <DialogTitle className="text-popover-foreground">Add a teammate</DialogTitle>
               <DialogDescription className="text-muted-foreground">
-                Generate a one-time invite link. Share it via WhatsApp,
-                Slack, or any channel you like — no email service required.
+                {mode === 'invite'
+                  ? 'Generate a one-time invite link. Share it via WhatsApp, Slack, or any channel you like — no email service required.'
+                  : 'Create the account yourself and hand over the password. No confirmation email is sent — they can sign in straight away.'}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-2">
+              {/* Mode switch */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={mode === 'invite' ? 'default' : 'outline'}
+                  onClick={() => setMode('invite')}
+                  className="justify-center"
+                >
+                  <Link2 className="size-4" /> Send invite link
+                </Button>
+                <Button
+                  type="button"
+                  variant={mode === 'direct' ? 'default' : 'outline'}
+                  onClick={() => setMode('direct')}
+                  className="justify-center"
+                >
+                  <KeyRound className="size-4" /> Set a password
+                </Button>
+              </div>
+
+              {mode === 'direct' && (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Full name</Label>
+                    <Input
+                      placeholder="e.g. Sara Khan"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Email</Label>
+                    <Input
+                      type="email"
+                      autoComplete="off"
+                      placeholder="sara@company.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Temporary password</Label>
+                    <Input
+                      type="text"
+                      autoComplete="off"
+                      placeholder="At least 8 characters"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-muted border-border text-foreground placeholder:text-muted-foreground font-mono"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Share this with them over a secure channel and ask them to change
+                      it after their first sign-in. Only the workspace owner can create
+                      accounts this way.
+                    </p>
+                  </div>
+                </>
+              )}
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Role</Label>
                 <Select
@@ -349,6 +544,7 @@ export function InviteMemberDialog({
                 </p>
               </div>
 
+              {mode === 'invite' && (
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Link valid for</Label>
                 <Select
@@ -368,6 +564,9 @@ export function InviteMemberDialog({
                 </Select>
               </div>
 
+              )}
+
+              {mode === 'invite' && (
               <div className="space-y-2">
                 <Label className="text-muted-foreground">
                   Label{' '}
@@ -385,6 +584,7 @@ export function InviteMemberDialog({
                   list below.
                 </p>
               </div>
+              )}
             </div>
 
             <DialogFooter className="bg-popover border-border">
@@ -396,7 +596,7 @@ export function InviteMemberDialog({
                 Cancel
               </Button>
               <Button
-                onClick={handleCreate}
+                onClick={mode === 'invite' ? handleCreate : handleCreateDirect}
                 disabled={submitting}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
@@ -405,8 +605,10 @@ export function InviteMemberDialog({
                     <Loader2 className="size-4 animate-spin" />
                     Creating...
                   </>
-                ) : (
+                ) : mode === 'invite' ? (
                   'Generate link'
+                ) : (
+                  'Create account'
                 )}
               </Button>
             </DialogFooter>

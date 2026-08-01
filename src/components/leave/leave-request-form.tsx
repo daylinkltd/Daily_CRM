@@ -134,7 +134,7 @@ export function LeaveRequestForm({ open, onOpenChange, onSaved }: LeaveRequestFo
 
           <div className="space-y-2">
             <Label className="text-foreground">Reason / Remarks (Optional)</Label>
-            <Textarea
+            <Textarea plain
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide a brief explanation..."

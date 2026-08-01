@@ -1035,7 +1035,7 @@ export function TemplateManager() {
 
             <div className="space-y-2">
               <Label className="text-muted-foreground">Body Text</Label>
-              <Textarea
+              <Textarea plain
                 placeholder="Hello {{1}}, your order {{2}} is confirmed."
                 value={form.body_text}
                 onChange={(e) =>

@@ -124,7 +124,7 @@ export function LogTimeModal({
 
           <div className="space-y-2">
             <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
+            <Textarea plain
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}

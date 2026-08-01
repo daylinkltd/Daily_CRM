@@ -211,7 +211,7 @@ export default function EmployeeRequestsPage() {
 
             <div className="space-y-2">
               <Label>Details / Notes for HR</Label>
-              <Textarea
+              <Textarea plain
                 placeholder="Provide context or the reason for the request. Do NOT include bank details here — HR will collect them securely."
                 value={notes}
                 onChange={e => setNotes(e.target.value)}

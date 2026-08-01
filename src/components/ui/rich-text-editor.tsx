@@ -19,7 +19,7 @@ import {
   RemoveFormatting,
 } from "lucide-react";
 import { Button } from "./button";
-import { markdownToHtml } from "@/lib/markdown-utils";
+import { markdownToHtml, sanitizeHtml } from "@/lib/markdown-utils";
 
 interface RichTextEditorProps {
   value: string;
@@ -62,6 +62,27 @@ export function RichTextEditor({
     // Clean empty breaks
     const cleanHtml = html === "<br>" || html === "<div><br></div>" ? "" : html;
     onChange(cleanHtml);
+  };
+
+  /**
+   * A contenteditable accepts the clipboard's full HTML, so pasting
+   * from a web page or Word can carry scripts, event handlers and a
+   * mountain of foreign styling. Insert an allowlisted version
+   * instead. Rendering sanitises again (defence in depth), but
+   * cleaning here keeps what we *store* clean too.
+   */
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    const html = e.clipboardData.getData("text/html");
+    const text = e.clipboardData.getData("text/plain");
+    if (!html && !text) return;
+    e.preventDefault();
+    if (html) {
+      document.execCommand("insertHTML", false, sanitizeHtml(html));
+    } else {
+      document.execCommand("insertText", false, text);
+    }
+    handleInput();
   };
 
   const exec = (command: string, value: string | undefined = undefined) => {
@@ -264,6 +285,7 @@ export function RichTextEditor({
           ref={editorRef}
           contentEditable={!disabled}
           onInput={handleInput}
+          onPaste={handlePaste}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           style={{ minHeight }}

@@ -233,7 +233,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
 
                 {/* Textarea Field Rendering */}
                 {field.field_type === 'textarea' && (
-                  <Textarea
+                  <Textarea plain
                     id={field.id}
                     value={values[field.id] || ''}
                     onChange={(e) => handleInputChange(field.id, e.target.value)}

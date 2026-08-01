@@ -102,7 +102,7 @@ export function DesignationForm({ open, onOpenChange, designation, onSaved }: De
           </div>
           <div className="space-y-2">
             <Label htmlFor="description" className="text-foreground">Description (Optional)</Label>
-            <Textarea
+            <Textarea plain
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}

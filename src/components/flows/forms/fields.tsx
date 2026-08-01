@@ -45,7 +45,7 @@ export function TextRow({
     <div>
       <label className="mb-1 block text-xs text-muted-foreground">{label}</label>
       {rows > 1 ? (
-        <Textarea
+        <Textarea plain
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={rows}

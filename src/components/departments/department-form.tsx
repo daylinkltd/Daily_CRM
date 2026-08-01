@@ -102,7 +102,7 @@ export function DepartmentForm({ open, onOpenChange, department, onSaved }: Depa
           </div>
           <div className="space-y-2">
             <Label htmlFor="description" className="text-foreground">Description (Optional)</Label>
-            <Textarea
+            <Textarea plain
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}

@@ -52,9 +52,10 @@ export function AddPolicyDialog({
     setSelectedIds([]);
     setSearch("");
 
-    fetch(`/api/hr/policies?workspace_id=${workspaceId}`)
+    fetch(`/api/hr/policies?workspaceId=${workspaceId}`)
       .then((res) => res.json())
       .then((data) => {
+        if (data.error) throw new Error(data.error);
         if (data.policies) {
           // Filter out policies that are already in the handbook
           const available = data.policies.filter(
@@ -97,9 +98,12 @@ export function AddPolicyDialog({
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to add policies");
 
-      toast.success(
-        `Added ${selectedIds.length} policy section${selectedIds.length === 1 ? "" : "s"} to Handbook`
-      );
+      const added = typeof json.count === "number" ? json.count : selectedIds.length;
+      if (added === 0) {
+        toast.error("Nothing was added — those policies could not be found in this workspace");
+      } else {
+        toast.success(`Added ${added} policy section${added === 1 ? "" : "s"} to Handbook`);
+      }
       onAdded();
       onOpenChange(false);
     } catch (err: any) {

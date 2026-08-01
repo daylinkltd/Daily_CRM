@@ -1,5 +1,3 @@
--- ==================== BEGIN 083_handbook_position ====================
-
 -- ============================================================
 -- 083 — handbook membership as data, not as a title prefix.
 --
@@ -42,5 +40,3 @@ UPDATE public.hr_policies
 SET title = regexp_replace(title, '^Handbook §Addendum — ', ''),
     handbook_position = COALESCE(handbook_position, 100)
 WHERE title LIKE 'Handbook §Addendum — %';
-
--- ==================== END 083 ====================
