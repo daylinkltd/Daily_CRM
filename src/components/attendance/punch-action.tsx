@@ -162,7 +162,15 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
     };
   }, [supabase, activeWorkspace?.id, activeMember?.id, todayDate]);
 
-  const handlePunch = async (type: 'in' | 'out') => {
+  /**
+   * `skipLocation` records the punch with the location marked unavailable
+   * instead of refusing it. Offered only after a genuine geolocation
+   * failure, and never silently: blocking someone from clocking out
+   * because macOS is withholding GPS from their browser is worse than
+   * storing an honest "no fix, flagged for review" — they still have to
+   * be paid for the day.
+   */
+  const handlePunch = async (type: 'in' | 'out', skipLocation = false) => {
     if (!activeWorkspace?.id || !activeMember?.id) return;
     setLoading(true);
 
@@ -172,11 +180,18 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
       // failure and store null, which is why no punch has ever recorded a
       // location and the map fell back to a hardcoded city centre.
       const locationRequired =
-        policy.require_location && policy.require_location_for.includes(workLocation);
+        !skipLocation &&
+        policy.require_location &&
+        policy.require_location_for.includes(workLocation);
 
       let locationData: PunchLocation | null = null;
       let geofenceStatus: GeofenceStatus = locationRequired ? 'NOT_ENFORCED' : 'EXEMPT';
       let distanceM: number | null = null;
+      // Recorded so HR can tell "WFH, no location needed" apart from
+      // "location was required but the device could not supply one".
+      const exemptReason: string | null = skipLocation
+        ? 'Device could not provide a location; recorded by the employee without one.'
+        : null;
 
       // Device and network context are captured for every punch, including
       // WFH — knowing which machine clocked in is useful even when there is
@@ -219,13 +234,26 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
 
           // Only a blocked permission needs the browser-settings walkthrough;
           // a timeout or a bad fix just needs another go.
-          toast.error(message, {
-            duration: 10_000,
-            action:
-              failure?.reason === 'permission_denied'
-                ? { label: 'How to fix', onClick: () => setShowLocationHelp(true) }
-                : { label: 'Try again', onClick: () => handlePunch(type) },
-          });
+          // Punching OUT is never hard-blocked: the shift already happened,
+          // and refusing to record its end loses real worked hours. Punching
+          // IN still requires a fix unless HR allowed the exemption.
+          if (type === 'out') {
+            toast.error(message, {
+              duration: 12_000,
+              action: {
+                label: 'Punch out anyway',
+                onClick: () => handlePunch('out', true),
+              },
+            });
+          } else {
+            toast.error(message, {
+              duration: 12_000,
+              action:
+                failure?.reason === 'permission_denied'
+                  ? { label: 'How to fix', onClick: () => setShowLocationHelp(true) }
+                  : { label: 'Try again', onClick: () => handlePunch(type) },
+            });
+          }
           return;
         } finally {
           setLocatingMessage(null);
@@ -288,6 +316,7 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             punch_in_accuracy_m: locationData?.accuracy ?? null,
             punch_in_distance_m: distanceM,
             punch_in_geofence_status: geofenceStatus,
+            location_exempt_reason: exemptReason,
             punch_in_device_json: deviceInfo,
             punch_in_ip: networkContext?.ip ?? null,
             work_location: workLocation,
@@ -321,9 +350,13 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             punch_out_location: locationData,
             punch_out_accuracy_m: locationData?.accuracy ?? null,
             punch_out_distance_m: distanceM,
-            punch_out_geofence_status: geofenceStatus,
+            punch_out_geofence_status: skipLocation ? 'INCONCLUSIVE' : geofenceStatus,
             punch_out_device_json: deviceInfo,
             punch_out_ip: networkContext?.ip ?? null,
+            location_exempt_reason: exemptReason,
+            // Surfaced to HR rather than buried: a punch with no location is
+            // valid but worth a look.
+            review_flags: skipLocation ? ['PUNCH_OUT_WITHOUT_LOCATION'] : null,
             working_hours: workingHours,
             net_productive_hours: netProductive
           })

@@ -983,20 +983,14 @@ export function TemplateManager() {
                           e.target.value = '';
                         }}
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={uploadingHeader}
-                        onClick={() => headerFileRef.current?.click()}
-                      >
-                        {uploadingHeader ? (
+                      <IconAction label="Upload image" icon={uploadingHeader ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         ) : (
                           <Upload className="h-3.5 w-3.5" />
-                        )}
-                        Upload image
-                      </Button>
+                        )} type="button"
+                        variant="outline"
+                        disabled={uploadingHeader}
+                        onClick={() => headerFileRef.current?.click()} />
                       <span className="text-[11px] text-muted-foreground">
                         JPEG or PNG, ≤5 MB
                       </span>

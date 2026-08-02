@@ -702,18 +702,13 @@ export function AttendancePolicyPanel() {
                   <Input type="date" value={ovDate} onChange={(e) => setOvDate(e.target.value)} />
                 </div>
                 <div className="flex items-end">
-                  <Button
-                    onClick={handleAddOverride}
-                    disabled={savingOverride}
-                    className="w-full gap-1.5"
-                  >
-                    {savingOverride ? (
+                  <IconAction label="Add" icon={savingOverride ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
                       <CalendarPlus className="size-4" />
-                    )}
-                    Add
-                  </Button>
+                    )} onClick={handleAddOverride}
+                    disabled={savingOverride}
+                    className="w-full gap-1.5" />
                 </div>
 
                 <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3 sm:col-span-2">

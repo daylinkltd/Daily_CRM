@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface CustomFieldsManagerProps {
   open: boolean;
@@ -190,18 +191,13 @@ export function CustomFieldsPanel() {
           placeholder="New field name…"
           className="bg-muted text-foreground"
         />
-        <Button
-          onClick={handleCreate}
-          disabled={creating || !newName.trim()}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
-        >
-          {creating ? (
+        <IconAction label="Add" icon={creating ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <Plus className="size-4" />
-          )}
-          Add
-        </Button>
+          )} onClick={handleCreate}
+          disabled={creating || !newName.trim()}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0" />
       </div>
 
       {/* List */}

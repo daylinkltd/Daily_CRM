@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface PolicyItem {
   id: string;
@@ -202,13 +203,8 @@ export function AddPolicyDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleAdd}
-              disabled={selectedIds.length === 0 || adding}
-            >
-              {adding ? <Loader2 className="size-4 animate-spin mr-2" /> : <Plus className="size-4 mr-2" />}
-              Add to Handbook
-            </Button>
+            <IconAction label="Add to Handbook" icon={adding ? <Loader2 className="size-4 animate-spin " /> : <Plus className="size-4 " />} onClick={handleAdd}
+              disabled={selectedIds.length === 0 || adding} />
           </div>
         </DialogFooter>
       </DialogContent>

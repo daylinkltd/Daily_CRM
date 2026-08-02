@@ -94,19 +94,13 @@ export function EditorHeader() {
             onClick={() => void deleteFlow()}
             className="text-red-400 hover:bg-red-500/10 hover:text-red-300" />
           {state.status === "active" ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void setStatus("draft")}
-              disabled={activating}
-            >
-              {activating ? (
+            <IconAction label="Pause" icon={activating ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <PauseCircle className="h-3.5 w-3.5" />
-              )}
-              Pause
-            </Button>
+              )} variant="outline"
+              onClick={() => void setStatus("draft")}
+              disabled={activating} />
           ) : (
             <Button
               variant="outline"

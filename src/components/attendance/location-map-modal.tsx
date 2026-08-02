@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { MapPin, ExternalLink, ShieldCheck, Crosshair, Clock, Loader2, Navigation, Laptop } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DeviceInfo } from "@/lib/attendance/device-info";
+import { IconAction } from "@/components/ui/icon-action";
 
 /** One label/value pair in the device panel; hidden when unknown. */
 function DeviceField({
@@ -276,17 +277,11 @@ export function LocationMapModal({
             </div>
             
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
+              <IconAction label="Detect My Live Location" icon={liveGpsLoading ? <Loader2 className="size-3.5 animate-spin" /> : <Navigation className="size-3.5 text-primary" />} type="button"
                 variant="outline"
-                size="sm"
                 onClick={handleFetchLiveDeviceGps}
                 disabled={liveGpsLoading}
-                className="h-8 text-xs gap-1.5 border-border bg-background hover:bg-muted text-foreground"
-              >
-                {liveGpsLoading ? <Loader2 className="size-3.5 animate-spin" /> : <Navigation className="size-3.5 text-primary" />}
-                Detect My Live Location
-              </Button>
+                className="h-8 text-xs gap-1.5 border-border bg-background hover:bg-muted text-foreground" />
               {googleMapsUrl && (
                 <a
                   href={googleMapsUrl}

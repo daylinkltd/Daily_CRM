@@ -458,9 +458,7 @@ export default function CommercialsPage() {
                               </>
                             )}
                             {r.status === "approved" && (
-                              <Button size="sm" variant="outline" disabled={busy} onClick={() => act(r, "convert")}>
-                                {busy ? <Loader2 className="animate-spin" /> : <FileText />} To Quotation
-                              </Button>
+                              <IconAction label="To Quotation" icon={busy ? <Loader2 className="animate-spin" /> : <FileText />} variant="outline" disabled={busy} onClick={() => act(r, "convert")} />
                             )}
                             {r.status === "converted" && r.converted_quotation_id && (
                               <IconAction label="View Quote" icon={<FileText />} variant="ghost"

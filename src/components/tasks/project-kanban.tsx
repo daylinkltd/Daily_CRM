@@ -21,6 +21,7 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface ProjectKanbanProps {
   projectId: string;
@@ -258,16 +259,10 @@ export function ProjectKanban({ projectId, canManage }: ProjectKanbanProps) {
                 if (e.key === 'Enter') addColumn();
               }}
             />
-            <Button
-              variant="outline"
-              size="sm"
+            <IconAction label="Add Column" icon={addingColumn ? <Loader2 className="size-3 animate-spin " /> : <Plus className="size-3 " />} variant="outline"
               onClick={addColumn}
               disabled={addingColumn || !newColumnName.trim()}
-              className="w-full text-xs"
-            >
-              {addingColumn ? <Loader2 className="size-3 animate-spin mr-1" /> : <Plus className="size-3 mr-1" />}
-              Add Column
-            </Button>
+              className="w-full text-xs" />
           </div>
         )}
       </div>

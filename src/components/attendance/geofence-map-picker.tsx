@@ -275,26 +275,16 @@ export function GeofenceMapPicker({
             className="h-9 pl-8 text-xs"
           />
         </div>
-        <Button
-          type="button"
+        <IconAction label="Find" icon={searching ? <Loader2 className="size-3.5 animate-spin" /> : <Search className="size-3.5" />} type="button"
           variant="outline"
           onClick={handleSearch}
           disabled={disabled || searching || !query.trim()}
-          className="h-9 gap-1.5 text-xs"
-        >
-          {searching ? <Loader2 className="size-3.5 animate-spin" /> : <Search className="size-3.5" />}
-          Find
-        </Button>
-        <Button
-          type="button"
+          className="h-9 gap-1.5 text-xs" />
+        <IconAction label="Use my location" icon={locating ? <Loader2 className="size-3.5 animate-spin" /> : <Crosshair className="size-3.5" />} type="button"
           variant="outline"
           onClick={handleUseMyLocation}
           disabled={disabled || locating}
-          className="h-9 gap-1.5 text-xs"
-        >
-          {locating ? <Loader2 className="size-3.5 animate-spin" /> : <Crosshair className="size-3.5" />}
-          Use my location
-        </Button>
+          className="h-9 gap-1.5 text-xs" />
       </div>
 
       <div className={`relative w-full overflow-hidden rounded-xl border border-border ${heightClass}`}>

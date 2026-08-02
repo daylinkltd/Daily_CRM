@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface OutlookConfigModalProps {
   open: boolean;
@@ -207,15 +208,10 @@ export function OutlookConfigModal({
             </div>
 
             <DialogFooter className="flex items-center justify-between pt-4 border-t border-border">
-              <Button
-                type="button"
+              <IconAction label="Test Connection" icon={testing ? <Loader2 className="size-4 animate-spin " /> : <ShieldCheck className="size-4 text-blue-500" />} type="button"
                 variant="outline"
                 onClick={handleTestConnection}
-                disabled={testing || saving}
-              >
-                {testing ? <Loader2 className="size-4 animate-spin mr-2" /> : <ShieldCheck className="size-4 mr-2 text-blue-500" />}
-                Test Connection
-              </Button>
+                disabled={testing || saving} />
 
               <div className="flex gap-2">
                 <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>

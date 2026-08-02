@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { formatCurrency } from '@/lib/currency';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface ContactDetailViewProps {
   open: boolean;
@@ -516,19 +517,13 @@ export function ContactDetailView({
                     placeholder="Write a note..."
                     className="bg-muted border-border text-foreground placeholder:text-muted-foreground min-h-[60px] text-sm resize-none"
                   />
-                  <Button
-                    onClick={addNote}
-                    disabled={!newNote.trim() || savingNote}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                    size="sm"
-                  >
-                    {savingNote ? (
+                  <IconAction label="Add Note" icon={savingNote ? (
                       <Loader2 className="size-3.5 animate-spin" />
                     ) : (
                       <Plus className="size-3.5" />
-                    )}
-                    Add Note
-                  </Button>
+                    )} onClick={addNote}
+                    disabled={!newNote.trim() || savingNote}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground" />
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-2">

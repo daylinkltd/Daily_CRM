@@ -364,14 +364,10 @@ export default function PayrollAdminPage() {
                         </TableCell>
                         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           {cycle.status === "draft" && (
-                            <Button size="sm" variant="outline" disabled={busy} onClick={() => handleProcess(cycle)}>
-                              {busy ? <Loader2 className="animate-spin" /> : <Play />} Process
-                            </Button>
+                            <IconAction label="Process" icon={busy ? <Loader2 className="animate-spin" /> : <Play />} variant="outline" disabled={busy} onClick={() => handleProcess(cycle)} />
                           )}
                           {cycle.status === "processed" && (
-                            <Button size="sm" variant="outline" disabled={busy} onClick={() => setPayCycle(cycle)}>
-                              {busy ? <Loader2 className="animate-spin" /> : <Wallet />} Mark Paid
-                            </Button>
+                            <IconAction label="Mark Paid" icon={busy ? <Loader2 className="animate-spin" /> : <Wallet />} variant="outline" disabled={busy} onClick={() => setPayCycle(cycle)} />
                           )}
                         </TableCell>
                       </TableRow>

@@ -425,14 +425,9 @@ export default function FormBuilderPage({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
+          <IconAction label="Copy Public Link" icon={copied ? <Check className="size-4 text-emerald-400" /> : <Copy className="size-4 " />} variant="outline"
             onClick={copyShareLink}
-            className="border-border hover:bg-muted text-foreground"
-          >
-            {copied ? <Check className="size-4 mr-2 text-emerald-400" /> : <Copy className="size-4 mr-2" />}
-            Copy Public Link
-          </Button>
+            className="border-border hover:bg-muted text-foreground" />
 
           <Button
             variant="ghost"

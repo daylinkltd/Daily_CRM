@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface ProjectInvoicesProps {
   projectId: string;
@@ -182,14 +183,9 @@ export function ProjectInvoices({ projectId }: ProjectInvoicesProps) {
               <p className="text-3xl font-bold text-primary">${unbilledAmount.toFixed(2)}</p>
             </div>
 
-            <Button 
-              className="w-full" 
+            <IconAction label="Generate Draft Invoice" icon={generating ? <Loader2 className="size-4 animate-spin " /> : <FileText className="size-4 " />} className="w-full" 
               onClick={handleGenerateInvoice}
-              disabled={unbilledLogs.length === 0 || generating || hourlyRate <= 0}
-            >
-              {generating ? <Loader2 className="size-4 animate-spin mr-2" /> : <FileText className="size-4 mr-2" />}
-              Generate Draft Invoice
-            </Button>
+              disabled={unbilledLogs.length === 0 || generating || hourlyRate <= 0} />
             
             {hourlyRate <= 0 && unbilledLogs.length > 0 && (
               <p className="text-xs text-destructive text-center">Please set an hourly rate in Settings first.</p>

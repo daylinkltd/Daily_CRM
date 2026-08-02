@@ -413,15 +413,9 @@ export function EpicDetailsModal({
                         }
                       }}
                     />
-                    <Button
-                      size="sm"
-                      onClick={handleAddChildTask}
+                    <IconAction label="Add" icon={isAddingChild ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3.5 " />} onClick={handleAddChildTask}
                       disabled={isAddingChild || !newChildTitle.trim()}
-                      className="h-8 text-xs bg-primary text-primary-foreground shrink-0"
-                    >
-                      {isAddingChild ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3.5 mr-1" />}
-                      Add
-                    </Button>
+                      className="h-8 text-xs bg-primary text-primary-foreground shrink-0" />
                   </div>
                 </div>
               </div>
