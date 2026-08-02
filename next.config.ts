@@ -60,7 +60,44 @@ const SECURITY_HEADERS = [
   },
 ] as const;
 
+/**
+ * Hosts next/image is allowed to optimise.
+ *
+ * There was no `images` config at all, so the first Supabase-hosted image
+ * rendered through <Image> — the workspace logo, once uploading actually
+ * worked — crashed the sidebar with "hostname is not configured under
+ * images". Avatars had never hit this because they render through a plain
+ * <img> inside the Avatar primitive.
+ *
+ * The host is DERIVED from NEXT_PUBLIC_SUPABASE_URL rather than hardcoded,
+ * so local, staging and production each allow their own project without a
+ * config edit. If the variable is missing at build time we fall back to
+ * any Supabase-hosted subdomain, which is still far tighter than allowing
+ * arbitrary remote images.
+ */
+function supabaseImageHost(): string {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!raw) return "*.supabase.co";
+  try {
+    return new URL(raw).hostname;
+  } catch {
+    return "*.supabase.co";
+  }
+}
+
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: supabaseImageHost(),
+        // Only the public object path: signed URLs and the storage API
+        // itself are not image sources.
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
+  },
+
   /**
    * Cache-Control policy.
    *

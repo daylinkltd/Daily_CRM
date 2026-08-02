@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ChevronsUpDown, Plus, Check, Building2, AlertTriangle } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
@@ -209,11 +208,16 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     workspace, so an initial stands in there. */}
                 {activeWorkspace.logo_url ? (
                   <div className={cn("relative h-7 w-7 shrink-0 overflow-hidden rounded border", switcherLogoBorder)}>
-                    <Image
+                    {/* Deliberately NOT next/image: it throws on a host
+                        absent from remotePatterns, and this renders inside
+                        the sidebar — so a single unexpected logo_url
+                        white-screened the entire app shell. A plain img
+                        degrades to a broken image instead. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={activeWorkspace.logo_url}
                       alt={activeWorkspace.name}
-                      fill
-                      className="object-cover"
+                      className="absolute inset-0 size-full object-cover"
                     />
                   </div>
                 ) : hideText ? (
@@ -257,11 +261,11 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                   <div className="flex items-center gap-2 min-w-0">
                     {workspace.logo_url ? (
                       <div className="h-5 w-5 shrink-0 rounded-none overflow-hidden relative border border-border bg-muted">
-                        <Image
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
                           src={workspace.logo_url}
                           alt={workspace.name}
-                          fill
-                          className="object-cover"
+                          className="absolute inset-0 size-full object-cover"
                         />
                       </div>
                     ) : (
