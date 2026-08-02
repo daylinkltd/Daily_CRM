@@ -19,6 +19,7 @@ import {
   RemoveFormatting,
 } from "lucide-react";
 import { Button } from "./button";
+import { cn } from "@/lib/utils";
 import { markdownToHtml, sanitizeHtml } from "@/lib/markdown-utils";
 
 interface RichTextEditorProps {
@@ -28,6 +29,51 @@ interface RichTextEditorProps {
   className?: string;
   minHeight?: string;
   disabled?: boolean;
+}
+
+
+/**
+ * Toolbar button.
+ *
+ * `onMouseDown` preventDefault is the load-bearing part: without it,
+ * pressing a toolbar button moves focus to the button and the browser
+ * DISCARDS the contentEditable selection. execCommand then has no range
+ * to act on, so heading, list, bold — everything needing a selection —
+ * silently did nothing. Re-focusing afterwards does not help, because the
+ * range is already gone.
+ *
+ * Declared at module scope, not inside the editor: a component created
+ * during render is a new type on every keystroke, which remounts every
+ * button and throws away their DOM state.
+ */
+function ToolbarButton({
+  onAction,
+  label,
+  disabled,
+  className,
+  children,
+}: {
+  onAction: () => void;
+  label: string;
+  disabled?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      title={label}
+      aria-label={label}
+      disabled={disabled}
+      className={cn("size-8 p-0", className)}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onAction}
+    >
+      {children}
+    </Button>
+  );
 }
 
 export function RichTextEditor({
@@ -92,6 +138,31 @@ export function RichTextEditor({
     handleInput();
   };
 
+  /**
+   * Block formatting is a TOGGLE, not a one-way apply.
+   *
+   * Calling formatBlock("h1") on a selection that is already an h1
+   * produced nested `<h1><h1>…</h1></h1>`, and that malformed nesting
+   * then broke later commands — a bullet list applied over it silently
+   * did nothing. Pressing the active heading now returns the block to a
+   * paragraph, which is what every editor does and what stops the
+   * nesting.
+   */
+  const toggleBlock = (tag: string) => {
+    if (disabled) return;
+    editorRef.current?.focus();
+    let current = "";
+    try {
+      current = (document.queryCommandValue("formatBlock") || "").toLowerCase();
+    } catch {
+      current = "";
+    }
+    // Engines report this as either "h1" or "<h1>".
+    const normalised = current.replace(/[<>]/g, "");
+    document.execCommand("formatBlock", false, normalised === tag ? "p" : tag);
+    handleInput();
+  };
+
   const handleAddLink = () => {
     if (disabled) return;
     const url = prompt("Enter URL:", "https://");
@@ -110,167 +181,62 @@ export function RichTextEditor({
     >
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 border-b border-border/80 bg-muted/40 p-1.5 text-foreground">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("bold")}
-          title="Bold (Ctrl+B)"
-        >
+        <ToolbarButton onAction={() => exec("bold")} label="Bold (Ctrl+B)" disabled={disabled}>
           <Bold className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("italic")}
-          title="Italic (Ctrl+I)"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => exec("italic")} label="Italic (Ctrl+I)" disabled={disabled}>
           <Italic className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("underline")}
-          title="Underline (Ctrl+U)"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => exec("underline")} label="Underline (Ctrl+U)" disabled={disabled}>
           <Underline className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("strikeThrough")}
-          title="Strikethrough"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => exec("strikeThrough")} label="Strikethrough" disabled={disabled}>
           <Strikethrough className="size-4" />
-        </Button>
+        </ToolbarButton>
 
         <div className="h-4 w-px bg-border mx-0.5" />
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("formatBlock", "<h1>")}
-          title="Heading 1"
-        >
+        <ToolbarButton onAction={() => toggleBlock("h1")} label="Heading 1" disabled={disabled}>
           <Heading1 className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("formatBlock", "<h2>")}
-          title="Heading 2"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => toggleBlock("h2")} label="Heading 2" disabled={disabled}>
           <Heading2 className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("formatBlock", "<h3>")}
-          title="Heading 3"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => toggleBlock("h3")} label="Heading 3" disabled={disabled}>
           <Heading3 className="size-4" />
-        </Button>
+        </ToolbarButton>
 
         <div className="h-4 w-px bg-border mx-0.5" />
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("insertUnorderedList")}
-          title="Bullet List"
-        >
+        <ToolbarButton onAction={() => exec("insertUnorderedList")} label="Bullet List" disabled={disabled}>
           <List className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("insertOrderedList")}
-          title="Numbered List"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => exec("insertOrderedList")} label="Numbered List" disabled={disabled}>
           <ListOrdered className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("formatBlock", "<blockquote>")}
-          title="Quote"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => toggleBlock("blockquote")} label="Quote" disabled={disabled}>
           <Quote className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("formatBlock", "<pre>")}
-          title="Code Block"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => toggleBlock("pre")} label="Code Block" disabled={disabled}>
           <Code className="size-4" />
-        </Button>
+        </ToolbarButton>
 
         <div className="h-4 w-px bg-border mx-0.5" />
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={handleAddLink}
-          title="Insert Link"
-        >
+        <ToolbarButton onAction={handleAddLink} label="Insert Link" disabled={disabled}>
           <LinkIcon className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="size-8 p-0"
-          onClick={() => exec("removeFormat")}
-          title="Clear Formatting"
-        >
+        </ToolbarButton>
+        <ToolbarButton onAction={() => exec("removeFormat")} label="Clear Formatting" disabled={disabled}>
           <RemoveFormatting className="size-4" />
-        </Button>
+        </ToolbarButton>
 
         <div className="ml-auto flex items-center gap-0.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="size-8 p-0 text-muted-foreground"
-            onClick={() => exec("undo")}
-            title="Undo"
-          >
+          <ToolbarButton onAction={() => exec("undo")} label="Undo" disabled={disabled}>
             <RotateCcw className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="size-8 p-0 text-muted-foreground"
-            onClick={() => exec("redo")}
-            title="Redo"
-          >
+          </ToolbarButton>
+          <ToolbarButton onAction={() => exec("redo")} label="Redo" disabled={disabled}>
             <RotateCw className="size-3.5" />
-          </Button>
+          </ToolbarButton>
         </div>
       </div>
 
