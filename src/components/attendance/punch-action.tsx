@@ -23,7 +23,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { TimeLogForm } from '@/components/timesheets/time-log-form';
+// The template-driven multi-row table replaces the old fixed
+// task/hours/notes form, which ignored fields_json entirely.
+import { TimesheetEntryTable } from '@/components/timesheets/timesheet-entry-table';
 import { LocationMapModal } from '@/components/attendance/location-map-modal';
 import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
 import {
@@ -707,11 +709,15 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
         )}
       </div>
 
-      <TimeLogForm 
-        open={showTimeLogModal} 
-        onOpenChange={setShowTimeLogModal} 
-        defaultHours={lastLoggedHours}
-        onSaved={() => setShowTimeLogModal(false)}
+      <TimesheetEntryTable
+        open={showTimeLogModal}
+        onOpenChange={setShowTimeLogModal}
+        templateId={policy.timesheet_template_id}
+        loggedHours={lastLoggedHours}
+        onSaved={() => {
+          setShowTimeLogModal(false);
+          fetchTodayStatus();
+        }}
       />
 
       <LocationMapModal

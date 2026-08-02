@@ -34,6 +34,7 @@ import {
 } from '@/components/settings/settings-sections';
 import { PageHeader } from '@/components/ui/page-header';
 import { SettingsSubtabs } from '@/components/settings/settings-subtabs';
+import { TimesheetTemplatesManager } from '@/components/settings/timesheet-templates-manager';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -143,13 +144,20 @@ export default function SettingsPage() {
       case 'hr':
         return (
           <SettingsSubtabs
-            initialTab={rawTab === 'attendance' ? 'attendance' : undefined}
+            initialTab={
+              rawTab === 'attendance' || rawTab === 'timesheet-templates' ? rawTab : undefined
+            }
             tabs={[
               { id: 'hr', label: 'Shifts, leave & payroll', render: () => <HRSettingsPanel /> },
               {
                 id: 'attendance',
                 label: 'Attendance & locations',
                 render: () => <AttendancePolicyPanel />,
+              },
+              {
+                id: 'timesheet-templates',
+                label: 'Timesheet templates',
+                render: () => <TimesheetTemplatesManager canEdit />,
               },
             ]}
           />
