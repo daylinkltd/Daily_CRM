@@ -112,16 +112,26 @@ export function LetterheadDesigner() {
     try {
       toast.loading("Uploading logo image...");
       const fileExt = file.name.split(".").pop();
-      const filePath = `${activeWorkspace.id}/letterhead/logo_${Date.now()}.${fileExt}`;
+      // `chat-media` has NO storage policy in any migration, so a direct
+      // browser upload to it always failed with "new row violates
+      // row-level security policy". Other code reaches that bucket through
+      // /api/storage/upload, which uses the service role and bypasses RLS
+      // — this component uploaded straight from the client.
+      //
+      // Uses the workspace-logos prefix instead, which migration 095
+      // already secures to owners and admins of that workspace. The policy
+      // only inspects the first two path segments, so a deeper
+      // `/letterhead/` folder still matches.
+      const filePath = `workspace-logos/${activeWorkspace.id}/letterhead/logo_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("chat-media")
+        .from("avatars")
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: publicUrlData } = supabase.storage
-        .from("chat-media")
+        .from("avatars")
         .getPublicUrl(filePath);
 
       setLogoUrl(publicUrlData.publicUrl);

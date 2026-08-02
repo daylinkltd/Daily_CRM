@@ -20,6 +20,12 @@ import {
 } from "lucide-react";
 import { Button } from "./button";
 import { cn } from "@/lib/utils";
+import {
+  textDraftKey,
+  parseTextDraft,
+  serializeTextDraft,
+  describeAge,
+} from "@/lib/tables/draft-storage";
 import { markdownToHtml, sanitizeHtml } from "@/lib/markdown-utils";
 
 interface RichTextEditorProps {
@@ -29,6 +35,14 @@ interface RichTextEditorProps {
   className?: string;
   minHeight?: string;
   disabled?: boolean;
+  /**
+   * Distinguishes this editor's draft from others on the same page. Only
+   * needed when a page has more than one rich editor; otherwise the route
+   * is enough.
+   */
+  draftScope?: string;
+  /** Set false for a field where local recovery is unwanted. */
+  autosave?: boolean;
 }
 
 
@@ -77,6 +91,8 @@ function ToolbarButton({
 }
 
 export function RichTextEditor({
+  draftScope,
+  autosave = true,
   value,
   onChange,
   placeholder = "Write content here...",
@@ -100,6 +116,55 @@ export function RichTextEditor({
       editorRef.current.innerHTML = formattedHtml;
     }
   }, [value]);
+
+  /**
+   * Crash recovery for long-form text.
+   *
+   * Motivating incident: someone typed a long policy, the tab closed, and
+   * the work was gone with no way to recover it. Every rich editor now
+   * keeps a local draft as you type.
+   *
+   * Two deliberate constraints:
+   *  * The draft is OFFERED, never auto-applied. Silently replacing what
+   *    the server sent could let a stale draft clobber a colleague's newer
+   *    edit, and the person would never know.
+   *  * The key is derived from the route so this works with no changes at
+   *    any of the 31 call sites. `draftScope` disambiguates a page with
+   *    more than one editor.
+   */
+  const scope =
+    draftScope ??
+    (typeof window !== "undefined" ? `${window.location.pathname}:${placeholder ?? "body"}` : "");
+  const storageKey = textDraftKey(scope);
+
+  const [recovered, setRecovered] = useState<{ html: string; at: number; baseChanged: boolean } | null>(null);
+  const [draftDismissed, setDraftDismissed] = useState(false);
+  // What the server gave us when this editor mounted, so a draft can tell
+  // whether the underlying record has since changed.
+  const baseValueRef = useRef(value);
+
+  // Offer any surviving draft once, on mount.
+  useEffect(() => {
+    if (!autosave || disabled || typeof window === "undefined") return;
+    const found = parseTextDraft(window.localStorage.getItem(storageKey), value, Date.now());
+    if (found) setRecovered(found);
+    // Intentionally mount-only: re-running as `value` changes would keep
+    // re-offering a draft the user has already dismissed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist as the user types, debounced so we are not writing per keystroke.
+  useEffect(() => {
+    if (!autosave || disabled || typeof window === "undefined") return;
+    const t = setTimeout(() => {
+      const payload = serializeTextDraft(value, baseValueRef.current, Date.now());
+      if (payload) window.localStorage.setItem(storageKey, payload);
+      // Content now matches what was loaded — it has been saved, so stop
+      // holding a draft that would nag on the next visit.
+      else window.localStorage.removeItem(storageKey);
+    }, 600);
+    return () => clearTimeout(t);
+  }, [value, autosave, disabled, storageKey]);
 
   const handleInput = () => {
     if (!editorRef.current) return;
@@ -179,6 +244,41 @@ export function RichTextEditor({
         isFocused ? "ring-2 ring-ring border-transparent" : ""
       } ${disabled ? "opacity-60 pointer-events-none" : ""} ${className}`}
     >
+      {recovered && !draftDismissed && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-amber-500/25 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-800 dark:text-amber-300">
+          <RotateCcw className="size-3.5 shrink-0" />
+          <span className="min-w-0 flex-1">
+            Unsaved text from {describeAge(recovered.at, Date.now())} was recovered
+            {recovered.baseChanged
+              ? " — but this record has changed since, so restoring will replace the current text."
+              : "."}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              // Applied only on request: the draft may be older than what
+              // the server now holds.
+              onChange(recovered.html);
+              if (editorRef.current) editorRef.current.innerHTML = recovered.html;
+              setDraftDismissed(true);
+            }}
+            className="shrink-0 rounded-md bg-amber-600 px-2 py-1 font-medium text-white"
+          >
+            Restore it
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") window.localStorage.removeItem(storageKey);
+              setDraftDismissed(true);
+            }}
+            className="shrink-0 rounded-md px-2 py-1 font-medium underline"
+          >
+            Discard
+          </button>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 border-b border-border/80 bg-muted/40 p-1.5 text-foreground">
         <ToolbarButton onAction={() => exec("bold")} label="Bold (Ctrl+B)" disabled={disabled}>

@@ -206,7 +206,13 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     this, a second empty icon square is pure noise. When
                     collapsed there is nothing else to identify the
                     workspace, so an initial stands in there. */}
-                {activeWorkspace.logo_url ? (
+                {/* Only when collapsed. Expanded, the sidebar already shows
+                    the workspace logo immediately to the left of this
+                    switcher — rendering it again put two copies of the same
+                    logo side by side. Collapsed there is nothing else, so
+                    the logo (or an initial) still identifies the
+                    workspace. */}
+                {hideText && activeWorkspace.logo_url ? (
                   <div className={cn("relative h-7 w-7 shrink-0 overflow-hidden rounded border", switcherLogoBorder)}>
                     {/* Deliberately NOT next/image: it throws on a host
                         absent from remotePatterns, and this renders inside

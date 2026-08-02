@@ -463,7 +463,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     switcherBg,
                     isCollapsed ? "px-1 py-1 justify-center border-transparent bg-transparent hover:bg-muted/40" : ""
                   )}
-                  title={isCollapsed ? `Module: ${activeModule}` : "Switch App Module"}
+                  title={isCollapsed ? activeModule : "Switch module"}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-none bg-primary/15 text-primary border border-primary/20">
@@ -472,10 +472,10 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     {!isCollapsed && (
                       <div className="min-w-0">
                         <p className="truncate text-xs font-bold text-foreground leading-tight">
-                          {activeModule} Module
+                          {activeModule}
                         </p>
                         <p className="text-[8px] text-primary font-extrabold uppercase tracking-wider leading-none mt-0.5">
-                          Switch Module
+                          Switch module
                         </p>
                       </div>
                     )}
