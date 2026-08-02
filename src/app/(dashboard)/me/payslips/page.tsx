@@ -12,14 +12,14 @@ export default function MyPayslipsPage() {
       title="My Payslips"
       description="Your pay history. Only your own payslips are visible here."
       table="payslips"
-      columns="id, net_payable, total_earnings, total_deductions, created_at"
-      orderBy="created_at"
+      columns="id, net_payable, total_earnings, total_deductions, generated_at"
+      orderBy="generated_at"
       emptyMessage="Payslips appear here once payroll has been processed."
       renderRow={(r) => (
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground">
-              {new Date(String(r.created_at)).toLocaleDateString(undefined, {
+              {new Date(String(r.generated_at)).toLocaleDateString(undefined, {
                 month: "long",
                 year: "numeric",
               })}

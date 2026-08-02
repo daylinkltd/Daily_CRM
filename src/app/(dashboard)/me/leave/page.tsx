@@ -13,8 +13,11 @@ import { IconAction } from "@/components/ui/icon-action";
 interface LeaveRow {
   id: string;
   leave_type: string;
-  start_date: string;
-  end_date: string;
+  // The columns are from_date/to_date — NOT start_date/end_date, which is
+  // what I first wrote. leave-request-form.tsx and the HR leave page both
+  // use these names.
+  from_date: string;
+  to_date: string;
   status: string;
   reason: string | null;
 }
@@ -41,10 +44,10 @@ export default function MyLeavePage() {
       // leave, so nothing here needs an HR permission.
       const { data, error } = await supabase
         .from("leave_requests")
-        .select("id, leave_type, start_date, end_date, status, reason")
+        .select("id, leave_type, from_date, to_date, status, reason")
         .eq("workspace_id", activeWorkspace.id)
         .eq("workspace_member_id", activeMember.id)
-        .order("start_date", { ascending: false });
+        .order("from_date", { ascending: false });
       if (error) throw error;
       setRows((data as LeaveRow[] | null) || []);
     } catch (err) {
@@ -86,7 +89,7 @@ export default function MyLeavePage() {
             <div key={r.id} className="flex items-center justify-between gap-3 px-4 py-3">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground">
-                  {r.leave_type} · {r.start_date} to {r.end_date}
+                  {r.leave_type} · {r.from_date} to {r.to_date}
                 </p>
                 {r.reason && <p className="truncate text-xs text-muted-foreground">{r.reason}</p>}
               </div>
