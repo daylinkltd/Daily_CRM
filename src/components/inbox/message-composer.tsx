@@ -611,10 +611,11 @@ export function MessageComposer({
             gateReason="send messages"
             className="h-8 shrink-0 bg-primary text-xs text-primary-foreground hover:bg-primary/90"
             onClick={onOpenTemplates}
-          >
-            <LayoutTemplate className="mr-1.5 h-3.5 w-3.5" />
-            Send template
-          </GatedButton>
+              title="Send template"
+              aria-label="Send template"
+            >
+              <LayoutTemplate className="h-3.5 w-3.5" />
+            </GatedButton>
         </div>
       )}
 

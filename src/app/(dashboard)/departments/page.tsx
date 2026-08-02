@@ -178,18 +178,20 @@ export default function DepartmentsPage() {
               gateReason="manage departments"
               onClick={() => setBulkAddOpen(true)}
               variant="outline"
+              title="Bulk add"
+              aria-label="Bulk add"
             >
-              <Layers className="size-4 mr-2" />
-              Bulk add
+              <Layers className="size-4 " />
             </GatedButton>
             <GatedButton
               canAct={canManagePeople}
               gateReason="manage departments"
               onClick={openAddForm}
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              title="Add Department"
+              aria-label="Add Department"
             >
-              <Plus className="size-4 mr-2" />
-              Add Department
+              <Plus className="size-4 " />
             </GatedButton>
           </div>
         }

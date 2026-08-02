@@ -178,18 +178,20 @@ export default function DesignationsPage() {
               gateReason="manage designations"
               onClick={() => setBulkAddOpen(true)}
               variant="outline"
+              title="Bulk add"
+              aria-label="Bulk add"
             >
-              <Layers className="size-4 mr-2" />
-              Bulk add
+              <Layers className="size-4 " />
             </GatedButton>
             <GatedButton
               canAct={canManagePeople}
               gateReason="manage designations"
               onClick={openAddForm}
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              title="Add Designation"
+              aria-label="Add Designation"
             >
-              <Plus className="size-4 mr-2" />
-              Add Designation
+              <Plus className="size-4 " />
             </GatedButton>
           </div>
         }

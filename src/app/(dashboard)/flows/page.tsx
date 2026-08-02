@@ -219,10 +219,11 @@ export default function FlowsPage() {
           canAct={canCreate}
           gateReason="create flows"
           onClick={() => setCreateOpen(true)}
-        >
-          <Plus className="h-4 w-4" />
-          New flow
-        </GatedButton>
+              title="New flow"
+              aria-label="New flow"
+            >
+              <Plus className="h-4 w-4" />
+            </GatedButton>
       </header>
 
       {flows.length === 0 ? (

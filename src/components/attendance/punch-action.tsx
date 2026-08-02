@@ -526,14 +526,13 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
               </div>
             )}
 
-            <Button
+            <IconAction
+              label={locatingMessage ? 'Locating…' : 'Punch in'}
+              icon={loading ? <Loader2 className="size-3.5 animate-spin" /> : <Fingerprint className="size-3.5" />}
               onClick={() => handlePunch('in')}
               disabled={loading}
-              className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold shadow-xs rounded-lg h-9 px-3 text-xs"
-            >
-              {loading ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Fingerprint className="size-3.5 mr-1.5" />}
-              {locatingMessage ? 'Locating…' : 'Punch In'}
-            </Button>
+              className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-xs rounded-lg h-9 px-3"
+            />
 
             {locatingMessage && (
               <span className="text-[11px] text-muted-foreground">{locatingMessage}</span>
@@ -564,14 +563,13 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
 
             {/* Break Control Bar */}
             {activeBreak ? (
-              <Button
+              <IconAction
+                label={`Resume work from ${String(activeBreak.break_type).toLowerCase()} break`}
+                icon={loading ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />}
                 onClick={() => handleBreak('resume')}
                 disabled={loading}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs h-9 px-3 rounded-lg shadow-xs gap-1.5"
-              >
-                {loading ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />}
-                Resume Work ({activeBreak.break_type})
-              </Button>
+                className="bg-amber-600 hover:bg-amber-700 text-white h-9 px-3 rounded-lg shadow-xs"
+              />
             ) : (
               <div className="flex items-center gap-1 bg-card border border-border p-0.5 rounded-lg">
                 <select
@@ -591,14 +589,13 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
               </div>
             )}
 
-            <Button 
-              onClick={() => handlePunch('out')} 
+            <IconAction
+              label="Punch out"
+              icon={loading ? <Loader2 className="size-3.5 animate-spin" /> : <Fingerprint className="size-3.5" />}
+              onClick={() => handlePunch('out')}
               disabled={loading}
-              className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-semibold text-xs h-9 px-3 rounded-lg shadow-xs flex items-center gap-1.5"
-            >
-              {loading ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Fingerprint className="size-3.5 mr-1.5" />}
-              Punch Out
-            </Button>
+              className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white h-9 px-3 rounded-lg shadow-xs"
+            />
           </div>
         ) : (
           <div className="flex items-center gap-2 text-xs font-medium text-foreground bg-muted/40 px-3 py-1.5 rounded-lg border border-border">

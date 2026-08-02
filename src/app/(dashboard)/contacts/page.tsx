@@ -521,18 +521,20 @@ export default function ContactsPage() {
               canAct={canEdit}
               gateReason="add or import contacts"
               onClick={() => setImportOpen(true)}
+              title="Import"
+              aria-label="Import"
             >
               <Upload className="size-4" />
-              Import
             </GatedButton>
             <GatedButton
               canAct={canEdit}
               gateReason="add or import contacts"
               onClick={openAddForm}
               variant="primary"
+              title="Add Contact"
+              aria-label="Add Contact"
             >
               <Plus className="size-4" />
-              Add Contact
             </GatedButton>
           </>
         }
@@ -677,9 +679,10 @@ export default function ContactsPage() {
               canAct={canEdit}
               gateReason="delete contacts"
               onClick={() => setBulkDeleteOpen(true)}
+              title="Delete selected"
+              aria-label="Delete selected"
             >
               <Trash2 className="size-4" />
-              Delete selected
             </GatedButton>
           </div>
         </div>
