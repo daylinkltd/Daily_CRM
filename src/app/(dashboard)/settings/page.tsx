@@ -34,6 +34,7 @@ import {
 } from '@/components/settings/settings-sections';
 import { PageHeader } from '@/components/ui/page-header';
 import { SettingsSubtabs } from '@/components/settings/settings-subtabs';
+import { LetterheadDesigner } from '@/components/documents/letterhead-designer';
 import { TimesheetTemplatesManager } from '@/components/settings/timesheet-templates-manager';
 
 export default function SettingsPage() {
@@ -140,7 +141,19 @@ export default function SettingsPage() {
       case 'catalog':
         return <CatalogSettings />;
       case 'branding':
-        return <BrandingSettings />;
+        return (
+          <SettingsSubtabs
+            initialTab={rawTab === 'letterhead' ? 'letterhead' : undefined}
+            tabs={[
+              { id: 'branding', label: 'Company details', render: () => <BrandingSettings /> },
+              {
+                id: 'letterhead',
+                label: 'Letterhead',
+                render: () => <LetterheadDesigner />,
+              },
+            ]}
+          />
+        );
       case 'hr':
         return (
           <SettingsSubtabs

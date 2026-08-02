@@ -77,7 +77,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   profile: { id: 'profile', label: 'Your profile', icon: User, group: 'account', blurb: 'Your details, password, sessions and appearance' },
 
   // The company itself — identity that appears on outgoing documents.
-  branding: { id: 'branding', label: 'Company branding', icon: Building2, group: 'company', blurb: 'Logo, colours and letterhead' },
+  branding: { id: 'branding', label: 'Company branding', icon: Building2, group: 'company', blurb: 'Logo, company details and the letterhead used on every document' },
   members: { id: 'members', label: 'Team & access', icon: UsersRound, group: 'company', blurb: 'Members, invitations, roles and permissions' },
 
   // Reusable content shared across every module.
@@ -135,7 +135,8 @@ export function resolveSection(raw: string | null): SettingsSection {
   if (raw === 'roles' || raw === 'permissions') return 'members';
   if (raw === 'chatbot' || raw === 'whatsapp-templates') return 'whatsapp';
   if (raw === 'fields' || raw === 'tags' || raw === 'custom-fields' || raw === 'deals') return 'crm';
-  if (raw === 'attendance') return 'hr';
+  if (raw === 'attendance' || raw === 'timesheet-templates') return 'hr';
+  if (raw === 'letterhead') return 'branding';
   if (raw === 'roles-permissions') return 'members';
   if (raw === 'hr-operations' || raw === 'hr_operations' || raw === 'operations') return 'hr';
   if (raw === 'retail' || raw === 'retail-settings') return 'retail';

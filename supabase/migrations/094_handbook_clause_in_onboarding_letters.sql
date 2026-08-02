@@ -1,5 +1,3 @@
--- ==================== BEGIN 094_handbook_clause_in_onboarding_letters ====================
-
 -- ============================================================
 -- 094 — Reference the employee handbook in the onboarding letters.
 --
@@ -51,5 +49,3 @@ WHERE workspace_id IS NULL
   AND channel = 'document'
   AND name = 'Confirmation of employment'
   AND body NOT LIKE '%Employee Handbook%';
-
--- ==================== END 094_handbook_clause_in_onboarding_letters ====================
