@@ -121,14 +121,11 @@ export function EditorHeader() {
               Activate
             </Button>
           )}
-          <Button onClick={() => void save()} disabled={saving} size="sm">
-            {saving ? (
+          <IconAction label="Save" icon={saving ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <Save className="h-3.5 w-3.5" />
-            )}
-            Save
-          </Button>
+            )} onClick={() => void save()} disabled={saving} />
         </div>
       </div>
       <Input

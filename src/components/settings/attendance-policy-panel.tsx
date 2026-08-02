@@ -379,10 +379,7 @@ export function AttendancePolicyPanel() {
         description="Control which work locations each person can punch in as, how precise their GPS must be, and where they must physically be. Settings apply most-specific-first: a day exception beats a person's policy, which beats their department, which beats the workspace default."
         action={
           canManage ? (
-            <Button onClick={handleSave} disabled={saving} className="gap-1.5">
-              {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Save policy
-            </Button>
+            <IconAction label="Save policy" icon={saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} onClick={handleSave} disabled={saving} className="gap-1.5" />
           ) : null
         }
       />

@@ -33,6 +33,7 @@ import {
   type PayrollField,
 } from "@/lib/hr/salary";
 import { assertAffected } from "@/lib/supabase/affected-rows";
+import { IconAction } from "@/components/ui/icon-action";
 
 const NONE = "none";
 
@@ -312,10 +313,7 @@ export function EmployeeCompensationTab({
             </CardDescription>
           </div>
           {canEdit && (
-            <Button onClick={handleSave} disabled={saving} className="shrink-0 gap-1.5">
-              {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Save
-            </Button>
+            <IconAction label="Save" icon={saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} onClick={handleSave} disabled={saving} className="shrink-0 gap-1.5" />
           )}
         </CardHeader>
 

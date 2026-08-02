@@ -21,6 +21,7 @@ import {
   Kanban
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { IconAction } from "@/components/ui/icon-action";
 
 export function ProjectsSettingsPanel() {
   const supabase = createClient();
@@ -116,14 +117,9 @@ export function ProjectsSettingsPanel() {
         title="Project Management Settings"
         description="Configure workload capacity, timesheet approval workflows, task rules, and default billing rates."
         action={
-          <Button
-            onClick={handleSave}
+          <IconAction label="Save Changes" icon={saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} onClick={handleSave}
             disabled={saving}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-1.5 shadow-xs"
-          >
-            {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            Save Changes
-          </Button>
+            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-1.5 shadow-xs" />
         }
       />
 

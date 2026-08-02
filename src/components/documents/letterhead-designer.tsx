@@ -198,14 +198,9 @@ export function LetterheadDesigner() {
           title="Letterhead & Brand Designer"
           description="Customize your official company letterhead themes, logo positioning, margins, and watermarks."
           action={
-            <Button
-              onClick={handleSave}
+            <IconAction label="Save Letterhead" icon={saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} onClick={handleSave}
               disabled={saving}
-              className="bg-primary text-primary-foreground font-semibold gap-1.5 shadow-xs"
-            >
-              {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Save Letterhead
-            </Button>
+              className="bg-primary text-primary-foreground font-semibold gap-1.5 shadow-xs" />
           }
         />
 

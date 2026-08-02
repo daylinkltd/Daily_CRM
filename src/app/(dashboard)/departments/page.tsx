@@ -371,14 +371,9 @@ export default function DepartmentsPage() {
             >
               Cancel
             </Button>
-            <Button
-              variant="destructive"
+            <IconAction label="Delete" icon={<Loader2 className="size-4 animate-spin " />} variant="destructive"
               onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting && <Loader2 className="size-4 animate-spin mr-2" />}
-              Delete
-            </Button>
+              disabled={deleting} />
           </DialogFooter>
         </DialogContent>
       </Dialog>

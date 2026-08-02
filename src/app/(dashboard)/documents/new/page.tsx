@@ -358,14 +358,9 @@ export default function IssueNewDocumentPage() {
           >
             Save as draft
           </Button>
-          <Button
-            onClick={() => handleIssue("Issued")}
+          <IconAction label="Issue official document" icon={saving ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />} onClick={() => handleIssue("Issued")}
             disabled={saving}
-            className="h-9 gap-1.5 text-xs font-semibold shadow-xs"
-          >
-            {saving ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-            Issue official document
-          </Button>
+            className="h-9 gap-1.5 text-xs font-semibold shadow-xs" />
         </div>
       </div>
 

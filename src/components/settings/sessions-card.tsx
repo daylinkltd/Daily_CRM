@@ -21,6 +21,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { IconAction } from "@/components/ui/icon-action";
 
 export function SessionsCard() {
   const supabase = createClient();
@@ -61,14 +62,9 @@ export function SessionsCard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            type="button"
+          <IconAction label="Sign out of all devices" icon={<LogOut className="size-4" />} type="button"
             variant="outline"
-            onClick={() => setOpen(true)}
-          >
-            <LogOut className="size-4" />
-            Sign out of all devices
-          </Button>
+            onClick={() => setOpen(true)} />
         </CardContent>
       </Card>
 

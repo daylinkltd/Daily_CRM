@@ -137,9 +137,7 @@ export default function EmployeeRequestsPage() {
             <p className="text-sm text-muted-foreground max-w-sm mb-6">
               Submit employee self-service requests for certificates, bank account updates, or official letters.
             </p>
-            <Button onClick={() => setModalOpen(true)}>
-              <Plus className="size-4 mr-2" /> Submit First Request
-            </Button>
+            <IconAction label="Submit First Request" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} />
           </CardContent>
         </Card>
       ) : (

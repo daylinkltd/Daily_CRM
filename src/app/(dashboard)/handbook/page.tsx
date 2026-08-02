@@ -428,9 +428,7 @@ export default function HandbookPage() {
                 {field("POSH committee (leave empty for the <10 employees Local Committee note)", "posh_committee", { textarea: true })}
                 {isAdmin && (
                   <div className="flex justify-end">
-                    <Button onClick={handleSaveDetails} disabled={saving}>
-                      {saving ? <Loader2 className="animate-spin" /> : <Check />} Save Details
-                    </Button>
+                    <IconAction label="Save Details" icon={saving ? <Loader2 className="animate-spin" /> : <Check />} onClick={handleSaveDetails} disabled={saving} />
                   </div>
                 )}
               </CardContent>

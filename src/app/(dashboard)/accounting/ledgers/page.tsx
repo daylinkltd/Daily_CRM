@@ -369,9 +369,7 @@ export default function LedgersPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEdit(null)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="animate-spin" /> : <Plus />} Save
-            </Button>
+            <IconAction label="Save" icon={saving ? <Loader2 className="animate-spin" /> : <Plus />} onClick={handleSave} disabled={saving} />
           </DialogFooter>
         </DialogContent>
       </Dialog>

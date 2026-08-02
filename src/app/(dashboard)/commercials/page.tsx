@@ -441,9 +441,7 @@ export default function CommercialsPage() {
                               />
                             )}
                             {r.status === "draft" && (
-                              <Button size="sm" variant="outline" disabled={busy} onClick={() => act(r, "submit")}>
-                                <SendHorizonal /> Submit
-                              </Button>
+                              <IconAction label="Submit" icon={<SendHorizonal />} variant="outline" disabled={busy} onClick={() => act(r, "submit")} />
                             )}
                             {r.status === "review" && isAdmin && (
                               <>

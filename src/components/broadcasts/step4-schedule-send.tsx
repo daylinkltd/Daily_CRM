@@ -180,15 +180,10 @@ export function Step4ScheduleSend({
 
         <div className="flex items-center gap-2">
           {onSaveDraft && (
-            <Button
-              variant="outline"
+            <IconAction label="Save as Draft" icon={<Save className="h-4 w-4" />} variant="outline"
               onClick={onSaveDraft}
               disabled={!name.trim() || isProcessing}
-              className="border-border text-foreground hover:bg-muted disabled:opacity-50"
-            >
-              <Save className="h-4 w-4" />
-              Save as Draft
-            </Button>
+              className="border-border text-foreground hover:bg-muted disabled:opacity-50" />
           )}
 
           <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
@@ -222,16 +217,11 @@ export function Step4ScheduleSend({
               >
                 Cancel
               </Button>
-              <Button
-                onClick={() => {
+              <IconAction label="Confirm & Send" icon={<Send className="h-4 w-4" />} onClick={() => {
                   setShowConfirm(false);
                   onSend();
                 }}
-                className="bg-primary text-primary-foreground hover:bg-primary"
-              >
-                <Send className="h-4 w-4" />
-                Confirm & Send
-              </Button>
+                className="bg-primary text-primary-foreground hover:bg-primary" />
             </DialogFooter>
           </DialogContent>
         </Dialog>

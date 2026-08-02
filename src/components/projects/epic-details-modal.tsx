@@ -457,10 +457,7 @@ export function EpicDetailsModal({
                   <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
                     Close
                   </Button>
-                  <Button size="sm" onClick={handleSaveEpic} disabled={saving}>
-                    {saving && <Loader2 className="size-3.5 animate-spin mr-1.5" />}
-                    Save Changes
-                  </Button>
+                  <IconAction label="Save Changes" icon={<Loader2 className="size-3.5 animate-spin " />} onClick={handleSaveEpic} disabled={saving} />
                 </div>
               </div>
             </div>

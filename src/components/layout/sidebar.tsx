@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   Users,
+  UserCircle,
   GitBranch,
   Radio,
   Zap,
@@ -96,6 +97,11 @@ type NavGroup = {
  * Keep the keys in sync with the `navGroups` labels below.
  */
 const NAV_GROUP_MODULE: Record<string, ModuleKey | null> = {
+  // Self-service is deliberately ungated: requesting your own leave or
+  // seeing your own payslip is not an HR-module capability, and routing
+  // staff through the HR module to do it both exposes the whole module and
+  // requires a permission they should not need.
+  "My Workspace": null,
   CRM: "crm",
   Accounting: "accounting",
   Retail: "retail",
@@ -105,6 +111,21 @@ const NAV_GROUP_MODULE: Record<string, ModuleKey | null> = {
 };
 
 const navGroups: NavGroup[] = [
+  {
+    label: "My Workspace",
+    icon: UserCircle,
+    items: [
+      { href: "/dashboard", label: "Home", icon: LayoutDashboard },
+      { href: "/me/attendance", label: "My Attendance", icon: CalendarClock },
+      { href: "/me/leave", label: "My Leave", icon: Umbrella },
+      { href: "/me/timesheets", label: "My Timesheets", icon: Clock },
+      { href: "/me/payslips", label: "My Payslips", icon: Banknote },
+      { href: "/me/requests", label: "My Requests", icon: FileCheck },
+      { href: "/me/documents", label: "My Documents", icon: FileText },
+      { href: "/handbook", label: "Handbook", icon: BookOpen },
+      { href: "/settings?tab=profile", label: "My Profile", icon: Settings },
+    ]
+  },
   {
     label: "CRM",
     icon: MessageSquare,
@@ -186,6 +207,10 @@ const navGroups: NavGroup[] = [
       { href: "/policies", label: "Policies & Compliance", icon: ShieldCheck, permission: "people_view" },
       { href: "/handbook", label: "Employee Handbook", icon: BookOpen, permission: "people_view" },
       { href: "/attendance", label: "Attendance", icon: CalendarClock, permission: "people_view" },
+      // Also in Project Management, but its own page gates on
+      // attendance_manage/people_manage — so an HR manager without
+      // projects_view previously had no route to it at all.
+      { href: "/timesheets", label: "Timesheets", icon: Clock, permission: "people_view" },
       { href: "/shifts", label: "Shifts", icon: Clock, permission: "people_manage" },
       { href: "/holidays", label: "Holidays", icon: Calendar, permission: "people_view" },
       { href: "/leave", label: "Leave", icon: Umbrella, permission: "people_view" },
@@ -222,7 +247,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { profile, signOut } = useAuth();
-  const { can, moduleAccess } = useWorkspace();
+  const { can, moduleAccess, activeWorkspace } = useWorkspace();
   const totalUnread = useTotalUnread();
   const { mode } = useTheme();
   const isDark = mode === "dark";
@@ -245,16 +270,29 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
   // Determine current active group on page mount/change to auto-switch module active view
   useEffect(() => {
-    const matchedGroup = navGroups.find(group =>
-      group.items.some(item =>
-        pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))
-      )
-    );
+    // Ignore the query string: an item href of "/settings?tab=hr" must
+    // still match the pathname "/settings", otherwise those links never
+    // highlight and the group never opens.
+    const matches = (item: { href: string }) => {
+      const base = item.href.split("?")[0];
+      return pathname === base || (base !== "/dashboard" && pathname.startsWith(base));
+    };
+
+    // Several destinations legitimately belong to more than one module —
+    // /invoices sits in CRM, Accounting AND Project Management, /expenses in
+    // both Accounting and HR. Picking the first match sent the rail jumping
+    // to a different module than the one you clicked from. Staying put when
+    // the current module also owns the destination is what makes navigation
+    // feel predictable.
+    const currentGroup = navGroups.find((g) => g.label === activeModule);
+    if (currentGroup?.items.some(matches)) return;
+
+    const matchedGroup = navGroups.find((group) => group.items.some(matches));
     if (matchedGroup) {
       setActiveModule(matchedGroup.label);
       localStorage.setItem("active_app_module", matchedGroup.label);
     }
-  }, [pathname]);
+  }, [pathname, activeModule]);
 
   const toggleCollapse = () => {
     const next = !isCollapsed;
@@ -360,15 +398,29 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           ) : (
             /* Expanded view: Logo + Workspace Switcher + Collapse button in a single line */
             <div className="flex items-center gap-2 min-w-0 flex-1">
+              {/* The workspace's own logo when they have uploaded one in
+                  Branding, so the tool wears the customer's brand rather
+                  than ours. Falls back to ours only when none is set. */}
               <Link href="/dashboard" className="shrink-0 flex items-center justify-center">
-                <Image
-                  src="/logolight.png"
-                  alt="Daily CRM Logo"
-                  width={36}
-                  height={36}
-                  className="h-9 w-9 object-contain shrink-0"
-                  priority
-                />
+                {activeWorkspace?.logo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- a
+                  // user-uploaded URL on an arbitrary host; next/image would
+                  // need every one of them in remotePatterns.
+                  <img
+                    src={activeWorkspace.logo_url}
+                    alt={activeWorkspace.name}
+                    className="h-9 w-9 shrink-0 rounded object-contain"
+                  />
+                ) : (
+                  <Image
+                    src="/logolight.png"
+                    alt="Daily CRM Logo"
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 object-contain shrink-0"
+                    priority
+                  />
+                )}
               </Link>
               <div className="flex-1 min-w-0">
                 <WorkspaceSwitcher hideText={false} minimalist />

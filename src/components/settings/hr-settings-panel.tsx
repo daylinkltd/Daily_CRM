@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { SettingsPanelHead } from "./settings-panel-head";
 import { SalaryStructuresManager } from "./salary-structures-manager";
+import { IconAction } from "@/components/ui/icon-action";
 
 type ScopeType = 'WORKSPACE_DEFAULT' | 'DEPARTMENT' | 'DESIGNATION';
 
@@ -400,10 +401,7 @@ export function HRSettingsPanel() {
 
       {canManage && (
         <div className="flex justify-end pt-4 border-t border-border">
-          <Button onClick={handleSaveSettings} disabled={saving} className="bg-primary text-primary-foreground shadow-sm">
-            {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : <Save className="size-4 mr-2" />}
-            Save Operational Settings
-          </Button>
+          <IconAction label="Save Operational Settings" icon={saving ? <Loader2 className="size-4 animate-spin " /> : <Save className="size-4 " />} onClick={handleSaveSettings} disabled={saving} className="bg-primary text-primary-foreground shadow-sm" />
         </div>
       )}
 

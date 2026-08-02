@@ -35,6 +35,7 @@ import Link from "next/link";
 import { interpolateVariables } from "@/lib/documents/variable-engine";
 import { extractVariables } from "@/lib/templates/catalog";
 import { sanitizeHtml } from "@/lib/markdown-utils";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface LetterTemplate {
   id: string;
@@ -410,10 +411,7 @@ export function EmployeeLettersTab({
             >
               Save as draft
             </Button>
-            <Button onClick={() => handleIssue("Issued")} disabled={issuing} className="gap-1.5">
-              {issuing ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-              Issue letter
-            </Button>
+            <IconAction label="Issue letter" icon={issuing ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />} onClick={() => handleIssue("Issued")} disabled={issuing} className="gap-1.5" />
           </div>
         </DialogContent>
       </Dialog>

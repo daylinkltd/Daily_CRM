@@ -397,9 +397,7 @@ export default function InvoicesPage() {
                           <div className="flex items-center justify-end gap-1">
                             {inv.status === "draft" && (
                               <>
-                                <Button size="sm" variant="outline" disabled={busy} onClick={() => handleSend(inv)}>
-                                  {busy ? <Loader2 className="animate-spin" /> : <Send />} Send
-                                </Button>
+                                <IconAction label="Send" icon={busy ? <Loader2 className="animate-spin" /> : <Send />} variant="outline" disabled={busy} onClick={() => handleSend(inv)} />
                                 <IconAction
                                   label="Void invoice"
                                   icon={<X />}
@@ -515,9 +513,7 @@ export default function InvoicesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={creating}>
-              {creating ? <Loader2 className="animate-spin" /> : <Plus />} Create Draft
-            </Button>
+            <IconAction label="Create Draft" icon={creating ? <Loader2 className="animate-spin" /> : <Plus />} onClick={handleCreate} disabled={creating} />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -562,9 +558,7 @@ export default function InvoicesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPayFor(null)}>Cancel</Button>
-            <Button onClick={handleRecordPayment} disabled={paying || !payAmount}>
-              {paying ? <Loader2 className="animate-spin" /> : <Banknote />} Record
-            </Button>
+            <IconAction label="Record" icon={paying ? <Loader2 className="animate-spin" /> : <Banknote />} onClick={handleRecordPayment} disabled={paying || !payAmount} />
           </DialogFooter>
         </DialogContent>
       </Dialog>

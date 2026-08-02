@@ -297,16 +297,10 @@ export function RolesPanel() {
                       <Tooltip>
                         <TooltipTrigger
                           render={
-                            <Button
-                              variant="outline"
-                              size="sm"
+                            <IconAction label="Delete" icon={<Trash2 className="size-4" />} variant="outline"
                               disabled={role.is_system || members > 0}
                               onClick={() => setDeleting(role)}
-                              className="border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
-                            >
-                              <Trash2 className="size-4" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
+                              className="border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20" />
                           }
                         />
                         <TooltipContent>

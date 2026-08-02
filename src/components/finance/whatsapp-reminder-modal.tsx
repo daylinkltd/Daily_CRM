@@ -35,6 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface WhatsAppReminderModalProps {
   open: boolean;
@@ -307,10 +308,7 @@ export function WhatsAppReminderModal({
             Cancel
           </Button>
           {ctx && !ctx.window_open && !ctx.template?.approved && (
-            <Button variant="outline" onClick={handleSubmitTemplate} disabled={submittingTemplate}>
-              {submittingTemplate ? <Loader2 className="animate-spin" /> : <FileText />}
-              Submit template for approval
-            </Button>
+            <IconAction label="Submit template for approval" icon={submittingTemplate ? <Loader2 className="animate-spin" /> : <FileText />} variant="outline" onClick={handleSubmitTemplate} disabled={submittingTemplate} />
           )}
           <Button onClick={handleSend} disabled={!canSend || sending || loading}>
             {sending ? <Loader2 className="animate-spin" /> : <Send />}

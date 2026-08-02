@@ -201,8 +201,14 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
               className={cn("flex w-full items-center justify-between gap-2 rounded-lg transition-all focus:outline-none focus:ring-1 focus:ring-primary px-3 py-2.5 text-left text-sm font-medium", switcherBg, hideText ? "px-1 py-1 justify-center" : "")}
             >
               <div className="flex items-center gap-2.5 min-w-0">
+                {/* Only a real logo is shown. The generic Building2 tile was
+                    a placeholder standing in for branding that does not
+                    exist — with the brand logo already in the sidebar beside
+                    this, a second empty icon square is pure noise. When
+                    collapsed there is nothing else to identify the
+                    workspace, so an initial stands in there. */}
                 {activeWorkspace.logo_url ? (
-                  <div className={cn("h-7 w-7 shrink-0 rounded-none overflow-hidden relative border", switcherLogoBorder)}>
+                  <div className={cn("relative h-7 w-7 shrink-0 overflow-hidden rounded border", switcherLogoBorder)}>
                     <Image
                       src={activeWorkspace.logo_url}
                       alt={activeWorkspace.name}
@@ -210,11 +216,11 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                       className="object-cover"
                     />
                   </div>
-                ) : (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-none bg-primary/10 text-primary">
-                    <Building2 className="h-4 w-4" />
+                ) : hideText ? (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-primary/10 text-xs font-semibold text-primary">
+                    {activeWorkspace.name?.charAt(0)?.toUpperCase() ?? "W"}
                   </div>
-                )}
+                ) : null}
                 {!hideText && (
                   <div className="min-w-0">
                     <p className={cn("truncate text-xs font-semibold", switcherTextClass)}>

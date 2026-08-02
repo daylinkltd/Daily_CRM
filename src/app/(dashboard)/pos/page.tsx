@@ -364,14 +364,9 @@ function POSTerminalPageContent() {
           <IconAction label="Held Bills ()" icon={<PauseCircle className="h-4 w-4" />} variant="outline"
             onClick={() => setShowHeldDrawer(true)}
             className="h-11 border-border bg-background text-amber-400 hover:bg-card gap-2 rounded-xl" />
-          <Button
-            variant="outline"
+          <IconAction label="Close Shift / Z-Report" icon={<Calculator className="h-4 w-4" />} variant="outline"
             onClick={() => setShowShiftCloseModal(true)}
-            className="h-11 border-border bg-background text-emerald-400 hover:bg-card gap-2 rounded-xl"
-          >
-            <Calculator className="h-4 w-4" />
-            Close Shift / Z-Report
-          </Button>
+            className="h-11 border-border bg-background text-emerald-400 hover:bg-card gap-2 rounded-xl" />
         </div>
 
         {/* Customer Type Selector */}

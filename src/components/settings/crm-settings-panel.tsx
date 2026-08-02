@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { IconAction } from "@/components/ui/icon-action";
 
 export function CRMSettingsPanel() {
   const supabase = createClient();
@@ -109,14 +110,9 @@ export function CRMSettingsPanel() {
         title="CRM & Pipeline Settings"
         description="Configure lead assignment rules, deal pipeline triggers, WhatsApp channels, and automated follow-ups."
         action={
-          <Button
-            onClick={handleSave}
+          <IconAction label="Save Changes" icon={saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} onClick={handleSave}
             disabled={saving}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-1.5 shadow-xs"
-          >
-            {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            Save Changes
-          </Button>
+            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-1.5 shadow-xs" />
         }
       />
 

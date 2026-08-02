@@ -19,6 +19,7 @@ import {
   CalendarDays
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { IconAction } from "@/components/ui/icon-action";
 
 export function AccountingSettingsPanel() {
   const supabase = createClient();
@@ -116,14 +117,9 @@ export function AccountingSettingsPanel() {
         title="Accounting & Ledger Settings"
         description="Configure financial year boundaries, GST defaults, voucher numbering, and customer credit limits."
         action={
-          <Button
-            onClick={handleSave}
+          <IconAction label="Save Changes" icon={saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} onClick={handleSave}
             disabled={saving}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-1.5 shadow-xs"
-          >
-            {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            Save Changes
-          </Button>
+            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-1.5 shadow-xs" />
         }
       />
 

@@ -211,9 +211,7 @@ export default function NewEntryPage() {
               <span className="text-muted-foreground">
                 Cr <span className="font-medium text-foreground">{formatCurrency(totals.credit, defaultCurrency, { decimals: 2 })}</span>
               </span>
-              <Button onClick={handlePost} disabled={posting || !totals.balanced}>
-                {posting ? <Loader2 className="animate-spin" /> : <BookOpenCheck />} Post Voucher
-              </Button>
+              <IconAction label="Post Voucher" icon={posting ? <Loader2 className="animate-spin" /> : <BookOpenCheck />} onClick={handlePost} disabled={posting || !totals.balanced} />
             </div>
           </div>
         </CardContent>

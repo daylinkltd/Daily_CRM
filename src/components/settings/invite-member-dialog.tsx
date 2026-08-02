@@ -355,16 +355,11 @@ export function InviteMemberDialog({
                     onChange={(e) => setEmailTo(e.target.value)}
                     className="bg-muted border-border text-foreground text-xs"
                   />
-                  <Button
-                    type="button"
+                  <IconAction label="Send" icon={emailing ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />} type="button"
                     variant="outline"
                     onClick={handleEmailInvite}
                     disabled={emailing}
-                    className="shrink-0 border-border"
-                  >
-                    {emailing ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
-                    Send
-                  </Button>
+                    className="shrink-0 border-border" />
                 </div>
                 <p className="text-[11px] text-muted-foreground">
                   Requires Outlook connected in Integrations. Sends from your company

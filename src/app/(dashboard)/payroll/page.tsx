@@ -506,9 +506,7 @@ export default function PayrollAdminPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setSalariesOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveSalaries} disabled={savingSalaries || salariesMissing || salaries.length === 0}>
-              {savingSalaries ? <Loader2 className="animate-spin" /> : <Users />} Save Salaries
-            </Button>
+            <IconAction label="Save Salaries" icon={savingSalaries ? <Loader2 className="animate-spin" /> : <Users />} onClick={handleSaveSalaries} disabled={savingSalaries || salariesMissing || salaries.length === 0} />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -546,9 +544,7 @@ export default function PayrollAdminPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPayCycle(null)}>Cancel</Button>
-            <Button onClick={handlePay} disabled={busyId === payCycle?.id}>
-              {busyId === payCycle?.id ? <Loader2 className="animate-spin" /> : <Wallet />} Confirm Payment
-            </Button>
+            <IconAction label="Confirm Payment" icon={busyId === payCycle?.id ? <Loader2 className="animate-spin" /> : <Wallet />} onClick={handlePay} disabled={busyId === payCycle?.id} />
           </DialogFooter>
         </DialogContent>
       </Dialog>

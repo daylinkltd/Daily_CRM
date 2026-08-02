@@ -453,19 +453,13 @@ export function ContactDetailView({
                       className="bg-muted border-border text-foreground h-8 text-sm"
                     />
                   </div>
-                  <Button
-                    onClick={saveDetails}
-                    disabled={savingDetails}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground w-full"
-                    size="sm"
-                  >
-                    {savingDetails ? (
+                  <IconAction label="Save Changes" icon={savingDetails ? (
                       <Loader2 className="size-3.5 animate-spin" />
                     ) : (
                       <Save className="size-3.5" />
-                    )}
-                    Save Changes
-                  </Button>
+                    )} onClick={saveDetails}
+                    disabled={savingDetails}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground w-full" />
                 </div>
               </TabsContent>
 
@@ -597,19 +591,13 @@ export function ContactDetailView({
                         />
                       </div>
                     ))}
-                    <Button
-                      onClick={saveCustomFields}
-                      disabled={savingCustom}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground w-full"
-                      size="sm"
-                    >
-                      {savingCustom ? (
+                    <IconAction label="Save Custom Fields" icon={savingCustom ? (
                         <Loader2 className="size-3.5 animate-spin" />
                       ) : (
                         <Save className="size-3.5" />
-                      )}
-                      Save Custom Fields
-                    </Button>
+                      )} onClick={saveCustomFields}
+                      disabled={savingCustom}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground w-full" />
                   </div>
                 )}
               </TabsContent>

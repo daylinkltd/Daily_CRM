@@ -822,14 +822,9 @@ export default function FormBuilderPage({
 
           {/* Floating Save button */}
           <div className="flex justify-end mt-6">
-            <Button
-              onClick={saveFormAndFields}
+            <IconAction label="Save Form & Canvas" icon={<Loader2 className="size-4 animate-spin " />} onClick={saveFormAndFields}
               disabled={savingFields}
-              className="bg-primary hover:bg-primary-hover text-primary-foreground"
-            >
-              {savingFields ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-              Save Form & Canvas
-            </Button>
+              className="bg-primary hover:bg-primary-hover text-primary-foreground" />
           </div>
         </TabsContent>
 
@@ -914,14 +909,9 @@ export default function FormBuilderPage({
               )}
             </CardContent>
             <CardFooter className="border-t border-border pt-4 flex justify-end">
-              <Button
-                onClick={saveIntegrations}
+              <IconAction label="Save Integration Rules" icon={<Loader2 className="size-4 animate-spin " />} onClick={saveIntegrations}
                 disabled={savingIntegrations || (createDealOnSubmit && (!selectedPipelineId || !selectedStageId))}
-                className="bg-primary hover:bg-primary-hover text-primary-foreground"
-              >
-                {savingIntegrations ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-                Save Integration Rules
-              </Button>
+                className="bg-primary hover:bg-primary-hover text-primary-foreground" />
             </CardFooter>
           </Card>
         </TabsContent>

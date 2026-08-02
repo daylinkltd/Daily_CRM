@@ -362,10 +362,7 @@ export function EmployeeAttendanceTab({
             </CardDescription>
           </div>
           {canEdit && (
-            <Button onClick={handleSave} disabled={saving} className="shrink-0 gap-1.5">
-              {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Save
-            </Button>
+            <IconAction label="Save" icon={saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} onClick={handleSave} disabled={saving} className="shrink-0 gap-1.5" />
           )}
         </CardHeader>
 

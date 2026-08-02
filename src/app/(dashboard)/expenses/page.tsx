@@ -190,9 +190,7 @@ export default function ExpensesPage() {
           ) : undefined
         }
         actions={
-          <Button onClick={() => setSubmitOpen(true)}>
-            <Plus /> Submit Claim
-          </Button>
+          <IconAction label="Submit Claim" icon={<Plus />} onClick={() => setSubmitOpen(true)} />
         }
       />
 
@@ -322,9 +320,7 @@ export default function ExpensesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSubmitOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={submitting || !amount}>
-              {submitting ? <Loader2 className="animate-spin" /> : <Plus />} Submit
-            </Button>
+            <IconAction label="Submit" icon={submitting ? <Loader2 className="animate-spin" /> : <Plus />} onClick={handleSubmit} disabled={submitting || !amount} />
           </DialogFooter>
         </DialogContent>
       </Dialog>

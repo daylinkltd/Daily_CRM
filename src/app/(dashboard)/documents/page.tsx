@@ -81,9 +81,7 @@ export default function DocumentsVaultPage() {
             <IconAction label="Templates" icon={<LayoutGrid className="size-3.5 text-primary" />} variant="outline" className="text-xs h-9 gap-1.5 border-border" />
           </Link>
           <Link href="/documents/new">
-            <Button size="sm" className="bg-primary text-primary-foreground text-xs h-9 font-semibold gap-1.5 shadow-xs">
-              <Plus className="size-3.5" /> Issue New Document
-            </Button>
+            <IconAction label="Issue New Document" icon={<Plus className="size-3.5" />} className="bg-primary text-primary-foreground text-xs h-9 font-semibold gap-1.5 shadow-xs" />
           </Link>
         </div>
       </div>
