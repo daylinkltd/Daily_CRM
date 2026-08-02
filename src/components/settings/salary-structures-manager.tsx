@@ -51,6 +51,12 @@ import {
   type PayrollField,
 } from "@/lib/hr/salary";
 import { IconAction } from "@/components/ui/icon-action";
+import { useRowSelection } from "@/hooks/use-row-selection";
+import {
+  BulkActionBar,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+} from "@/components/ui/bulk-action-bar";
 
 const PREVIEW_BASIC = 30_000;
 
@@ -130,6 +136,9 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
   const [isDefault, setIsDefault] = useState(false);
   const [members, setMembers] = useState<StructureMember[]>([]);
   const [savingStructure, setSavingStructure] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const structureSelection = useRowSelection(structures, (x) => x.id);
+  const componentSelection = useRowSelection(components, (x) => x.id);
 
   const fetchData = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -405,6 +414,32 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
     }
   };
 
+  const bulkSoftDelete = async (
+    table: "hr_salary_structures" | "hr_salary_components",
+    ids: string[],
+    noun: string,
+    onDone: () => void
+  ) => {
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} ${noun}${ids.length === 1 ? "" : "s"}?`)) return;
+    setBulkBusy(true);
+    try {
+      const { error } = await supabase
+        .from(table)
+        .update({ deleted_at: new Date().toISOString() })
+        .in("id", ids)
+        .eq("workspace_id", activeWorkspace!.id);
+      if (error) throw error;
+      toast.success(`Deleted ${ids.length} ${noun}${ids.length === 1 ? "" : "s"}.`);
+      onDone();
+      await fetchData();
+    } catch (err) {
+      toast.error(errorMessage(err, `Failed to delete ${noun}s`));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   const handleDeleteStructure = async (s: StructureRow) => {
     if (!confirm(`Delete "${s.name}"? Employees on it keep their current salary.`)) return;
     try {
@@ -457,9 +492,27 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
             </p>
           ) : (
             <div className="divide-y divide-border rounded-lg border border-border">
+              {canEdit && (
+                <div className="flex items-center gap-2 bg-muted/40 px-3 py-1.5">
+                  <SelectAllCheckbox
+                    checked={structureSelection.allVisibleSelected}
+                    indeterminate={structureSelection.someVisibleSelected}
+                    onChange={structureSelection.toggleAllVisible}
+                    label="Select all structures"
+                  />
+                  <span className="text-[11px] text-muted-foreground">Select all</span>
+                </div>
+              )}
               {structures.map((s) => (
                 <div key={s.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                   <div className="flex min-w-0 items-center gap-2">
+                    {canEdit && (
+                      <SelectRowCheckbox
+                        checked={structureSelection.isSelected(s.id)}
+                        onToggle={(o) => structureSelection.toggle(s.id, o)}
+                        label={`Select ${s.name}`}
+                      />
+                    )}
                     <p className="truncate text-sm font-medium text-foreground">{s.name}</p>
                     {s.is_default && (
                       <Badge variant="secondary" className="gap-1 text-[10px]">
@@ -517,9 +570,29 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
             </p>
           ) : (
             <div className="divide-y divide-border rounded-lg border border-border">
+              {canEdit && (
+                <div className="flex items-center gap-2 bg-muted/40 px-3 py-1.5">
+                  <SelectAllCheckbox
+                    checked={componentSelection.allVisibleSelected}
+                    indeterminate={componentSelection.someVisibleSelected}
+                    onChange={componentSelection.toggleAllVisible}
+                    label="Select all components"
+                  />
+                  <span className="text-[11px] text-muted-foreground">
+                    Select all · shift-click to pick a range
+                  </span>
+                </div>
+              )}
               {components.map((c) => (
                 <div key={c.id} className="flex items-center justify-between gap-3 px-3 py-2">
                   <div className="flex min-w-0 items-center gap-2">
+                    {canEdit && (
+                      <SelectRowCheckbox
+                        checked={componentSelection.isSelected(c.id)}
+                        onToggle={(o) => componentSelection.toggle(c.id, o)}
+                        label={`Select ${c.name}`}
+                      />
+                    )}
                     <Badge
                       variant="secondary"
                       className={`text-[10px] ${
@@ -561,6 +634,44 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
           )}
         </CardContent>
       </Card>
+
+      <BulkActionBar
+        count={structureSelection.selectedCount}
+        onClear={structureSelection.clear}
+        busy={bulkBusy}
+        noun="structure"
+      >
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            bulkSoftDelete("hr_salary_structures", structureSelection.selectedIds, "structure", structureSelection.clear)
+          }
+          disabled={bulkBusy}
+          className="h-7 gap-1.5 text-xs text-destructive"
+        >
+          <Trash2 className="size-3.5" /> Delete
+        </Button>
+      </BulkActionBar>
+
+      <BulkActionBar
+        count={componentSelection.selectedCount}
+        onClear={componentSelection.clear}
+        busy={bulkBusy}
+        noun="component"
+      >
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            bulkSoftDelete("hr_salary_components", componentSelection.selectedIds, "component", componentSelection.clear)
+          }
+          disabled={bulkBusy}
+          className="h-7 gap-1.5 text-xs text-destructive"
+        >
+          <Trash2 className="size-3.5" /> Delete
+        </Button>
+      </BulkActionBar>
 
       {/* Component editor dialog */}
       <Dialog open={componentEditorOpen} onOpenChange={setComponentEditorOpen}>

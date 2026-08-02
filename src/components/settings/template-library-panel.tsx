@@ -42,6 +42,8 @@ import {
 import { SettingsPanelHead } from "./settings-panel-head";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useRowSelection } from "@/hooks/use-row-selection";
+import { BulkActionBar, SelectRowCheckbox } from "@/components/ui/bulk-action-bar";
 import {
   TEMPLATE_MODULES,
   TEMPLATE_MODULE_LABELS,
@@ -101,6 +103,7 @@ export function TemplateLibraryPanel() {
   const [draft, setDraft] = useState(BLANK_DRAFT);
   const [saving, setSaving] = useState(false);
   const [adoptingId, setAdoptingId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const fetchTemplates = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -180,6 +183,8 @@ export function TemplateLibraryPanel() {
       );
     });
   }, [view, mine, library, moduleFilter, channelFilter, search]);
+
+  const selection = useRowSelection(visible, (t) => t.id);
 
   /** Count per module for the tab badges, within the current view. */
   const moduleCounts = useMemo(() => {
@@ -274,6 +279,63 @@ export function TemplateLibraryPanel() {
       toast.error(errorMessage(err, "Failed to add template"));
     } finally {
       setAdoptingId(null);
+    }
+  };
+
+  /** Meta rows live in another table and are not editable here. */
+  const bulkTargets = () =>
+    selection.selectedRows.filter((t) => !t.id.startsWith("meta:") && t.workspace_id !== null);
+
+  const handleBulkDelete = async () => {
+    const targets = bulkTargets();
+    if (targets.length === 0) {
+      toast.error("Only your own templates can be deleted — library and WhatsApp rows cannot.");
+      return;
+    }
+    if (!confirm(`Delete ${targets.length} template${targets.length === 1 ? "" : "s"}?`)) return;
+    setBulkBusy(true);
+    try {
+      const { error } = await supabase
+        .from("templates")
+        .update({ deleted_at: new Date().toISOString() })
+        .in("id", targets.map((t) => t.id));
+      if (error) throw error;
+      toast.success(`Deleted ${targets.length} template${targets.length === 1 ? "" : "s"}.`);
+      selection.clear();
+      await fetchTemplates();
+    } catch (err) {
+      toast.error(errorMessage(err, "Failed to delete templates"));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkAdopt = async () => {
+    if (!activeWorkspace?.id) return;
+    const targets = selection.selectedRows.filter((t) => t.workspace_id === null);
+    if (targets.length === 0) {
+      toast.error("Select library templates to add.");
+      return;
+    }
+    setBulkBusy(true);
+    try {
+      // Sequential: each call allocates a de-duplicated name, so running
+      // them in parallel would race on the uniqueness check.
+      for (const t of targets) {
+        const { error } = await supabase.rpc("adopt_library_template", {
+          p_workspace_id: activeWorkspace.id,
+          p_template_id: t.id,
+        });
+        if (error) throw error;
+      }
+      toast.success(`Added ${targets.length} template${targets.length === 1 ? "" : "s"}.`);
+      selection.clear();
+      await fetchTemplates();
+      setView("mine");
+    } catch (err) {
+      toast.error(errorMessage(err, "Failed to add templates"));
+    } finally {
+      setBulkBusy(false);
     }
   };
 
@@ -437,6 +499,13 @@ export function TemplateLibraryPanel() {
               >
                 <div className="mb-1.5 flex items-start justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-1.5">
+                    {canManage && (
+                      <SelectRowCheckbox
+                        checked={selection.isSelected(t.id)}
+                        onToggle={(o) => selection.toggle(t.id, o)}
+                        label={`Select ${t.name}`}
+                      />
+                    )}
                     <Icon className="size-3.5 shrink-0 text-primary" />
                     <p className="truncate text-sm font-semibold text-foreground">{t.name}</p>
                   </div>
@@ -544,6 +613,24 @@ export function TemplateLibraryPanel() {
           })}
         </div>
       )}
+
+      <BulkActionBar
+        count={selection.selectedCount}
+        hiddenCount={selection.hiddenSelectedCount}
+        onClear={selection.clear}
+        busy={bulkBusy}
+        noun="template"
+      >
+        {view === "library" ? (
+          <Button size="sm" variant="outline" onClick={handleBulkAdopt} disabled={bulkBusy} className="h-7 gap-1.5 text-xs">
+            <Copy className="size-3.5" /> Add to my templates
+          </Button>
+        ) : (
+          <Button size="sm" variant="outline" onClick={handleBulkDelete} disabled={bulkBusy} className="h-7 gap-1.5 text-xs text-destructive">
+            <Trash2 className="size-3.5" /> Delete
+          </Button>
+        )}
+      </BulkActionBar>
 
       {/* Editor */}
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>

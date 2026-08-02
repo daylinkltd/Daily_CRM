@@ -33,6 +33,12 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { GeofenceMapPicker } from "@/components/attendance/geofence-map-picker";
 import { IconAction } from "@/components/ui/icon-action";
+import { useRowSelection } from "@/hooks/use-row-selection";
+import {
+  BulkActionBar,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+} from "@/components/ui/bulk-action-bar";
 import { formatDistance } from "@/lib/attendance/geolocation";
 
 const LOCATION_TYPES = ["OFFICE", "CLIENT_SITE", "WAREHOUSE", "BRANCH", "OTHER"] as const;
@@ -94,6 +100,8 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
   const [saving, setSaving] = useState(false);
   const [locations, setLocations] = useState<WorkLocationRow[]>([]);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const selection = useRowSelection(locations, (l) => l.id);
   const [draft, setDraft] = useState(BLANK);
 
   const fetchLocations = useCallback(async () => {
@@ -186,6 +194,29 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
     }
   };
 
+  const handleBulkDelete = async () => {
+    const ids = selection.selectedIds;
+    if (ids.length === 0) return;
+    if (!confirm(`Remove ${ids.length} location${ids.length === 1 ? "" : "s"}? Policies using them fall back to no boundary.`)) return;
+    setBulkBusy(true);
+    try {
+      // Soft delete in one statement so the list cannot end up half done.
+      const { error } = await supabase
+        .from("work_locations")
+        .update({ deleted_at: new Date().toISOString() })
+        .in("id", ids)
+        .eq("workspace_id", activeWorkspace!.id);
+      if (error) throw error;
+      toast.success(`Removed ${ids.length} location${ids.length === 1 ? "" : "s"}.`);
+      selection.clear();
+      await fetchLocations();
+    } catch (err) {
+      toast.error(errorMessage(err, "Failed to remove the locations"));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   const handleDelete = async (l: WorkLocationRow) => {
     if (!confirm(`Remove "${l.name}"? Policies using it will fall back to no boundary.`)) return;
     try {
@@ -233,9 +264,29 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
           </p>
         ) : (
           <div className="divide-y divide-border rounded-lg border border-border">
+            {canEdit && (
+              <div className="flex items-center gap-2 bg-muted/40 px-3 py-1.5">
+                <SelectAllCheckbox
+                  checked={selection.allVisibleSelected}
+                  indeterminate={selection.someVisibleSelected}
+                  onChange={selection.toggleAllVisible}
+                  label="Select all locations"
+                />
+                <span className="text-[11px] text-muted-foreground">
+                  Select all · shift-click to pick a range
+                </span>
+              </div>
+            )}
             {locations.map((l) => (
               <div key={l.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
-                <div className="min-w-0">
+                {canEdit && (
+                  <SelectRowCheckbox
+                    checked={selection.isSelected(l.id)}
+                    onToggle={(o) => selection.toggle(l.id, o)}
+                    label={`Select ${l.name}`}
+                  />
+                )}
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="truncate text-sm font-medium text-foreground">{l.name}</p>
                     {l.is_default && (
@@ -271,6 +322,24 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
             ))}
           </div>
         )}
+
+        <BulkActionBar
+          count={selection.selectedCount}
+          hiddenCount={selection.hiddenSelectedCount}
+          onClear={selection.clear}
+          busy={bulkBusy}
+          noun="location"
+        >
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleBulkDelete}
+            disabled={bulkBusy}
+            className="h-7 gap-1.5 text-xs text-destructive"
+          >
+            <Trash2 className="size-3.5" /> Remove
+          </Button>
+        </BulkActionBar>
       </CardContent>
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
