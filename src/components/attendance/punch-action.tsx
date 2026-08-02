@@ -19,6 +19,36 @@ import { useWorkspace } from '@/hooks/use-workspace';
 import { TimeLogForm } from '@/components/timesheets/time-log-form';
 import { LocationMapModal } from '@/components/attendance/location-map-modal';
 import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
+import {
+  acquirePreciseLocation,
+  checkGeofence,
+  formatDistance,
+  GeolocationFailure,
+  GEOLOCATION_FAILURE_MESSAGES,
+  type PreciseLocation,
+} from '@/lib/attendance/geolocation';
+import {
+  DEFAULT_ATTENDANCE_POLICY,
+  parseAttendancePolicy,
+  type AttendancePolicy,
+  type GeofenceStatus,
+  type PunchLocation,
+  type WorkLocation,
+} from '@/lib/attendance/policy';
+
+const WORK_LOCATION_ICONS: Record<WorkLocation, typeof Building2> = {
+  OFFICE: Building2,
+  WFH: Home,
+  CLIENT_SITE: Briefcase,
+  FIELD: MapPin,
+};
+
+const WORK_LOCATION_SHORT_LABELS: Record<WorkLocation, string> = {
+  OFFICE: 'Office',
+  WFH: 'WFH',
+  CLIENT_SITE: 'Client',
+  FIELD: 'Field',
+};
 
 export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   const supabase = createClient();
@@ -27,7 +57,9 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [todayRecord, setTodayRecord] = useState<any | null>(null);
   const [activeBreak, setActiveBreak] = useState<any | null>(null);
-  const [workLocation, setWorkLocation] = useState<'OFFICE' | 'WFH' | 'CLIENT_SITE'>('OFFICE');
+  const [workLocation, setWorkLocation] = useState<WorkLocation>('OFFICE');
+  const [policy, setPolicy] = useState<AttendancePolicy>(DEFAULT_ATTENDANCE_POLICY);
+  const [locatingMessage, setLocatingMessage] = useState<string | null>(null);
   const [breakType, setBreakType] = useState<'LUNCH' | 'TEA' | 'PERSONAL' | 'MEETING'>('LUNCH');
   const [showTimeLogModal, setShowTimeLogModal] = useState(false);
   const [lastLoggedHours, setLastLoggedHours] = useState<number | undefined>(undefined);
@@ -64,25 +96,116 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
     fetchTodayStatus();
   }, [fetchTodayStatus]);
 
+  // Resolve this member's effective policy for today: which work locations
+  // they may pick, whether GPS is required, the geofence, and whether
+  // punching out asks for a timesheet.
+  useEffect(() => {
+    if (!activeWorkspace?.id || !activeMember?.id) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await supabase.rpc('resolve_attendance_policy', {
+        p_workspace_id: activeWorkspace.id,
+        p_workspace_member_id: activeMember.id,
+        p_date: todayDate,
+      });
+      if (cancelled) return;
+
+      // Fall back to the permissive default rather than blocking punches if
+      // the policy tables are not deployed yet.
+      const resolved = error ? DEFAULT_ATTENDANCE_POLICY : parseAttendancePolicy(data);
+      setPolicy(resolved);
+      setWorkLocation((current) =>
+        resolved.allowed_work_locations.includes(current)
+          ? current
+          : resolved.default_work_location
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, activeWorkspace?.id, activeMember?.id, todayDate]);
+
   const handlePunch = async (type: 'in' | 'out') => {
     if (!activeWorkspace?.id || !activeMember?.id) return;
     setLoading(true);
 
     try {
-      // Get GPS Location
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        });
-      }).catch(() => null);
+      // Working from home has no office to stand near, so it never needs a
+      // fix. Everything else does: this used to swallow every geolocation
+      // failure and store null, which is why no punch has ever recorded a
+      // location and the map fell back to a hardcoded city centre.
+      const locationRequired =
+        policy.require_location && policy.require_location_for.includes(workLocation);
 
-      const locationData = position ? {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-      } : null;
+      let locationData: PunchLocation | null = null;
+      let geofenceStatus: GeofenceStatus = locationRequired ? 'NOT_ENFORCED' : 'EXEMPT';
+      let distanceM: number | null = null;
+
+      if (locationRequired) {
+        setLocatingMessage('Getting a precise GPS fix…');
+        let fix: PreciseLocation;
+        try {
+          fix = await acquirePreciseLocation({
+            desiredAccuracyM: policy.min_gps_accuracy_m,
+            timeoutMs: 25_000,
+          });
+        } catch (geoError) {
+          // Surface the reason and stop. Recording a punch with no location
+          // when policy demands one is what produced the bad data.
+          const message =
+            geoError instanceof GeolocationFailure
+              ? geoError.message
+              : GEOLOCATION_FAILURE_MESSAGES.position_unavailable;
+          toast.error(message);
+          return;
+        } finally {
+          setLocatingMessage(null);
+        }
+
+        if (fix.coarse && fix.accuracy > policy.min_gps_accuracy_m) {
+          toast.error(
+            `Location is only accurate to ±${Math.round(fix.accuracy)}m, but this workspace requires ±${policy.min_gps_accuracy_m}m. ` +
+              `Move outdoors or enable precise location, then try again.`
+          );
+          return;
+        }
+
+        locationData = {
+          latitude: fix.latitude,
+          longitude: fix.longitude,
+          accuracy: fix.accuracy,
+          captured_at: fix.capturedAt,
+        };
+
+        if (policy.geofence) {
+          const check = checkGeofence(fix, {
+            latitude: policy.geofence.latitude,
+            longitude: policy.geofence.longitude,
+            radiusM: policy.geofence.radius_m,
+          });
+          distanceM = check.distanceM;
+          geofenceStatus = check.inconclusive
+            ? 'INCONCLUSIVE'
+            : check.inside
+              ? 'INSIDE'
+              : 'OUTSIDE';
+
+          if (!check.inside && !check.inconclusive && policy.block_outside_geofence) {
+            toast.error(
+              `You are ${formatDistance(check.distanceM)} from ${policy.geofence.label || 'the allowed location'} ` +
+                `(limit ${formatDistance(check.radiusM)}). Punching in is only allowed on site.`
+            );
+            return;
+          }
+          if (geofenceStatus === 'OUTSIDE') {
+            toast.warning(
+              `Recorded ${formatDistance(check.distanceM)} outside ${policy.geofence.label || 'the allowed area'}. HR will see this flagged.`
+            );
+          }
+        }
+      }
 
       const now = new Date().toISOString();
 
@@ -95,11 +218,18 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             attendance_date: todayDate,
             punch_in_time: now,
             punch_in_location: locationData,
+            punch_in_accuracy_m: locationData?.accuracy ?? null,
+            punch_in_distance_m: distanceM,
+            punch_in_geofence_status: geofenceStatus,
             work_location: workLocation,
             status: workLocation === 'WFH' ? 'Remote' : 'Present'
           });
         if (error) throw error;
-        toast.success(`Punched in successfully (${workLocation})!`);
+        toast.success(
+          locationData
+            ? `Punched in (${workLocation}) — location accurate to ±${Math.round(locationData.accuracy)}m.`
+            : `Punched in (${workLocation}).`
+        );
       } else {
         if (!todayRecord?.punch_in_time) throw new Error("No punch in record found.");
         
@@ -120,16 +250,22 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
           .update({
             punch_out_time: now,
             punch_out_location: locationData,
+            punch_out_accuracy_m: locationData?.accuracy ?? null,
+            punch_out_distance_m: distanceM,
+            punch_out_geofence_status: geofenceStatus,
             working_hours: workingHours,
             net_productive_hours: netProductive
           })
           .eq('id', todayRecord.id);
         if (error) throw error;
-        
+
         toast.success(`Punched out! Logged ${workingHours} hrs (${netProductive} hrs net productive).`);
-        
+
         setLastLoggedHours(netProductive);
-        setShowTimeLogModal(true);
+        // HR decides per employee whether punching out requires a timesheet.
+        if (policy.require_timesheet_on_punch_out) {
+          setShowTimeLogModal(true);
+        }
       }
 
       await fetchTodayStatus();
@@ -216,48 +352,60 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
       <div className="flex flex-wrap items-center gap-3">
         {!todayRecord || !todayRecord.punch_in_time ? (
           <div className="flex items-center gap-2">
-            {/* Work Location Selector */}
-            <div className="flex items-center bg-muted/50 border border-border rounded-lg p-0.5 text-xs">
-              <button
-                type="button"
-                onClick={() => setWorkLocation('OFFICE')}
-                className={`px-2 py-1 rounded-md font-medium transition-all flex items-center gap-1 ${
-                  workLocation === 'OFFICE' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Building2 className="h-3.5 w-3.5" />
-                Office
-              </button>
-              <button
-                type="button"
-                onClick={() => setWorkLocation('WFH')}
-                className={`px-2 py-1 rounded-md font-medium transition-all flex items-center gap-1 ${
-                  workLocation === 'WFH' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Home className="h-3.5 w-3.5" />
-                WFH
-              </button>
-              <button
-                type="button"
-                onClick={() => setWorkLocation('CLIENT_SITE')}
-                className={`px-2 py-1 rounded-md font-medium transition-all flex items-center gap-1 ${
-                  workLocation === 'CLIENT_SITE' ? 'bg-primary text-primary-foreground font-semibold shadow-xs' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Briefcase className="h-3.5 w-3.5" />
-                Client
-              </button>
-            </div>
+            {/* Work Location Selector — renders only what HR allows this
+                member. An on-site-only employee never sees a WFH option, so
+                a single allowed mode shows as a static label instead. */}
+            {policy.allowed_work_locations.length > 1 ? (
+              <div className="flex items-center bg-muted/50 border border-border rounded-lg p-0.5 text-xs">
+                {policy.allowed_work_locations.map((option) => {
+                  const Icon = WORK_LOCATION_ICONS[option];
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setWorkLocation(option)}
+                      className={`px-2 py-1 rounded-md font-medium transition-all flex items-center gap-1 ${
+                        workLocation === option
+                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {WORK_LOCATION_SHORT_LABELS[option]}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 bg-muted/50 border border-border rounded-lg px-2 py-1.5 text-xs text-muted-foreground">
+                {(() => {
+                  const Icon = WORK_LOCATION_ICONS[workLocation];
+                  return <Icon className="h-3.5 w-3.5" />;
+                })()}
+                <span className="font-medium text-foreground">
+                  {WORK_LOCATION_SHORT_LABELS[workLocation]}
+                </span>
+              </div>
+            )}
 
-            <Button 
-              onClick={() => handlePunch('in')} 
+            <Button
+              onClick={() => handlePunch('in')}
               disabled={loading}
               className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold shadow-xs rounded-lg h-9 px-3 text-xs"
             >
               {loading ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Fingerprint className="size-3.5 mr-1.5" />}
-              Punch In
+              {locatingMessage ? 'Locating…' : 'Punch In'}
             </Button>
+
+            {locatingMessage && (
+              <span className="text-[11px] text-muted-foreground">{locatingMessage}</span>
+            )}
+
+            {policy.override_note && (
+              <span className="text-[11px] text-amber-600 dark:text-amber-400">
+                {policy.override_note}
+              </span>
+            )}
           </div>
         ) : todayRecord.punch_in_time && !todayRecord.punch_out_time ? (
           <div className="flex flex-wrap items-center gap-2">

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { MapPin, ExternalLink, ShieldCheck, Crosshair, Clock, Loader2, Navigation } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LocationData {
   latitude: number;
@@ -44,9 +45,17 @@ export function LocationMapModal({
     setCurrentLocation(location);
   }, [location]);
 
-  const activeLocation = (currentLocation && currentLocation.latitude && currentLocation.longitude) 
-    ? currentLocation 
-    : { latitude: 12.9715987, longitude: 77.5945627, accuracy: 25 };
+  // No fallback coordinates. This used to default to a hardcoded Bengaluru
+  // point with a fabricated ±25m accuracy, so a record with no GPS — which
+  // was every record, because the punch flow swallowed geolocation errors
+  // and stored null — displayed as a precise-looking location hundreds of
+  // kilometres from where the person actually was. For a feature whose
+  // whole purpose is location verification, showing nothing is the only
+  // honest option.
+  const activeLocation =
+    currentLocation && currentLocation.latitude && currentLocation.longitude
+      ? currentLocation
+      : null;
 
   const handleFetchLiveDeviceGps = () => {
     if (!navigator.geolocation) {
@@ -74,7 +83,7 @@ export function LocationMapModal({
   };
 
   useEffect(() => {
-    if (!open || !mapContainerRef.current) return;
+    if (!open || !mapContainerRef.current || !activeLocation) return;
 
     // Load Leaflet CSS dynamically if not present
     if (!document.getElementById("leaflet-css")) {
@@ -96,7 +105,7 @@ export function LocationMapModal({
         mapInstanceRef.current = null;
       }
 
-      const { latitude, longitude, accuracy = 15 } = activeLocation;
+      const { latitude, longitude, accuracy } = activeLocation;
 
       // Initialize Leaflet Map
       const map = L.map(mapContainerRef.current).setView([latitude, longitude], 16);
@@ -194,7 +203,13 @@ export function LocationMapModal({
     };
   }, [open, activeLocation]);
 
-  const googleMapsUrl = `https://www.google.com/maps?q=${activeLocation.latitude},${activeLocation.longitude}`;
+  const googleMapsUrl = activeLocation
+    ? `https://www.google.com/maps?q=${activeLocation.latitude},${activeLocation.longitude}`
+    : null;
+
+  // A fix wider than this tells you which city someone is in, not which
+  // building — it is a wifi/IP lookup, not a satellite fix.
+  const isCoarse = activeLocation ? (activeLocation.accuracy ?? 0) > 500 : false;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -210,13 +225,21 @@ export function LocationMapModal({
                   <DialogTitle className="text-base font-bold text-foreground">
                     {title}
                   </DialogTitle>
-                  {hasRealGps ? (
+                  {!activeLocation ? (
+                    <Badge className="bg-muted text-muted-foreground border-border text-[10px] font-semibold">
+                      No Location Recorded
+                    </Badge>
+                  ) : isCoarse ? (
+                    <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] font-semibold">
+                      Approximate (Network Fix)
+                    </Badge>
+                  ) : hasRealGps ? (
                     <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] font-semibold">
                       Verified Device GPS
                     </Badge>
                   ) : (
-                    <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] font-semibold">
-                      Sample Location (Past Record)
+                    <Badge className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 text-[10px] font-semibold">
+                      Live Device Location
                     </Badge>
                   )}
                 </div>
@@ -238,22 +261,39 @@ export function LocationMapModal({
                 {liveGpsLoading ? <Loader2 className="size-3.5 animate-spin" /> : <Navigation className="size-3.5 text-primary" />}
                 Detect My Live Location
               </Button>
-              <a
-                href={googleMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline bg-primary/10 px-3 py-1.5 rounded-lg transition-colors h-8"
-              >
-                <ExternalLink className="size-3.5" />
-                Google Maps
-              </a>
+              {googleMapsUrl && (
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline bg-primary/10 px-3 py-1.5 rounded-lg transition-colors h-8"
+                >
+                  <ExternalLink className="size-3.5" />
+                  Google Maps
+                </a>
+              )}
             </div>
           </div>
         </DialogHeader>
 
         {/* Leaflet Map Container */}
         <div className="relative w-full h-[340px] bg-muted">
-          <div ref={mapContainerRef} className="w-full h-full z-0" />
+          {activeLocation ? (
+            <div ref={mapContainerRef} className="w-full h-full z-0" />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center">
+              <MapPin className="size-8 text-muted-foreground/40" />
+              <p className="text-sm font-semibold text-foreground">
+                No location was recorded for this punch
+              </p>
+              <p className="max-w-sm text-xs text-muted-foreground">
+                The device either denied location permission or could not get a
+                fix at the time. Use &ldquo;Detect My Live Location&rdquo; to
+                check the current device position — that is where the device is
+                now, not where this punch happened.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Footer Details */}
@@ -262,20 +302,40 @@ export function LocationMapModal({
             <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
               <Crosshair className="size-3 text-primary" /> Latitude
             </span>
-            <p className="font-mono font-bold text-foreground">{activeLocation.latitude.toFixed(6)}</p>
+            <p className="font-mono font-bold text-foreground">
+              {activeLocation ? activeLocation.latitude.toFixed(6) : "—"}
+            </p>
           </div>
           <div className="space-y-0.5">
             <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
               <Crosshair className="size-3 text-primary" /> Longitude
             </span>
-            <p className="font-mono font-bold text-foreground">{activeLocation.longitude.toFixed(6)}</p>
+            <p className="font-mono font-bold text-foreground">
+              {activeLocation ? activeLocation.longitude.toFixed(6) : "—"}
+            </p>
           </div>
           <div className="space-y-0.5">
             <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
-              <ShieldCheck className="size-3 text-emerald-500" /> Accuracy
+              <ShieldCheck
+                className={cn("size-3", isCoarse ? "text-amber-500" : "text-emerald-500")}
+              />{" "}
+              Accuracy
             </span>
-            <p className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-              ±{Math.round(activeLocation.accuracy || 15)} meters
+            {/* Never invent an accuracy figure — an unknown radius shown as
+                "±15 m" is what made a network fix look like a satellite one. */}
+            <p
+              className={cn(
+                "font-mono font-bold",
+                !activeLocation || activeLocation.accuracy == null
+                  ? "text-muted-foreground"
+                  : isCoarse
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-emerald-600 dark:text-emerald-400"
+              )}
+            >
+              {activeLocation && activeLocation.accuracy != null
+                ? `±${Math.round(activeLocation.accuracy)} meters`
+                : "Unknown"}
             </p>
           </div>
           <div className="space-y-0.5">
