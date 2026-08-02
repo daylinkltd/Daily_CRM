@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { SettingsPanelHead } from "./settings-panel-head";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import {
   TEMPLATE_MODULES,
   TEMPLATE_MODULE_LABELS,
@@ -107,13 +108,43 @@ export function TemplateLibraryPanel() {
     try {
       // One query returns both the library (workspace_id IS NULL) and this
       // workspace's own rows; RLS already limits it to those two sets.
-      const { data, error } = await supabase
-        .from("templates")
-        .select("*")
-        .is("deleted_at", null)
-        .order("name");
+      // `message_templates` is fetched alongside it: that table is Meta's
+      // submission record for WhatsApp and cannot be folded into
+      // `templates` without breaking the send path, but the point of this
+      // page is that every template in the product is visible in one
+      // place, so they are merged for display.
+      const [{ data, error }, metaRes] = await Promise.all([
+        supabase.from("templates").select("*").is("deleted_at", null).order("name"),
+        supabase
+          .from("message_templates")
+          .select("id, name, category, language, body_text, footer_text, status")
+          .eq("workspace_id", activeWorkspace.id)
+          .order("name"),
+      ]);
       if (error) throw error;
-      setTemplates((data as TemplateRow[] | null) || []);
+
+      const unified = (data as TemplateRow[] | null) || [];
+      const meta: TemplateRow[] = (metaRes.data || []).map((m) => ({
+        id: `meta:${m.id}`,
+        workspace_id: activeWorkspace.id,
+        module: "crm",
+        channel: "whatsapp",
+        category: (m.category as string) || "WhatsApp",
+        name: m.name as string,
+        description: "Submitted to Meta for approval.",
+        subject: null,
+        body: [m.body_text, m.footer_text].filter(Boolean).join("\n\n"),
+        variables: null,
+        tags: ["meta"],
+        requires_approval: true,
+        approval_status: ((m.status as string) || "").toUpperCase() || null,
+        is_system: false,
+        is_active: true,
+        source_template_id: null,
+        usage_count: 0,
+      }));
+
+      setTemplates([...unified, ...meta]);
     } catch (err) {
       toast.error(errorMessage(err, "Failed to load templates"));
     } finally {
@@ -476,6 +507,15 @@ export function TemplateLibraryPanel() {
                       )}
                       {adopted ? "Added — add again" : "Use this"}
                     </Button>
+                  ) : t.id.startsWith("meta:") ? (
+                    <Link
+                      href="/settings?tab=whatsapp-templates"
+                      className="flex-1"
+                    >
+                      <Button size="sm" variant="outline" className="h-7 w-full text-xs">
+                        Manage in WhatsApp approvals
+                      </Button>
+                    </Link>
                   ) : (
                     <>
                       <Button
@@ -491,7 +531,7 @@ export function TemplateLibraryPanel() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleDelete(t)}
-                        disabled={!canManage}
+                        disabled={!canManage || t.id.startsWith("meta:")}
                         className="h-7 px-2 text-muted-foreground hover:text-destructive"
                       >
                         <Trash2 className="size-3.5" />

@@ -50,6 +50,7 @@ import {
   type CalculationType,
   type PayrollField,
 } from "@/lib/hr/salary";
+import { IconAction } from "@/components/ui/icon-action";
 
 const PREVIEW_BASIC = 30_000;
 
@@ -471,17 +472,17 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
                   </div>
                   {canEdit && (
                     <div className="flex shrink-0 items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => openStructureEdit(s)} className="px-2">
-                        <Pencil className="size-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label={`Edit ${s.name}`}
+                        icon={<Pencil className="size-3.5" />}
+                        onClick={() => openStructureEdit(s)}
+                      />
+                      <IconAction
+                        label={`Delete ${s.name}`}
+                        icon={<Trash2 className="size-3.5" />}
                         onClick={() => handleDeleteStructure(s)}
-                        className="px-2 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
+                        destructive
+                      />
                     </div>
                   )}
                 </div>
@@ -541,17 +542,17 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
                   </div>
                   {canEdit && (
                     <div className="flex shrink-0 items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => openComponentEdit(c)} className="px-2">
-                        <Pencil className="size-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <IconAction
+                        label={`Edit ${c.name}`}
+                        icon={<Pencil className="size-3.5" />}
+                        onClick={() => openComponentEdit(c)}
+                      />
+                      <IconAction
+                        label={`Remove ${c.name}`}
+                        icon={<Trash2 className="size-3.5" />}
                         onClick={() => handleDeleteComponent(c)}
-                        className="px-2 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
+                        destructive
+                      />
                     </div>
                   )}
                 </div>

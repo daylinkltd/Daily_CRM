@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { GeofenceMapPicker } from "@/components/attendance/geofence-map-picker";
+import { IconAction } from "@/components/ui/icon-action";
 import { formatDistance } from "@/lib/attendance/geolocation";
 
 const LOCATION_TYPES = ["OFFICE", "CLIENT_SITE", "WAREHOUSE", "BRANCH", "OTHER"] as const;
@@ -253,17 +254,17 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
                 </div>
                 {canEdit && (
                   <div className="flex shrink-0 items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(l)} className="px-2">
-                      <Pencil className="size-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <IconAction
+                      label={`Edit ${l.name}`}
+                      icon={<Pencil className="size-3.5" />}
+                      onClick={() => openEdit(l)}
+                    />
+                    <IconAction
+                      label={`Remove ${l.name}`}
+                      icon={<Trash2 className="size-3.5" />}
                       onClick={() => handleDelete(l)}
-                      className="px-2 text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
+                      destructive
+                    />
                   </div>
                 )}
               </div>

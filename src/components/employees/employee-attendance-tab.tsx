@@ -30,6 +30,7 @@ import {
   type WorkLocation,
 } from "@/lib/attendance/policy";
 import { formatDistance } from "@/lib/attendance/geolocation";
+import { IconAction } from "@/components/ui/icon-action";
 
 const NONE = "none";
 const INHERIT = "inherit";
@@ -540,14 +541,12 @@ export function EmployeeAttendanceTab({
                     </p>
                   </div>
                   {canEdit && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <IconAction
+                      label={`Remove the exception on ${o.override_date}`}
+                      icon={<Trash2 className="size-3.5" />}
                       onClick={() => handleDeleteOverride(o.id)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
+                      destructive
+                    />
                   )}
                 </div>
               ))}
