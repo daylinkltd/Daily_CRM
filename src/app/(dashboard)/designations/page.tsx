@@ -28,11 +28,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Search, Plus, MoreHorizontal, Pencil, Trash2, Loader2, BadgeCheck } from 'lucide-react';
+import { Search, Plus, Layers, MoreHorizontal, Pencil, Trash2, Loader2, BadgeCheck } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { GatedButton } from '@/components/ui/gated-button';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { useRowSelection } from '@/hooks/use-row-selection';
+import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
 import {
   BulkActionBar,
   SelectAllCheckbox,
@@ -48,6 +49,7 @@ export default function DesignationsPage() {
   const [designations, setDesignations] = useState<any[]>([]);
   const selection = useRowSelection(designations, (r: { id: string }) => r.id);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -94,6 +96,20 @@ export default function DesignationsPage() {
   function openEditForm(desig: any) {
     setEditDesig(desig);
     setFormOpen(true);
+  }
+
+  /** Insert every pasted/typed row in one statement. */
+  async function bulkAdd(rows: Record<string, string>[]) {
+    const { error } = await supabase.from('designations').insert(
+      rows.map((r) => ({
+        workspace_id: activeWorkspace!.id,
+        title: r.title.trim(),
+        description: r.description?.trim() || null,
+      }))
+    );
+    if (error) throw error;
+    toast.success(`Added ${rows.length} designation${rows.length === 1 ? '' : 's'}.`);
+    fetchDesignations();
   }
 
   async function bulkDelete() {
@@ -150,15 +166,26 @@ export default function DesignationsPage() {
         title="Designations" 
         description="Manage job titles and roles within your organization."
         action={
-          <GatedButton
-            canAct={canManagePeople}
-            gateReason="manage designations"
-            onClick={openAddForm}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Plus className="size-4 mr-2" />
-            Add Designation
-          </GatedButton>
+          <div className="flex items-center gap-2">
+            <GatedButton
+              canAct={canManagePeople}
+              gateReason="manage designations"
+              onClick={() => setBulkAddOpen(true)}
+              variant="outline"
+            >
+              <Layers className="size-4 mr-2" />
+              Bulk add
+            </GatedButton>
+            <GatedButton
+              canAct={canManagePeople}
+              gateReason="manage designations"
+              onClick={openAddForm}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Plus className="size-4 mr-2" />
+              Add Designation
+            </GatedButton>
+          </div>
         }
       />
 
@@ -289,6 +316,20 @@ export default function DesignationsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        title="Add several designations"
+        scope="designations"
+        workspaceId={activeWorkspace?.id}
+        noun="designation"
+        columns={[
+          { key: 'title', label: 'Designation name', required: true, placeholder: 'e.g. Engineering' },
+          { key: 'description', label: 'Description', placeholder: 'Optional' },
+        ]}
+        onSubmit={bulkAdd}
+      />
 
       <BulkActionBar
         count={selection.selectedCount}

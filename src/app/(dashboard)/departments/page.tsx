@@ -28,11 +28,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Search, Plus, MoreHorizontal, Pencil, Trash2, Loader2, Building } from 'lucide-react';
+import { Search, Plus, Layers, MoreHorizontal, Pencil, Trash2, Loader2, Building } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { GatedButton } from '@/components/ui/gated-button';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { useRowSelection } from '@/hooks/use-row-selection';
+import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
 import {
   BulkActionBar,
   SelectAllCheckbox,
@@ -48,6 +49,7 @@ export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<any[]>([]);
   const selection = useRowSelection(departments, (r: { id: string }) => r.id);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -94,6 +96,20 @@ export default function DepartmentsPage() {
   function openEditForm(dept: any) {
     setEditDept(dept);
     setFormOpen(true);
+  }
+
+  /** Insert every pasted/typed row in one statement. */
+  async function bulkAdd(rows: Record<string, string>[]) {
+    const { error } = await supabase.from('departments').insert(
+      rows.map((r) => ({
+        workspace_id: activeWorkspace!.id,
+        name: r.name.trim(),
+        description: r.description?.trim() || null,
+      }))
+    );
+    if (error) throw error;
+    toast.success(`Added ${rows.length} department${rows.length === 1 ? '' : 's'}.`);
+    fetchDepartments();
   }
 
   async function bulkDelete() {
@@ -150,15 +166,26 @@ export default function DepartmentsPage() {
         title="Departments" 
         description="Manage your organization's departments and structure."
         action={
-          <GatedButton
-            canAct={canManagePeople}
-            gateReason="manage departments"
-            onClick={openAddForm}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Plus className="size-4 mr-2" />
-            Add Department
-          </GatedButton>
+          <div className="flex items-center gap-2">
+            <GatedButton
+              canAct={canManagePeople}
+              gateReason="manage departments"
+              onClick={() => setBulkAddOpen(true)}
+              variant="outline"
+            >
+              <Layers className="size-4 mr-2" />
+              Bulk add
+            </GatedButton>
+            <GatedButton
+              canAct={canManagePeople}
+              gateReason="manage departments"
+              onClick={openAddForm}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Plus className="size-4 mr-2" />
+              Add Department
+            </GatedButton>
+          </div>
         }
       />
 
@@ -289,6 +316,20 @@ export default function DepartmentsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        title="Add several departments"
+        scope="departments"
+        workspaceId={activeWorkspace?.id}
+        noun="department"
+        columns={[
+          { key: 'name', label: 'Department name', required: true, placeholder: 'e.g. Engineering' },
+          { key: 'description', label: 'Description', placeholder: 'Optional' },
+        ]}
+        onSubmit={bulkAdd}
+      />
 
       <BulkActionBar
         count={selection.selectedCount}
