@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { assertAffected } from "@/lib/supabase/affected-rows";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { createClient } from "@/lib/supabase/client";
 import { SettingsPanelHead } from "@/components/settings/settings-panel-head";
@@ -28,7 +29,7 @@ import { IconAction } from "@/components/ui/icon-action";
 
 export function LetterheadDesigner() {
   const supabase = createClient();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, refreshWorkspaces } = useWorkspace();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -81,6 +82,17 @@ export function LetterheadDesigner() {
         setFontFamily(data.font_family || "Inter");
         setShowWatermark(data.show_watermark ?? false);
         setWatermarkOpacity(data.watermark_opacity ?? 0.05);
+        // Restored here too. These six were never read back, so even once
+        // the save was fixed a reload would have shown defaults and looked
+        // like the config had not persisted.
+        setTaxId(data.tax_id || "");
+        setLogoPosition(data.logo_position || "left");
+        setLogoHeight(data.logo_height ?? 64);
+        setCompanyNameSize(data.company_name_size ?? 20);
+        setHeaderLayoutStyle(data.header_layout_style || "standard");
+        // The letterhead row is authoritative for the address; the
+        // workspace copy below is a mirror for the sidebar and checklist.
+        if (data.company_address) setCompanyAddress(data.company_address);
       } else {
         setCompanyName(activeWorkspace.name || "");
       }
@@ -93,7 +105,8 @@ export function LetterheadDesigner() {
         .maybeSingle();
 
       if (ws) {
-        setCompanyAddress(ws.company_address || "");
+        // Only when the letterhead row did not already supply one.
+        setCompanyAddress((prev) => prev || ws.company_address || "");
         setCompanyPhone(ws.company_phone || "");
         setCompanyEmail(ws.company_email || "");
       }
@@ -164,26 +177,50 @@ export function LetterheadDesigner() {
         font_family: fontFamily,
         show_watermark: showWatermark,
         watermark_opacity: watermarkOpacity,
+        // These six are edited in this panel and were collected into state
+        // but NEVER included in the payload — so the tax number, address,
+        // logo placement, logo height, company-name size and header layout
+        // silently never persisted, while the toast said "saved". Migration
+        // 085 added the columns for exactly these fields; the write was
+        // never wired up to them.
+        tax_id: taxId.trim() || null,
+        company_address: companyAddress.trim() || null,
+        logo_position: logoPosition,
+        logo_height: logoHeight,
+        company_name_size: companyNameSize,
+        header_layout_style: headerLayoutStyle,
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      // .select() so an upsert that RLS turned into a zero-row update is
+      // caught rather than reported as a success.
+      const result = await supabase
         .from("company_letterhead_configs")
-        .upsert(payload, { onConflict: "workspace_id" });
+        .upsert(payload, { onConflict: "workspace_id" })
+        .select("id");
 
-      if (error) throw error;
+      assertAffected(result, "your letterhead", "save");
 
-      // Update workspace company contact info
-      await supabase
+      // Contact details are mirrored onto the workspace because the sidebar
+      // and the setup checklist read them from there. This was
+      // fire-and-forget: no error check and no row check, so a failure here
+      // was invisible behind the success toast.
+      const wsResult = await supabase
         .from("workspaces")
         .update({
-          company_address: companyAddress,
-          company_phone: companyPhone,
-          company_email: companyEmail,
+          company_address: companyAddress.trim() || null,
+          company_phone: companyPhone.trim() || null,
+          company_email: companyEmail.trim() || null,
         })
-        .eq("id", activeWorkspace.id);
+        .eq("id", activeWorkspace.id)
+        .select("id");
 
-      toast.success("Letterhead configuration saved successfully!");
+      assertAffected(wsResult, "your company contact details", "save");
+
+      toast.success("Letterhead saved.");
+      // The sidebar logo and the checklist read the workspace from a cached
+      // context, so without this the save appears to have done nothing.
+      await refreshWorkspaces?.();
     } catch (err: any) {
       toast.error(err.message || "Failed to save letterhead config.");
     } finally {
