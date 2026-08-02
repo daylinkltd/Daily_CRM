@@ -63,63 +63,75 @@ export interface SectionMeta {
   id: SettingsSection;
   label: string;
   icon: LucideIcon;
-  group: 
-    | 'top' 
-    | 'account' 
-    | 'crm_module' 
-    | 'finance_module' 
-    | 'projects_module' 
-    | 'hr_module' 
-    | 'retail_module' 
+  group:
+    | 'top'
+    | 'account'
+    | 'company'
+    | 'content'
+    | 'crm_module'
+    | 'finance_module'
+    | 'projects_module'
+    | 'hr_module'
+    | 'retail_module'
     | 'workspace_admin';
+  /** One-line hint under the label in the rail and on the Overview cards. */
+  blurb?: string;
 }
 
 export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   overview: { id: 'overview', label: 'Overview', icon: LayoutGrid, group: 'top' },
-  profile: { id: 'profile', label: 'Your profile', icon: User, group: 'account' },
-  security: { id: 'security', label: 'Login & security', icon: Shield, group: 'account' },
-  appearance: { id: 'appearance', label: 'Appearance', icon: Palette, group: 'account' },
-  
-  // CRM Module Settings
-  crm: { id: 'crm', label: 'CRM & Pipelines', icon: PlugZap, group: 'crm_module' },
-  whatsapp: { id: 'whatsapp', label: 'WhatsApp API', icon: PlugZap, group: 'crm_module' },
-  chatbot: { id: 'chatbot', label: 'AI Chatbot', icon: Bot, group: 'crm_module' },
-  templates: { id: 'templates', label: 'Templates', icon: FileText, group: 'top' },
-  'whatsapp-templates': { id: 'whatsapp-templates', label: 'WhatsApp Templates', icon: FileText, group: 'crm_module' },
-  fields: { id: 'fields', label: 'Fields & tags', icon: Tags, group: 'crm_module' },
-  deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'crm_module' },
-  
-  // Accounting Module Settings
-  accounting: { id: 'accounting', label: 'Accounting & Ledgers', icon: Landmark, group: 'finance_module' },
-  
-  // Project Management Settings
-  projects: { id: 'projects', label: 'Project Management', icon: Briefcase, group: 'projects_module' },
-  
-  // HR Module Settings
-  hr: { id: 'hr', label: 'HR & Operations', icon: Briefcase, group: 'hr_module' },
-  attendance: { id: 'attendance', label: 'Attendance & Punch', icon: MapPin, group: 'hr_module' },
-  
-  // Retail Module Settings
-  retail: { id: 'retail', label: 'Retail Presets', icon: Store, group: 'retail_module' },
-  
-  // Workspace Admin Settings
-  members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'workspace_admin' },
-  roles: { id: 'roles', label: 'Roles & permissions', icon: ShieldCheck, group: 'workspace_admin' },
-  billing: { id: 'billing', label: 'Billing & Plan', icon: CreditCard, group: 'workspace_admin' },
-  api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace_admin' },
-  catalog: { id: 'catalog', label: 'Service Catalog', icon: FileSpreadsheet, group: 'workspace_admin' },
-  branding: { id: 'branding', label: 'Company Branding', icon: Building2, group: 'workspace_admin' },
+
+  // Your account — personal, not workspace-wide.
+  profile: { id: 'profile', label: 'Your profile', icon: User, group: 'account', blurb: 'Name, photo and contact details' },
+  security: { id: 'security', label: 'Login & security', icon: Shield, group: 'account', blurb: 'Password and active sessions' },
+  appearance: { id: 'appearance', label: 'Appearance', icon: Palette, group: 'account', blurb: 'Theme and display density' },
+
+  // The company itself — identity that appears on outgoing documents.
+  branding: { id: 'branding', label: 'Company branding', icon: Building2, group: 'company', blurb: 'Logo, colours and letterhead' },
+  members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'company', blurb: 'Invite people and set their role' },
+  roles: { id: 'roles', label: 'Roles & permissions', icon: ShieldCheck, group: 'company', blurb: 'What each role can see and do' },
+
+  // Reusable content shared across every module.
+  templates: { id: 'templates', label: 'Templates', icon: FileText, group: 'content', blurb: 'Messages, emails and letters for every module' },
+  catalog: { id: 'catalog', label: 'Service catalog', icon: FileSpreadsheet, group: 'content', blurb: 'Products and services you sell' },
+  fields: { id: 'fields', label: 'Fields & tags', icon: Tags, group: 'content', blurb: 'Custom fields and tag vocabulary' },
+
+  // CRM
+  crm: { id: 'crm', label: 'CRM & pipelines', icon: PlugZap, group: 'crm_module', blurb: 'Pipeline stages and lead defaults' },
+  deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'crm_module', blurb: 'Default currency and deal settings' },
+  whatsapp: { id: 'whatsapp', label: 'WhatsApp API', icon: PlugZap, group: 'crm_module', blurb: 'Connect your WhatsApp Business number' },
+  'whatsapp-templates': { id: 'whatsapp-templates', label: 'WhatsApp approvals', icon: FileText, group: 'crm_module', blurb: 'Submit templates to Meta and track status' },
+  chatbot: { id: 'chatbot', label: 'AI chatbot', icon: Bot, group: 'crm_module', blurb: 'Automated replies and handover rules' },
+
+  // Finance
+  accounting: { id: 'accounting', label: 'Accounting & ledgers', icon: Landmark, group: 'finance_module', blurb: 'Chart of accounts and tax defaults' },
+
+  // Projects
+  projects: { id: 'projects', label: 'Project management', icon: Briefcase, group: 'projects_module', blurb: 'Project defaults and billing rates' },
+
+  // HR
+  hr: { id: 'hr', label: 'HR & operations', icon: Briefcase, group: 'hr_module', blurb: 'Shifts, leave quotas and payroll rules' },
+  attendance: { id: 'attendance', label: 'Attendance & punch', icon: MapPin, group: 'hr_module', blurb: 'Work locations, GPS rules and geofences' },
+
+  // Retail
+  retail: { id: 'retail', label: 'Retail presets', icon: Store, group: 'retail_module', blurb: 'Counter, tax and receipt defaults' },
+
+  // Platform administration
+  billing: { id: 'billing', label: 'Billing & plan', icon: CreditCard, group: 'workspace_admin', blurb: 'Subscription and invoices' },
+  api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace_admin', blurb: 'Programmatic access to your workspace' },
 };
 
 export const RAIL_GROUPS: { label: string | null; group: SectionMeta['group'] }[] = [
   { label: null, group: 'top' },
-  { label: 'Account', group: 'account' },
-  { label: 'CRM Module', group: 'crm_module' },
-  { label: 'Finance & Accounting', group: 'finance_module' },
-  { label: 'Project Management', group: 'projects_module' },
-  { label: 'HR & People Operations', group: 'hr_module' },
-  { label: 'Retail & Commerce', group: 'retail_module' },
-  { label: 'Workspace Administration', group: 'workspace_admin' },
+  { label: 'Your account', group: 'account' },
+  { label: 'Company', group: 'company' },
+  { label: 'Content & templates', group: 'content' },
+  { label: 'CRM & messaging', group: 'crm_module' },
+  { label: 'Finance', group: 'finance_module' },
+  { label: 'HR & people', group: 'hr_module' },
+  { label: 'Projects', group: 'projects_module' },
+  { label: 'Retail', group: 'retail_module' },
+  { label: 'Administration', group: 'workspace_admin' },
 ];
 
 function isSection(value: string | null): value is SettingsSection {
