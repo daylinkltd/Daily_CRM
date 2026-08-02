@@ -56,6 +56,35 @@ export const GEOLOCATION_FAILURE_MESSAGES: Record<GeolocationFailureReason, stri
     "Timed out waiting for a GPS fix. Check that location is switched on, then try again.",
 };
 
+export type GeolocationPermissionState = "granted" | "prompt" | "denied" | "unknown";
+
+/**
+ * Read the geolocation permission WITHOUT triggering a prompt.
+ *
+ * This matters because of how browsers behave after a refusal: calling
+ * `getCurrentPosition` when permission is already "denied" fails
+ * immediately and shows no prompt at all — the browser will not ask
+ * again. From the user's side it looks like the app silently ignored
+ * them. Knowing the state up front lets the UI explain how to re-enable
+ * it in site settings instead of pretending a prompt is coming.
+ *
+ * The Permissions API is unavailable on older Safari, hence "unknown",
+ * which callers should treat as "just try it".
+ */
+export async function getGeolocationPermission(): Promise<GeolocationPermissionState> {
+  if (typeof navigator === "undefined" || !navigator.permissions?.query) {
+    return "unknown";
+  }
+  try {
+    const status = await navigator.permissions.query({
+      name: "geolocation" as PermissionName,
+    });
+    return status.state as GeolocationPermissionState;
+  } catch {
+    return "unknown";
+  }
+}
+
 export interface AcquireOptions {
   /** Stop as soon as a fix is at least this accurate. Metres. */
   desiredAccuracyM?: number;

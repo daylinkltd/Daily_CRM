@@ -1,5 +1,3 @@
--- ==================== BEGIN 087_attendance_device_capture ====================
-
 -- ============================================================
 -- 087 — Record which device a punch came from.
 --
@@ -41,5 +39,3 @@ ALTER TABLE public.attendance
 CREATE INDEX IF NOT EXISTS idx_attendance_review_flags
     ON public.attendance USING GIN (review_flags)
     WHERE review_flags IS NOT NULL;
-
--- ==================== END 087_attendance_device_capture ====================

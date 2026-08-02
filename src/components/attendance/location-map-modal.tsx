@@ -5,8 +5,36 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { MapPin, ExternalLink, ShieldCheck, Crosshair, Clock, Loader2, Navigation } from "lucide-react";
+import { MapPin, ExternalLink, ShieldCheck, Crosshair, Clock, Loader2, Navigation, Laptop } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { DeviceInfo } from "@/lib/attendance/device-info";
+
+/** One label/value pair in the device panel; hidden when unknown. */
+function DeviceField({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value?: string | null;
+  mono?: boolean;
+}) {
+  return (
+    <div className="min-w-0 space-y-0.5">
+      <dt className="text-[11px] text-muted-foreground">{label}</dt>
+      <dd
+        className={cn(
+          "truncate font-medium text-foreground",
+          mono && "font-mono text-[11px]",
+          !value && "text-muted-foreground font-normal"
+        )}
+        title={value || undefined}
+      >
+        {value || "Not recorded"}
+      </dd>
+    </div>
+  );
+}
 
 interface LocationData {
   latitude: number;
@@ -22,6 +50,10 @@ interface LocationMapModalProps {
   employeeName?: string;
   timestamp?: string;
   workLocation?: string;
+  /** Self-reported browser/device details captured with the punch. */
+  deviceInfo?: Partial<DeviceInfo> | null;
+  /** Public IP resolved server-side at punch time. */
+  ipAddress?: string | null;
 }
 
 export function LocationMapModal({
@@ -32,6 +64,8 @@ export function LocationMapModal({
   employeeName,
   timestamp,
   workLocation = "OFFICE",
+  deviceInfo,
+  ipAddress,
 }: LocationMapModalProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -74,7 +108,7 @@ export function LocationMapModal({
         setCurrentLocation(liveData);
         toast.success(`Device location detected! (${liveData.latitude.toFixed(4)}, ${liveData.longitude.toFixed(4)})`);
       },
-      (err) => {
+      () => {
         setLiveGpsLoading(false);
         toast.error("Unable to access device location. Please allow location permissions in browser settings.");
       },
@@ -201,7 +235,7 @@ export function LocationMapModal({
         mapInstanceRef.current = null;
       }
     };
-  }, [open, activeLocation]);
+  }, [open, activeLocation, employeeName, title, timestamp]);
 
   const googleMapsUrl = activeLocation
     ? `https://www.google.com/maps?q=${activeLocation.latitude},${activeLocation.longitude}`
@@ -344,6 +378,55 @@ export function LocationMapModal({
             </span>
             <p className="font-semibold text-foreground">{workLocation}</p>
           </div>
+        </div>
+
+        {/* Device provenance. Everything here except the IP is self-reported
+            by the browser and can be spoofed, so it is labelled as such
+            rather than presented as proof. */}
+        <div className="border-t border-border px-6 py-4">
+          <div className="mb-2 flex items-center gap-1.5">
+            <Laptop className="size-3.5 text-primary" />
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Device &amp; Network
+            </span>
+          </div>
+
+          {!deviceInfo && !ipAddress ? (
+            <p className="text-xs text-muted-foreground">
+              No device details were recorded for this punch.
+            </p>
+          ) : (
+            <>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-3">
+                <DeviceField label="Device" value={deviceInfo?.device_type} />
+                <DeviceField label="Operating system" value={deviceInfo?.os} />
+                <DeviceField label="Browser" value={deviceInfo?.browser} />
+                <DeviceField label="IP address" value={ipAddress} mono />
+                <DeviceField label="Device timezone" value={deviceInfo?.timezone} />
+                <DeviceField label="Network" value={deviceInfo?.network_type} />
+                <DeviceField label="Screen" value={deviceInfo?.screen} mono />
+                <DeviceField label="Language" value={deviceInfo?.language} />
+                <DeviceField
+                  label="Touchscreen"
+                  value={
+                    deviceInfo?.touch_capable === undefined
+                      ? undefined
+                      : deviceInfo.touch_capable
+                        ? "Yes"
+                        : "No"
+                  }
+                />
+              </dl>
+
+              <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
+                The IP is recorded by the server and cannot be set by the
+                device. Everything else is reported by the browser itself and
+                can be altered by a determined user — treat it as supporting
+                detail, not proof. A MAC address cannot be read from a browser
+                at all.
+              </p>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

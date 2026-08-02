@@ -25,8 +25,10 @@ import {
   formatDistance,
   GeolocationFailure,
   GEOLOCATION_FAILURE_MESSAGES,
+  getGeolocationPermission,
   type PreciseLocation,
 } from '@/lib/attendance/geolocation';
+import { collectDeviceInfo } from '@/lib/attendance/device-info';
 import {
   DEFAULT_ATTENDANCE_POLICY,
   parseAttendancePolicy,
@@ -143,8 +145,28 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
       let geofenceStatus: GeofenceStatus = locationRequired ? 'NOT_ENFORCED' : 'EXEMPT';
       let distanceM: number | null = null;
 
+      // Device and network context are captured for every punch, including
+      // WFH — knowing which machine clocked in is useful even when there is
+      // no location to check.
+      const deviceInfo = collectDeviceInfo();
+      const networkContext = await fetch('/api/attendance/device-context')
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
+
       if (locationRequired) {
-        setLocatingMessage('Getting a precise GPS fix…');
+        // If permission was refused earlier the browser will NOT prompt
+        // again — getCurrentPosition just fails instantly. Say so, rather
+        // than letting it look like the app ignored the click.
+        const permission = await getGeolocationPermission();
+        if (permission === 'denied') {
+          toast.error(GEOLOCATION_FAILURE_MESSAGES.permission_denied, { duration: 8000 });
+          return;
+        }
+        setLocatingMessage(
+          permission === 'prompt'
+            ? 'Allow location access when your browser asks…'
+            : 'Getting a precise GPS fix…'
+        );
         let fix: PreciseLocation;
         try {
           fix = await acquirePreciseLocation({
@@ -221,6 +243,8 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             punch_in_accuracy_m: locationData?.accuracy ?? null,
             punch_in_distance_m: distanceM,
             punch_in_geofence_status: geofenceStatus,
+            punch_in_device_json: deviceInfo,
+            punch_in_ip: networkContext?.ip ?? null,
             work_location: workLocation,
             status: workLocation === 'WFH' ? 'Remote' : 'Present'
           });
@@ -253,6 +277,8 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             punch_out_accuracy_m: locationData?.accuracy ?? null,
             punch_out_distance_m: distanceM,
             punch_out_geofence_status: geofenceStatus,
+            punch_out_device_json: deviceInfo,
+            punch_out_ip: networkContext?.ip ?? null,
             working_hours: workingHours,
             net_productive_hours: netProductive
           })

@@ -53,10 +53,31 @@ export default function AttendancePage() {
     employeeName: string;
     timestamp: string;
     workLocation: string;
+    deviceInfo: any;
+    ipAddress: string | null;
   } | null>(null);
 
-  const openMapModal = (location: any, title: string, employeeName: string, timestamp: string, workLocation: string) => {
-    setSelectedLocationMap({ location, title, employeeName, timestamp, workLocation });
+  // Takes an options object rather than positional arguments: the device
+  // and IP fields brought it to seven, at which point call sites become
+  // unreadable and easy to mis-order.
+  const openMapModal = (opts: {
+    location: any;
+    title: string;
+    employeeName: string;
+    timestamp: string;
+    workLocation: string;
+    deviceInfo?: any;
+    ipAddress?: string | null;
+  }) => {
+    setSelectedLocationMap({
+      location: opts.location,
+      title: opts.title,
+      employeeName: opts.employeeName,
+      timestamp: opts.timestamp,
+      workLocation: opts.workLocation,
+      deviceInfo: opts.deviceInfo ?? null,
+      ipAddress: opts.ipAddress ?? null,
+    });
     setMapModalOpen(true);
   };
 
@@ -397,13 +418,15 @@ export default function AttendancePage() {
                       <TableCell>
                         <button
                           type="button"
-                          onClick={() => openMapModal(
-                            r.punch_in_location || r.punch_out_location,
-                            `Attendance GPS Location (${r.work_location || 'OFFICE'})`,
-                            name,
-                            r.punch_in_time ? new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : r.attendance_date,
-                            r.work_location || 'OFFICE'
-                          )}
+                          onClick={() => openMapModal({
+                            location: r.punch_in_location || r.punch_out_location,
+                            title: `Attendance GPS Location (${r.work_location || 'OFFICE'})`,
+                            employeeName: name,
+                            timestamp: r.punch_in_time ? new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : r.attendance_date,
+                            workLocation: r.work_location || 'OFFICE',
+                            deviceInfo: r.punch_in_device_json || r.punch_out_device_json,
+                            ipAddress: r.punch_in_ip || r.punch_out_ip,
+                          })}
                           className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-foreground hover:bg-muted/80 transition-colors font-medium text-xs border border-border/60"
                           title="Click to view Leaflet Location Map"
                         >
@@ -419,13 +442,15 @@ export default function AttendancePage() {
                             <span>{new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             <button
                               type="button"
-                              onClick={() => openMapModal(
-                                r.punch_in_location,
-                                "Punch In GPS Location",
-                                name,
-                                new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                r.work_location || 'OFFICE'
-                              )}
+                              onClick={() => openMapModal({
+                                location: r.punch_in_location,
+                                title: "Punch In GPS Location",
+                                employeeName: name,
+                                timestamp: new Date(r.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                workLocation: r.work_location || 'OFFICE',
+                                deviceInfo: r.punch_in_device_json,
+                                ipAddress: r.punch_in_ip,
+                              })}
                               className="p-1 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors"
                               title="View Leaflet GPS Map"
                             >
@@ -440,13 +465,15 @@ export default function AttendancePage() {
                             <span>{new Date(r.punch_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             <button
                               type="button"
-                              onClick={() => openMapModal(
-                                r.punch_out_location,
-                                "Punch Out GPS Location",
-                                name,
-                                new Date(r.punch_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                                r.work_location || 'OFFICE'
-                              )}
+                              onClick={() => openMapModal({
+                                location: r.punch_out_location,
+                                title: "Punch Out GPS Location",
+                                employeeName: name,
+                                timestamp: new Date(r.punch_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                workLocation: r.work_location || 'OFFICE',
+                                deviceInfo: r.punch_out_device_json,
+                                ipAddress: r.punch_out_ip,
+                              })}
                               className="p-1 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors"
                               title="View Leaflet GPS Map"
                             >
@@ -567,6 +594,8 @@ export default function AttendancePage() {
         employeeName={selectedLocationMap?.employeeName}
         timestamp={selectedLocationMap?.timestamp}
         workLocation={selectedLocationMap?.workLocation}
+        deviceInfo={selectedLocationMap?.deviceInfo}
+        ipAddress={selectedLocationMap?.ipAddress}
       />
     </div>
   );
