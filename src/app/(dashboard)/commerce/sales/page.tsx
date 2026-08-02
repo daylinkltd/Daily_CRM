@@ -64,7 +64,7 @@ export default function SalesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
+          <h1 className="text-lg font-semibold text-foreground tracking-tight flex items-center gap-2.5">
             <Receipt className="h-6 w-6 text-[#00aef0]" />
             Sales Orders & Tax Invoices
           </h1>

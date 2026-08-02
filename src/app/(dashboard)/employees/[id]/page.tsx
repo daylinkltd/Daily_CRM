@@ -199,7 +199,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
+            <h1 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-3">
               {fullName}
               <StatusBadge status={employee.status || 'ACTIVE'} />
             </h1>

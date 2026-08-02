@@ -53,7 +53,7 @@ export default async function PortalPage({ params }: { params: Promise<{ token: 
       {/* Portal Content */}
       <main className="flex-1 p-6 max-w-[1400px] mx-auto w-full">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold tracking-tight mb-2">Project Overview</h2>
+          <h2 className="text-lg font-semibold tracking-tight mb-2">Project Overview</h2>
           {project.description && (
             <p className="text-muted-foreground max-w-3xl">{project.description}</p>
           )}

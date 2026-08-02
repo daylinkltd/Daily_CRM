@@ -117,7 +117,7 @@ export default function AdminLoginPage() {
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4">
               <Shield className="h-7 w-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">
+            <h1 className="text-lg font-semibold text-white tracking-tight">
               Administrative Access
             </h1>
             <p className="text-muted-foreground text-sm mt-1">

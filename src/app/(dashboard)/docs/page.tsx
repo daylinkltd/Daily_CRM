@@ -65,7 +65,7 @@ export default function DocsPage() {
   return (
     <div className="max-w-4xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">API Documentation</h1>
+        <h1 className="text-lg font-semibold text-foreground">API Documentation</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Send WhatsApp messages, manage contacts and track delivery status from
           your own systems.

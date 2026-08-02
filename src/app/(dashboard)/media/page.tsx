@@ -148,7 +148,7 @@ export default function MediaPage() {
     <div className="flex h-full flex-col p-8 bg-background">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-3">
             {currentFolder && (
               <IconAction
                 label="Back"

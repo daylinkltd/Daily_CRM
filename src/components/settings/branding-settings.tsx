@@ -428,7 +428,7 @@ export function BrandingSettings() {
                 className="h-20 sm:h-28 max-w-[280px] object-contain mb-2"
               />
             ) : (
-                <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground uppercase tracking-wide mb-1">
+                <h1 className="text-xl sm:text-lg font-serif font-semibold text-foreground uppercase tracking-wide mb-1">
                   {data.company_name?.toUpperCase() || "YOUR COMPANY"}
                 </h1>
             )}

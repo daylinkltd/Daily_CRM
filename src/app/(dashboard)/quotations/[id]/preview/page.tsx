@@ -520,7 +520,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
               className="h-24 sm:h-32 max-w-[400px] object-contain mb-2"
             />
           ) : (
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground uppercase tracking-wide mb-1">
+              <h1 className="text-lg sm:text-lg font-serif font-semibold text-foreground uppercase tracking-wide mb-1">
                 {workspace?.company_name || "DAYLINK TECH LABS PRIVATE LIMITED"}
               </h1>
           )}
@@ -544,7 +544,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
         {/* Proposal Title & Details */}
         <div className="flex flex-col sm:flex-row justify-between gap-6 pt-4">
           <div className="sm:text-left space-y-1">
-            <h2 className="text-2xl font-extrabold text-foreground tracking-tight uppercase">
+            <h2 className="text-lg font-semibold text-foreground tracking-tight uppercase">
               {quote.document_title}
             </h2>
             {quote.document_subtitle && (

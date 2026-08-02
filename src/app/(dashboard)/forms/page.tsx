@@ -192,7 +192,7 @@ export default function FormsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Custom Forms</h1>
+          <h1 className="text-lg font-semibold text-foreground">Custom Forms</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Build forms to capture and ingest leads directly into your contacts and pipelines.
           </p>

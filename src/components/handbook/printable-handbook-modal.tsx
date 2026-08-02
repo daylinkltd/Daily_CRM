@@ -169,7 +169,7 @@ export function PrintableHandbookModal({
               {/* ── 1. OFFICIAL COMPANY LETTERHEAD HEADER ── */}
               <div className="border-b-2 border-slate-900 pb-4 flex items-start justify-between">
                 <div>
-                  <h1 className="text-2xl font-extrabold uppercase tracking-tight text-slate-900">
+                  <h1 className="text-lg font-semibold uppercase tracking-tight text-slate-900">
                     {company?.legal_name}
                   </h1>
                   <p className="text-xs text-slate-600 font-medium mt-0.5">{company?.brand_name} Corporate Group</p>
@@ -192,7 +192,7 @@ export function PrintableHandbookModal({
 
               {/* ── 2. HANDBOOK TITLE & SUBTITLE ── */}
               <div className="text-center py-6 border-b border-slate-200 space-y-2">
-                <h2 className="text-2xl font-black text-slate-900 tracking-wide uppercase">
+                <h2 className="text-lg font-black text-slate-900 tracking-wide uppercase">
                   EMPLOYEE HANDBOOK & COMPLIANCE MANUAL
                 </h2>
                 <p className="text-xs text-slate-600 font-medium italic">

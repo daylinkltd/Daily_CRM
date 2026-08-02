@@ -182,7 +182,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 mb-2">
               <AlertTriangle className="h-6 w-6" />
             </div>
-            <h1 className="text-2xl font-black text-foreground tracking-tight">Free Trial Expired</h1>
+            <h1 className="text-lg font-black text-foreground tracking-tight">Free Trial Expired</h1>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
               Your 14-day free trial has expired. Upgrade your workspace plan to unlock the dashboard and resume customer engagement.
             </p>

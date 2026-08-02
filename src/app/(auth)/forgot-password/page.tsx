@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/15 border border-emerald-500/40 mb-5">
                 <CheckCircle className="h-8 w-8 text-emerald-400" />
               </div>
-              <h1 className="text-2xl font-extrabold text-[var(--mkt-fg)] mb-2">Check your inbox</h1>
+              <h1 className="text-lg font-semibold text-[var(--mkt-fg)] mb-2">Check your inbox</h1>
               <p className="text-[var(--mkt-fg-muted)] text-sm mb-6">
                 We&apos;ve sent a password reset link to{" "}
                 <span className="text-[var(--mkt-fg)] font-medium">{email}</span>.
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--mkt-accent-soft)] border border-[var(--mkt-accent-line)] mb-4">
                   <Mail className="h-6 w-6 text-[var(--mkt-accent-text)]" />
                 </div>
-                <h1 className="text-2xl font-extrabold text-[var(--mkt-fg)] tracking-tight">
+                <h1 className="text-lg font-semibold text-[var(--mkt-fg)] tracking-tight">
                   Reset your password
                 </h1>
                 <p className="text-[var(--mkt-fg-muted)] text-sm mt-1">

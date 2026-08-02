@@ -132,7 +132,7 @@ export function ProductDetailsModal({
               </span>
             </div>
 
-            <h2 className="text-2xl font-extrabold text-foreground tracking-tight mt-1">
+            <h2 className="text-lg font-semibold text-foreground tracking-tight mt-1">
               {product.name}
             </h2>
 

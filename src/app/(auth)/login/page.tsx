@@ -84,7 +84,7 @@ function LoginPageInner() {
         {/* Card */}
         <div className="rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[var(--mkt-shadow)] p-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-extrabold tracking-tight text-[var(--mkt-fg)]">
+            <h1 className="text-lg font-semibold tracking-tight text-[var(--mkt-fg)]">
               Welcome back
             </h1>
             <p className="text-sm mt-1 text-[var(--mkt-fg-muted)]">

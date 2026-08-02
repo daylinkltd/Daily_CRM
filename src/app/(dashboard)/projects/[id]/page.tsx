@@ -132,7 +132,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
             <Briefcase className="size-6" />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
+            <h1 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-3">
               {project.name}
               <Badge variant="outline" className={getStatusColor(project.status)}>
                 {project.status.replace('_', ' ').toUpperCase()}

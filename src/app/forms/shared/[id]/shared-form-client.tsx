@@ -155,7 +155,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white tracking-tight">Response Submitted</h2>
+            <h2 className="text-lg font-semibold text-white tracking-tight">Response Submitted</h2>
             <p className="text-sm text-muted-foreground">
               Thank you! Your information has been received and logged in our CRM. A representative will contact you shortly.
             </p>
@@ -190,7 +190,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
       <div className="relative max-w-xl w-full rounded-2xl border border-border/80 bg-muted/50 backdrop-blur-md p-7 sm:p-10 shadow-2xl space-y-6">
         {/* Form Title & description */}
         <div className="border-b border-border/80 pb-5 space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-lg sm:text-lg font-semibold text-white tracking-tight">
             {form.title}
           </h1>
           {form.description && (

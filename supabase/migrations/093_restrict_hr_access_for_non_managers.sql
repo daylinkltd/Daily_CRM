@@ -1,5 +1,3 @@
--- ==================== BEGIN 093_restrict_hr_access_for_non_managers ====================
-
 -- ============================================================
 -- 093 — Take payroll and employee-record write access away from the
 --       ordinary member and viewer roles.
@@ -90,5 +88,3 @@ WHERE wm.role_id IS NULL
         WHEN 'viewer' THEN 'viewer'
         ELSE 'agent'
       END;
-
--- ==================== END 093_restrict_hr_access_for_non_managers ====================

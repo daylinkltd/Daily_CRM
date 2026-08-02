@@ -389,7 +389,7 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-widest mb-1.5">
             <Shield className="h-4 w-4 animate-pulse" /> Global Platform Admin Control
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">SaaS System Administrator</h1>
+          <h1 className="text-lg font-semibold text-white tracking-tight">SaaS System Administrator</h1>
           <p className="text-sm text-muted-foreground mt-1">Monitor tenants, manage owners, and review prospects.</p>
         </div>
         <div className="flex items-center gap-3">

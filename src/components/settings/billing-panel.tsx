@@ -193,7 +193,7 @@ export function BillingPanel() {
                 </span>
               )}
             </div>
-            <h2 className="mt-2 text-2xl font-black text-foreground">{currentPlan.name} Tier</h2>
+            <h2 className="mt-2 text-lg font-black text-foreground">{currentPlan.name} Tier</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               Workspace subscription handles routing and resource quotas for your team.
             </p>
