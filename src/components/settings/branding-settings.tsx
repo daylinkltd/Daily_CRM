@@ -137,27 +137,38 @@ export function BrandingSettings() {
 
     try {
       let nextLogoUrl: string | null = data.logo_url;
+      let logoError: string | null = null;
 
-      // Upload logo if new file staged
       if (pendingLogo) {
         setUploadingLogo(true);
         const ext = pendingLogo.name.split(".").pop()?.toLowerCase() || "png";
-        const path = `${workspaceId}/company-logo-${Date.now()}.${ext}`;
+        // Must live under `workspace-logos/{workspace_id}/`: migration 095
+        // scopes the storage policy to that prefix. The old path was
+        // `{workspace_id}/...`, which the avatars policy from 008 rejected
+        // because it requires the FIRST folder to be the uploader's user id
+        // — so every logo upload failed with an RLS violation.
+        const path = `workspace-logos/${workspaceId}/logo-${Date.now()}.${ext}`;
 
         const { error: uploadErr } = await supabase.storage
-          .from("avatars") // reuse avatars bucket — it's already public
+          .from("avatars") // public bucket, shared with avatars
           .upload(path, pendingLogo, {
             cacheControl: "86400",
             upsert: true,
             contentType: pendingLogo.type,
           });
 
-        if (uploadErr) throw new Error(`Logo upload failed: ${uploadErr.message}`);
-
-        const { data: { publicUrl } } = supabase.storage
-          .from("avatars")
-          .getPublicUrl(path);
-        nextLogoUrl = publicUrl;
+        if (uploadErr) {
+          // Recorded, NOT thrown. Throwing here skipped the workspaces
+          // update entirely, so a storage problem silently discarded the
+          // company name, address, phone and website too — which is why the
+          // whole panel appeared not to save.
+          logoError = uploadErr.message;
+        } else {
+          const { data: { publicUrl } } = supabase.storage
+            .from("avatars")
+            .getPublicUrl(path);
+          nextLogoUrl = publicUrl;
+        }
         setUploadingLogo(false);
       } else if (removeLogo) {
         nextLogoUrl = null;
@@ -185,10 +196,19 @@ export function BrandingSettings() {
       assertAffected(result, "your company branding", "save");
 
       setData((prev) => ({ ...prev, logo_url: nextLogoUrl }));
-      setPendingLogo(null);
-      setPreviewUrl(null);
-      setRemoveLogo(false);
-      toast.success("Company branding saved.");
+      if (!logoError) {
+        setPendingLogo(null);
+        setPreviewUrl(null);
+        setRemoveLogo(false);
+      }
+      if (logoError) {
+        // The details did save; only the image did not. Say exactly that.
+        toast.warning(
+          `Company details saved, but the logo could not be uploaded: ${logoError}`
+        );
+      } else {
+        toast.success("Company branding saved.");
+      }
       // The sidebar logo and the letterhead both read the workspace from
       // context, which is cached — without this the save appears to have
       // done nothing until a manual reload.
