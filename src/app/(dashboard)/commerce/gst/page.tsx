@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function GstReportsPage() {
   const { activeWorkspace } = useWorkspace();
@@ -115,17 +116,9 @@ export default function GstReportsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchGstData} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          <Button
-            onClick={handleExportCsv}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
-          >
-            <Download className="h-4 w-4" />
-            Export GSTR CSV
-          </Button>
+          <IconAction label="Refresh" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchGstData} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11" />
+          <IconAction label="Export GSTR CSV" icon={<Download className="h-4 w-4" />} onClick={handleExportCsv}
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11" />
         </div>
       </div>
 

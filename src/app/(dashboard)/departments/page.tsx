@@ -41,6 +41,7 @@ import {
   SelectRowCheckbox,
 } from '@/components/ui/bulk-action-bar';
 import { DepartmentForm } from '@/components/departments/department-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function DepartmentsPage() {
   const supabase = createClient();
@@ -242,15 +243,9 @@ export default function DepartmentsPage() {
                       {search ? 'No departments match your search.' : 'No departments yet.'}
                     </p>
                     {!search && canManagePeople && (
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      <IconAction label="Add your first department" icon={<Plus className="size-3.5 " />} variant="outline"
                         onClick={openAddForm}
-                        className="mt-2 border-border text-muted-foreground hover:bg-muted"
-                      >
-                        <Plus className="size-3.5 mr-2" />
-                        Add your first department
-                      </Button>
+                        className="mt-2 border-border text-muted-foreground hover:bg-muted" />
                     )}
                   </div>
                 </TableCell>
@@ -344,15 +339,10 @@ export default function DepartmentsPage() {
         busy={bulkBusy}
         noun="department"
       >
-        <Button
-          size="sm"
-          variant="outline"
+        <IconAction label="Delete" icon={<Trash2 className="size-3.5" />} variant="outline"
           onClick={bulkDelete}
           disabled={bulkBusy}
-          className="h-7 gap-1.5 text-xs text-destructive"
-        >
-          <Trash2 className="size-3.5" /> Delete
-        </Button>
+          className="h-7 gap-1.5 text-xs text-destructive" />
       </BulkActionBar>
 
       <DepartmentForm

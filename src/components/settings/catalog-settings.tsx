@@ -262,9 +262,7 @@ export function CatalogSettings() {
               </CardDescription>
             </div>
             {canEditSettings && (
-              <Button onClick={handleOpenAdd} size="sm" className="bg-primary text-primary-foreground">
-                <Plus className="mr-1 size-4" /> Add Item
-              </Button>
+              <IconAction label="Add Item" icon={<Plus className="size-4" />} onClick={handleOpenAdd} className="bg-primary text-primary-foreground" />
             )}
           </CardHeader>
           <CardContent className="pt-4 space-y-4">

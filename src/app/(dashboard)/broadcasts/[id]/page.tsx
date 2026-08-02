@@ -329,9 +329,7 @@ export default function BroadcastDetailPage() {
             </Button>
           </div>
         ) : (
-          <Button
-            variant="outline"
-            size="sm"
+          <IconAction label="Delete" icon={<Trash2 className="h-3.5 w-3.5" />} variant="outline"
             disabled={broadcast.status === 'sending'}
             onClick={() => setConfirmDelete(true)}
             title={
@@ -339,11 +337,7 @@ export default function BroadcastDetailPage() {
                 ? 'Cannot delete while a broadcast is actively sending'
                 : 'Delete this broadcast'
             }
-            className="border-red-500/30 bg-transparent text-red-400 hover:bg-red-500/10 disabled:opacity-40"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </Button>
+            className="border-red-500/30 bg-transparent text-red-400 hover:bg-red-500/10 disabled:opacity-40" />
         )}
       </div>
 
@@ -444,16 +438,10 @@ export default function BroadcastDetailPage() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button
-              variant="outline"
-              size="sm"
+            <IconAction label="Export CSV" icon={<Download className="h-3.5 w-3.5" />} variant="outline"
               onClick={handleExport}
               disabled={recipients.length === 0}
-              className="border-border text-foreground hover:bg-muted"
-            >
-              <Download className="h-3.5 w-3.5" />
-              Export CSV
-            </Button>
+              className="border-border text-foreground hover:bg-muted" />
           </div>
         </div>
 

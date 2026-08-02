@@ -58,6 +58,7 @@ import {
   useFlowEditor,
   type BuilderState,
 } from "./flow-editor-state";
+import { IconAction } from "@/components/ui/icon-action";
 
 // ============================================================
 // Local state shape — mirrors the DB but the configs are typed
@@ -460,15 +461,9 @@ function NodeCard({
                 </Button>
               )}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
+            <IconAction label="Remove node" icon={<Trash2 className="h-3.5 w-3.5" />} variant="ghost"
               onClick={onRemove}
-              className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Remove node
-            </Button>
+              className="text-red-400 hover:bg-red-500/10 hover:text-red-300" />
           </div>
           {issues.length > 0 && (
             <div className="mt-3 flex flex-col gap-1 rounded-md bg-red-500/5 p-2">

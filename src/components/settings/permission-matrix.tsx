@@ -72,6 +72,7 @@ import {
   type PermissionMap,
   type TriState,
 } from "@/lib/auth/permission-matrix";
+import { IconAction } from "@/components/ui/icon-action";
 
 /** Column template shared by the header row and every resource row. */
 const GRID_COLS =
@@ -359,10 +360,7 @@ export function PermissionMatrix({
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button variant="outline" size="sm">
-                    <Sparkles className="size-4" />
-                    Preset
-                  </Button>
+                  <IconAction label="Preset" icon={<Sparkles className="size-4" />} variant="outline" />
                 }
               />
               <DropdownMenuContent align="end" className="w-56">

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles, Check, Landmark, Plus, Trash2, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { SettingsPanelHead } from "@/components/settings/settings-panel-head";
+import { IconAction } from "@/components/ui/icon-action";
 
 export const INDUSTRY_TEMPLATES = [
   { id: "GENERAL_RETAIL", label: "General Retail Store", icon: "", desc: "Standard retail catalog, POS billing, and GST tax management." },
@@ -182,13 +183,8 @@ export default function RetailSettingsPage() {
             />
           </div>
           <div className="flex items-end">
-            <Button
-              onClick={handleAddAccount}
-              className="w-full h-9 rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5"
-            >
-              <Plus className="size-3.5" />
-              Add UPI Handle
-            </Button>
+            <IconAction label="Add UPI Handle" icon={<Plus className="size-3.5" />} onClick={handleAddAccount}
+              className="w-full h-9 rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5" />
           </div>
         </div>
       </div>

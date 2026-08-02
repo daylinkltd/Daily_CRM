@@ -267,12 +267,8 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
         </div>
         {canEdit && (
           <div className="flex shrink-0 items-center gap-2">
-            <Button variant="outline" onClick={() => setBulkAddOpen(true)} className="gap-1.5">
-              <Layers className="size-4" /> Bulk add
-            </Button>
-            <Button onClick={openNew} className="gap-1.5">
-              <Plus className="size-4" /> Add location
-            </Button>
+            <IconAction label="Bulk add" icon={<Layers className="size-4" />} variant="outline" onClick={() => setBulkAddOpen(true)} className="gap-1.5" />
+            <IconAction label="Add location" icon={<Plus className="size-4" />} onClick={openNew} className="gap-1.5" />
           </div>
         )}
       </CardHeader>
@@ -354,15 +350,10 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
           busy={bulkBusy}
           noun="location"
         >
-          <Button
-            size="sm"
-            variant="outline"
+          <IconAction label="Remove" icon={<Trash2 className="size-3.5" />} variant="outline"
             onClick={handleBulkDelete}
             disabled={bulkBusy}
-            className="h-7 gap-1.5 text-xs text-destructive"
-          >
-            <Trash2 className="size-3.5" /> Remove
-          </Button>
+            className="h-7 gap-1.5 text-xs text-destructive" />
         </BulkActionBar>
       </CardContent>
 

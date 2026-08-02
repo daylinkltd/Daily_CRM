@@ -172,14 +172,8 @@ export default function BrandsPage() {
         description="Manage product manufacturers, suppliers, and brand catalogs."
         action={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setBulkAddOpen(true)}>
-              <Layers className="size-4 mr-2" />
-              Bulk add
-            </Button>
-            <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground">
-              <Plus className="size-4 mr-2" />
-              Add Brand
-            </Button>
+            <IconAction label="Bulk add" icon={<Layers className="size-4 " />} variant="outline" onClick={() => setBulkAddOpen(true)} />
+            <IconAction label="Add Brand" icon={<Plus className="size-4 " />} onClick={handleOpenAdd} className="bg-primary text-primary-foreground" />
           </div>
         }
       />

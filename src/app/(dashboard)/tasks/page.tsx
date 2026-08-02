@@ -521,10 +521,7 @@ export default function GlobalTasksPage() {
         title="My Tasks"
         description="Manage your assigned deliverables across Projects, Epics, Tasks, and Subtasks."
         action={
-          <Button onClick={() => { setEditTask(null); setFormOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-            <Plus className="size-4 mr-2" />
-            New Task
-          </Button>
+          <IconAction label="New Task" icon={<Plus className="size-4 " />} onClick={() => { setEditTask(null); setFormOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
         }
       />
 
@@ -574,16 +571,10 @@ export default function GlobalTasksPage() {
         {/* View Switcher Controls */}
         <div className="flex items-center gap-2 self-end sm:self-auto">
           {viewMode === 'hierarchy' && (
-            <Button
-              variant="outline"
-              size="sm"
+            <IconAction label="Toggle All" icon={<ChevronsUpDown className="size-3.5 " />} variant="outline"
               onClick={toggleExpandAll}
               className="h-9 px-2.5 text-xs border-border"
-              title="Expand or collapse all groups"
-            >
-              <ChevronsUpDown className="size-3.5 mr-1.5" />
-              Toggle All
-            </Button>
+              title="Expand or collapse all groups" />
           )}
 
           <div className="flex items-center rounded-lg border border-border bg-card p-1 gap-1">

@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface ProjectTimelineProps {
   projectId: string;
@@ -220,9 +221,7 @@ export function ProjectTimeline({ projectId }: ProjectTimelineProps) {
           <h3 className="font-semibold">Project Roadmap</h3>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => setEpicModalOpen(true)}>
-            <Plus className="size-4 mr-2" /> Epic
-          </Button>
+          <IconAction label="Epic" icon={<Plus className="size-4 " />} variant="outline" onClick={() => setEpicModalOpen(true)} />
           <Select value={scale} onValueChange={(val) => val && setScale(val as Scale)}>
             <SelectTrigger className="w-[120px] bg-card"><SelectValue /></SelectTrigger>
             <SelectContent>

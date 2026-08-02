@@ -35,6 +35,7 @@ import {
   useFlowEditor,
   type BuilderState,
 } from "./flow-editor-state";
+import { IconAction } from "@/components/ui/icon-action";
 
 export function EditorHeader() {
   const router = useRouter();
@@ -87,23 +88,11 @@ export function EditorHeader() {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`/flows/${flow.id}/runs`)}
-          >
-            <History className="h-3.5 w-3.5" />
-            Runs
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+          <IconAction label="Runs" icon={<History className="h-3.5 w-3.5" />} variant="ghost"
+            onClick={() => router.push(`/flows/${flow.id}/runs`)} />
+          <IconAction label="Delete" icon={<Trash2 className="h-3.5 w-3.5" />} variant="ghost"
             onClick={() => void deleteFlow()}
-            className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </Button>
+            className="text-red-400 hover:bg-red-500/10 hover:text-red-300" />
           {state.status === "active" ? (
             <Button
               variant="outline"

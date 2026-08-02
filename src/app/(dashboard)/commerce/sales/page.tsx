@@ -22,6 +22,7 @@ import {
   FileText,
 } from "lucide-react";
 import { toast } from "sonner";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function SalesPage() {
   const { activeWorkspace } = useWorkspace();
@@ -80,14 +81,9 @@ export default function SalesPage() {
               ₹{totalRevenue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
             </span>
           </div>
-          <Button
-            onClick={fetchOrders}
+          <IconAction label="Refresh Orders" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchOrders}
             variant="outline"
-            className="border-border text-foreground gap-1.5 rounded-xl h-11"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh Orders
-          </Button>
+            className="border-border text-foreground gap-1.5 rounded-xl h-11" />
         </div>
       </div>
 
@@ -198,18 +194,12 @@ export default function SalesPage() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <Button
-                          size="sm"
-                          variant="outline"
+                        <IconAction label="View Invoice" icon={<Eye className="h-3.5 w-3.5 text-[#00aef0]" />} variant="outline"
                           onClick={() => {
                             setSelectedOrder(order);
                             setShowInvoiceModal(true);
                           }}
-                          className="border-border hover:border-[#00aef0] bg-card hover:bg-muted text-foreground hover:text-[#00aef0] text-xs rounded-xl gap-1.5 h-8"
-                        >
-                          <Eye className="h-3.5 w-3.5 text-[#00aef0]" />
-                          View Invoice
-                        </Button>
+                          className="border-border hover:border-[#00aef0] bg-card hover:bg-muted text-foreground hover:text-[#00aef0] text-xs rounded-xl gap-1.5 h-8" />
                       </td>
                     </tr>
                   );
@@ -351,17 +341,12 @@ export default function SalesPage() {
                 Daily CRM Enterprise POS Billing System
               </span>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
+                <IconAction label="Print Receipt" icon={<Printer className="h-4 w-4" />} variant="outline"
                   onClick={() => {
                     window.print();
                     toast.success("Printing invoice receipt...");
                   }}
-                  className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] gap-1.5 rounded-xl text-xs h-10"
-                >
-                  <Printer className="h-4 w-4" />
-                  Print Receipt
-                </Button>
+                  className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] gap-1.5 rounded-xl text-xs h-10" />
                 <Button
                   onClick={() => setShowInvoiceModal(false)}
                   className="bg-muted hover:bg-muted text-foreground font-bold rounded-xl text-xs h-10 px-5"

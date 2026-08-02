@@ -88,6 +88,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useFlowEditor } from "./flow-editor-state";
 import { NodeConfigForm } from "./forms/node-config-form";
+import { IconAction } from "@/components/ui/icon-action";
 
 // React-Flow node `data` payload — the bits our custom renderer needs.
 interface NodeData extends Record<string, unknown> {
@@ -596,15 +597,9 @@ function NodeEditSheet({
           ) : (
             <span />
           )}
-          <Button
-            variant="ghost"
-            size="sm"
+          <IconAction label="Delete node" icon={<Trash2 className="h-3.5 w-3.5" />} variant="ghost"
             onClick={onDelete}
-            className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete node
-          </Button>
+            className="text-red-400 hover:bg-red-500/10 hover:text-red-300" />
         </SheetFooter>
       </SheetContent>
     </Sheet>

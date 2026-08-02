@@ -17,6 +17,7 @@ import {
   Clock,
   Sparkles
 } from "lucide-react";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function DocumentsVaultPage() {
   const supabase = createClient();
@@ -71,9 +72,7 @@ export default function DocumentsVaultPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <Link href="/documents/branding">
-            <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5 border-border">
-              <Palette className="size-3.5 text-emerald-500" /> Letterhead Branding
-            </Button>
+            <IconAction label="Letterhead Branding" icon={<Palette className="size-3.5 text-emerald-500" />} variant="outline" className="text-xs h-9 gap-1.5 border-border" />
           </Link>
           <Link href="/documents/signatories">
             <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5 border-border">
@@ -81,9 +80,7 @@ export default function DocumentsVaultPage() {
             </Button>
           </Link>
           <Link href="/settings?tab=templates">
-            <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5 border-border">
-              <LayoutGrid className="size-3.5 text-primary" /> Templates
-            </Button>
+            <IconAction label="Templates" icon={<LayoutGrid className="size-3.5 text-primary" />} variant="outline" className="text-xs h-9 gap-1.5 border-border" />
           </Link>
           <Link href="/documents/new">
             <Button size="sm" className="bg-primary text-primary-foreground text-xs h-9 font-semibold gap-1.5 shadow-xs">

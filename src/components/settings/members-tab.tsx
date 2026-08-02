@@ -339,10 +339,7 @@ export function MembersTab() {
         description="People with access to this account. Roles control what each teammate can do."
         action={
           <RequireRole min="admin">
-            <Button onClick={() => setInviteOpen(true)}>
-              <Plus className="size-4" />
-              Invite member
-            </Button>
+            <IconAction label="Invite member" icon={<Plus className="size-4" />} onClick={() => setInviteOpen(true)} />
           </RequireRole>
         }
       />
@@ -612,15 +609,9 @@ export function MembersTab() {
                           members-tab Remove button. Pre-polish version
                           read as a neutral secondary button until
                           hover. */}
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      <IconAction label="Revoke" icon={<MailX className="size-4" />} variant="outline"
                         onClick={() => handleRevoke(inv)}
-                        className="border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20 hover:border-red-500/60 hover:text-red-200"
-                      >
-                        <MailX className="size-4" />
-                        Revoke
-                      </Button>
+                        className="border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20 hover:border-red-500/60 hover:text-red-200" />
                     </li>
                     );
                   })}

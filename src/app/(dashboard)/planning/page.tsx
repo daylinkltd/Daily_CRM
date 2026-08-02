@@ -12,6 +12,7 @@ import { PlanningView } from '@/components/projects/planning-view';
 import { SprintBurndown } from '@/components/projects/sprint-burndown';
 import { ProjectVelocity } from '@/components/projects/project-velocity';
 import { ProjectForm } from '@/components/projects/project-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function PlanningPage() {
   const supabase = createClient();
@@ -89,9 +90,7 @@ export default function PlanningPage() {
               </Select>
             )}
             {canManage && (
-              <Button onClick={() => setProjectFormOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-                <Plus className="size-4 mr-2" /> New Project
-              </Button>
+              <IconAction label="New Project" icon={<Plus className="size-4 " />} onClick={() => setProjectFormOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
             )}
           </div>
         }

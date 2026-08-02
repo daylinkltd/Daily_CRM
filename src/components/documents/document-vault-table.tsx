@@ -218,9 +218,7 @@ export function DocumentVaultTable({ documents, loading }: DocumentVaultTablePro
         onClear={selection.clear}
         noun="document"
       >
-        <Button size="sm" variant="outline" onClick={exportSelected} className="h-7 gap-1.5 text-xs">
-          <Download className="size-3.5" /> Export CSV
-        </Button>
+        <IconAction label="Export CSV" icon={<Download className="size-3.5" />} variant="outline" onClick={exportSelected} className="h-7 gap-1.5 text-xs" />
       </BulkActionBar>
     </div>
   );

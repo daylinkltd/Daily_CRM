@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import type { Tag } from '@/types';
+import { IconAction } from "@/components/ui/icon-action";
 
 const PRESET_COLORS = [
   { name: 'Red', value: '#ef4444' },
@@ -161,17 +162,12 @@ export function TagManager() {
           <h2 className="text-lg font-semibold text-foreground">Tags</h2>
           <p className="text-sm text-muted-foreground">Organize your contacts with color-coded tags.</p>
         </div>
-        <Button
-          onClick={() => {
+        <IconAction label="New Tag" icon={<Plus className="size-4" />} onClick={() => {
             setNewTagName('');
             setSelectedColor(PRESET_COLORS[3].value);
             setDialogOpen(true);
           }}
-          className="bg-primary hover:bg-primary text-primary-foreground"
-        >
-          <Plus className="size-4" />
-          New Tag
-        </Button>
+          className="bg-primary hover:bg-primary text-primary-foreground" />
       </div>
 
       {tags.length === 0 ? (

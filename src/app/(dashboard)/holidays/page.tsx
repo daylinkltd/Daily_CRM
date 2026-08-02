@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Calendar, Plus, Layers, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function HolidaysPage() {
   const { activeWorkspace, can } = useWorkspace();
@@ -131,12 +132,8 @@ export default function HolidaysPage() {
         action={
           canManage && (
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setBulkAddOpen(true)}>
-                <Layers className="size-4 mr-2" /> Bulk add
-              </Button>
-              <Button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground">
-                <Plus className="size-4 mr-2" /> Add Holiday
-              </Button>
+              <IconAction label="Bulk add" icon={<Layers className="size-4 " />} variant="outline" onClick={() => setBulkAddOpen(true)} />
+              <IconAction label="Add Holiday" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground" />
             </div>
           )
         }
@@ -155,9 +152,7 @@ export default function HolidaysPage() {
               Add company holidays and national days to automatically exclude them from attendance & leave calculations.
             </p>
             {canManage && (
-              <Button onClick={() => setModalOpen(true)}>
-                <Plus className="size-4 mr-2" /> Add First Holiday
-              </Button>
+              <IconAction label="Add First Holiday" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} />
             )}
           </CardContent>
         </Card>

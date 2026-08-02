@@ -44,6 +44,7 @@ import {
   type PunchLocation,
   type WorkLocation,
 } from '@/lib/attendance/policy';
+import { IconAction } from "@/components/ui/icon-action";
 
 const WORK_LOCATION_ICONS: Record<WorkLocation, typeof Building2> = {
   OFFICE: Building2,
@@ -477,15 +478,11 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             <Button variant="outline" onClick={() => setShowLocationHelp(false)}>
               Close
             </Button>
-            <Button
-              onClick={() => {
+            <IconAction label="Try again" icon={<Fingerprint className="size-4" />} onClick={() => {
                 setShowLocationHelp(false);
                 handlePunch(todayRecord?.punch_in_time && !todayRecord?.punch_out_time ? 'out' : 'in');
               }}
-              className="gap-1.5"
-            >
-              <Fingerprint className="size-4" /> Try again
-            </Button>
+              className="gap-1.5" />
           </div>
         </DialogContent>
       </Dialog>
@@ -587,15 +584,10 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
                   <option value="PERSONAL">Personal</option>
                   <option value="MEETING">Client Meeting</option>
                 </select>
-                <Button
-                  onClick={() => handleBreak('start')}
+                <IconAction label="Start Break" icon={<Coffee className="h-3.5 w-3.5" />} onClick={() => handleBreak('start')}
                   disabled={loading}
                   variant="outline"
-                  className="h-7 border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-xs font-medium gap-1 rounded-md px-2"
-                >
-                  <Coffee className="h-3.5 w-3.5" />
-                  Start Break
-                </Button>
+                  className="h-7 border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-xs font-medium gap-1 rounded-md px-2" />
               </div>
             )}
 

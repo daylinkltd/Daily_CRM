@@ -79,16 +79,11 @@ export default function SignatoriesPage() {
           </p>
         </div>
 
-        <Button
-          onClick={() => {
+        <IconAction label="Add New Signatory" icon={<Plus className="size-3.5" />} onClick={() => {
             setSelectedSignatory(null);
             setModalOpen(true);
           }}
-          size="sm"
-          className="bg-primary text-primary-foreground text-xs h-9 font-semibold gap-1.5 shadow-xs"
-        >
-          <Plus className="size-3.5" /> Add New Signatory
-        </Button>
+          className="bg-primary text-primary-foreground text-xs h-9 font-semibold gap-1.5 shadow-xs" />
       </div>
 
       {/* Grid */}
@@ -104,13 +99,8 @@ export default function SignatoriesPage() {
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
             Add company signatories (e.g. HR Manager, CEO) to attach digital signatures and stamps to generated letters.
           </p>
-          <Button
-            onClick={() => setModalOpen(true)}
-            size="sm"
-            className="bg-primary text-primary-foreground text-xs h-8"
-          >
-            <Plus className="size-3.5 mr-1" /> Add Signatory
-          </Button>
+          <IconAction label="Add Signatory" icon={<Plus className="size-3.5 " />} onClick={() => setModalOpen(true)}
+            className="bg-primary text-primary-foreground text-xs h-8" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -154,17 +144,12 @@ export default function SignatoriesPage() {
               </div>
 
               <div className="flex justify-end gap-1 pt-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <IconAction label="Edit" icon={<Edit3 className="size-3.5 " />} variant="ghost"
                   onClick={() => {
                     setSelectedSignatory(sig);
                     setModalOpen(true);
                   }}
-                  className="h-7 px-2 text-xs"
-                >
-                  <Edit3 className="size-3.5 mr-1" /> Edit
-                </Button>
+                  className="h-7 px-2 text-xs" />
                 <IconAction
                   label="Delete"
                   icon={<Trash2 className="size-3.5" />}

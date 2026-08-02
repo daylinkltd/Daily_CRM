@@ -188,9 +188,7 @@ export default function NewEntryPage() {
                 />
               </div>
             ))}
-            <Button size="sm" variant="outline" onClick={() => setLines((prev) => [...prev, { ...BLANK_LINE }])}>
-              <Plus /> Add line
-            </Button>
+            <IconAction label="Add line" icon={<Plus />} variant="outline" onClick={() => setLines((prev) => [...prev, { ...BLANK_LINE }])} />
           </div>
 
           <div className="flex items-center justify-between border-t border-border pt-4">

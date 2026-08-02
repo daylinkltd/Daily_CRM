@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Layers, Plus, ArrowUpRight, RefreshCw, Search, AlertTriangle, Barcode, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function InventoryPage() {
   const { activeWorkspace } = useWorkspace();
@@ -206,10 +207,7 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchInventory} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+          <IconAction label="Refresh" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchInventory} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11" />
           <Button
             onClick={() => {
               setBarcodeSearch("");

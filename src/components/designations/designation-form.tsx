@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { assertAffected } from '@/lib/supabase/affected-rows';
 import {
   Dialog,
   DialogContent,
@@ -48,12 +49,15 @@ export function DesignationForm({ open, onOpenChange, designation, onSaved }: De
     try {
       if (designation?.id) {
         // Update
-        const { error } = await supabase
+        // .select() so an update that RLS filtered to zero rows is caught
+        // rather than reported as a successful save.
+        const result = await supabase
           .from('designations')
           .update({ title: name.trim(), description: description.trim() })
-          .eq('id', designation.id);
-          
-        if (error) throw error;
+          .eq('id', designation.id)
+          .select('id');
+
+        assertAffected(result, 'the designation', 'save');
         toast.success('Designation updated successfully');
       } else {
         // Create

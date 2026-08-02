@@ -22,6 +22,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { IconAction } from "@/components/ui/icon-action";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ALLOWED_MIME = new Set([
@@ -287,16 +288,11 @@ export function ProfileForm() {
                 {currentAvatar ? 'Change photo' : 'Upload photo'}
               </Button>
               {currentAvatar && (
-                <Button
-                  type="button"
+                <IconAction label="Remove" icon={<Trash2 className="size-4" />} type="button"
                   variant="ghost"
                   onClick={onRemoveAvatar}
                   disabled={saving}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <Trash2 className="size-4" />
-                  Remove
-                </Button>
+                  className="text-muted-foreground hover:text-foreground" />
               )}
               <p className="w-full text-xs text-muted-foreground">
                 PNG, JPG, WebP, or GIF. Up to 2 MB.

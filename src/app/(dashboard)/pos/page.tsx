@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { extractCleanSku } from "@/lib/commerce/barcode-utils";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface CartItem {
   product_id: string;
@@ -643,9 +644,7 @@ function POSTerminalPageContent() {
                       <div className="font-bold text-foreground text-xs">{held.hold_number}</div>
                       <div className="text-[11px] text-muted-foreground">{held.items.length} item(s) • Held at {held.created_at}</div>
                     </div>
-                    <Button size="sm" onClick={() => handleRecallBill(held)} className="bg-amber-500 hover:bg-amber-600 text-foreground font-bold text-xs rounded-lg gap-1">
-                      <PlayCircle className="h-3.5 w-3.5" /> Recall
-                    </Button>
+                    <IconAction label="Recall" icon={<PlayCircle className="h-3.5 w-3.5" />} onClick={() => handleRecallBill(held)} className="bg-amber-500 hover:bg-amber-600 text-foreground font-bold text-xs rounded-lg gap-1" />
                   </div>
                 ))
               )}

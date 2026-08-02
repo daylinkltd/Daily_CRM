@@ -24,6 +24,7 @@ import {
   ImageIcon
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { IconAction } from "@/components/ui/icon-action";
 
 export function LetterheadDesigner() {
   const supabase = createClient();
@@ -462,15 +463,10 @@ export function LetterheadDesigner() {
                       <p className="text-[10px] text-muted-foreground font-mono truncate max-w-[220px]">{logoUrl}</p>
                     </div>
                   </div>
-                  <Button
-                    type="button"
+                  <IconAction label="Remove Logo" icon={<Trash2 className="size-3.5 " />} type="button"
                     variant="ghost"
-                    size="sm"
                     onClick={() => setLogoUrl("")}
-                    className="h-8 px-2.5 text-xs text-rose-500 hover:bg-rose-500/10 font-semibold"
-                  >
-                    <Trash2 className="size-3.5 mr-1" /> Remove Logo
-                  </Button>
+                    className="h-8 px-2.5 text-xs text-rose-500 hover:bg-rose-500/10 font-semibold" />
                 </div>
               ) : (
                 <label className="relative border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 hover:bg-primary/10 transition-all rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer group">

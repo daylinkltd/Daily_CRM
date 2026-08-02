@@ -27,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { TimeLogForm } from '@/components/timesheets/time-log-form';
 
 import { formatMemberName } from '@/components/tasks/task-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function TimesheetsPage() {
   const supabase = createClient();
@@ -130,9 +131,7 @@ export default function TimesheetsPage() {
         title="Timesheets" 
         description="Log time against tasks and review team productivity."
         action={
-          <Button onClick={() => setFormOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-            <Plus className="size-4 mr-2" /> Log Time
-          </Button>
+          <IconAction label="Log Time" icon={<Plus className="size-4 " />} onClick={() => setFormOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
         }
       />
 

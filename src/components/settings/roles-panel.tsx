@@ -60,6 +60,7 @@ import {
   WORKSPACE_ROLE_COLUMNS,
   type WorkspaceRoleRow,
 } from "./workspace-role";
+import { IconAction } from "@/components/ui/icon-action";
 
 export function RolesPanel() {
   const supabase = createClient();
@@ -192,10 +193,7 @@ export function RolesPanel() {
         description="A role is a grid of create / read / update / delete ticks across every resource in the app. Assign one to each teammate from Team members."
         action={
           canManage ? (
-            <Button onClick={() => openEditor("create", null)}>
-              <Plus className="size-4" />
-              New role
-            </Button>
+            <IconAction label="New role" icon={<Plus className="size-4" />} onClick={() => openEditor("create", null)} />
           ) : null
         }
       />

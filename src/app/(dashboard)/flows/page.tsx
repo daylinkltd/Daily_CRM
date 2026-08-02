@@ -32,6 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { IconAction } from "@/components/ui/icon-action";
 
 /**
  * Flows list page.
@@ -404,19 +405,10 @@ function FlowCard({
       </div>
 
       <div className="mt-4 flex items-center justify-end gap-2 border-t border-border pt-3">
-        <Button variant="ghost" size="sm" onClick={onEdit}>
-          <Pencil className="h-3.5 w-3.5" />
-          Edit
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
+        <IconAction label="Edit" icon={<Pencil className="h-3.5 w-3.5" />} variant="ghost" onClick={onEdit} />
+        <IconAction label="Delete" icon={<Trash2 className="h-3.5 w-3.5" />} variant="ghost"
           onClick={onDelete}
-          className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          Delete
-        </Button>
+          className="text-red-400 hover:bg-red-500/10 hover:text-red-300" />
       </div>
     </div>
   );

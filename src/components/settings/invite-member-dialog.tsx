@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
+import { IconAction } from "@/components/ui/icon-action";
 
 type InviteRole = 'admin' | 'agent' | 'viewer';
 
@@ -334,14 +335,9 @@ export function InviteMemberDialog({
                   className="bg-muted border-border text-foreground font-mono text-xs"
                   onFocus={(e) => e.currentTarget.select()}
                 />
-                <Button
-                  type="button"
+                <IconAction label="Copy" icon={<Copy className="size-4" />} type="button"
                   onClick={copyToClipboard}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
-                >
-                  <Copy className="size-4" />
-                  Copy
-                </Button>
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0" />
               </div>
 
               {/* Deliver from the workspace's own mailbox (Outlook) rather
@@ -466,22 +462,14 @@ export function InviteMemberDialog({
             <div className="space-y-4 py-2">
               {/* Mode switch */}
               <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
+                <IconAction label="Send invite link" icon={<Link2 className="size-4" />} type="button"
                   variant={mode === 'invite' ? 'default' : 'outline'}
                   onClick={() => setMode('invite')}
-                  className="justify-center"
-                >
-                  <Link2 className="size-4" /> Send invite link
-                </Button>
-                <Button
-                  type="button"
+                  className="justify-center" />
+                <IconAction label="Set a password" icon={<KeyRound className="size-4" />} type="button"
                   variant={mode === 'direct' ? 'default' : 'outline'}
                   onClick={() => setMode('direct')}
-                  className="justify-center"
-                >
-                  <KeyRound className="size-4" /> Set a password
-                </Button>
+                  className="justify-center" />
               </div>
 
               {mode === 'direct' && (

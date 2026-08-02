@@ -19,6 +19,7 @@ import { AutomationsSettings } from '@/components/projects/automations-settings'
 import { ProjectTimeline } from '@/components/projects/project-timeline';
 import { ProjectTaskList } from '@/components/projects/project-task-list';
 import { ProjectReportsGallery } from '@/components/projects/project-reports-gallery';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -152,9 +153,7 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
         </div>
         
         {canManageProjects && (
-          <Button variant="outline" className="shrink-0 shadow-sm border-border">
-            <Settings className="size-4 mr-2" /> Project Settings
-          </Button>
+          <IconAction label="Project Settings" icon={<Settings className="size-4 " />} variant="outline" className="shrink-0 shadow-sm border-border" />
         )}
       </div>
 

@@ -34,6 +34,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { OnboardEmployeeForm } from '@/components/employees/onboard-employee-form';
 import { UserPlus } from 'lucide-react';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function EmployeesPage() {
   const supabase = createClient();
@@ -172,10 +173,7 @@ export default function EmployeesPage() {
         title="Employee Directory" 
         description="View and manage all employees across the organization."
         action={
-          <Button onClick={() => setShowOnboard(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <UserPlus className="size-4 mr-2" />
-            Onboard Employee
-          </Button>
+          <IconAction label="Onboard Employee" icon={<UserPlus className="size-4 " />} onClick={() => setShowOnboard(true)} className="bg-primary text-primary-foreground hover:bg-primary/90" />
         }
       />
       

@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Clock, Plus, Layers, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function ShiftsPage() {
   const { activeWorkspace, can } = useWorkspace();
@@ -126,12 +127,8 @@ export default function ShiftsPage() {
         action={
           canManage && (
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setBulkAddOpen(true)}>
-                <Layers className="size-4 mr-2" /> Bulk add
-              </Button>
-              <Button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground">
-                <Plus className="size-4 mr-2" /> Add Shift
-              </Button>
+              <IconAction label="Bulk add" icon={<Layers className="size-4 " />} variant="outline" onClick={() => setBulkAddOpen(true)} />
+              <IconAction label="Add Shift" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground" />
             </div>
           )
         }

@@ -190,18 +190,9 @@ export default function UnitsPage() {
         description="Manage product quantity units, short codes, and conversion metrics."
         action={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleSeedDefaults} disabled={saving} className="border-border">
-              <Sparkles className="size-4 mr-2 text-amber-500" />
-              Seed Defaults
-            </Button>
-            <Button variant="outline" onClick={() => setBulkAddOpen(true)} className="border-border">
-              <Layers className="size-4 mr-2" />
-              Bulk add
-            </Button>
-            <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground">
-              <Plus className="size-4 mr-2" />
-              Add Unit
-            </Button>
+            <IconAction label="Seed Defaults" icon={<Sparkles className="size-4 text-amber-500" />} variant="outline" onClick={handleSeedDefaults} disabled={saving} className="border-border" />
+            <IconAction label="Bulk add" icon={<Layers className="size-4 " />} variant="outline" onClick={() => setBulkAddOpen(true)} className="border-border" />
+            <IconAction label="Add Unit" icon={<Plus className="size-4 " />} onClick={handleOpenAdd} className="bg-primary text-primary-foreground" />
           </div>
         }
       />

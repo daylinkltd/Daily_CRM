@@ -192,13 +192,8 @@ export default function MediaPage() {
             </DialogContent>
           </Dialog>
 
-          <Button 
-            onClick={() => fileInputRef.current?.click()}
-            className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-lg shadow-blue-500/20"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Upload File
-          </Button>
+          <IconAction label="Upload File" icon={<Upload className="w-4 h-4 " />} onClick={() => fileInputRef.current?.click()}
+            className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-lg shadow-blue-500/20" />
           <input 
             type="file" 
             ref={fileInputRef} 

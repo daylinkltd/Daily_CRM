@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2, Upload, UserCheck, ShieldCheck, Trash2 } from "lucide-react";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface SignatoryModalProps {
   open: boolean;
@@ -168,15 +169,10 @@ export function SignatoryModal({ open, onOpenChange, onSaved, initialData }: Sig
               <div className="p-3 bg-muted/40 rounded-xl border border-border flex items-center justify-between gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={signatureUrl} alt="Signature Preview" className="h-10 object-contain" />
-                <Button
-                  type="button"
+                <IconAction label="Remove" icon={<Trash2 className="size-3.5 " />} type="button"
                   variant="ghost"
-                  size="sm"
                   onClick={() => setSignatureUrl("")}
-                  className="h-7 px-2 text-xs text-rose-500 hover:bg-rose-500/10"
-                >
-                  <Trash2 className="size-3.5 mr-1" /> Remove
-                </Button>
+                  className="h-7 px-2 text-xs text-rose-500 hover:bg-rose-500/10" />
               </div>
             ) : (
               <label className="relative border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 hover:bg-primary/10 transition-all rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer group">
@@ -204,15 +200,10 @@ export function SignatoryModal({ open, onOpenChange, onSaved, initialData }: Sig
               <div className="p-3 bg-muted/40 rounded-xl border border-border flex items-center justify-between gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={stampUrl} alt="Stamp Preview" className="h-10 object-contain" />
-                <Button
-                  type="button"
+                <IconAction label="Remove" icon={<Trash2 className="size-3.5 " />} type="button"
                   variant="ghost"
-                  size="sm"
                   onClick={() => setStampUrl("")}
-                  className="h-7 px-2 text-xs text-rose-500 hover:bg-rose-500/10"
-                >
-                  <Trash2 className="size-3.5 mr-1" /> Remove
-                </Button>
+                  className="h-7 px-2 text-xs text-rose-500 hover:bg-rose-500/10" />
               </div>
             ) : (
               <label className="relative border-2 border-dashed border-purple-500/30 hover:border-purple-500/60 bg-purple-500/5 hover:bg-purple-500/10 transition-all rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer group">

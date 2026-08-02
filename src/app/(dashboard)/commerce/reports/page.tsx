@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { BarChart3, Download, Landmark, ArrowUpRight } from "lucide-react";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function ReportsHubPage() {
   useWorkspace();
@@ -22,10 +23,7 @@ export default function ReportsHubPage() {
             Real-time Trial Balance, Profit & Loss Statement, Balance Sheet, and AR/AP Aging Analysis.
           </p>
         </div>
-        <Button variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
-          <Download className="h-4 w-4" />
-          Export Financial PDF/Excel
-        </Button>
+        <IconAction label="Export Financial PDF/Excel" icon={<Download className="h-4 w-4" />} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11" />
       </div>
 
       {/* Tabs */}

@@ -99,9 +99,7 @@ export function EmployeeDocumentsTab({ employeeId, canEdit }: EmployeeDocumentsT
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-foreground text-sm tracking-wide uppercase">Compliance & Files</h3>
         {canEdit && (
-          <Button onClick={() => setFormOpen(true)} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-            <Plus className="size-4 mr-2" /> Add Document
-          </Button>
+          <IconAction label="Add Document" icon={<Plus className="size-4 " />} onClick={() => setFormOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
         )}
       </div>
 

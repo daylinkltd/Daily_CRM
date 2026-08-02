@@ -447,55 +447,30 @@ export default function QuotationPreviewPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center gap-2">
           {quote.status !== "Accepted" && quote.status !== "Rejected" && (
             <>
-              <Button
-                variant="outline"
-                size="sm"
+              <IconAction label="Reject" icon={<XCircle className="size-4 " />} variant="outline"
                 onClick={handleRejectQuotation}
                 disabled={actionLoading}
-                className="border-red-500/20 text-red-400 bg-red-500/5 hover:bg-red-500/10"
-              >
-                <XCircle className="size-4 mr-1.5" /> Reject
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleAcceptQuotation}
+                className="border-red-500/20 text-red-400 bg-red-500/5 hover:bg-red-500/10" />
+              <IconAction label="Accept & Convert" icon={<CheckCircle className="size-4 " />} onClick={handleAcceptQuotation}
                 disabled={actionLoading}
-                className="bg-emerald-600 hover:bg-emerald-700 text-foreground"
-              >
-                <CheckCircle className="size-4 mr-1.5" /> Accept & Convert
-              </Button>
+                className="bg-emerald-600 hover:bg-emerald-700 text-foreground" />
             </>
           )}
 
           {quote.status === "Accepted" && (
-            <Button
-              size="sm"
-              onClick={handleGenerateInvoice}
+            <IconAction label="Generate Invoice" icon={<Receipt className="size-4 " />} onClick={handleGenerateInvoice}
               disabled={actionLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-foreground"
-            >
-              <Receipt className="size-4 mr-1.5" /> Generate Invoice
-            </Button>
+              className="bg-emerald-600 hover:bg-emerald-700 text-foreground" />
           )}
 
-          <Button
-            variant="outline"
-            size="sm"
+          <IconAction label="WhatsApp" icon={<MessageSquare className="size-4 text-green-400" />} variant="outline"
             onClick={handleWhatsAppSend}
             disabled={actionLoading || !client?.phone}
-            className="border-border bg-transparent text-muted-foreground hover:bg-muted"
-          >
-            <MessageSquare className="size-4 mr-1.5 text-green-400" /> WhatsApp
-          </Button>
+            className="border-border bg-transparent text-muted-foreground hover:bg-muted" />
 
-          <Button
-            size="sm"
-            onClick={handlePrint}
+          <IconAction label="Print / Export PDF" icon={<Printer className="size-4 " />} onClick={handlePrint}
             disabled={actionLoading}
-            className="bg-primary text-primary-foreground hover:bg-primary/95"
-          >
-            <Printer className="size-4 mr-1.5" /> Print / Export PDF
-          </Button>
+            className="bg-primary text-primary-foreground hover:bg-primary/95" />
         </div>
       </div>
 

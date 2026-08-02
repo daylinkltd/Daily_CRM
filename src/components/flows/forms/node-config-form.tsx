@@ -322,15 +322,9 @@ function SendButtonsForm({
           ))}
         </div>
         {buttons.length < 3 && (
-          <Button
-            variant="ghost"
-            size="sm"
+          <IconAction label="Add button" icon={<Plus className="h-3.5 w-3.5" />} variant="ghost"
             onClick={addButton}
-            className="mt-2"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add button
-          </Button>
+            className="mt-2" />
         )}
       </div>
     </>
@@ -545,15 +539,9 @@ function SendListForm({
               </div>
             ))}
             {totalRows < 10 && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <IconAction label="Add row" icon={<Plus className="h-3.5 w-3.5" />} variant="ghost"
                 onClick={() => addRow(sIdx)}
-                className="mt-1"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add row
-              </Button>
+                className="mt-1" />
             )}
           </div>
         ))}
@@ -561,10 +549,7 @@ function SendListForm({
             by category (Billing / Support / Sales etc.) to give customers a
             scannable menu. */}
         {sections.length < 10 && (
-          <Button variant="outline" size="sm" onClick={addSection}>
-            <Plus className="h-3.5 w-3.5" />
-            Add section
-          </Button>
+          <IconAction label="Add section" icon={<Plus className="h-3.5 w-3.5" />} variant="outline" onClick={addSection} />
         )}
       </div>
     </>

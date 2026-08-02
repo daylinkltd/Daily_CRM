@@ -30,6 +30,7 @@ import { RequireRole } from '@/components/auth/require-role';
 import { useAuth } from '@/hooks/use-auth';
 import { SettingsPanelHead } from './settings-panel-head';
 import { API_SCOPES, SCOPE_DESCRIPTIONS, type ApiScope } from '@/lib/api-keys/scopes';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface ApiKey {
   id: string;
@@ -287,15 +288,9 @@ export function ApiKeysSettings() {
                         )}
 
                         {canEditSettings && active && (
-                          <Button
-                            variant="outline"
-                            size="sm"
+                          <IconAction label="Revoke" icon={<Trash2 className="size-3.5 " />} variant="outline"
                             onClick={() => setRevokingKey(key)}
-                            className="h-8 border-red-500/30 bg-red-500/5 text-red-400 hover:bg-red-500/20 hover:text-red-300"
-                          >
-                            <Trash2 className="size-3.5 mr-1" />
-                            Revoke
-                          </Button>
+                            className="h-8 border-red-500/30 bg-red-500/5 text-red-400 hover:bg-red-500/20 hover:text-red-300" />
                         )}
                       </div>
                     </div>

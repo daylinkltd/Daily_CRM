@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { ProjectForm } from '@/components/projects/project-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function ProjectsListPage() {
   return (
@@ -134,10 +135,7 @@ function ProjectsListPageContent() {
         description="View and manage all active, completed, and on-hold projects."
         action={
           canManageProjects && (
-            <Button onClick={() => { setEditProject(null); setFormOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-              <Plus className="size-4 mr-2" />
-              New Project
-            </Button>
+            <IconAction label="New Project" icon={<Plus className="size-4 " />} onClick={() => { setEditProject(null); setFormOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
           )
         }
       />

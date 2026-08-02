@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Printer, X, Barcode as BarcodeIcon } from "lucide-react";
 import { toast } from "sonner";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface Product {
   id: string;
@@ -184,13 +185,8 @@ export function BarcodeTagModal({
             >
               Close
             </Button>
-            <Button
-              onClick={handlePrint}
-              className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 text-xs"
-            >
-              <Printer className="h-4 w-4" />
-              Print 32px Barcode Tag
-            </Button>
+            <IconAction label="Print 32px Barcode Tag" icon={<Printer className="h-4 w-4" />} onClick={handlePrint}
+              className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 text-xs" />
           </div>
         </div>
       </div>

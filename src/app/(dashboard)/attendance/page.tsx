@@ -32,6 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { LocationMapModal } from '@/components/attendance/location-map-modal';
 import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function AttendancePage() {
   const supabase = createClient();
@@ -283,14 +284,9 @@ export default function AttendancePage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <PunchAction onPunch={fetchAttendanceData} />
-          <Button
-            onClick={() => setShowRequestModal(true)}
+          <IconAction label="Regularization Request" icon={<Plus className="h-4 w-4 text-[#00aef0]" />} onClick={() => setShowRequestModal(true)}
             variant="outline"
-            className="border-border bg-background text-foreground hover:text-foreground font-bold rounded-xl h-10 gap-1.5 text-xs"
-          >
-            <Plus className="h-4 w-4 text-[#00aef0]" />
-            Regularization Request
-          </Button>
+            className="border-border bg-background text-foreground hover:text-foreground font-bold rounded-xl h-10 gap-1.5 text-xs" />
         </div>
       </div>
 

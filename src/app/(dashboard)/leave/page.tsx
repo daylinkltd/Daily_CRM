@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LeaveRequestForm } from '@/components/leave/leave-request-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function LeavePage() {
   const supabase = createClient();
@@ -134,10 +135,7 @@ export default function LeavePage() {
         title="Leave Management" 
         description={canApproveLeave ? "Review and manage team leave requests." : "Track your time off and submit new requests."}
         action={
-          <Button onClick={() => setFormOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-            <Plus className="size-4 mr-2" />
-            Request Leave
-          </Button>
+          <IconAction label="Request Leave" icon={<Plus className="size-4 " />} onClick={() => setFormOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
         }
       />
 

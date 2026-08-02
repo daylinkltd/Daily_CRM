@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Plus, Laptop, CheckCircle2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface EmployeeAssetsTabProps {
   employeeId: string;
@@ -115,9 +116,7 @@ export function EmployeeAssetsTab({ employeeId, canEdit }: EmployeeAssetsTabProp
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-foreground text-sm tracking-wide uppercase">Assigned Equipment</h3>
         {canEdit && (
-          <Button onClick={() => setFormOpen(true)} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-            <Plus className="size-4 mr-2" /> Assign Asset
-          </Button>
+          <IconAction label="Assign Asset" icon={<Plus className="size-4 " />} onClick={() => setFormOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
         )}
       </div>
 
@@ -162,9 +161,7 @@ export function EmployeeAssetsTab({ employeeId, canEdit }: EmployeeAssetsTabProp
                   {canEdit && (
                     <TableCell>
                       {!asset.returned_date ? (
-                        <Button variant="outline" size="sm" onClick={() => handleReturn(asset.id)} className="border-border hover:bg-muted text-xs h-7">
-                          <CheckCircle2 className="size-3 mr-1" /> Return
-                        </Button>
+                        <IconAction label="Return" icon={<CheckCircle2 className="size-3 " />} variant="outline" onClick={() => handleReturn(asset.id)} className="border-border hover:bg-muted text-xs h-7" />
                       ) : (
                         <span className="text-xs text-muted-foreground px-2">Returned</span>
                       )}

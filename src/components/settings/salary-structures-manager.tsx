@@ -503,9 +503,7 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
             </CardDescription>
           </div>
           {canEdit && (
-            <Button onClick={openStructureNew} className="shrink-0 gap-1.5" disabled={components.length === 0}>
-              <Plus className="size-4" /> New structure
-            </Button>
+            <IconAction label="New structure" icon={<Plus className="size-4" />} onClick={openStructureNew} className="shrink-0 gap-1.5" disabled={components.length === 0} />
           )}
         </CardHeader>
         <CardContent>
@@ -584,12 +582,8 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
           </div>
           {canEdit && (
             <div className="flex shrink-0 items-center gap-2">
-              <Button onClick={() => setBulkAddOpen(true)} variant="outline" className="gap-1.5">
-                <Layers className="size-4" /> Bulk add
-              </Button>
-              <Button onClick={openComponentNew} variant="outline" className="gap-1.5">
-                <Plus className="size-4" /> Add component
-              </Button>
+              <IconAction label="Bulk add" icon={<Layers className="size-4" />} onClick={() => setBulkAddOpen(true)} variant="outline" className="gap-1.5" />
+              <IconAction label="Add component" icon={<Plus className="size-4" />} onClick={openComponentNew} variant="outline" className="gap-1.5" />
             </div>
           )}
         </CardHeader>
@@ -671,17 +665,12 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
         busy={bulkBusy}
         noun="structure"
       >
-        <Button
-          size="sm"
-          variant="outline"
+        <IconAction label="Delete" icon={<Trash2 className="size-3.5" />} variant="outline"
           onClick={() =>
             bulkSoftDelete("hr_salary_structures", structureSelection.selectedIds, "structure", structureSelection.clear)
           }
           disabled={bulkBusy}
-          className="h-7 gap-1.5 text-xs text-destructive"
-        >
-          <Trash2 className="size-3.5" /> Delete
-        </Button>
+          className="h-7 gap-1.5 text-xs text-destructive" />
       </BulkActionBar>
 
       <BulkActionBar
@@ -690,17 +679,12 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
         busy={bulkBusy}
         noun="component"
       >
-        <Button
-          size="sm"
-          variant="outline"
+        <IconAction label="Delete" icon={<Trash2 className="size-3.5" />} variant="outline"
           onClick={() =>
             bulkSoftDelete("hr_salary_components", componentSelection.selectedIds, "component", componentSelection.clear)
           }
           disabled={bulkBusy}
-          className="h-7 gap-1.5 text-xs text-destructive"
-        >
-          <Trash2 className="size-3.5" /> Delete
-        </Button>
+          className="h-7 gap-1.5 text-xs text-destructive" />
       </BulkActionBar>
 
       <BulkEntryDialog

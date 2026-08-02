@@ -295,9 +295,7 @@ export default function InvoicesPage() {
           ) : undefined
         }
         actions={
-          <Button onClick={() => setCreateOpen(true)} disabled={tableMissing}>
-            <Plus /> New Invoice
-          </Button>
+          <IconAction label="New Invoice" icon={<Plus />} onClick={() => setCreateOpen(true)} disabled={tableMissing} />
         }
       />
 
@@ -412,19 +410,14 @@ export default function InvoicesPage() {
                               </>
                             )}
                             {["sent", "partially_paid", "overdue"].includes(inv.status) && (
-                              <Button
-                                size="sm"
-                                variant="outline"
+                              <IconAction label="Record Payment" icon={<Banknote />} variant="outline"
                                 disabled={busy}
                                 onClick={() => {
                                   setPayFor(inv);
                                   setPayAmount(
                                     (Number(inv.total_amount) - Number(inv.amount_paid)).toFixed(2)
                                   );
-                                }}
-                              >
-                                <Banknote /> Record Payment
-                              </Button>
+                                }} />
                             )}
                           </div>
                         </TableCell>
@@ -512,12 +505,8 @@ export default function InvoicesPage() {
                   />
                 </div>
               ))}
-              <Button
-                size="sm" variant="outline"
-                onClick={() => setNewItems((prev) => [...prev, { description: "", quantity: "1", unit_price: "0" }])}
-              >
-                <Plus /> Add line
-              </Button>
+              <IconAction label="Add line" icon={<Plus />} variant="outline"
+                onClick={() => setNewItems((prev) => [...prev, { description: "", quantity: "1", unit_price: "0" }])} />
             </div>
 
             <p className="text-right text-sm text-muted-foreground">

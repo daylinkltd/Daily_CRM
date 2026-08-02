@@ -24,6 +24,7 @@ import {
   Percent,
   Edit3 as Pencil,
 } from "lucide-react";
+import { IconAction } from "@/components/ui/icon-action";
 
 export interface ProductDetails {
   id: string;
@@ -406,30 +407,20 @@ export function ProductDetailsModal({
           </div>
           <div className="flex items-center gap-2">
             {onEdit && (
-              <Button
-                variant="outline"
+              <IconAction label="Edit Product" icon={<Pencil className="h-4 w-4" />} variant="outline"
                 onClick={() => {
                   onClose();
                   onEdit(product);
                 }}
-                className="border-border hover:border-[#00aef0] bg-[#00aef0]/10 hover:bg-[#00aef0]/20 text-[#00aef0] gap-2 rounded-xl text-xs h-10 font-bold"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit Product
-              </Button>
+                className="border-border hover:border-[#00aef0] bg-[#00aef0]/10 hover:bg-[#00aef0]/20 text-[#00aef0] gap-2 rounded-xl text-xs h-10 font-bold" />
             )}
             {onPrintTag && (
-              <Button
-                variant="outline"
+              <IconAction label="Print Barcode Tag" icon={<Printer className="h-4 w-4" />} variant="outline"
                 onClick={() => {
                   onClose();
                   onPrintTag(product);
                 }}
-                className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] gap-2 rounded-xl text-xs h-10"
-              >
-                <Printer className="h-4 w-4" />
-                Print Barcode Tag
-              </Button>
+                className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] gap-2 rounded-xl text-xs h-10" />
             )}
             <Button
               onClick={onClose}

@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 
 import { ProductCombobox } from "@/components/commerce/product-combobox";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface POItemInput {
   id: string;
@@ -181,14 +182,9 @@ export default function PurchasesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={fetchPurchasesData}
+          <IconAction label="Refresh" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchPurchasesData}
             variant="outline"
-            className="border-border text-foreground gap-1.5 rounded-xl h-11"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+            className="border-border text-foreground gap-1.5 rounded-xl h-11" />
           <Button
             onClick={() => setShowAddModal(true)}
             className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
@@ -393,13 +389,9 @@ export default function PurchasesPage() {
                     />
                   </div>
                 </div>
-                <Button
-                  type="button"
+                <IconAction label="Add Line Item" icon={<Plus className="h-3.5 w-3.5" />} type="button"
                   onClick={handleAddItemToPO}
-                  className="bg-[#00aef0]/10 hover:bg-[#00aef0]/20 text-[#00aef0] font-bold rounded-xl text-xs h-8 w-full gap-1"
-                >
-                  <Plus className="h-3.5 w-3.5" /> Add Line Item
-                </Button>
+                  className="bg-[#00aef0]/10 hover:bg-[#00aef0]/20 text-[#00aef0] font-bold rounded-xl text-xs h-8 w-full gap-1" />
               </div>
 
               {/* Added Line Items Table */}

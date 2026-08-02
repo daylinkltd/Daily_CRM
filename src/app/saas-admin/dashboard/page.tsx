@@ -397,10 +397,8 @@ export default function AdminDashboard() {
             className="bg-primary hover:bg-primary-hover text-white font-semibold flex items-center gap-2 shadow-lg shadow-primary/20">
             <Plus className="h-4 w-4" /> Create Owner
           </Button>
-          <Button onClick={fetchData} disabled={loading}
-            className="bg-muted border border-border hover:bg-muted text-foreground flex items-center gap-2">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-primary" : ""}`} /> Refresh
-          </Button>
+          <IconAction label="Refresh" icon={<RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-primary" : ""}`} />} onClick={fetchData} disabled={loading}
+            className="bg-muted border border-border hover:bg-muted text-foreground flex items-center gap-2" />
         </div>
       </div>
 
@@ -977,9 +975,7 @@ export default function AdminDashboard() {
                     className="bg-muted border-border text-white"
                   />
                 </div>
-                <Button type="submit" disabled={isSubmittingSource || !newSourceName.trim()} className="bg-primary hover:bg-primary-hover text-white">
-                  <Plus className="h-4 w-4 mr-2" /> Add
-                </Button>
+                <IconAction label="Add" icon={<Plus className="h-4 w-4 " />} type="submit" disabled={isSubmittingSource || !newSourceName.trim()} className="bg-primary hover:bg-primary-hover text-white" />
               </form>
             </div>
             {sources.length === 0 ? (
@@ -1030,9 +1026,7 @@ export default function AdminDashboard() {
                     className="bg-muted border-border text-white"
                   />
                 </div>
-                <Button type="submit" disabled={isSubmittingReason || !newReasonName.trim()} className="bg-rose-600 hover:bg-rose-700 text-white">
-                  <Plus className="h-4 w-4 mr-2" /> Add
-                </Button>
+                <IconAction label="Add" icon={<Plus className="h-4 w-4 " />} type="submit" disabled={isSubmittingReason || !newReasonName.trim()} className="bg-rose-600 hover:bg-rose-700 text-white" />
               </form>
             </div>
             {reasons.length === 0 ? (

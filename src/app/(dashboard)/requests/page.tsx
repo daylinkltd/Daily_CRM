@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { FileCheck, Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { IconAction } from "@/components/ui/icon-action";
 
 const REQUEST_TYPES = [
   { value: 'SALARY_CERTIFICATE', label: 'Salary Certificate Request' },
@@ -120,9 +121,7 @@ export default function EmployeeRequestsPage() {
         title="Employee Self-Service Requests"
         description="Submit and track HR requests for salary certificates, experience letters, bank account changes, and formal requests."
         action={
-          <Button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground">
-            <Plus className="size-4 mr-2" /> New ESS Request
-          </Button>
+          <IconAction label="New ESS Request" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground" />
         }
       />
 

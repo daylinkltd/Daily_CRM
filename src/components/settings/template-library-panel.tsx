@@ -373,9 +373,7 @@ export function TemplateLibraryPanel() {
         description="Every reusable message and document in one place — WhatsApp, email, SMS, HR letters and internal notifications. Start from the ready-made library or write your own."
         action={
           canManage ? (
-            <Button onClick={openNew} className="gap-1.5">
-              <Plus className="size-4" /> New template
-            </Button>
+            <IconAction label="New template" icon={<Plus className="size-4" />} onClick={openNew} className="gap-1.5" />
           ) : null
         }
       />
@@ -483,9 +481,7 @@ export function TemplateLibraryPanel() {
               : "Try a different module or channel."}
           </p>
           {view === "mine" && (
-            <Button variant="outline" onClick={() => setView("library")} className="mt-4 gap-1.5">
-              <BookOpen className="size-4" /> Browse the library
-            </Button>
+            <IconAction label="Browse the library" icon={<BookOpen className="size-4" />} variant="outline" onClick={() => setView("library")} className="mt-4 gap-1.5" />
           )}
         </div>
       ) : (
@@ -622,13 +618,9 @@ export function TemplateLibraryPanel() {
         noun="template"
       >
         {view === "library" ? (
-          <Button size="sm" variant="outline" onClick={handleBulkAdopt} disabled={bulkBusy} className="h-7 gap-1.5 text-xs">
-            <Copy className="size-3.5" /> Add to my templates
-          </Button>
+          <IconAction label="Add to my templates" icon={<Copy className="size-3.5" />} variant="outline" onClick={handleBulkAdopt} disabled={bulkBusy} className="h-7 gap-1.5 text-xs" />
         ) : (
-          <Button size="sm" variant="outline" onClick={handleBulkDelete} disabled={bulkBusy} className="h-7 gap-1.5 text-xs text-destructive">
-            <Trash2 className="size-3.5" /> Delete
-          </Button>
+          <IconAction label="Delete" icon={<Trash2 className="size-3.5" />} variant="outline" onClick={handleBulkDelete} disabled={bulkBusy} className="h-7 gap-1.5 text-xs text-destructive" />
         )}
       </BulkActionBar>
 

@@ -251,13 +251,9 @@ export default function ExpensesPage() {
                           <div className="flex items-center justify-end gap-1">
                             {c.status === "pending" && (
                               <>
-                                <Button
-                                  size="sm" variant="outline" disabled={busy || own}
+                                <IconAction label="Approve" icon={<Check />} variant="outline" disabled={busy || own}
                                   title={own ? "You cannot approve your own claim" : undefined}
-                                  onClick={() => act(c, "approve")}
-                                >
-                                  <Check /> Approve
-                                </Button>
+                                  onClick={() => act(c, "approve")} />
                                 <IconAction
                                   label="Reject claim"
                                   icon={<X />}

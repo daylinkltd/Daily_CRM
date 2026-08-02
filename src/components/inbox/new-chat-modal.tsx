@@ -21,6 +21,7 @@ import {
   contactInitial,
 } from "@/lib/contact-display";
 import { sanitizePhoneForMeta, isValidE164 } from "@/lib/whatsapp/phone-utils";
+import { IconAction } from "@/components/ui/icon-action";
 
 /** Contacts fetched per query — keeps the modal snappy on big workspaces. */
 const CONTACT_FETCH_LIMIT = 100;
@@ -277,15 +278,10 @@ export function NewChatModal({
                       : "No matching contacts."}
                   </p>
                   <div>
-                    <Button
-                      type="button"
+                    <IconAction label="Enter New Phone Number" icon={<UserPlus className="h-3.5 w-3.5 " />} type="button"
                       variant="outline"
-                      size="sm"
                       onClick={() => setTab("new")}
-                      className="border-border text-foreground hover:bg-muted text-xs h-8"
-                    >
-                      <UserPlus className="h-3.5 w-3.5 mr-1.5" /> Enter New Phone Number
-                    </Button>
+                      className="border-border text-foreground hover:bg-muted text-xs h-8" />
                   </div>
                 </div>
               ) : (

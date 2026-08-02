@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Building2, Plus, RefreshCw, Search, Phone, Mail, MapPin, FileText, X } from "lucide-react";
 import { toast } from "sonner";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function SuppliersPage() {
   const { activeWorkspace } = useWorkspace();
@@ -108,17 +109,9 @@ export default function SuppliersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={fetchSuppliers} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
-          >
-            <Plus className="h-4 w-4" />
-            Add New Supplier
-          </Button>
+          <IconAction label="Refresh" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchSuppliers} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11" />
+          <IconAction label="Add New Supplier" icon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11" />
         </div>
       </div>
 
@@ -165,13 +158,8 @@ export default function SuppliersPage() {
                     <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Add vendor details, GSTIN, contact numbers, and track supplier payables.
                     </p>
-                    <Button
-                      onClick={() => setShowAddModal(true)}
-                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add New Supplier
-                    </Button>
+                    <IconAction label="Add New Supplier" icon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}
+                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2" />
                   </td>
                 </tr>
               ) : (

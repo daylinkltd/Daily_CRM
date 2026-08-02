@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Loader2, Award } from 'lucide-react';
 import { toast } from 'sonner';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function PerformancePage() {
   const { activeWorkspace, can } = useWorkspace();
@@ -96,9 +97,7 @@ export default function PerformancePage() {
         description="Manage annual/quarterly review cycles, OKRs, employee goals, self-reviews, and promotion history."
         action={
           canManage && (
-            <Button onClick={() => setCycleModalOpen(true)} className="bg-primary text-primary-foreground">
-              <Plus className="size-4 mr-2" /> Start Review Cycle
-            </Button>
+            <IconAction label="Start Review Cycle" icon={<Plus className="size-4 " />} onClick={() => setCycleModalOpen(true)} className="bg-primary text-primary-foreground" />
           )
         }
       />

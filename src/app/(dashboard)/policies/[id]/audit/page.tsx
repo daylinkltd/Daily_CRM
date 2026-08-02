@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function PolicyAuditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -94,9 +95,7 @@ export default function PolicyAuditPage({ params }: { params: Promise<{ id: stri
         <Button variant="ghost" size="sm" onClick={() => router.push('/policies')} className="text-muted-foreground">
           <ArrowLeft className="size-4 mr-2" /> Back to Policies
         </Button>
-        <Button variant="outline" onClick={handleExportCSV} className="bg-card">
-          <Download className="size-4 mr-2" /> Export Audit CSV
-        </Button>
+        <IconAction label="Export Audit CSV" icon={<Download className="size-4 " />} variant="outline" onClick={handleExportCSV} className="bg-card" />
       </div>
 
       <PageHeader

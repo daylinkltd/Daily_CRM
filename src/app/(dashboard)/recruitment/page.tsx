@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { IconAction } from "@/components/ui/icon-action";
 
 const STAGES = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'HIRED', 'REJECTED'];
 
@@ -176,9 +177,7 @@ export default function RecruitmentPage() {
         action={
           canManage && (
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setCandModalOpen(true)} className="bg-card">
-                <UserCheck className="size-4 mr-2" /> Add Candidate
-              </Button>
+              <IconAction label="Add Candidate" icon={<UserCheck className="size-4 " />} variant="outline" onClick={() => setCandModalOpen(true)} className="bg-card" />
               <Button onClick={() => setJobModalOpen(true)} className="bg-primary text-primary-foreground">
                 <Plus className="size-4 mr-2" /> Create Job Opening
               </Button>

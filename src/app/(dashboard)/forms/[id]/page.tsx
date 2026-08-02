@@ -816,15 +816,9 @@ export default function FormBuilderPage({
                     >
                       Deselect
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
+                    <IconAction label="Remove Field" icon={<Trash2 className="size-3.5 " />} variant="destructive"
                       onClick={() => removeField(selectedFieldId!)}
-                      className="bg-red-950/20 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-foreground text-xs"
-                    >
-                      <Trash2 className="size-3.5 mr-1" />
-                      Remove Field
-                    </Button>
+                      className="bg-red-950/20 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-foreground text-xs" />
                   </CardFooter>
                 )}
               </Card>

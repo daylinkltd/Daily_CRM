@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ComplianceBanner } from '@/components/policies/compliance-banner';
 import { PolicyEditorModal } from '@/components/policies/policy-editor-modal';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function PoliciesDashboardPage() {
   const router = useRouter();
@@ -158,9 +159,7 @@ export default function PoliciesDashboardPage() {
         action={
           <div className="flex items-center gap-3">
             {canManage && (
-              <Button variant="outline" onClick={handleExportCSV} className="bg-card">
-                <Download className="size-4 mr-2" /> Export Audit CSV
-              </Button>
+              <IconAction label="Export Audit CSV" icon={<Download className="size-4 " />} variant="outline" onClick={handleExportCSV} className="bg-card" />
             )}
             {canManage && (
               <Button onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }} className="bg-primary text-primary-foreground shadow-sm">
@@ -302,21 +301,11 @@ export default function PoliciesDashboardPage() {
                   <div className="flex items-center justify-end gap-2 pt-2">
                     {p.status === 'PUBLISHED' ? (
                       <>
-                        <Button
-                          size="sm"
-                          variant="outline"
+                        <IconAction label="Audit Trail" icon={<FileCode2 className="size-3.5 " />} variant="outline"
                           onClick={() => router.push(`/policies/${p.id}/audit`)}
-                          className="text-xs"
-                        >
-                          <FileCode2 className="size-3.5 mr-1" /> Audit Trail
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => router.push(`/policies/${p.id}/read`)}
-                          className="text-xs bg-primary text-primary-foreground"
-                        >
-                          <Eye className="size-3.5 mr-1" /> Read & Sign
-                        </Button>
+                          className="text-xs" />
+                        <IconAction label="Read & Sign" icon={<Eye className="size-3.5 " />} onClick={() => router.push(`/policies/${p.id}/read`)}
+                          className="text-xs bg-primary text-primary-foreground" />
                       </>
                     ) : (
                       <>
@@ -331,23 +320,13 @@ export default function PoliciesDashboardPage() {
                           </Button>
                         )}
                         {canManage && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleApprove(p.id)}
-                            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-foreground"
-                          >
-                            <Send className="size-3.5 mr-1" /> Approve & Publish
-                          </Button>
+                          <IconAction label="Approve & Publish" icon={<Send className="size-3.5 " />} onClick={() => handleApprove(p.id)}
+                            className="text-xs bg-emerald-600 hover:bg-emerald-700 text-foreground" />
                         )}
                         {canManage && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
+                          <IconAction label="Delete" icon={<Trash2 className="size-3.5 " />} variant="ghost"
                             onClick={() => handleDelete(p.id)}
-                            className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="size-3.5 mr-1" /> Delete
-                          </Button>
+                            className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10" />
                         )}
                       </>
                     )}

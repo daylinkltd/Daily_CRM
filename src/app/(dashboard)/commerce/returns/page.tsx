@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProductCombobox } from "@/components/commerce/product-combobox";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function ReturnsPage() {
   const { activeWorkspace } = useWorkspace();
@@ -132,21 +133,11 @@ export default function ReturnsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={fetchReturnsData}
+          <IconAction label="Refresh" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchReturnsData}
             variant="outline"
-            className="border-border text-foreground gap-1.5 rounded-xl h-11"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
-          >
-            <Plus className="h-4 w-4" />
-            Process Return
-          </Button>
+            className="border-border text-foreground gap-1.5 rounded-xl h-11" />
+          <IconAction label="Process Return" icon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11" />
         </div>
       </div>
 
@@ -206,13 +197,8 @@ export default function ReturnsPage() {
                     <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Issue credit notes for sales returns or record damaged stock returns.
                     </p>
-                    <Button
-                      onClick={() => setShowAddModal(true)}
-                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Process First Return
-                    </Button>
+                    <IconAction label="Process First Return" icon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}
+                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2" />
                   </td>
                 </tr>
               ) : (

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsAppReminderModal } from "@/components/finance/whatsapp-reminder-modal";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function CustomerLedgerPage() {
   const { activeWorkspace } = useWorkspace();
@@ -205,21 +206,11 @@ export default function CustomerLedgerPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={fetchLedger}
+          <IconAction label="Refresh Books" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchLedger}
             variant="outline"
-            className="border-border text-foreground gap-1.5 rounded-xl h-11"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh Books
-          </Button>
-          <Button
-            onClick={() => setShowAddCustomerModal(true)}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
-          >
-            <UserPlus className="h-4 w-4" />
-            Add New Customer
-          </Button>
+            className="border-border text-foreground gap-1.5 rounded-xl h-11" />
+          <IconAction label="Add New Customer" icon={<UserPlus className="h-4 w-4" />} onClick={() => setShowAddCustomerModal(true)}
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11" />
         </div>
       </div>
 
@@ -311,13 +302,8 @@ export default function CustomerLedgerPage() {
                     <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Add customer details to start tracking credit limits and Khata payments.
                     </p>
-                    <Button
-                      onClick={() => setShowAddCustomerModal(true)}
-                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2"
-                    >
-                      <UserPlus className="h-4 w-4" />
-                      Add First Customer
-                    </Button>
+                    <IconAction label="Add First Customer" icon={<UserPlus className="h-4 w-4" />} onClick={() => setShowAddCustomerModal(true)}
+                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2" />
                   </td>
                 </tr>
               ) : (
@@ -365,23 +351,11 @@ export default function CustomerLedgerPage() {
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => setSelectedPayCustomer(contact)}
-                            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold text-xs rounded-xl gap-1 h-8 px-3"
-                          >
-                            <IndianRupee className="h-3.5 w-3.5" />
-                            Record Payment
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
+                          <IconAction label="Record Payment" icon={<IndianRupee className="h-3.5 w-3.5" />} onClick={() => setSelectedPayCustomer(contact)}
+                            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold text-xs rounded-xl gap-1 h-8 px-3" />
+                          <IconAction label="WhatsApp" icon={<Send className="h-3.5 w-3.5" />} variant="outline"
                             onClick={() => handleWhatsAppReminder(contact)}
-                            className="border-emerald-600/30 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 font-bold text-xs rounded-xl gap-1 h-8 px-3"
-                          >
-                            <Send className="h-3.5 w-3.5" />
-                            WhatsApp
-                          </Button>
+                            className="border-emerald-600/30 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 font-bold text-xs rounded-xl gap-1 h-8 px-3" />
                         </div>
                       </td>
                     </tr>
@@ -404,15 +378,10 @@ export default function CustomerLedgerPage() {
             of <strong className="text-foreground">{filteredCustomers.length}</strong> registered customers
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
+            <IconAction label="Previous" icon={<ChevronLeft className="h-4 w-4" />} variant="outline"
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="border-border text-foreground h-8 gap-1 rounded-xl disabled:opacity-40"
-            >
-              <ChevronLeft className="h-4 w-4" /> Previous
-            </Button>
+              className="border-border text-foreground h-8 gap-1 rounded-xl disabled:opacity-40" />
             <span className="font-bold text-foreground px-3 py-1 bg-background rounded-lg border border-border">
               Page {page} of {totalPages}
             </span>

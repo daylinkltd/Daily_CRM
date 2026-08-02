@@ -47,6 +47,7 @@ import { TaskForm, formatMemberName } from '@/components/tasks/task-form';
 import { format } from 'date-fns';
 
 import { EpicDetailsModal } from '@/components/projects/epic-details-modal';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface ProjectTaskListProps {
   projectId: string;
@@ -289,16 +290,11 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
         </div>
 
         {canManage && (
-          <Button
-            size="sm"
-            onClick={() => {
+          <IconAction label="Add Task" icon={<Plus className="size-4 " />} onClick={() => {
               setEditTask(null);
               setFormOpen(true);
             }}
-            className="h-9 bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
-          >
-            <Plus className="size-4 mr-1.5" /> Add Task
-          </Button>
+            className="h-9 bg-primary text-primary-foreground hover:bg-primary/90 shrink-0" />
         )}
       </div>
 

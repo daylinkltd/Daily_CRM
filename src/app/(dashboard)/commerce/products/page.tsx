@@ -12,6 +12,7 @@ import { BarcodeTagModal } from "@/components/commerce/barcode-tag-modal";
 import { ProductDetailsModal } from "@/components/commerce/product-details-modal";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
 import Link from "next/link";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface CustomFieldDef {
   id: string;
@@ -616,18 +617,13 @@ export default function ProductsPage() {
               Master Template: <span className="text-[#00aef0] font-extrabold">{activeTemplate}</span>
             </Button>
           </Link>
-          <Button
-            onClick={() => {
+          <IconAction label="Add New Product" icon={<Plus className="h-4 w-4" />} onClick={() => {
               syncTemplateFromSettings();
               handleResetForm();
               setActiveTab("BASIC");
               setShowAddModal(true);
             }}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
-          >
-            <Plus className="h-4 w-4" />
-            Add New Product
-          </Button>
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11" />
         </div>
       </div>
 
@@ -643,10 +639,7 @@ export default function ProductsPage() {
             className="pl-10 h-10 bg-background/80 border-border text-foreground rounded-xl focus:border-[#00aef0]"
           />
         </div>
-        <Button variant="outline" onClick={fetchProducts} className="h-10 border-border text-foreground gap-1.5 rounded-xl">
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refresh
-        </Button>
+        <IconAction label="Refresh" icon={<RefreshCw className="h-3.5 w-3.5" />} variant="outline" onClick={fetchProducts} className="h-10 border-border text-foreground gap-1.5 rounded-xl" />
       </div>
 
       {/* Products Table */}
@@ -735,39 +728,21 @@ export default function ProductsPage() {
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
+                        <IconAction label="View Details" icon={<Eye className="h-3.5 w-3.5 text-[#00aef0]" />} variant="outline"
                           onClick={() => {
                             setSelectedViewProduct(product);
                             setShowViewModal(true);
                           }}
-                          className="border-border hover:border-[#00aef0] bg-card hover:bg-muted text-foreground hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
-                        >
-                          <Eye className="h-3.5 w-3.5 text-[#00aef0]" />
-                          View Details
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
+                          className="border-border hover:border-[#00aef0] bg-card hover:bg-muted text-foreground hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8" />
+                        <IconAction label="Edit" icon={<Pencil className="h-3.5 w-3.5 text-purple-400" />} variant="outline"
                           onClick={() => handleOpenEditModal(product)}
-                          className="border-border hover:border-purple-500 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-semibold text-xs rounded-xl gap-1.5 h-8"
-                        >
-                          <Pencil className="h-3.5 w-3.5 text-purple-400" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
+                          className="border-border hover:border-purple-500 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-semibold text-xs rounded-xl gap-1.5 h-8" />
+                        <IconAction label="Print Tag" icon={<Printer className="h-3.5 w-3.5" />} variant="outline"
                           onClick={() => {
                             setSelectedBarcodeProduct(product);
                             setShowTagModal(true);
                           }}
-                          className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8"
-                        >
-                          <Printer className="h-3.5 w-3.5" />
-                          Print Tag
-                        </Button>
+                          className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] font-semibold text-xs rounded-xl gap-1.5 h-8" />
                       </div>
                     </td>
                   </tr>
@@ -1837,13 +1812,9 @@ export default function ProductsPage() {
                         <option value="DROPDOWN">Dropdown List</option>
                         <option value="BOOLEAN">Yes / No Toggle</option>
                       </select>
-                      <Button
-                        type="button"
+                      <IconAction label="Add Field" icon={<Plus className="h-3.5 w-3.5" />} type="button"
                         onClick={handleAddCustomField}
-                        className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold text-xs h-9 rounded-xl gap-1"
-                      >
-                        <Plus className="h-3.5 w-3.5" /> Add Field
-                      </Button>
+                        className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold text-xs h-9 rounded-xl gap-1" />
                     </div>
                   </div>
 

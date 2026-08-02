@@ -545,10 +545,7 @@ export function TemplateManager() {
               <RefreshCw className={`size-4 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Syncing…' : 'Sync from Meta'}
             </Button>
-            <Button onClick={openCreate}>
-              <Plus className="size-4" />
-              New Template
-            </Button>
+            <IconAction label="New Template" icon={<Plus className="size-4" />} onClick={openCreate} />
           </div>
         }
       />
@@ -1094,17 +1091,11 @@ export function TemplateManager() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-muted-foreground">Buttons (optional)</Label>
-                <Button
-                  type="button"
+                <IconAction label="Add Button" icon={<Plus className="size-3" />} type="button"
                   variant="outline"
-                  size="sm"
                   onClick={addButton}
                   disabled={form.buttons.length >= TEMPLATE_LIMITS.maxButtonsTotal}
-                  className="border-border bg-transparent text-muted-foreground hover:bg-muted h-7 text-xs"
-                >
-                  <Plus className="size-3" />
-                  Add Button
-                </Button>
+                  className="border-border bg-transparent text-muted-foreground hover:bg-muted h-7 text-xs" />
               </div>
               {form.buttons.length === 0 ? (
                 <p className="text-[11px] text-muted-foreground">

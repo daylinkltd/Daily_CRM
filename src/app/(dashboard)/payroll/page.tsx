@@ -38,6 +38,7 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface Cycle {
   id: string;
@@ -311,12 +312,8 @@ export default function PayrollAdminPage() {
         }
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={openSalaries}>
-              <Users /> Salaries
-            </Button>
-            <Button onClick={() => setNewCycleOpen(true)}>
-              <Plus /> New Cycle
-            </Button>
+            <IconAction label="Salaries" icon={<Users />} variant="outline" onClick={openSalaries} />
+            <IconAction label="New Cycle" icon={<Plus />} onClick={() => setNewCycleOpen(true)} />
           </div>
         }
       />

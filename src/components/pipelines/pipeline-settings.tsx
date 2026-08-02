@@ -311,16 +311,10 @@ export function PipelineSettings({
                       if (e.key === "Enter") handleAddStage();
                     }}
                   />
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <IconAction label="Add" icon={<Plus className="h-3 w-3" />} variant="outline"
                     onClick={handleAddStage}
                     disabled={!newStageName.trim()}
-                    className="shrink-0 border-border bg-transparent text-muted-foreground hover:bg-muted"
-                  >
-                    <Plus className="mr-1 h-3 w-3" />
-                    Add
-                  </Button>
+                    className="shrink-0 border-border bg-transparent text-muted-foreground hover:bg-muted" />
                 </div>
               </div>
 

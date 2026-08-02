@@ -15,6 +15,7 @@ import {
   Layers,
 } from "lucide-react";
 import { toast } from "sonner";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function AccountingLedgerPage() {
   const { activeWorkspace } = useWorkspace();
@@ -73,14 +74,9 @@ export default function AccountingLedgerPage() {
             Real-time journal vouchers posted automatically from POS billing payment modes.
           </p>
         </div>
-        <Button
-          onClick={fetchData}
+        <IconAction label="Refresh Books" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchData}
           variant="outline"
-          className="border-border text-foreground gap-1.5 rounded-xl h-11"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Refresh Books
-        </Button>
+          className="border-border text-foreground gap-1.5 rounded-xl h-11" />
       </div>
 
       {/* Account Balance Summary Cards */}

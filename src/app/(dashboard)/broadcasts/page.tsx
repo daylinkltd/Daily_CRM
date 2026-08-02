@@ -17,6 +17,7 @@ import { Radio, Plus, Loader2 } from 'lucide-react';
 import { getBroadcastStatus } from '@/lib/broadcast-status';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { IconAction } from "@/components/ui/icon-action";
 
 /**
  * Poll cadence while any broadcast is sending. Kept modest so we don't
@@ -180,10 +181,7 @@ export default function BroadcastsPage() {
         title="Broadcasts"
         description="Send bulk messages to your contacts using approved templates."
         actions={
-          <Button onClick={() => router.push('/broadcasts/new')} variant="primary">
-            <Plus className="h-4 w-4" />
-            New Broadcast
-          </Button>
+          <IconAction label="New Broadcast" icon={<Plus className="h-4 w-4" />} onClick={() => router.push('/broadcasts/new')} variant="primary" />
         }
       />
 

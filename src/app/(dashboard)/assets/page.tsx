@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { assertAffected } from '@/lib/supabase/affected-rows';
 import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
 import {
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Laptop, Plus, Loader2 } from 'lucide-react';
 import { AssignAssetForm } from '@/components/assets/assign-asset-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function AssetsPage() {
   const supabase = createClient();
@@ -84,10 +86,7 @@ export default function AssetsPage() {
         title="Asset Management" 
         description="Track company laptops, phones, and physical assets assigned to employees."
         action={
-          <Button onClick={() => setShowAssign(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="size-4 mr-2" />
-            Assign Asset
-          </Button>
+          <IconAction label="Assign Asset" icon={<Plus className="size-4 " />} onClick={() => setShowAssign(true)} className="bg-primary text-primary-foreground hover:bg-primary/90" />
         }
       />
       
@@ -148,11 +147,17 @@ export default function AssetsPage() {
                         <Button
                           variant="ghost" size="sm"
                           onClick={async () => {
-                            const { error } = await supabase
-                              .from('employee_assets')
-                              .update({ returned_date: new Date().toISOString().slice(0, 10) })
-                              .eq('id', asset.id);
-                            if (error) { toast.error(error.message); return; }
+                            try {
+                              const result = await supabase
+                                .from('employee_assets')
+                                .update({ returned_date: new Date().toISOString().slice(0, 10) })
+                                .eq('id', asset.id)
+                                .select('id');
+                              assertAffected(result, 'this asset', 'update');
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Failed to mark returned');
+                              return;
+                            }
                             toast.success('Marked as returned');
                             void fetchAssets();
                           }}

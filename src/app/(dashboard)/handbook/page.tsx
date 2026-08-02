@@ -350,17 +350,13 @@ export default function HandbookPage() {
                 documentSummary="Company operational guidelines and employee handbook."
               />
             )}
-            <Button variant="outline" onClick={handlePrint}>
-              <Printer className="size-4 mr-1.5" /> Print / Export PDF
-            </Button>
+            <IconAction label="Print / Export PDF" icon={<Printer className="size-4 " />} variant="outline" onClick={handlePrint} />
             {isAdmin && (
               <>
                 <Button variant="outline" onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }}>
                   <PlusCircle className="size-4 mr-1.5 text-primary" /> Create Custom Policy
                 </Button>
-                <Button variant="outline" onClick={() => setAddPolicyOpen(true)}>
-                  <Plus className="size-4 mr-1.5 text-primary" /> Attach Existing Policy
-                </Button>
+                <IconAction label="Attach Existing Policy" icon={<Plus className="size-4 text-primary" />} variant="outline" onClick={() => setAddPolicyOpen(true)} />
                 <Button onClick={handleGenerate} disabled={generating || migrationPending || missing.length > 0}>
                   {generating ? <Loader2 className="animate-spin" /> : <Sparkles />}
                   {generated > 0 ? "Generate Missing Sections" : "Generate Handbook"}
@@ -523,27 +519,17 @@ export default function HandbookPage() {
                           {s.policy_id && (
                             <div className="flex items-center justify-end gap-1">
                               {isAdmin && s.status === "DRAFT" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
+                                <IconAction label="Publish" icon={<Send className="size-3 " />} variant="outline"
                                   className="text-xs text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 border-emerald-500/20"
-                                  onClick={() => handlePublishPolicy(s.policy_id!)}
-                                >
-                                  <Send className="size-3 mr-1" /> Publish
-                                </Button>
+                                  onClick={() => handlePublishPolicy(s.policy_id!)} />
                               )}
                               {isAdmin && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
+                                <IconAction label="Edit" icon={<Edit3 className="size-3.5 " />} variant="ghost"
                                   className="text-xs"
                                   onClick={() => {
                                     setEditingPolicyId(s.policy_id);
                                     setEditorOpen(true);
-                                  }}
-                                >
-                                  <Edit3 className="size-3.5 mr-1" /> Edit
-                                </Button>
+                                  }} />
                               )}
                               <Button size="sm" variant="outline" className="text-xs" onClick={() => router.push(`/policies/${s.policy_id}/read`)}>
                                 Read & Sign

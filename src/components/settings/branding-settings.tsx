@@ -29,6 +29,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SettingsPanelHead } from "./settings-panel-head";
+import { IconAction } from "@/components/ui/icon-action";
 
 const MAX_LOGO_BYTES = 3 * 1024 * 1024; // 3 MB
 const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/webp", "image/svg+xml"]);
@@ -264,17 +265,11 @@ export function BrandingSettings() {
                   {currentLogoUrl ? "Change Logo" : "Upload Logo"}
                 </Button>
                 {currentLogoUrl && (
-                  <Button
-                    type="button"
+                  <IconAction label="Remove" icon={<Trash2 className="size-3.5 " />} type="button"
                     variant="ghost"
-                    size="sm"
                     onClick={onRemoveLogo}
                     disabled={!canEditSettings || saving}
-                    className="text-muted-foreground hover:text-red-400"
-                  >
-                    <Trash2 className="size-3.5 mr-1.5" />
-                    Remove
-                  </Button>
+                    className="text-muted-foreground hover:text-red-400" />
                 )}
               </div>
               {pendingLogo && (

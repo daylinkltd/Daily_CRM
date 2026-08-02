@@ -148,9 +148,7 @@ export function PrintableHandbookModal({
             Official Letterhead Handbook Document
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={handlePrintWindow} className="bg-primary text-primary-foreground shadow">
-              <Printer className="size-4 mr-2" /> Print / Save PDF
-            </Button>
+            <IconAction label="Print / Save PDF" icon={<Printer className="size-4 " />} onClick={handlePrintWindow} className="bg-primary text-primary-foreground shadow" />
             <IconAction
               label="Close"
               icon={<X className="size-4" />}

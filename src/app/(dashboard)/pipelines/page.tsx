@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GitBranch, Plus, ChevronDown, Settings } from "lucide-react";
 import { toast } from "sonner";
+import { IconAction } from "@/components/ui/icon-action";
 
 // Spec-defined seed — name and color per the product spec.
 const SPEC_DEFAULT_STAGES = [
@@ -362,22 +363,12 @@ export default function PipelinesPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
+          <IconAction label="Add Pipeline" icon={<Plus className="h-4 w-4" />} variant="outline"
             onClick={() => setNewPipelineOpen(true)}
-            className="border-border bg-card text-foreground hover:bg-muted"
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            Add Pipeline
-          </Button>
-          <Button
-            onClick={() => handleAddDeal()}
+            className="border-border bg-card text-foreground hover:bg-muted" />
+          <IconAction label="Add Deal" icon={<Plus className="h-4 w-4" />} onClick={() => handleAddDeal()}
             disabled={!selectedPipelineId || stages.length === 0}
-            className="bg-primary text-primary-foreground hover:bg-primary"
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            Add Deal
-          </Button>
+            className="bg-primary text-primary-foreground hover:bg-primary" />
         </div>
       </div>
 

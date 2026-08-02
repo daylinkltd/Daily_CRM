@@ -447,9 +447,7 @@ export default function CommercialsPage() {
                             )}
                             {r.status === "review" && isAdmin && (
                               <>
-                                <Button size="sm" variant="outline" disabled={busy} onClick={() => act(r, "approve")}>
-                                  <Check /> Approve
-                                </Button>
+                                <IconAction label="Approve" icon={<Check />} variant="outline" disabled={busy} onClick={() => act(r, "approve")} />
                                 <IconAction
                                   label="Reject"
                                   icon={<X />}
@@ -465,12 +463,8 @@ export default function CommercialsPage() {
                               </Button>
                             )}
                             {r.status === "converted" && r.converted_quotation_id && (
-                              <Button
-                                size="sm" variant="ghost"
-                                onClick={() => router.push(`/quotations/${r.converted_quotation_id}/preview`)}
-                              >
-                                <FileText /> View Quote
-                              </Button>
+                              <IconAction label="View Quote" icon={<FileText />} variant="ghost"
+                                onClick={() => router.push(`/quotations/${r.converted_quotation_id}/preview`)} />
                             )}
                           </div>
                         </TableCell>

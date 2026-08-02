@@ -799,13 +799,9 @@ export default function EditQuotationPage({ params }: PageProps) {
             </SortableContext>
           </DndContext>
 
-          <Button
-            onClick={handleAddSection}
+          <IconAction label="Add Section" icon={<Plus className="size-4" />} onClick={handleAddSection}
             variant="outline"
-            className="w-full border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-foreground py-6"
-          >
-            <Plus className="mr-1.5 size-4" /> Add Section
-          </Button>
+            className="w-full border-dashed border-border hover:border-primary/50 text-muted-foreground hover:text-foreground py-6" />
 
           {/* Notes and payment terms */}
           <Card className="border-border bg-card">
@@ -958,22 +954,12 @@ function SortableSectionCard({
         />
 
         <div className="flex items-center gap-1.5">
-          <Button
-            variant="outline"
-            size="xs"
+          <IconAction label="Catalog" icon={<Sparkles className="size-3 text-primary animate-pulse" />} variant="outline"
             onClick={() => onAddCatalog(section.id)}
-            className="h-7 border-border text-xs bg-transparent text-muted-foreground hover:bg-muted"
-          >
-            <Sparkles className="size-3 mr-1 text-primary animate-pulse" /> Catalog
-          </Button>
-          <Button
-            variant="outline"
-            size="xs"
+            className="h-7 border-border text-xs bg-transparent text-muted-foreground hover:bg-muted" />
+          <IconAction label="Custom" icon={<Plus className="size-3 " />} variant="outline"
             onClick={() => onAddItem(section.id)}
-            className="h-7 border-border text-xs bg-transparent text-muted-foreground hover:bg-muted"
-          >
-            <Plus className="size-3 mr-1" /> Custom
-          </Button>
+            className="h-7 border-border text-xs bg-transparent text-muted-foreground hover:bg-muted" />
           <IconAction
             label="Delete"
             icon={<Trash2 className="size-3.5" />}

@@ -184,9 +184,7 @@ export default function LedgersPage() {
         title="Ledgers"
         description="Manage the chart of accounts. Balances derive from journal entries and update live."
         actions={
-          <Button onClick={() => setEdit({ ...BLANK })}>
-            <Plus /> Add Ledger
-          </Button>
+          <IconAction label="Add Ledger" icon={<Plus />} onClick={() => setEdit({ ...BLANK })} />
         }
       />
 

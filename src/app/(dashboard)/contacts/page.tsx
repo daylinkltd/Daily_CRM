@@ -513,14 +513,8 @@ export default function ContactsPage() {
         actions={
           <>
             {canEditSettings && (
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() => setCustomFieldsOpen(true)}
-              >
-                <SlidersHorizontal className="size-4" />
-                Custom fields
-              </Button>
+              <IconAction label="Custom fields" icon={<SlidersHorizontal className="size-4" />} variant="outline"
+                onClick={() => setCustomFieldsOpen(true)} />
             )}
             <GatedButton
               variant="outline"
