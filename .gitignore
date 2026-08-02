@@ -58,3 +58,14 @@ next-env.d.ts
 # local scratch space for one-off debug scripts
 /scratch/
 
+
+# Runtime user uploads. These are written to the local filesystem by
+# /api/media/upload and the form-submission route, and 496MB of them (251
+# files, including videos of named individuals) had been committed — which
+# is what filled the deploy server's disk and broke the build with
+# "No space left on device".
+#
+# They do not belong in version control: every clone pays for them, and
+# personal data should not live in git history.
+public/uploads/*
+!public/uploads/.gitkeep
