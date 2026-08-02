@@ -65,7 +65,9 @@ export function UploadDocumentForm({ open, onOpenChange, onSaved }: UploadDocume
       // Fetch only onboarded employees — two-step required since workspace_members.user_id refs auth.users
       const { data: empData } = await supabase
         .from('employee_profiles')
-        .select('workspace_member_id, workspace_members(id, user_id)')
+        // See employees/page.tsx: the embed needs the FK hint because
+        // employee_profiles points at workspace_members twice.
+        .select('workspace_member_id, workspace_members!workspace_member_id(id, user_id)')
         .eq('workspace_id', activeWorkspace!.id)
         .eq('status', 'ACTIVE');
 

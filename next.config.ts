@@ -12,9 +12,16 @@ import type { NextConfig } from "next";
  *   - HSTS: only meaningful on HTTPS (no-op on http://localhost).
  *   - X-Content-Type-Options / X-Frame-Options / Referrer-Policy:
  *     baseline OWASP hardening, no behavioural cost.
- *   - Permissions-Policy: we don't use camera / microphone / etc, so
- *     deny them. A supply-chain compromise or a forgotten plugin
- *     can't silently opt back in.
+ *   - Permissions-Policy: camera, microphone, payment and usb stay
+ *     denied — nothing in the app uses them, so a supply-chain
+ *     compromise or a forgotten plugin can't silently opt back in.
+ *
+ *     GEOLOCATION IS DELIBERATELY ALLOWED for our own origin. It was in
+ *     the deny list, which meant attendance punches could NEVER capture
+ *     a location: the browser refuses the API before it even consults
+ *     the user's site permission, so the site showed "Location: Allow"
+ *     while every request failed. `self` keeps it denied for any
+ *     cross-origin iframe, which is the case the block was protecting.
  */
 const SECURITY_HEADERS = [
   {
@@ -26,7 +33,7 @@ const SECURITY_HEADERS = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    value: "camera=(), microphone=(), geolocation=(self), payment=(), usb=()",
   },
   {
     key: "Content-Security-Policy-Report-Only",

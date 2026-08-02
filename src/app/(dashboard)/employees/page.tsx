@@ -52,6 +52,13 @@ export default function EmployeesPage() {
     setLoading(true);
 
     try {
+      // employee_profiles has TWO foreign keys to workspace_members —
+      // workspace_member_id (the employee) and manager_workspace_member_id
+      // (their manager) — so the embed MUST name which one. Without the
+      // hint PostgREST refuses it with "more than one relationship was
+      // found", the whole select fails, and the fallback below drops
+      // departments and designations: that is why those columns rendered
+      // as "-" for every employee.
       // 1. Try querying employee_profiles with joined relations
       let { data: rawData, error } = await supabase
         .from('employee_profiles')
@@ -59,7 +66,7 @@ export default function EmployeesPage() {
           *,
           departments ( name ),
           designations ( title ),
-          workspace_members ( id, user_id, role )
+          workspace_members!workspace_member_id ( id, user_id, role )
         `)
         .eq('workspace_id', activeWorkspace.id);
 

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -38,6 +39,10 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
   
   // Data lists
   const [availableMembers, setAvailableMembers] = useState<any[]>([]);
+  // Managers must be people who ALREADY have an employee record — the
+  // opposite of availableMembers, which holds only members not yet
+  // onboarded.
+  const [managerOptions, setManagerOptions] = useState<{ id: string; full_name: string }[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [designations, setDesignations] = useState<any[]>([]);
 
@@ -49,6 +54,16 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
   const [designationId, setDesignationId] = useState('');
   const [joiningDate, setJoiningDate] = useState('');
   const [employmentType, setEmploymentType] = useState('FULL_TIME');
+  // Present on the employee record and editable on the detail page, but
+  // never collected at onboarding — so every new hire started with a
+  // blank manager, grade, address and notes that someone had to go back
+  // and fill in.
+  const [managerId, setManagerId] = useState('');
+  const [salaryGrade, setSalaryGrade] = useState('');
+  const [address, setAddress] = useState('');
+  const [emergencyContact, setEmergencyContact] = useState('');
+  const [notes, setNotes] = useState('');
+  const [status, setStatus] = useState('ACTIVE');
   
   // Salary Breakdown
   const [basicSalary, setBasicSalary] = useState('');
@@ -126,6 +141,7 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
       setDepartments(deps || []);
       setDesignations(desigs || []);
       setAvailableMembers(unassigned);
+      setManagerOptions(members.filter(m => existingIds.has(m.id)));
     } catch {
       toast.error('Failed to load form requirements');
     } finally {
@@ -165,7 +181,12 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
           // for every onboarded employee.
           professional_tax: Number(professionalTax) || 0,
           attendance_enabled: attendanceEnabled,
-          status: 'ACTIVE'
+          manager_workspace_member_id: managerId || null,
+          salary_grade: salaryGrade.trim() || null,
+          address: address.trim() || null,
+          emergency_contact: emergencyContact.trim() || null,
+          notes: notes.trim() || null,
+          status
         });
 
       if (error) throw error;
@@ -283,6 +304,90 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Reporting Manager</Label>
+                <Select value={managerId} onValueChange={(v) => setManagerId(v || '')}>
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="No manager" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {managerOptions.length === 0 ? (
+                      <SelectItem value="" disabled>
+                        No onboarded employees yet
+                      </SelectItem>
+                    ) : (
+                      managerOptions.map((m: { id: string; full_name: string }) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.full_name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Employment Status</Label>
+                <Select value={status} onValueChange={(v) => setStatus(v || 'ACTIVE')}>
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ACTIVE">Active</SelectItem>
+                    <SelectItem value="PROBATION">Probation</SelectItem>
+                    <SelectItem value="NOTICE_PERIOD">Notice period</SelectItem>
+                    <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Salary Grade / Band</Label>
+                <Input
+                  value={salaryGrade}
+                  onChange={(e) => setSalaryGrade(e.target.value)}
+                  placeholder="e.g. L3"
+                  className="bg-card border-border text-foreground"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Emergency Contact</Label>
+                <Input
+                  value={emergencyContact}
+                  onChange={(e) => setEmergencyContact(e.target.value)}
+                  placeholder="Name and phone"
+                  className="bg-card border-border text-foreground"
+                />
+              </div>
+
+              <div className="space-y-2 col-span-2">
+                <Label>Address</Label>
+                <Input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Residential address"
+                  className="bg-card border-border text-foreground"
+                />
+              </div>
+
+              <div className="space-y-2 col-span-2">
+                <Label>Notes</Label>
+                {/* `plain`: stored as text and rendered as text on the
+                    employee record, so the rich-text editor would wrap it
+                    in HTML that then shows as markup. */}
+                <Textarea
+                  plain
+                  rows={2}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Anything HR should know"
+                  className="bg-card border-border text-foreground"
+                />
               </div>
             </div>
 
