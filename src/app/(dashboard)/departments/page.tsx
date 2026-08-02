@@ -32,6 +32,12 @@ import { Search, Plus, MoreHorizontal, Pencil, Trash2, Loader2, Building } from 
 import { PageHeader } from '@/components/shared/page-header';
 import { GatedButton } from '@/components/ui/gated-button';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { useRowSelection } from '@/hooks/use-row-selection';
+import {
+  BulkActionBar,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+} from '@/components/ui/bulk-action-bar';
 import { DepartmentForm } from '@/components/departments/department-form';
 
 export default function DepartmentsPage() {
@@ -40,6 +46,8 @@ export default function DepartmentsPage() {
   const canManagePeople = can('people_manage');
 
   const [departments, setDepartments] = useState<any[]>([]);
+  const selection = useRowSelection(departments, (r: { id: string }) => r.id);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -86,6 +94,28 @@ export default function DepartmentsPage() {
   function openEditForm(dept: any) {
     setEditDept(dept);
     setFormOpen(true);
+  }
+
+  async function bulkDelete() {
+    const ids = selection.selectedIds;
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} department${ids.length === 1 ? '' : 's'}?`)) return;
+    setBulkBusy(true);
+    try {
+      const { error } = await supabase
+        .from('departments')
+        .delete()
+        .in('id', ids)
+        .eq('workspace_id', activeWorkspace!.id);
+      if (error) throw error;
+      toast.success(`Deleted ${ids.length} department${ids.length === 1 ? '' : 's'}.`);
+      selection.clear();
+      fetchDepartments();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete');
+    } finally {
+      setBulkBusy(false);
+    }
   }
 
   function confirmDelete(dept: any) {
@@ -148,6 +178,13 @@ export default function DepartmentsPage() {
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="w-8">
+                <SelectAllCheckbox
+                  checked={selection.allVisibleSelected}
+                  indeterminate={selection.someVisibleSelected}
+                  onChange={selection.toggleAllVisible}
+                />
+              </TableHead>
               <TableHead className="text-muted-foreground">Name</TableHead>
               <TableHead className="text-muted-foreground">Description</TableHead>
               <TableHead className="text-muted-foreground hidden lg:table-cell">Created</TableHead>
@@ -157,7 +194,7 @@ export default function DepartmentsPage() {
           <TableBody>
             {loading ? (
               <TableRow className="border-border">
-                <TableCell colSpan={4} className="text-center py-12">
+                <TableCell colSpan={5} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="size-6 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">Loading departments...</p>
@@ -166,7 +203,7 @@ export default function DepartmentsPage() {
               </TableRow>
             ) : departments.length === 0 ? (
               <TableRow className="border-border">
-                <TableCell colSpan={4} className="text-center py-12">
+                <TableCell colSpan={5} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <Building className="size-8 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
@@ -188,7 +225,18 @@ export default function DepartmentsPage() {
               </TableRow>
             ) : (
               departments.map((dept) => (
-                <TableRow key={dept.id} className="border-border hover:bg-muted/50">
+                <TableRow
+                  key={dept.id}
+                  data-selected={selection.isSelected(dept.id) || undefined}
+                  className="border-border hover:bg-muted/50 data-[selected]:bg-primary/5"
+                >
+                  <TableCell className="w-8">
+                    <SelectRowCheckbox
+                      checked={selection.isSelected(dept.id)}
+                      onToggle={(o) => selection.toggle(dept.id, o)}
+                      label={`Select ${dept.name ?? dept.title}`}
+                    />
+                  </TableCell>
                   <TableCell className="text-foreground font-medium">
                     {dept.name}
                   </TableCell>
@@ -241,6 +289,24 @@ export default function DepartmentsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <BulkActionBar
+        count={selection.selectedCount}
+        hiddenCount={selection.hiddenSelectedCount}
+        onClear={selection.clear}
+        busy={bulkBusy}
+        noun="department"
+      >
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={bulkDelete}
+          disabled={bulkBusy}
+          className="h-7 gap-1.5 text-xs text-destructive"
+        >
+          <Trash2 className="size-3.5" /> Delete
+        </Button>
+      </BulkActionBar>
 
       <DepartmentForm
         open={formOpen}

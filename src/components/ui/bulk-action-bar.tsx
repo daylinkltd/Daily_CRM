@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 /**
@@ -75,8 +76,8 @@ export function BulkActionBar({
 }
 
 /**
- * The header checkbox. Renders the indeterminate state that a native
- * checkbox can only be given imperatively, via the `ref` callback.
+ * The header checkbox — a real bordered box with a tick, not a bare
+ * native input. Shows a dash when only some rows are selected.
  */
 export function SelectAllCheckbox({
   checked,
@@ -92,23 +93,24 @@ export function SelectAllCheckbox({
   disabled?: boolean;
 }) {
   return (
-    <input
-      type="checkbox"
+    <Checkbox
       aria-label={label}
       checked={checked}
+      indeterminate={indeterminate}
       disabled={disabled}
-      // `indeterminate` is a DOM property, not an attribute — React
-      // cannot set it declaratively.
-      ref={(el) => {
-        if (el) el.indeterminate = indeterminate;
-      }}
-      onChange={onChange}
-      className="size-3.5 cursor-pointer accent-primary"
+      onCheckedChange={onChange}
+      className="size-[18px] rounded-[4px]"
     />
   );
 }
 
-/** A row checkbox that forwards shift-click for range selection. */
+/**
+ * A row checkbox that forwards shift-click for range selection.
+ *
+ * The handler is on `onClick` rather than `onCheckedChange` because only
+ * the click event carries the modifier keys — `onCheckedChange` receives
+ * just the new boolean, which is not enough to know a range was meant.
+ */
 export function SelectRowCheckbox({
   checked,
   onToggle,
@@ -121,15 +123,17 @@ export function SelectRowCheckbox({
   disabled?: boolean;
 }) {
   return (
-    <input
-      type="checkbox"
+    <Checkbox
       aria-label={label}
       checked={checked}
       disabled={disabled}
-      // onClick carries the modifier keys; onChange does not.
-      onClick={(e) => onToggle({ shiftKey: e.shiftKey })}
-      onChange={() => {}}
-      className="size-3.5 cursor-pointer accent-primary"
+      onClick={(e) => {
+        // Our own state owns `checked`, so stop the primitive from also
+        // toggling and cancelling this out.
+        e.preventDefault();
+        onToggle({ shiftKey: e.shiftKey });
+      }}
+      className="size-[18px] rounded-[4px]"
     />
   );
 }

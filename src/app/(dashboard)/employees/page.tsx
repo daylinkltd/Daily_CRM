@@ -23,6 +23,12 @@ import { Search, MoreHorizontal, UserSquare, Loader2, Mail } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { useRowSelection } from '@/hooks/use-row-selection';
+import {
+  BulkActionBar,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+} from '@/components/ui/bulk-action-bar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { OnboardEmployeeForm } from '@/components/employees/onboard-employee-form';
@@ -34,6 +40,7 @@ export default function EmployeesPage() {
   const { activeWorkspace } = useWorkspace();
 
   const [employees, setEmployees] = useState<any[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showOnboard, setShowOnboard] = useState(false);
@@ -124,6 +131,34 @@ export default function EmployeesPage() {
     });
   }, [employees, search]);
 
+  const selection = useRowSelection(
+    filteredEmployees,
+    (e: { workspace_member_id: string }) => e.workspace_member_id
+  );
+
+  /** Set the status of every selected employee in one statement. */
+  const bulkSetStatus = async (status: 'ACTIVE' | 'INACTIVE') => {
+    const ids = selection.selectedIds;
+    if (ids.length === 0) return;
+    setBulkBusy(true);
+    try {
+      const { error } = await supabase
+        .from('employee_profiles')
+        .update({ status })
+        .in('workspace_member_id', ids)
+        .eq('workspace_id', activeWorkspace!.id);
+      if (error) throw error;
+      toast.success(`Updated ${ids.length} employee${ids.length === 1 ? '' : 's'}.`);
+      selection.clear();
+      fetchEmployees();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update employees');
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+
   const viewEmployeeDetails = (employeeId: string) => {
     router.push(`/employees/${employeeId}`);
   };
@@ -163,6 +198,14 @@ export default function EmployeesPage() {
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="w-8">
+                <SelectAllCheckbox
+                  checked={selection.allVisibleSelected}
+                  indeterminate={selection.someVisibleSelected}
+                  onChange={selection.toggleAllVisible}
+                  label="Select all employees"
+                />
+              </TableHead>
               <TableHead className="text-muted-foreground">Employee</TableHead>
               <TableHead className="text-muted-foreground hidden sm:table-cell">ID</TableHead>
               <TableHead className="text-muted-foreground hidden md:table-cell">Department</TableHead>
@@ -174,7 +217,7 @@ export default function EmployeesPage() {
           <TableBody>
             {loading ? (
               <TableRow className="border-border">
-                <TableCell colSpan={6} className="text-center py-12">
+                <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="size-6 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">Loading employees...</p>
@@ -183,7 +226,7 @@ export default function EmployeesPage() {
               </TableRow>
             ) : filteredEmployees.length === 0 ? (
               <TableRow className="border-border">
-                <TableCell colSpan={6} className="text-center py-12">
+                <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
                     <UserSquare className="size-8 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
@@ -202,11 +245,21 @@ export default function EmployeesPage() {
                 const email = profile?.email || '';
                 
                 return (
-                  <TableRow 
-                    key={emp.workspace_member_id} 
-                    className="border-border hover:bg-muted/50 cursor-pointer"
+                  <TableRow
+                    key={emp.workspace_member_id}
+                    data-selected={selection.isSelected(emp.workspace_member_id) || undefined}
+                    className="border-border hover:bg-muted/50 cursor-pointer data-[selected]:bg-primary/5"
                     onClick={() => viewEmployeeDetails(emp.workspace_member_id)}
                   >
+                    {/* The row navigates on click, so the checkbox cell must
+                        swallow the event or ticking a box opens the profile. */}
+                    <TableCell className="w-8" onClick={(e) => e.stopPropagation()}>
+                      <SelectRowCheckbox
+                        checked={selection.isSelected(emp.workspace_member_id)}
+                        onToggle={(o) => selection.toggle(emp.workspace_member_id, o)}
+                        label={`Select ${fullName}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="size-9 border border-border">
@@ -273,6 +326,21 @@ export default function EmployeesPage() {
           </TableBody>
         </Table>
       </div>
+
+      <BulkActionBar
+        count={selection.selectedCount}
+        hiddenCount={selection.hiddenSelectedCount}
+        onClear={selection.clear}
+        busy={bulkBusy}
+        noun="employee"
+      >
+        <Button size="sm" variant="outline" onClick={() => bulkSetStatus('ACTIVE')} disabled={bulkBusy} className="h-7 text-xs">
+          Mark active
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => bulkSetStatus('INACTIVE')} disabled={bulkBusy} className="h-7 text-xs">
+          Mark inactive
+        </Button>
+      </BulkActionBar>
     </div>
   );
 }
