@@ -237,7 +237,7 @@ export function PrintableHandbookModal({
                     </div>
 
                     <div
-                      className="prose text-xs text-slate-800 leading-relaxed space-y-2"
+                      className="rich-text text-xs text-slate-800 leading-relaxed space-y-2"
                       dangerouslySetInnerHTML={{ __html: markdownToHtml(sec.content) }}
                     />
                   </div>

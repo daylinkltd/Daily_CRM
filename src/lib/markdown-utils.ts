@@ -98,6 +98,14 @@ export function sanitizeHtml(html: string): string {
   return root.innerHTML;
 }
 
+/**
+ * True only for a markdown heading anchored to the start of a line, so an
+ * inline "#" in ordinary prose is never mistaken for one.
+ */
+function hasLeadingMarkdownHeading(str: string): boolean {
+  return /(^|\n)\s{0,3}#{1,6}\s/.test(str);
+}
+
 export function isHtmlContent(str: string): boolean {
   if (!str) return false;
   return /<[a-z][\s\S]*>/i.test(str);
@@ -111,7 +119,13 @@ export function markdownToHtml(md: string): string {
   if (!md) return "";
   // Already structured HTML (from the WYSIWYG editor) — sanitise and
   // return; it needs no markdown pass.
-  if (isHtmlContent(md) && !md.includes("# ") && !md.includes("## ")) {
+  // Only re-parse HTML as markdown when it genuinely carries a markdown
+  // heading at the START of a line. The old test was `md.includes("# ")`,
+  // which fired on any hash followed by a space ANYWHERE — "Invoice # 12",
+  // "Ticket # 5" — and then the heading rules below turned that text into
+  // mangled nested markup like `<p>Invoice<h1>12 is due</p></h1>`. That is
+  // why pasted content "all came as h1".
+  if (isHtmlContent(md) && !hasLeadingMarkdownHeading(md)) {
     return sanitizeHtml(md);
   }
 
@@ -125,9 +139,9 @@ export function markdownToHtml(md: string): string {
   html = html.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-foreground mt-5 mb-2 border-b border-border/40 pb-1">$1</h2>');
   html = html.replace(/^# (.*$)/gim, '<h1 class="text-xl font-extrabold text-foreground mt-6 mb-3 border-b border-border pb-1">$1</h1>');
 
-  // Also replace inline ## and # if lines were joined with spaces or line breaks
-  html = html.replace(/\s## (.*?)(?=\s##|\s#|\n|$)/g, '<h2 class="text-lg font-bold text-foreground mt-4 mb-2">$1</h2>');
-  html = html.replace(/\s# (.*?)(?=\s##|\s#|\n|$)/g, '<h1 class="text-xl font-extrabold text-foreground mt-5 mb-3">$1</h1>');
+  // The inline "joined lines" rules that used to live here matched a hash
+  // ANYWHERE in a line, so "Invoice # 12" became a heading. A heading is a
+  // line-level construct; the anchored rules above cover the real cases.
 
   // Bold & Italic
   html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');

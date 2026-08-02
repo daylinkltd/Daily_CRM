@@ -255,7 +255,7 @@ export function RichTextEditor({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           style={{ minHeight }}
-          className="prose dark:prose-invert max-w-none text-xs focus:outline-none leading-relaxed overflow-y-auto"
+          className="rich-text max-w-none overflow-y-auto text-xs leading-relaxed focus:outline-none"
         />
       </div>
     </div>

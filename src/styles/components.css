@@ -65,3 +65,66 @@
   display: inline-flex;
   align-items: center;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Rich text content
+
+   The editor and every surface that renders stored rich text carried a
+   `prose` class, but @tailwindcss/typography is NOT a dependency of this
+   project — so `prose` was a no-op. Combined with Tailwind's preflight,
+   which resets `ul, ol { list-style: none; margin: 0; padding: 0 }`, a
+   bullet list was created correctly in the DOM and then rendered with no
+   marker and no indent. The lists were never broken; they were invisible.
+
+   These rules restore the block semantics the editor needs, scoped to
+   .rich-text so nothing else in the app is affected.
+   ───────────────────────────────────────────────────────────── */
+.rich-text ul,
+.rich-text ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+.rich-text ul { list-style: disc outside; }
+.rich-text ol { list-style: decimal outside; }
+.rich-text ul ul { list-style: circle outside; }
+.rich-text li { margin: 0.125rem 0; }
+
+.rich-text h1,
+.rich-text h2,
+.rich-text h3 {
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0.75rem 0 0.375rem;
+}
+.rich-text h1 { font-size: 1.375em; }
+.rich-text h2 { font-size: 1.2em; }
+.rich-text h3 { font-size: 1.05em; }
+
+.rich-text p { margin: 0.375rem 0; }
+
+.rich-text blockquote {
+  margin: 0.5rem 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--primary);
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.rich-text pre {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  background: var(--muted);
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  white-space: pre-wrap;
+}
+.rich-text code { font-family: ui-monospace, monospace; }
+
+.rich-text a { text-decoration: underline; }
+.rich-text strong { font-weight: 700; }
+.rich-text em { font-style: italic; }
+.rich-text u { text-decoration: underline; }
+
+/* Empty editor should still be clickable at full height. */
+.rich-text:empty::before { content: ""; display: block; }

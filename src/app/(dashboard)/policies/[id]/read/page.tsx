@@ -207,7 +207,7 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
           >
             {activeVersion.content ? (
               <div
-                className="prose dark:prose-invert max-w-none text-sm leading-relaxed space-y-3"
+                className="rich-text max-w-none text-sm leading-relaxed space-y-3"
                 dangerouslySetInnerHTML={{ __html: markdownToHtml(activeVersion.content) }}
               />
             ) : (

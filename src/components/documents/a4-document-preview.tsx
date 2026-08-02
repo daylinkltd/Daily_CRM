@@ -232,7 +232,7 @@ export const A4DocumentPreview = forwardRef<HTMLDivElement, A4DocumentPreviewPro
         {/* Document Main Content Body */}
         <main className="relative z-10 min-h-[450px] space-y-4 text-slate-800 text-sm leading-relaxed">
           <div
-            className="prose prose-slate max-w-none prose-headings:font-bold prose-h1:text-xl prose-h2:text-lg prose-p:my-2 prose-ul:my-2"
+            className="rich-text max-w-none"
             dangerouslySetInnerHTML={{
               __html: bodyHtml
                 ? sanitizeHtml(bodyHtml)
