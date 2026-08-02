@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, MapPin, Pencil, Star } from "lucide-react";
+import { Loader2, Plus, Trash2, MapPin, Pencil, Star, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { GeofenceMapPicker } from "@/components/attendance/geofence-map-picker";
 import { IconAction } from "@/components/ui/icon-action";
+import { BulkEntryDialog } from "@/components/ui/bulk-entry-dialog";
 import { useRowSelection } from "@/hooks/use-row-selection";
 import {
   BulkActionBar,
@@ -101,6 +102,7 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
   const [locations, setLocations] = useState<WorkLocationRow[]>([]);
   const [editorOpen, setEditorOpen] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const selection = useRowSelection(locations, (l) => l.id);
   const [draft, setDraft] = useState(BLANK);
 
@@ -194,6 +196,23 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
     }
   };
 
+  /** Address-only rows are valid; a location without coordinates simply
+   *  cannot be geofenced until someone drops a pin on it. */
+  const bulkAdd = async (rows: Record<string, string>[]) => {
+    const { error } = await supabase.from("work_locations").insert(
+      rows.map((r) => ({
+        workspace_id: activeWorkspace!.id,
+        name: r.name.trim(),
+        type: (r.type || "OFFICE").trim().toUpperCase(),
+        address: r.address?.trim() || null,
+        radius_m: Number(r.radius_m) > 0 ? Number(r.radius_m) : 100,
+      }))
+    );
+    if (error) throw error;
+    toast.success(`Added ${rows.length} location${rows.length === 1 ? "" : "s"}.`);
+    await fetchLocations();
+  };
+
   const handleBulkDelete = async () => {
     const ids = selection.selectedIds;
     if (ids.length === 0) return;
@@ -247,9 +266,14 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
           </CardDescription>
         </div>
         {canEdit && (
-          <Button onClick={openNew} className="shrink-0 gap-1.5">
-            <Plus className="size-4" /> Add location
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="outline" onClick={() => setBulkAddOpen(true)} className="gap-1.5">
+              <Layers className="size-4" /> Bulk add
+            </Button>
+            <Button onClick={openNew} className="gap-1.5">
+              <Plus className="size-4" /> Add location
+            </Button>
+          </div>
         )}
       </CardHeader>
 
@@ -341,6 +365,23 @@ export function WorkLocationsManager({ canEdit }: { canEdit: boolean }) {
           </Button>
         </BulkActionBar>
       </CardContent>
+
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        title="Add several work locations"
+        description="Names and addresses now; drop the pin on each one afterwards to enable its geofence."
+        scope="work_locations"
+        workspaceId={activeWorkspace?.id}
+        noun="location"
+        columns={[
+          { key: "name", label: "Name", required: true, placeholder: "Head Office" },
+          { key: "type", label: "Type", placeholder: "OFFICE" },
+          { key: "address", label: "Address", placeholder: "Optional" },
+          { key: "radius_m", label: "Radius (m)", type: "number", placeholder: "100" },
+        ]}
+        onSubmit={bulkAdd}
+      />
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">

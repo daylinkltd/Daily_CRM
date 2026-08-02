@@ -51,6 +51,7 @@ import {
   type PayrollField,
 } from "@/lib/hr/salary";
 import { IconAction } from "@/components/ui/icon-action";
+import { BulkEntryDialog } from "@/components/ui/bulk-entry-dialog";
 import { useRowSelection } from "@/hooks/use-row-selection";
 import {
   BulkActionBar,
@@ -137,6 +138,7 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
   const [members, setMembers] = useState<StructureMember[]>([]);
   const [savingStructure, setSavingStructure] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const structureSelection = useRowSelection(structures, (x) => x.id);
   const componentSelection = useRowSelection(components, (x) => x.id);
 
@@ -413,6 +415,30 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
     }
   };
 
+  const bulkAddComponents = async (rows: Record<string, string>[]) => {
+    const { error } = await supabase.from("hr_salary_components").insert(
+      rows.map((r) => {
+        const type = (r.type || "EARNING").trim().toUpperCase();
+        return {
+          workspace_id: activeWorkspace!.id,
+          name: r.name.trim(),
+          code: r.code?.trim() || null,
+          type: type === "DEDUCTION" ? "DEDUCTION" : "EARNING",
+          // A row with a % value is a percentage of basic; anything else
+          // is a flat monthly amount.
+          calculation_type: r.percent_of_basic?.trim()
+            ? "PERCENTAGE_OF_BASIC"
+            : "FIXED_AMOUNT",
+          value_number:
+            Number(r.percent_of_basic || r.fixed_amount || 0) || 0,
+        };
+      })
+    );
+    if (error) throw error;
+    toast.success(`Added ${rows.length} component${rows.length === 1 ? "" : "s"}.`);
+    await fetchData();
+  };
+
   const bulkSoftDelete = async (
     table: "hr_salary_structures" | "hr_salary_components",
     ids: string[],
@@ -557,9 +583,14 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
             </CardDescription>
           </div>
           {canEdit && (
-            <Button onClick={openComponentNew} variant="outline" className="shrink-0 gap-1.5">
-              <Plus className="size-4" /> Add component
-            </Button>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button onClick={() => setBulkAddOpen(true)} variant="outline" className="gap-1.5">
+                <Layers className="size-4" /> Bulk add
+              </Button>
+              <Button onClick={openComponentNew} variant="outline" className="gap-1.5">
+                <Plus className="size-4" /> Add component
+              </Button>
+            </div>
           )}
         </CardHeader>
         <CardContent>
@@ -671,6 +702,24 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
           <Trash2 className="size-3.5" /> Delete
         </Button>
       </BulkActionBar>
+
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        title="Add several pay components"
+        description="Fill EITHER a percentage of basic OR a fixed amount for each row."
+        scope="hr_salary_components"
+        workspaceId={activeWorkspace?.id}
+        noun="component"
+        columns={[
+          { key: "name", label: "Name", required: true, placeholder: "Transport Allowance" },
+          { key: "code", label: "Code", placeholder: "TA" },
+          { key: "type", label: "EARNING / DEDUCTION", placeholder: "EARNING" },
+          { key: "percent_of_basic", label: "% of basic", type: "number", placeholder: "10" },
+          { key: "fixed_amount", label: "Fixed amount", type: "number", placeholder: "1600" },
+        ]}
+        onSubmit={bulkAddComponents}
+      />
 
       {/* Component editor dialog */}
       <Dialog open={componentEditorOpen} onOpenChange={setComponentEditorOpen}>

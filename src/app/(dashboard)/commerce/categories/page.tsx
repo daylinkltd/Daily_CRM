@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, Search, Tag, Loader2, Edit3, Trash2 } from 'lucide-react';
+import { Plus, Layers, Search, Tag, Loader2, Edit3, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function CategoriesPage() {
@@ -37,6 +38,7 @@ export default function CategoriesPage() {
   // Modal states
   const [openModal, setOpenModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
 
   // Form State
@@ -99,6 +101,16 @@ export default function CategoriesPage() {
     setOpenModal(true);
   };
 
+  /** Insert every typed or pasted row in one statement. */
+  const bulkAdd = async (rows: Record<string, string>[]) => {
+    const { error } = await supabase.from('categories').insert(
+      rows.map((r) => ({ workspace_id: activeWorkspace!.id, name: r.name.trim(), description: r.description?.trim() || '' }))
+    );
+    if (error) throw error;
+    toast.success(`Added ${rows.length} category${rows.length === 1 ? '' : 's'}.`);
+    fetchCategories();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWorkspace?.id || !name.trim()) return;
@@ -158,10 +170,16 @@ export default function CategoriesPage() {
         title="Product Categories"
         description="Organize your store inventory into structured product categories."
         action={
-          <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground">
-            <Plus className="size-4 mr-2" />
-            Add Category
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setBulkAddOpen(true)}>
+              <Layers className="size-4 mr-2" />
+              Bulk add
+            </Button>
+            <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground">
+              <Plus className="size-4 mr-2" />
+              Add Category
+            </Button>
+          </div>
         }
       />
 
@@ -262,6 +280,20 @@ export default function CategoriesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        title="Add several categorys"
+        scope="categories"
+        workspaceId={activeWorkspace?.id}
+        noun="category"
+        columns={[
+          { key: 'name', label: 'Category name', required: true, placeholder: 'e.g. Electronics' },
+          { key: 'description', label: 'Description', placeholder: 'Optional' },
+        ]}
+        onSubmit={bulkAdd}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, Search, Scale, Loader2, Edit3, Trash2, Sparkles } from 'lucide-react';
+import { Plus, Layers, Search, Scale, Loader2, Edit3, Trash2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 const DEFAULT_UNITS = [
@@ -48,6 +49,7 @@ export default function UnitsPage() {
   // Modal states
   const [openModal, setOpenModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<any | null>(null);
 
   // Form State
@@ -117,6 +119,16 @@ export default function UnitsPage() {
     setOpenModal(true);
   };
 
+  /** Insert every typed or pasted row in one statement. */
+  const bulkAdd = async (rows: Record<string, string>[]) => {
+    const { error } = await supabase.from('units').insert(
+      rows.map((r) => ({ workspace_id: activeWorkspace!.id, name: r.name.trim(), code: r.code.trim().toUpperCase() }))
+    );
+    if (error) throw error;
+    toast.success(`Added ${rows.length} unit${rows.length === 1 ? '' : 's'}.`);
+    fetchUnits();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWorkspace?.id || !name.trim() || !code.trim()) return;
@@ -180,6 +192,10 @@ export default function UnitsPage() {
             <Button variant="outline" onClick={handleSeedDefaults} disabled={saving} className="border-border">
               <Sparkles className="size-4 mr-2 text-amber-500" />
               Seed Defaults
+            </Button>
+            <Button variant="outline" onClick={() => setBulkAddOpen(true)} className="border-border">
+              <Layers className="size-4 mr-2" />
+              Bulk add
             </Button>
             <Button onClick={handleOpenAdd} className="bg-primary text-primary-foreground">
               <Plus className="size-4 mr-2" />
@@ -287,6 +303,20 @@ export default function UnitsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        title="Add several units"
+        scope="units"
+        workspaceId={activeWorkspace?.id}
+        noun="unit"
+        columns={[
+          { key: 'name', label: 'Unit name', required: true, placeholder: 'e.g. Kilogram' },
+          { key: 'code', label: 'Code', required: true, placeholder: 'e.g. KG' },
+        ]}
+        onSubmit={bulkAdd}
+      />
     </div>
   );
 }
