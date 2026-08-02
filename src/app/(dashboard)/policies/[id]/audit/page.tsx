@@ -92,9 +92,7 @@ export default function PolicyAuditPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/policies')} className="text-muted-foreground">
-          <ArrowLeft className="size-4 mr-2" /> Back to Policies
-        </Button>
+        <IconAction label="Back to Policies" icon={<ArrowLeft className="size-4 " />} variant="ghost" onClick={() => router.push('/policies')} className="text-muted-foreground" />
         <IconAction label="Export Audit CSV" icon={<Download className="size-4 " />} variant="outline" onClick={handleExportCSV} className="bg-card" />
       </div>
 

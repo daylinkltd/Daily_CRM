@@ -385,15 +385,10 @@ export default function CustomerLedgerPage() {
             <span className="font-bold text-foreground px-3 py-1 bg-background rounded-lg border border-border">
               Page {page} of {totalPages}
             </span>
-            <Button
-              size="sm"
-              variant="outline"
+            <IconAction label="Next" icon={<ChevronRight className="h-4 w-4" />} variant="outline"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="border-border text-foreground h-8 gap-1 rounded-xl disabled:opacity-40"
-            >
-              Next <ChevronRight className="h-4 w-4" />
-            </Button>
+              className="border-border text-foreground h-8 gap-1 rounded-xl disabled:opacity-40" />
           </div>
         </div>
       )}

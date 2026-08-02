@@ -283,14 +283,8 @@ export function RolesPanel() {
                       <Tooltip>
                         <TooltipTrigger
                           render={
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openEditor("duplicate", role)}
-                            >
-                              <Copy className="size-4" />
-                              <span className="sr-only">Duplicate</span>
-                            </Button>
+                            <IconAction label="Duplicate" icon={<Copy className="size-4" />} variant="outline"
+                              onClick={() => openEditor("duplicate", role)} />
                           }
                         />
                         <TooltipContent>

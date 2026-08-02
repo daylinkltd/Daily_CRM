@@ -178,9 +178,7 @@ export default function RecruitmentPage() {
           canManage && (
             <div className="flex items-center gap-2">
               <IconAction label="Add Candidate" icon={<UserCheck className="size-4 " />} variant="outline" onClick={() => setCandModalOpen(true)} className="bg-card" />
-              <Button onClick={() => setJobModalOpen(true)} className="bg-primary text-primary-foreground">
-                <Plus className="size-4 mr-2" /> Create Job Opening
-              </Button>
+              <IconAction label="Create Job Opening" icon={<Plus className="size-4 " />} onClick={() => setJobModalOpen(true)} className="bg-primary text-primary-foreground" />
             </div>
           )
         }

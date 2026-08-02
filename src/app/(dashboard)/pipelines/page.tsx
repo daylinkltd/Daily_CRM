@@ -382,13 +382,8 @@ export default function PipelinesPage() {
           <p className="mt-2 text-sm text-muted-foreground">
             Create a pipeline to start tracking deals
           </p>
-          <Button
-            onClick={() => setNewPipelineOpen(true)}
-            className="mt-4 bg-primary text-primary-foreground hover:bg-primary"
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            Create Pipeline
-          </Button>
+          <IconAction label="Create Pipeline" icon={<Plus className="h-4 w-4" />} onClick={() => setNewPipelineOpen(true)}
+            className="mt-4 bg-primary text-primary-foreground hover:bg-primary" />
         </div>
       ) : (
         <>

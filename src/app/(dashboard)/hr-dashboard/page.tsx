@@ -18,6 +18,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function HRDashboardPage() {
   return (
@@ -142,35 +143,17 @@ function HRDashboardPageContent() {
             <CardDescription>Quick access to essential HR management modules</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <Button variant="outline" onClick={() => router.push('/recruitment')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20">
-              <Briefcase className="size-5 text-purple-500" />
-              <span className="text-xs">Recruitment</span>
-            </Button>
+            <IconAction label="Recruitment" icon={<Briefcase className="size-5 text-purple-500" />} variant="outline" onClick={() => router.push('/recruitment')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20" />
 
-            <Button variant="outline" onClick={() => router.push('/shifts')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20">
-              <Clock className="size-5 text-emerald-500" />
-              <span className="text-xs">Shifts & Roster</span>
-            </Button>
+            <IconAction label="Shifts & Roster" icon={<Clock className="size-5 text-emerald-500" />} variant="outline" onClick={() => router.push('/shifts')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20" />
 
-            <Button variant="outline" onClick={() => router.push('/holidays')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20">
-              <CalendarClock className="size-5 text-blue-500" />
-              <span className="text-xs">Holidays</span>
-            </Button>
+            <IconAction label="Holidays" icon={<CalendarClock className="size-5 text-blue-500" />} variant="outline" onClick={() => router.push('/holidays')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20" />
 
-            <Button variant="outline" onClick={() => router.push('/performance')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20">
-              <TrendingUp className="size-5 text-amber-500" />
-              <span className="text-xs">Performance</span>
-            </Button>
+            <IconAction label="Performance" icon={<TrendingUp className="size-5 text-amber-500" />} variant="outline" onClick={() => router.push('/performance')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20" />
 
-            <Button variant="outline" onClick={() => router.push('/requests')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20">
-              <FileCheck className="size-5 text-indigo-500" />
-              <span className="text-xs">ESS Requests</span>
-            </Button>
+            <IconAction label="ESS Requests" icon={<FileCheck className="size-5 text-indigo-500" />} variant="outline" onClick={() => router.push('/requests')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20" />
 
-            <Button variant="outline" onClick={() => router.push('/policies')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20">
-              <CheckCircle2 className="size-5 text-teal-500" />
-              <span className="text-xs">Policies</span>
-            </Button>
+            <IconAction label="Policies" icon={<CheckCircle2 className="size-5 text-teal-500" />} variant="outline" onClick={() => router.push('/policies')} className="h-20 flex flex-col items-center justify-center gap-1.5 bg-muted/20" />
           </CardContent>
         </Card>
 

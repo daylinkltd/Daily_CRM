@@ -455,7 +455,7 @@ export default function PayrollAdminPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewCycleOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreateCycle}><Plus /> Create</Button>
+            <IconAction label="Create" icon={<Plus />} onClick={handleCreateCycle} />
           </DialogFooter>
         </DialogContent>
       </Dialog>

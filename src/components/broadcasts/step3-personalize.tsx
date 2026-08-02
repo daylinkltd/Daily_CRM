@@ -15,6 +15,7 @@ import {
 import { ArrowLeft, ArrowRight, Eye, Loader2 } from 'lucide-react';
 
 import { useWorkspace } from '@/hooks/use-workspace';
+import { IconAction } from "@/components/ui/icon-action";
 
 type VariableType = 'static' | 'field' | 'custom_field';
 
@@ -351,22 +352,12 @@ export function Step3Personalize({
       )}
 
       <div className="flex items-center justify-between border-t border-border pt-4">
-        <Button
-          variant="outline"
+        <IconAction label="Back" icon={<ArrowLeft className="h-4 w-4" />} variant="outline"
           onClick={onBack}
-          className="border-border text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-        <Button
-          onClick={onNext}
+          className="border-border text-foreground" />
+        <IconAction label="Next" icon={<ArrowRight className="h-4 w-4" />} onClick={onNext}
           disabled={unmappedKeys.length > 0}
-          className="bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50"
-        >
-          Next
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+          className="bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50" />
       </div>
     </div>
   );

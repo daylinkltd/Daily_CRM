@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { OutlookConfigModal } from '@/components/integrations/outlook-config-modal';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function IntegrationsPage() {
   const router = useRouter();
@@ -70,9 +71,7 @@ export default function IntegrationsPage() {
         </div>
       ) : (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-          <Button variant="ghost" onClick={() => onChange(null)} className="text-muted-foreground hover:text-foreground mb-2">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Integrations
-          </Button>
+          <IconAction label="Back to Integrations" icon={<ArrowLeft className="h-4 w-4" />} variant="ghost" onClick={() => onChange(null)} className="text-muted-foreground hover:text-foreground mb-2" />
           
           {tab === 'whatsapp' && <WhatsAppConfig />}
           {tab === 'instagram' && <InstagramConfig />}

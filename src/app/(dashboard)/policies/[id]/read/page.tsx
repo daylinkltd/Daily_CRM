@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { markdownToHtml } from '@/lib/markdown-utils';
 import { IntegrationShareButtons } from '@/components/integrations/integration-share-buttons';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function PolicyReadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -150,9 +151,7 @@ export default function PolicyReadPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/policies')} className="text-muted-foreground">
-          <ArrowLeft className="size-4 mr-2" /> Back to Policies
-        </Button>
+        <IconAction label="Back to Policies" icon={<ArrowLeft className="size-4 " />} variant="ghost" onClick={() => router.push('/policies')} className="text-muted-foreground" />
         <div className="flex items-center gap-2">
           {activeWorkspace?.id && (
             <IntegrationShareButtons

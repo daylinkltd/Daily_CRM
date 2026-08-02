@@ -208,8 +208,7 @@ export default function InventoryPage() {
         </div>
         <div className="flex items-center gap-2">
           <IconAction label="Refresh" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchInventory} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11" />
-          <Button
-            onClick={() => {
+          <IconAction label="Add / Adjust Stock (F3)" icon={<Plus className="h-4 w-4" />} onClick={() => {
               setBarcodeSearch("");
               setSelectedProductId("");
               setSelectedProductObj(null);
@@ -217,11 +216,7 @@ export default function InventoryPage() {
               setNotes("");
               setShowStockModal(true);
             }}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
-          >
-            <Plus className="h-4 w-4" />
-            Add / Adjust Stock (F3)
-          </Button>
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11" />
         </div>
       </div>
 

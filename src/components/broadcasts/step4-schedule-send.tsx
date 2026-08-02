@@ -17,6 +17,7 @@ import {
 import { ArrowLeft, Send, Loader2, Users, Save } from 'lucide-react';
 
 import { useWorkspace } from '@/hooks/use-workspace';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface AudienceConfig {
   type: string;
@@ -172,15 +173,10 @@ export function Step4ScheduleSend({
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-        <Button
-          variant="outline"
+        <IconAction label="Back" icon={<ArrowLeft className="h-4 w-4" />} variant="outline"
           onClick={onBack}
           disabled={isProcessing}
-          className="border-border text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+          className="border-border text-foreground" />
 
         <div className="flex items-center gap-2">
           {onSaveDraft && (

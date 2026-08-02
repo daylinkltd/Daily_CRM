@@ -18,6 +18,7 @@ import {
   Share2,
   UserCheck
 } from "lucide-react";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function DocumentDetailsPage() {
   const params = useParams();
@@ -90,9 +91,7 @@ export default function DocumentDetailsPage() {
       {/* Top Action Bar - Hidden during print */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden bg-card/80 p-4 rounded-2xl border border-border">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => router.push("/documents")} className="text-xs gap-1">
-            <ArrowLeft className="size-3.5" /> Back
-          </Button>
+          <IconAction label="Back" icon={<ArrowLeft className="size-3.5" />} variant="ghost" onClick={() => router.push("/documents")} className="text-xs gap-1" />
           <div>
             <h1 className="text-base font-bold text-foreground flex items-center gap-2">
               {documentItem.title}
@@ -107,14 +106,9 @@ export default function DocumentDetailsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
+          <IconAction label="Print / Save as PDF" icon={<Printer className="size-3.5 text-primary" />} variant="outline"
             onClick={handlePrint}
-            className="text-xs h-9 gap-1.5 border-border"
-          >
-            <Printer className="size-3.5 text-primary" /> Print / Save as PDF
-          </Button>
+            className="text-xs h-9 gap-1.5 border-border" />
         </div>
       </div>
 

@@ -229,10 +229,7 @@ export function ApiKeysSettings() {
         description="Mint and manage secure API keys for programmatic access to contacts, pipelines, messages, and automation engines."
         action={
           <RequireRole min="admin">
-            <Button onClick={() => setCreateOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="size-4" />
-              Create API key
-            </Button>
+            <IconAction label="Create API key" icon={<Plus className="size-4" />} onClick={() => setCreateOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90" />
           </RequireRole>
         }
       />

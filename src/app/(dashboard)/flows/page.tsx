@@ -313,10 +313,7 @@ export default function FlowsPage() {
             >
               Cancel
             </Button>
-            <Button onClick={handleCreate} disabled={!newName.trim() || creating}>
-              {creating && <Loader2 className="h-4 w-4 animate-spin" />}
-              Create blank flow
-            </Button>
+            <IconAction label="Create blank flow" icon={<Loader2 className="h-4 w-4 animate-spin" />} onClick={handleCreate} disabled={!newName.trim() || creating} />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -348,11 +345,7 @@ function EmptyState({
         canAct={canCreate}
         gateReason="create flows"
         onClick={onCreate}
-        className="mt-5"
-      >
-        <Plus className="h-4 w-4" />
-        Create your first flow
-      </GatedButton>
+        className="mt-5" title="Create your first flow" aria-label="Create your first flow"><Plus className="h-4 w-4" /></GatedButton>
     </div>
   );
 }

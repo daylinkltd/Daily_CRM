@@ -123,9 +123,7 @@ export default function PerformancePage() {
                   Start a performance appraisal cycle (e.g. Q1 2027 Review) to collect self-ratings and manager reviews.
                 </p>
                 {canManage && (
-                  <Button onClick={() => setCycleModalOpen(true)}>
-                    <Plus className="size-4 mr-2" /> Create Review Cycle
-                  </Button>
+                  <IconAction label="Create Review Cycle" icon={<Plus className="size-4 " />} onClick={() => setCycleModalOpen(true)} />
                 )}
               </CardContent>
             </Card>

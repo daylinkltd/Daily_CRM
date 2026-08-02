@@ -6,6 +6,7 @@ import { MessageTemplate } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Loader2, FileText, ArrowRight } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { IconAction } from "@/components/ui/icon-action";
 
 const categoryColors: Record<string, string> = {
   Marketing: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
@@ -127,14 +128,9 @@ export function Step1ChooseTemplate({ selectedTemplate, onSelect, onNext, onBack
         <Button variant="outline" onClick={onBack} className="border-border text-foreground">
           Back
         </Button>
-        <Button
-          onClick={onNext}
+        <IconAction label="Next" icon={<ArrowRight className="h-4 w-4" />} onClick={onNext}
           disabled={!selectedTemplate}
-          className="bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50"
-        >
-          Next
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+          className="bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50" />
       </div>
     </div>
   );

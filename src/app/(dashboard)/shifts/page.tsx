@@ -147,9 +147,7 @@ export default function ShiftsPage() {
               Define work shift schedules (e.g. General Shift, Night Shift) for attendance tracking.
             </p>
             {canManage && (
-              <Button onClick={() => setModalOpen(true)}>
-                <Plus className="size-4 mr-2" /> Create First Shift
-              </Button>
+              <IconAction label="Create First Shift" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} />
             )}
           </CardContent>
         </Card>

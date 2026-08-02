@@ -26,6 +26,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface DocTemplate {
   id: string;
@@ -346,9 +347,7 @@ export default function IssueNewDocumentPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6 text-foreground">
       <div className="flex items-center justify-between gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-1 text-xs">
-          <ArrowLeft className="size-3.5" /> Back to vault
-        </Button>
+        <IconAction label="Back to vault" icon={<ArrowLeft className="size-3.5" />} variant="ghost" onClick={() => router.back()} className="gap-1 text-xs" />
         <div className="flex items-center gap-2">
           <Button
             variant="outline"

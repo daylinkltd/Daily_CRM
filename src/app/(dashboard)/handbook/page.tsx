@@ -353,9 +353,7 @@ export default function HandbookPage() {
             <IconAction label="Print / Export PDF" icon={<Printer className="size-4 " />} variant="outline" onClick={handlePrint} />
             {isAdmin && (
               <>
-                <Button variant="outline" onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }}>
-                  <PlusCircle className="size-4 mr-1.5 text-primary" /> Create Custom Policy
-                </Button>
+                <IconAction label="Create Custom Policy" icon={<PlusCircle className="size-4 text-primary" />} variant="outline" onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }} />
                 <IconAction label="Attach Existing Policy" icon={<Plus className="size-4 text-primary" />} variant="outline" onClick={() => setAddPolicyOpen(true)} />
                 <Button onClick={handleGenerate} disabled={generating || migrationPending || missing.length > 0}>
                   {generating ? <Loader2 className="animate-spin" /> : <Sparkles />}

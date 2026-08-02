@@ -75,9 +75,7 @@ export default function DocumentsVaultPage() {
             <IconAction label="Letterhead Branding" icon={<Palette className="size-3.5 text-emerald-500" />} variant="outline" className="text-xs h-9 gap-1.5 border-border" />
           </Link>
           <Link href="/documents/signatories">
-            <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5 border-border">
-              <UserCheck className="size-3.5 text-purple-500" /> Signatories
-            </Button>
+            <IconAction label="Signatories" icon={<UserCheck className="size-3.5 text-purple-500" />} variant="outline" className="text-xs h-9 gap-1.5 border-border" />
           </Link>
           <Link href="/settings?tab=templates">
             <IconAction label="Templates" icon={<LayoutGrid className="size-3.5 text-primary" />} variant="outline" className="text-xs h-9 gap-1.5 border-border" />

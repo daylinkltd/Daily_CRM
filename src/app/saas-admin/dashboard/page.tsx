@@ -393,10 +393,8 @@ export default function AdminDashboard() {
           <p className="text-sm text-muted-foreground mt-1">Monitor tenants, manage owners, and review prospects.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={() => setShowCreateOwner(!showCreateOwner)}
-            className="bg-primary hover:bg-primary-hover text-white font-semibold flex items-center gap-2 shadow-lg shadow-primary/20">
-            <Plus className="h-4 w-4" /> Create Owner
-          </Button>
+          <IconAction label="Create Owner" icon={<Plus className="h-4 w-4" />} onClick={() => setShowCreateOwner(!showCreateOwner)}
+            className="bg-primary hover:bg-primary-hover text-white font-semibold flex items-center gap-2 shadow-lg shadow-primary/20" />
           <IconAction label="Refresh" icon={<RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-primary" : ""}`} />} onClick={fetchData} disabled={loading}
             className="bg-muted border border-border hover:bg-muted text-foreground flex items-center gap-2" />
         </div>

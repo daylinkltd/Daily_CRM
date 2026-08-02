@@ -185,13 +185,8 @@ export default function PurchasesPage() {
           <IconAction label="Refresh" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchPurchasesData}
             variant="outline"
             className="border-border text-foreground gap-1.5 rounded-xl h-11" />
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11"
-          >
-            <Plus className="h-4 w-4" />
-            Create Purchase Order
-          </Button>
+          <IconAction label="Create Purchase Order" icon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}
+            className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11" />
         </div>
       </div>
 
@@ -250,13 +245,8 @@ export default function PurchasesPage() {
                     <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Create purchase orders to order stock from suppliers and track inward stock receipts.
                     </p>
-                    <Button
-                      onClick={() => setShowAddModal(true)}
-                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Create First Purchase Order
-                    </Button>
+                    <IconAction label="Create First Purchase Order" icon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}
+                      className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2" />
                   </td>
                 </tr>
               ) : (

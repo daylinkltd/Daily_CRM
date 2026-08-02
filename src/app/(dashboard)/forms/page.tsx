@@ -36,6 +36,7 @@ import {
   Check,
 } from 'lucide-react';
 import type { CustomForm } from '@/types';
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function FormsPage() {
   const supabase = createClient();
@@ -197,13 +198,8 @@ export default function FormsPage() {
             Build forms to capture and ingest leads directly into your contacts and pipelines.
           </p>
         </div>
-        <Button
-          onClick={() => setCreateOpen(true)}
-          className="bg-primary hover:bg-primary-hover text-primary-foreground"
-        >
-          <Plus className="size-4 mr-2" />
-          Create Form
-        </Button>
+        <IconAction label="Create Form" icon={<Plus className="size-4 " />} onClick={() => setCreateOpen(true)}
+          className="bg-primary hover:bg-primary-hover text-primary-foreground" />
       </div>
 
       {/* Grid List */}
@@ -222,13 +218,8 @@ export default function FormsPage() {
             <p className="text-sm text-muted-foreground">
               Create a custom form, map its inputs to Contact properties or Pipelines, and publish the sharing link to generate leads automatically.
             </p>
-            <Button
-              onClick={() => setCreateOpen(true)}
-              className="mt-2 bg-primary hover:bg-primary-hover text-primary-foreground"
-            >
-              <Plus className="size-4 mr-2" />
-              Create your first form
-            </Button>
+            <IconAction label="Create your first form" icon={<Plus className="size-4 " />} onClick={() => setCreateOpen(true)}
+              className="mt-2 bg-primary hover:bg-primary-hover text-primary-foreground" />
           </div>
         </div>
       ) : (

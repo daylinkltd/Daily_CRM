@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { KanbanTask } from '@/components/tasks/kanban-task';
+import { IconAction } from "@/components/ui/icon-action";
 
 // --- Subcomponents for DND Zones ---
 
@@ -231,7 +232,7 @@ export function PlanningView({ projectId, canManage }: PlanningViewProps) {
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-foreground">Sprints</h3>
             {canManage && (
-              <Button onClick={createSprint} size="sm"><Plus className="size-4 mr-2" /> Create Sprint</Button>
+              <IconAction label="Create Sprint" icon={<Plus className="size-4 " />} onClick={createSprint} />
             )}
           </div>
 

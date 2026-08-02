@@ -6,6 +6,7 @@ import { useWorkspace } from '@/hooks/use-workspace';
 import { ShieldAlert, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { IconAction } from "@/components/ui/icon-action";
 
 export function ComplianceBanner() {
   const supabase = createClient();
@@ -76,13 +77,8 @@ export function ComplianceBanner() {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          onClick={() => router.push(`/policies/${firstPending.id}/read`)}
-          className="bg-amber-600 hover:bg-amber-700 text-foreground border-none text-xs"
-        >
-          Review & Sign <ChevronRight className="size-3.5 ml-1" />
-        </Button>
+        <IconAction label="Review & Sign" icon={<ChevronRight className="size-3.5 ml-1" />} onClick={() => router.push(`/policies/${firstPending.id}/read`)}
+          className="bg-amber-600 hover:bg-amber-700 text-foreground border-none text-xs" />
         <button
           onClick={() => setDismissed(true)}
           className="p-1 hover:bg-amber-500/20 rounded-none text-amber-700 dark:text-amber-300"

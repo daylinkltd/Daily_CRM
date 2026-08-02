@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { extractVariableIndices } from "@/lib/whatsapp/template-validators";
+import { IconAction } from "@/components/ui/icon-action";
 
 export interface TemplateSendValues {
   body: string[];
@@ -310,14 +311,9 @@ export function TemplatePicker({
         <DialogFooter className="gap-2">
           {selected ? (
             <>
-              <Button
-                variant="outline"
+              <IconAction label="Back" icon={<ArrowLeft className="h-4 w-4" />} variant="outline"
                 onClick={resetSelection}
-                className="border-border text-popover-foreground hover:bg-muted"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
+                className="border-border text-popover-foreground hover:bg-muted" />
               <Button
                 disabled={!canConfirm}
                 onClick={confirm}

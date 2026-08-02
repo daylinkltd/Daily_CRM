@@ -318,14 +318,9 @@ export function PipelineSettings({
                 </div>
               </div>
 
-              <Button
-                variant="outline"
+              <IconAction label="Create a new pipeline" icon={<Plus className="h-3 w-3" />} variant="outline"
                 onClick={onCreateNewPipeline}
-                className="w-full border-border bg-transparent text-muted-foreground hover:bg-muted"
-              >
-                <Plus className="mr-1 h-3 w-3" />
-                Create a new pipeline
-              </Button>
+                className="w-full border-border bg-transparent text-muted-foreground hover:bg-muted" />
             </div>
 
             <DialogFooter className="border-border bg-popover/50">

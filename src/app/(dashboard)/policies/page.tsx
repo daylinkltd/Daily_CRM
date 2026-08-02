@@ -162,9 +162,7 @@ export default function PoliciesDashboardPage() {
               <IconAction label="Export Audit CSV" icon={<Download className="size-4 " />} variant="outline" onClick={handleExportCSV} className="bg-card" />
             )}
             {canManage && (
-              <Button onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }} className="bg-primary text-primary-foreground shadow-sm">
-                <Plus className="size-4 mr-2" /> Create Policy
-              </Button>
+              <IconAction label="Create Policy" icon={<Plus className="size-4 " />} onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }} className="bg-primary text-primary-foreground shadow-sm" />
             )}
           </div>
         }
@@ -252,9 +250,7 @@ export default function PoliciesDashboardPage() {
               Create your company&apos;s Code of Conduct, Leave Rules, and Terms & Conditions for employee digital sign-off.
             </p>
             {canManage && (
-              <Button onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }}>
-                <Plus className="size-4 mr-2" /> Create First Policy
-              </Button>
+              <IconAction label="Create First Policy" icon={<Plus className="size-4 " />} onClick={() => { setEditingPolicyId(null); setEditorOpen(true); }} />
             )}
           </CardContent>
         </Card>

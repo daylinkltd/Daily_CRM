@@ -105,9 +105,7 @@ export default function PlanningPage() {
               Create your first project to start planning tasks and workflows.
             </p>
             {canManage && (
-              <Button onClick={() => setProjectFormOpen(true)}>
-                <Plus className="size-4 mr-2" /> Create Project
-              </Button>
+              <IconAction label="Create Project" icon={<Plus className="size-4 " />} onClick={() => setProjectFormOpen(true)} />
             )}
           </CardContent>
         </Card>

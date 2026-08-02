@@ -345,10 +345,7 @@ export function ProjectTimeline({ projectId }: ProjectTimelineProps) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEpicModalOpen(false)} disabled={isCreatingEpic}>Cancel</Button>
-            <Button onClick={handleCreateEpic} disabled={isCreatingEpic || !newEpicName.trim()}>
-              {isCreatingEpic && <Loader2 className="size-4 animate-spin mr-2" />}
-              Create Epic
-            </Button>
+            <IconAction label="Create Epic" icon={<Loader2 className="size-4 animate-spin " />} onClick={handleCreateEpic} disabled={isCreatingEpic || !newEpicName.trim()} />
           </DialogFooter>
         </DialogContent>
       </Dialog>

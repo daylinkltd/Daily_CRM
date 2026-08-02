@@ -361,14 +361,9 @@ function POSTerminalPageContent() {
               className="pl-10 h-11 bg-background border-border text-foreground rounded-xl focus:border-[#00aef0] font-medium"
             />
           </div>
-          <Button
-            variant="outline"
+          <IconAction label="Held Bills ()" icon={<PauseCircle className="h-4 w-4" />} variant="outline"
             onClick={() => setShowHeldDrawer(true)}
-            className="h-11 border-border bg-background text-amber-400 hover:bg-card gap-2 rounded-xl"
-          >
-            <PauseCircle className="h-4 w-4" />
-            Held Bills ({heldBills.length})
-          </Button>
+            className="h-11 border-border bg-background text-amber-400 hover:bg-card gap-2 rounded-xl" />
           <Button
             variant="outline"
             onClick={() => setShowShiftCloseModal(true)}

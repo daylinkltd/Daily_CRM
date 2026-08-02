@@ -35,6 +35,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface TaskFormProps {
   open: boolean;
@@ -816,10 +817,7 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
             <Button variant="outline" onClick={() => setShowQuickEpicModal(false)} disabled={isCreatingEpicQuick}>
               Cancel
             </Button>
-            <Button onClick={handleCreateEpicQuick} disabled={isCreatingEpicQuick || !newEpicNameQuick.trim()}>
-              {isCreatingEpicQuick && <Loader2 className="size-4 animate-spin mr-2" />}
-              Create Epic
-            </Button>
+            <IconAction label="Create Epic" icon={<Loader2 className="size-4 animate-spin " />} onClick={handleCreateEpicQuick} disabled={isCreatingEpicQuick || !newEpicNameQuick.trim()} />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -849,10 +847,7 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
             <Button variant="outline" onClick={() => setShowQuickComponentModal(false)} disabled={isCreatingComponentQuick}>
               Cancel
             </Button>
-            <Button onClick={handleCreateComponentQuick} disabled={isCreatingComponentQuick || !newComponentNameQuick.trim()}>
-              {isCreatingComponentQuick && <Loader2 className="size-4 animate-spin mr-2" />}
-              Create Component
-            </Button>
+            <IconAction label="Create Component" icon={<Loader2 className="size-4 animate-spin " />} onClick={handleCreateComponentQuick} disabled={isCreatingComponentQuick || !newComponentNameQuick.trim()} />
           </DialogFooter>
         </DialogContent>
       </Dialog>

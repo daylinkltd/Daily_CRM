@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { IconAction } from "@/components/ui/icon-action";
 
 type AudienceType = 'all' | 'tags' | 'custom_field' | 'csv';
 type CustomFieldOperator = 'is' | 'is_not' | 'contains';
@@ -628,22 +629,12 @@ export function Step2SelectAudience({
       </div>
 
       <div className="flex items-center justify-between border-t border-border pt-4">
-        <Button
-          variant="outline"
+        <IconAction label="Back" icon={<ArrowLeft className="h-4 w-4" />} variant="outline"
           onClick={onBack}
-          className="border-border text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-        <Button
-          onClick={onNext}
+          className="border-border text-foreground" />
+        <IconAction label="Next" icon={<ArrowRight className="h-4 w-4" />} onClick={onNext}
           disabled={!isValid}
-          className="bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50"
-        >
-          Next
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+          className="bg-primary text-primary-foreground hover:bg-primary disabled:opacity-50" />
       </div>
     </div>
   );
