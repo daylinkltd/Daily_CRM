@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { interpolateVariables } from "@/lib/documents/variable-engine";
+import { A4DocumentPreview } from "@/components/documents/a4-document-preview";
 import { extractVariables } from "@/lib/templates/catalog";
 import { sanitizeHtml } from "@/lib/markdown-utils";
 import { IconAction } from "@/components/ui/icon-action";
@@ -386,13 +387,21 @@ export function EmployeeLettersTab({
 
             <div>
               <p className="mb-1.5 text-xs font-semibold">Preview</p>
-              <div
-                className="prose prose-sm max-w-none rounded-lg border border-border bg-white p-6 text-slate-800 dark:bg-slate-50"
-                // Sanitised on the way in: template bodies are workspace
-                // authored, and interpolated values are HTML-escaped by the
-                // variable engine.
-                dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewHtml) }}
-              />
+              {/* Rendered through A4DocumentPreview — the same component the
+                  issued document uses — so the preview carries the company
+                  letterhead, logo and signatory. This previously dumped the
+                  body into a bare prose div on white, which is exactly why
+                  letters looked completely plain. */}
+              <div className="max-h-[440px] overflow-auto rounded-lg border border-border bg-muted/30 p-4">
+                <A4DocumentPreview
+                  letterhead={letterhead}
+                  bodyHtml={sanitizeHtml(previewHtml)}
+                  documentNumber="Assigned on issue"
+                  date={new Date().toLocaleDateString()}
+                  recipientName={context.employee_name}
+                  signatory={signatories.find((s) => s.id === signatoryId) || null}
+                />
+              </div>
             </div>
 
             <p className="flex items-start gap-2 text-[11px] text-muted-foreground">

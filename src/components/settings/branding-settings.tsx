@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { assertAffected } from "@/lib/supabase/affected-rows";
 import {
   Upload,
   Trash2,
@@ -47,7 +48,7 @@ interface BrandingData {
 export function BrandingSettings() {
   const supabase = createClient();
   const { accountId, canEditSettings } = useAuth();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, refreshWorkspaces } = useWorkspace();
   const workspaceId = activeWorkspace?.id || accountId;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -162,7 +163,11 @@ export function BrandingSettings() {
         nextLogoUrl = null;
       }
 
-      const { error } = await supabase
+      // .select() so a zero-row update is caught. Without it an RLS
+      // denial returns { error: null }, the toast said "saved!" and
+      // nothing had been written — which is what "doesn't save up" looks
+      // like from the outside.
+      const result = await supabase
         .from("workspaces")
         .update({
           logo_url: nextLogoUrl,
@@ -174,15 +179,20 @@ export function BrandingSettings() {
           company_address: data.company_address?.trim() || null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", workspaceId);
+        .eq("id", workspaceId)
+        .select("id");
 
-      if (error) throw error;
+      assertAffected(result, "your company branding", "save");
 
       setData((prev) => ({ ...prev, logo_url: nextLogoUrl }));
       setPendingLogo(null);
       setPreviewUrl(null);
       setRemoveLogo(false);
-      toast.success("Company branding saved!");
+      toast.success("Company branding saved.");
+      // The sidebar logo and the letterhead both read the workspace from
+      // context, which is cached — without this the save appears to have
+      // done nothing until a manual reload.
+      await refreshWorkspaces?.();
     } catch (err: any) {
       toast.error(err.message || "Failed to save branding");
     } finally {
