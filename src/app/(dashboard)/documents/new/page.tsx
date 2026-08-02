@@ -117,8 +117,10 @@ Email: {{employee.email}}</p>
     fetchData();
   }, [fetchData]);
 
-  // Context Data for Variable Interpolation
-  const contextData = {
+  // Context Data for Variable Interpolation. Parameterised on the document
+  // number because the real number is only allocated when the document is
+  // issued — the preview shows a provisional one.
+  const buildContextData = (documentNumber: string) => ({
     employee: {
       name: recipientName,
       email: recipientEmail,
@@ -132,12 +134,12 @@ Email: {{employee.email}}</p>
     },
     today: new Date().toLocaleDateString(),
     document: {
-      number: docNumber,
+      number: documentNumber,
       title,
     },
-  };
+  });
 
-  const finalHtml = interpolateVariables(rawHtml, contextData);
+  const finalHtml = interpolateVariables(rawHtml, buildContextData(docNumber));
   const activeSignatory = signatories.find((s) => s.id === selectedSignatoryId) || null;
 
   const handleIssueDocument = async (status: "Draft" | "Issued" = "Issued") => {
@@ -148,15 +150,29 @@ Email: {{employee.email}}</p>
 
     setSaving(true);
     try {
+      // Allocate the number atomically at issue time. Doing it in the DB is
+      // what makes it unique — the client-side formatter has no counter and
+      // returned the same number for every document.
+      const { data: allocatedNumber, error: numberError } = await supabase.rpc(
+        "next_document_number",
+        { p_workspace_id: activeWorkspace.id, p_prefix: "HR" }
+      );
+      if (numberError) throw numberError;
+
+      const { data: { user } } = await supabase.auth.getUser();
+
       const payload = {
         workspace_id: activeWorkspace.id,
         template_id: selectedTemplateId || null,
-        document_number: docNumber,
+        document_number: allocatedNumber,
+        issued_by: user?.id ?? null,
         title,
         recipient_name: recipientName,
         recipient_email: recipientEmail,
         status,
-        body_html: finalHtml,
+        // Re-interpolated so the stored body carries the number actually
+        // allocated, not the provisional one shown in the preview.
+        body_html: interpolateVariables(rawHtml, buildContextData(allocatedNumber as string)),
 
         // Immutable Snapshots
         template_snapshot_json: { rawHtml, templateId: selectedTemplateId },
@@ -244,9 +260,13 @@ Email: {{employee.email}}</p>
                 <Input
                   type="text"
                   value={docNumber}
-                  onChange={(e) => setDocNumber(e.target.value)}
-                  className="bg-background text-xs font-mono"
+                  readOnly
+                  disabled
+                  className="bg-muted text-xs font-mono"
                 />
+                <p className="text-[10px] text-muted-foreground">
+                  Assigned automatically when the document is issued.
+                </p>
               </div>
 
               <div className="space-y-1.5">

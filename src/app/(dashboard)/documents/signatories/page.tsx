@@ -51,7 +51,11 @@ export default function SignatoriesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to remove this signatory?")) return;
     try {
-      const { error } = await supabase.from("company_signatories").delete().eq("id", id);
+      const { error } = await supabase
+        .from("company_signatories")
+        .delete()
+        .eq("id", id)
+        .eq("workspace_id", activeWorkspace!.id);
       if (error) throw error;
       toast.success("Signatory removed.");
       fetchSignatories();

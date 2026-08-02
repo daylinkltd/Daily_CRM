@@ -23,11 +23,7 @@ import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
 export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   const supabase = createClient();
   const { activeWorkspace, activeMember, moduleAccess } = useWorkspace();
-  
-  if (!moduleAccess?.hr) {
-    return null;
-  }
-  
+
   const [loading, setLoading] = useState(false);
   const [todayRecord, setTodayRecord] = useState<any | null>(null);
   const [activeBreak, setActiveBreak] = useState<any | null>(null);
@@ -206,6 +202,14 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   };
 
   const [showLocationMap, setShowLocationMap] = useState(false);
+
+  // Must sit below every hook: this component renders in the global header,
+  // so a mid-session permission change that flips `moduleAccess` while the
+  // component stays mounted would otherwise change the hook count and
+  // white-screen the whole dashboard.
+  if (!moduleAccess?.hr) {
+    return null;
+  }
 
   return (
     <>

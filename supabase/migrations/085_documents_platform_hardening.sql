@@ -1,5 +1,3 @@
--- ==================== BEGIN 085_documents_platform_hardening ====================
-
 -- ============================================================
 -- 085 — Hardening for the official documents platform (084).
 --
@@ -248,5 +246,3 @@ DROP TRIGGER IF EXISTS block_issued_official_document_delete ON public.official_
 CREATE TRIGGER block_issued_official_document_delete
     BEFORE DELETE ON public.official_documents
     FOR EACH ROW EXECUTE FUNCTION public.block_issued_official_document_delete();
-
--- ==================== END 085_documents_platform_hardening ====================

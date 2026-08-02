@@ -39,6 +39,9 @@ export default function DocumentDetailsPage() {
         .from("official_documents")
         .select("*")
         .eq("id", id)
+        // Scoped to the active workspace so a link to a document in another
+        // workspace the user also belongs to cannot render under the wrong one.
+        .eq("workspace_id", activeWorkspace.id)
         .single();
 
       if (error) throw error;

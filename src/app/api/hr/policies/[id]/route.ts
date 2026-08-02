@@ -144,14 +144,34 @@ export async function DELETE(
     const { id } = await params;
     const supabase = await createClient();
 
-    // Cascading delete targets, versions, acknowledgements, and policy header
-    await supabase.from('hr_policy_acknowledgements').delete().eq('policy_id', id);
-    await supabase.from('hr_policy_targets').delete().eq('policy_id', id);
-    await supabase.from('hr_policy_versions').delete().eq('policy_id', id);
-    const { error } = await supabase.from('hr_policies').delete().eq('id', id);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // The policy header cascades to targets, versions and acknowledgements
+    // (migration 050), so deleting the header is sufficient. The
+    // acknowledgements are never deleted explicitly: they are the signed,
+    // content-hashed compliance record and `hr_policy_acknowledgements` has
+    // no DELETE policy, so that statement was always a silent no-op.
+    const { data: deleted, error } = await supabase
+      .from('hr_policies')
+      .delete()
+      .eq('id', id)
+      .select('id');
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // An RLS denial removes zero rows without raising — without this check
+    // the route reported success and the UI toasted "deleted" while the
+    // policy was still there.
+    if (!deleted || deleted.length === 0) {
+      return NextResponse.json(
+        { error: 'Policy not found, or you do not have permission to delete it.' },
+        { status: 403 }
+      );
     }
 
     return NextResponse.json({ success: true });

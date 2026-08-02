@@ -2,6 +2,7 @@
 
 import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { sanitizeHtml } from "@/lib/markdown-utils";
 
 interface LetterheadConfig {
   company_name?: string | null;
@@ -232,7 +233,11 @@ export const A4DocumentPreview = forwardRef<HTMLDivElement, A4DocumentPreviewPro
         <main className="relative z-10 min-h-[450px] space-y-4 text-slate-800 text-sm leading-relaxed">
           <div
             className="prose prose-slate max-w-none prose-headings:font-bold prose-h1:text-xl prose-h2:text-lg prose-p:my-2 prose-ul:my-2"
-            dangerouslySetInnerHTML={{ __html: bodyHtml || "<p>Write your document body content here...</p>" }}
+            dangerouslySetInnerHTML={{
+              __html: bodyHtml
+                ? sanitizeHtml(bodyHtml)
+                : "<p>Write your document body content here...</p>",
+            }}
           />
         </main>
 

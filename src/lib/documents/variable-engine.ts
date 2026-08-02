@@ -43,6 +43,24 @@ export const VARIABLE_DICTIONARY: DocumentVariableMeta[] = [
 ];
 
 /**
+ * Escape a context value for insertion into an HTML document body.
+ *
+ * Interpolated values are user-supplied (recipient name, designation,
+ * salary, contact fields) and the result is persisted to
+ * `official_documents.body_html`, which is rendered through
+ * `dangerouslySetInnerHTML`. Without this, typing markup into
+ * "Recipient Full Name" is stored XSS for every later viewer.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * Replaces Handlebars-style {{variable.key}} tokens in HTML text with contextual dictionary values.
  */
 export function interpolateVariables(
@@ -54,7 +72,7 @@ export function interpolateVariables(
   return templateHtml.replace(/\{\{\s*([a-zA-Z0-9_\.]+)\s*\}\}/g, (match, token) => {
     const value = getNestedValue(contextData, token);
     if (value !== undefined && value !== null) {
-      return String(value);
+      return escapeHtml(String(value));
     }
     // Return empty placeholder string if context missing
     return `<span class="text-primary font-mono underline bg-primary/10 px-1 py-0.5 rounded">[${token}]</span>`;

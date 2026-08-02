@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -133,15 +135,31 @@ export function LocationMapModal({
         popupAnchor: [0, -32],
       });
 
-      // Add Marker
+      // Add Marker.
+      //
+      // The popup is built from DOM nodes rather than an HTML string:
+      // Leaflet assigns a string argument straight to innerHTML, and
+      // `employeeName` is a self-served profile name, so interpolating it
+      // would execute any markup a member puts in their own name for every
+      // manager who opens this map.
       const marker = L.marker([latitude, longitude], { icon: customIcon }).addTo(map);
-      marker.bindPopup(`
-        <div style="font-family: sans-serif; font-size: 12px; padding: 2px;">
-          <strong>${employeeName || "Employee"}</strong><br/>
-          <span>${title}</span><br/>
-          <small style="color: #64748b;">${timestamp || ""}</small>
-        </div>
-      `).openPopup();
+
+      const popupNode = document.createElement("div");
+      popupNode.style.cssText = "font-family: sans-serif; font-size: 12px; padding: 2px;";
+
+      const nameEl = document.createElement("strong");
+      nameEl.textContent = employeeName || "Employee";
+
+      const titleEl = document.createElement("span");
+      titleEl.textContent = title;
+
+      const timeEl = document.createElement("small");
+      timeEl.style.color = "#64748b";
+      timeEl.textContent = timestamp || "";
+
+      popupNode.append(nameEl, document.createElement("br"), titleEl, document.createElement("br"), timeEl);
+
+      marker.bindPopup(popupNode).openPopup();
 
       // Add GPS Accuracy Circle
       if (accuracy) {
