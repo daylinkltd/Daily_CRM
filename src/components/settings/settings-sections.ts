@@ -32,22 +32,14 @@ import {
 export const SETTINGS_SECTIONS = [
   'overview',
   'profile',
-  'security',
-  'appearance',
   'crm',
   'whatsapp',
-  'chatbot',
   'templates',
-  'whatsapp-templates',
-  'fields',
-  'deals',
   'accounting',
   'projects',
   'hr',
-  'attendance',
   'retail',
   'members',
-  'roles',
   'billing',
   'api',
   'catalog',
@@ -82,26 +74,19 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   overview: { id: 'overview', label: 'Overview', icon: LayoutGrid, group: 'top' },
 
   // Your account — personal, not workspace-wide.
-  profile: { id: 'profile', label: 'Your profile', icon: User, group: 'account', blurb: 'Name, photo and contact details' },
-  security: { id: 'security', label: 'Login & security', icon: Shield, group: 'account', blurb: 'Password and active sessions' },
-  appearance: { id: 'appearance', label: 'Appearance', icon: Palette, group: 'account', blurb: 'Theme and display density' },
+  profile: { id: 'profile', label: 'Your profile', icon: User, group: 'account', blurb: 'Your details, password, sessions and appearance' },
 
   // The company itself — identity that appears on outgoing documents.
   branding: { id: 'branding', label: 'Company branding', icon: Building2, group: 'company', blurb: 'Logo, colours and letterhead' },
-  members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'company', blurb: 'Invite people and set their role' },
-  roles: { id: 'roles', label: 'Roles & permissions', icon: ShieldCheck, group: 'company', blurb: 'What each role can see and do' },
+  members: { id: 'members', label: 'Team & access', icon: UsersRound, group: 'company', blurb: 'Members, invitations, roles and permissions' },
 
   // Reusable content shared across every module.
   templates: { id: 'templates', label: 'Templates', icon: FileText, group: 'content', blurb: 'Messages, emails and letters for every module' },
   catalog: { id: 'catalog', label: 'Service catalog', icon: FileSpreadsheet, group: 'content', blurb: 'Products and services you sell' },
-  fields: { id: 'fields', label: 'Fields & tags', icon: Tags, group: 'content', blurb: 'Custom fields and tag vocabulary' },
 
   // CRM
-  crm: { id: 'crm', label: 'CRM & pipelines', icon: PlugZap, group: 'crm_module', blurb: 'Pipeline stages and lead defaults' },
-  deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'crm_module', blurb: 'Default currency and deal settings' },
-  whatsapp: { id: 'whatsapp', label: 'WhatsApp API', icon: PlugZap, group: 'crm_module', blurb: 'Connect your WhatsApp Business number' },
-  'whatsapp-templates': { id: 'whatsapp-templates', label: 'WhatsApp approvals', icon: FileText, group: 'crm_module', blurb: 'Submit templates to Meta and track status' },
-  chatbot: { id: 'chatbot', label: 'AI chatbot', icon: Bot, group: 'crm_module', blurb: 'Automated replies and handover rules' },
+  crm: { id: 'crm', label: 'CRM & pipelines', icon: PlugZap, group: 'crm_module', blurb: 'Pipelines, deal defaults, custom fields and tags' },
+  whatsapp: { id: 'whatsapp', label: 'WhatsApp API', icon: PlugZap, group: 'crm_module', blurb: 'Connection, chatbot and Meta template approvals' },
 
   // Finance
   accounting: { id: 'accounting', label: 'Accounting & ledgers', icon: Landmark, group: 'finance_module', blurb: 'Chart of accounts and tax defaults' },
@@ -110,8 +95,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   projects: { id: 'projects', label: 'Project management', icon: Briefcase, group: 'projects_module', blurb: 'Project defaults and billing rates' },
 
   // HR
-  hr: { id: 'hr', label: 'HR & operations', icon: Briefcase, group: 'hr_module', blurb: 'Shifts, leave quotas and payroll rules' },
-  attendance: { id: 'attendance', label: 'Attendance & punch', icon: MapPin, group: 'hr_module', blurb: 'Work locations, GPS rules and geofences' },
+  hr: { id: 'hr', label: 'HR & operations', icon: Briefcase, group: 'hr_module', blurb: 'Shifts, leave, payroll, salary and attendance rules' },
 
   // Retail
   retail: { id: 'retail', label: 'Retail presets', icon: Store, group: 'retail_module', blurb: 'Counter, tax and receipt defaults' },
@@ -145,8 +129,14 @@ function isSection(value: string | null): value is SettingsSection {
  * Overview landing.
  */
 export function resolveSection(raw: string | null): SettingsSection {
-  if (raw === 'tags' || raw === 'custom-fields') return 'fields';
-  if (raw === 'permissions' || raw === 'roles-permissions') return 'roles';
+  // Folded sections: the id survives as a sub-tab, so an old deep link
+  // resolves to the parent and the parent opens on that tab.
+  if (raw === 'security' || raw === 'appearance') return 'profile';
+  if (raw === 'roles' || raw === 'permissions') return 'members';
+  if (raw === 'chatbot' || raw === 'whatsapp-templates') return 'whatsapp';
+  if (raw === 'fields' || raw === 'tags' || raw === 'custom-fields' || raw === 'deals') return 'crm';
+  if (raw === 'attendance') return 'hr';
+  if (raw === 'roles-permissions') return 'members';
   if (raw === 'hr-operations' || raw === 'hr_operations' || raw === 'operations') return 'hr';
   if (raw === 'retail' || raw === 'retail-settings') return 'retail';
   if (isSection(raw)) return raw;

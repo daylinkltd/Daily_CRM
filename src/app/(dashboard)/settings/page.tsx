@@ -33,6 +33,7 @@ import {
   type SettingsSection,
 } from '@/components/settings/settings-sections';
 import { PageHeader } from '@/components/ui/page-header';
+import { SettingsSubtabs } from '@/components/settings/settings-subtabs';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -40,6 +41,9 @@ export default function SettingsPage() {
   const { defaultCurrency } = useAuth();
   const { mode } = useTheme();
 
+  // The raw value is kept alongside the resolved section so a folded
+  // section (?tab=security) can open its parent on the right sub-tab.
+  const rawTab = searchParams.get('tab');
   const [section, setSection] = useState<SettingsSection>(() =>
     resolveSection(searchParams.get('tab'))
   );
@@ -61,8 +65,8 @@ export default function SettingsPage() {
   // already in context.
   const hints: Partial<Record<SettingsSection, ReactNode>> = useMemo(
     () => ({
-      appearance: mode.charAt(0).toUpperCase() + mode.slice(1),
-      deals: defaultCurrency,
+      profile: mode.charAt(0).toUpperCase() + mode.slice(1),
+      crm: defaultCurrency,
     }),
     [mode, defaultCurrency],
   );
@@ -72,33 +76,62 @@ export default function SettingsPage() {
       case 'overview':
         return <SettingsOverview onSelect={go} />;
       case 'profile':
-        return <ProfileForm />;
-      case 'security':
-        return <SecurityPanel />;
-      case 'appearance':
-        return <AppearancePanel />;
+        return (
+          <SettingsSubtabs
+            initialTab={rawTab === 'security' || rawTab === 'appearance' ? rawTab : undefined}
+            tabs={[
+              { id: 'profile', label: 'Profile', render: () => <ProfileForm /> },
+              { id: 'security', label: 'Security', render: () => <SecurityPanel /> },
+              { id: 'appearance', label: 'Appearance', render: () => <AppearancePanel /> },
+            ]}
+          />
+        );
       case 'crm':
-        return <CRMSettingsPanel />;
+        return (
+          <SettingsSubtabs
+            initialTab={
+              rawTab === 'deals' || rawTab === 'fields' || rawTab === 'tags' ? rawTab : undefined
+            }
+            tabs={[
+              { id: 'crm', label: 'General', render: () => <CRMSettingsPanel /> },
+              { id: 'deals', label: 'Deals', render: () => <DealsSettings /> },
+              { id: 'fields', label: 'Fields & tags', render: () => <FieldsAndTagsPanel /> },
+            ]}
+          />
+        );
       case 'accounting':
         return <AccountingSettingsPanel />;
       case 'projects':
         return <ProjectsSettingsPanel />;
       case 'whatsapp':
-        return <WhatsAppConfig />;
-      case 'chatbot':
-        return <ChatbotConfig />;
+        return (
+          <SettingsSubtabs
+            initialTab={
+              rawTab === 'chatbot' || rawTab === 'whatsapp-templates' ? rawTab : undefined
+            }
+            tabs={[
+              { id: 'whatsapp', label: 'Connection', render: () => <WhatsAppConfig /> },
+              { id: 'chatbot', label: 'Chatbot', render: () => <ChatbotConfig /> },
+              {
+                id: 'whatsapp-templates',
+                label: 'Meta approvals',
+                render: () => <TemplateManager />,
+              },
+            ]}
+          />
+        );
       case 'templates':
         return <TemplateLibraryPanel />;
-      case 'whatsapp-templates':
-        return <TemplateManager />;
-      case 'fields':
-        return <FieldsAndTagsPanel />;
-      case 'deals':
-        return <DealsSettings />;
       case 'members':
-        return <MembersTab />;
-      case 'roles':
-        return <RolesPanel />;
+        return (
+          <SettingsSubtabs
+            initialTab={rawTab === 'roles' || rawTab === 'permissions' ? 'roles' : undefined}
+            tabs={[
+              { id: 'members', label: 'Members', render: () => <MembersTab /> },
+              { id: 'roles', label: 'Roles & permissions', render: () => <RolesPanel /> },
+            ]}
+          />
+        );
       case 'billing':
         return <BillingPanel />;
       case 'api':
@@ -108,9 +141,19 @@ export default function SettingsPage() {
       case 'branding':
         return <BrandingSettings />;
       case 'hr':
-        return <HRSettingsPanel />;
-      case 'attendance':
-        return <AttendancePolicyPanel />;
+        return (
+          <SettingsSubtabs
+            initialTab={rawTab === 'attendance' ? 'attendance' : undefined}
+            tabs={[
+              { id: 'hr', label: 'Shifts, leave & payroll', render: () => <HRSettingsPanel /> },
+              {
+                id: 'attendance',
+                label: 'Attendance & locations',
+                render: () => <AttendancePolicyPanel />,
+              },
+            ]}
+          />
+        );
       case 'retail':
         return <RetailSettingsPage />;
       default:

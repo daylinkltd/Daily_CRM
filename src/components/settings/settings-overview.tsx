@@ -191,7 +191,7 @@ export function SettingsOverview({
             }`,
     },
     {
-      section: 'roles',
+      section: 'members',
       loading: false,
       subtitle: 'Per-resource create / read / update / delete access',
     },
@@ -208,12 +208,12 @@ export function SettingsOverview({
             }`,
     },
     {
-      section: 'deals',
+      section: 'crm',
       loading: false,
       subtitle: `${defaultCurrency} — ${currencyLabel}`,
     },
     {
-      section: 'fields',
+      section: 'crm',
       loading: countsLoading,
       subtitle:
         counts?.tags == null && counts?.customFields == null
@@ -231,7 +231,7 @@ export function SettingsOverview({
           : `${counts.catalog} catalog item${counts.catalog === 1 ? '' : 's'}`,
     },
     {
-      section: 'appearance',
+      section: 'profile',
       loading: false,
       subtitle: `${cap(mode)} mode · ${themeName} accent`,
     },

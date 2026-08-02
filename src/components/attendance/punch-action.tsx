@@ -71,6 +71,7 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   const [policy, setPolicy] = useState<AttendancePolicy>(DEFAULT_ATTENDANCE_POLICY);
   const [locatingMessage, setLocatingMessage] = useState<string | null>(null);
   const [showLocationHelp, setShowLocationHelp] = useState(false);
+  const [diagnostic, setDiagnostic] = useState<string | null>(null);
   // null = not yet known. Rendering the punch controls before this
   // resolves would flash them for people who never clock in.
   const [attendanceEnabled, setAttendanceEnabled] = useState<boolean | null>(null);
@@ -161,6 +162,55 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
       cancelled = true;
     };
   }, [supabase, activeWorkspace?.id, activeMember?.id, todayDate]);
+
+  /**
+   * Reports exactly what the browser says, rather than guessing which of
+   * the three gates is closed. The raw error code is the thing that
+   * actually distinguishes them: 1 = PERMISSION_DENIED (site or OS),
+   * 2 = POSITION_UNAVAILABLE (no fix — OS services off, or no signal),
+   * 3 = TIMEOUT.
+   */
+  const runLocationDiagnostic = async () => {
+    setDiagnostic('Running…');
+    const lines: string[] = [];
+    lines.push(`Secure origin: ${typeof window !== 'undefined' && window.isSecureContext ? 'yes' : 'NO — location is blocked outright'}`);
+    lines.push(`Origin: ${typeof window !== 'undefined' ? window.location.origin : '?'}`);
+    lines.push(`Geolocation API present: ${typeof navigator !== 'undefined' && 'geolocation' in navigator ? 'yes' : 'no'}`);
+    lines.push(`Permissions API reports: ${await getGeolocationPermission()}`);
+
+    const raw = await new Promise<string>((resolve) => {
+      if (typeof navigator === 'undefined' || !navigator.geolocation) {
+        resolve('no geolocation object');
+        return;
+      }
+      const started = Date.now();
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          resolve(
+            `SUCCESS in ${Date.now() - started}ms — accuracy ±${Math.round(pos.coords.accuracy)}m`
+          ),
+        (err) =>
+          resolve(
+            `FAILED code ${err.code} (${
+              err.code === 1 ? 'PERMISSION_DENIED' : err.code === 2 ? 'POSITION_UNAVAILABLE' : 'TIMEOUT'
+            }) after ${Date.now() - started}ms — "${err.message}"`
+          ),
+        { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 }
+      );
+    });
+    lines.push(`Direct request: ${raw}`);
+
+    // code 2 with the site allowed is the OS withholding it; code 1 with
+    // the site allowed is almost always the OS too, on macOS.
+    if (raw.includes('code 2')) {
+      lines.push('');
+      lines.push('POSITION_UNAVAILABLE with the site allowed means the operating system has no fix to give — macOS Location Services is off for this browser, or Wi-Fi/GPS is disabled.');
+    } else if (raw.includes('code 1')) {
+      lines.push('');
+      lines.push('PERMISSION_DENIED while the site shows Allow points at the OS layer or a browser shield (Brave), not the site permission.');
+    }
+    setDiagnostic(lines.join('\n'));
+  };
 
   /**
    * `skipLocation` records the punch with the location marked unavailable
@@ -507,7 +557,16 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-border pt-3">
+          {diagnostic && (
+            <pre className="max-h-52 overflow-auto whitespace-pre-wrap rounded-lg border border-border bg-muted/50 p-3 text-[11px] leading-relaxed text-foreground">
+              {diagnostic}
+            </pre>
+          )}
+
+          <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-3">
+            <Button variant="outline" onClick={runLocationDiagnostic}>
+              Run diagnostic
+            </Button>
             <Button variant="outline" onClick={() => setShowLocationHelp(false)}>
               Close
             </Button>
