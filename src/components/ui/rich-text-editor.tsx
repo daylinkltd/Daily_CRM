@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "./button";
 import { cn } from "@/lib/utils";
+import { normalisePastedHtml } from "@/lib/paste-normalise";
 import {
   textDraftKey,
   parseTextDraft,
@@ -189,7 +190,7 @@ export function RichTextEditor({
     if (!html && !text) return;
     e.preventDefault();
     if (html) {
-      document.execCommand("insertHTML", false, sanitizeHtml(html));
+      document.execCommand("insertHTML", false, sanitizeHtml(normalisePastedHtml(html)));
     } else {
       document.execCommand("insertText", false, text);
     }
