@@ -21,16 +21,16 @@ export function SettingsPanelHead({
   return (
     <div
       className={cn(
-        'mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between',
+        'mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
     >
       <div className="min-w-0">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">
+        <h2 className="text-base font-semibold tracking-tight text-foreground">
           {title}
         </h2>
         {description ? (
-          <p className="mt-1 max-w-[62ch] text-sm text-muted-foreground">
+          <p className="mt-0.5 max-w-[70ch] text-xs text-muted-foreground">
             {description}
           </p>
         ) : null}

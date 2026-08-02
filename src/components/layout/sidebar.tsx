@@ -487,6 +487,10 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
+                // Collapsed hides the label span, leaving the link with no
+                // accessible name at all — an icon is not a name.
+                aria-label={isCollapsed ? item.label : undefined}
+                title={undefined}
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-bold transition-all relative group",
                   linkClass(isActive),
@@ -498,7 +502,10 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                 
                 {/* Collapsed Tooltip */}
                 {isCollapsed && (
-                  <span className="absolute left-14 scale-0 group-hover:scale-100 transition-all rounded-none bg-background text-foreground text-xs font-semibold px-2.5 py-1.5 shadow-md origin-left whitespace-nowrap z-50">
+                  <span
+                    role="tooltip"
+                    className="pointer-events-none absolute left-14 z-50 origin-left scale-0 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md transition-transform group-hover:scale-100 group-focus-visible:scale-100"
+                  >
                     {item.label}
                   </span>
                 )}
@@ -521,13 +528,14 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               type="button"
               onClick={toggleCollapse}
               className="flex h-11 w-11 mx-auto items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-slate-850 mb-1"
-              title="Expand Sidebar"
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
             >
               <ChevronRight className="h-5 w-5" strokeWidth={3} />
             </button>
           )}
           {!isCollapsed && (
-            <div className="px-2 pb-1 flex items-center justify-between text-[10px] text-muted-foreground font-semibold tracking-wider uppercase">
+            <div className="flex items-center justify-between px-2 pb-1 text-[10px] font-medium tracking-wide text-muted-foreground/60">
               <span>CRM v2</span>
               <span>by Daylink</span>
             </div>
@@ -538,6 +546,10 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               render={
                 <button
                   type="button"
+                  // Collapsed shows only the avatar, so the trigger needs a
+                  // name of its own.
+                  aria-label={isCollapsed ? `Account: ${profile?.full_name ?? "User"}` : undefined}
+                  title={isCollapsed ? (profile?.full_name ?? "Account") : undefined}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors focus:outline-none cursor-pointer hover:bg-muted/30",
                     isCollapsed ? "justify-center" : ""
