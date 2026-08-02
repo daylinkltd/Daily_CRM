@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { computeSalaryBreakdown, type SalaryComponent } from '@/lib/hr/salary';
 import {
   Select,
   SelectContent,
@@ -43,6 +44,12 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
   // opposite of availableMembers, which holds only members not yet
   // onboarded.
   const [managerOptions, setManagerOptions] = useState<{ id: string; full_name: string }[]>([]);
+  // Assigning a salary structure at hire derives HRA, allowances and the
+  // statutory deductions from basic, instead of leaving someone to type
+  // six figures by hand and get them inconsistent with the slab.
+  const [structures, setStructures] = useState<{ id: string; name: string }[]>([]);
+  const [structureId, setStructureId] = useState('');
+  const [structureComponents, setStructureComponents] = useState<SalaryComponent[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [designations, setDesignations] = useState<any[]>([]);
 
@@ -138,6 +145,14 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
       // Filter members who DO NOT have an employee profile yet
       const unassigned = members.filter(m => !existingIds.has(m.id));
 
+      const { data: structs } = await supabase
+        .from('hr_salary_structures')
+        .select('id, name')
+        .eq('workspace_id', activeWorkspace!.id)
+        .is('deleted_at', null)
+        .order('name');
+      setStructures(structs || []);
+
       setDepartments(deps || []);
       setDesignations(desigs || []);
       setAvailableMembers(unassigned);
@@ -148,6 +163,48 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
       setLoadingDeps(false);
     }
   }
+
+  // Load the chosen structure's components so the breakdown can be derived.
+  useEffect(() => {
+    if (!structureId) { setStructureComponents([]); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('hr_salary_structure_components')
+        .select('value_override, calculation_type, hr_salary_components(id, name, code, type, calculation_type, value_number, is_statutory, payroll_field, sort_order)')
+        .eq('structure_id', structureId);
+      if (cancelled) return;
+      type JoinRow = {
+        value_override: number | null;
+        calculation_type: string | null;
+        hr_salary_components: SalaryComponent | SalaryComponent[] | null;
+      };
+      setStructureComponents(
+        ((data as JoinRow[] | null) || [])
+          .map((row) => {
+            // PostgREST returns an object for a to-one embed but an array
+            // when it cannot prove cardinality.
+            const comp = Array.isArray(row.hr_salary_components)
+              ? row.hr_salary_components[0]
+              : row.hr_salary_components;
+            if (!comp) return null;
+            return {
+              ...comp,
+              value_number: row.value_override ?? comp.value_number,
+              calculation_type: (row.calculation_type ||
+                comp.calculation_type) as SalaryComponent['calculation_type'],
+            } as SalaryComponent;
+          })
+          .filter((c): c is SalaryComponent => c !== null)
+      );
+    })();
+    return () => { cancelled = true; };
+  }, [structureId, supabase]);
+
+  const derived = useMemo(
+    () => computeSalaryBreakdown(structureComponents, Number(basicSalary) || 0),
+    [structureComponents, basicSalary]
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -171,15 +228,22 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
           // into the free-text salary_grade band field, which meant
           // every onboarded employee was silently excluded from
           // payroll runs.
-          basic_salary: Number(basicSalary) || 0,
-          hra: Number(hra) || 0,
-          special_allowance: Number(allowances) || 0,
-          pf_deduction: Number(pfDeduction) || 0,
-          tds_deduction: Number(tds) || 0,
+          // A structure is authoritative: its derived figures replace the
+          // manual boxes so the two can never disagree.
+          ...(structureId
+            ? { ...derived.payrollFields, salary_structure_id: structureId, ctc_annual: derived.ctcAnnual }
+            : {
+                basic_salary: Number(basicSalary) || 0,
+                hra: Number(hra) || 0,
+                special_allowance: Number(allowances) || 0,
+                pf_deduction: Number(pfDeduction) || 0,
+                tds_deduction: Number(tds) || 0,
+              }),
+          salary_effective_from: joiningDate || null,
           // professional_tax exists in 077 and the payroll processor reads
           // it, but this form never collected it — it silently stayed 0
           // for every onboarded employee.
-          professional_tax: Number(professionalTax) || 0,
+          ...(structureId ? {} : { professional_tax: Number(professionalTax) || 0 }),
           attendance_enabled: attendanceEnabled,
           manager_workspace_member_id: managerId || null,
           salary_grade: salaryGrade.trim() || null,
@@ -437,6 +501,33 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
                     <Switch checked={attendanceEnabled} onCheckedChange={setAttendanceEnabled} />
                   </div>
                 </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Salary Structure</Label>
+                  <Select value={structureId} onValueChange={(v) => setStructureId(v || '')}>
+                    <SelectTrigger className="bg-card border-border">
+                      <SelectValue placeholder="None — enter the amounts by hand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {structures.length === 0 ? (
+                        <SelectItem value="" disabled>No structures defined yet</SelectItem>
+                      ) : (
+                        structures.map((st) => (
+                          <SelectItem key={st.id} value={st.id}>{st.name}</SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {structureId && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Derived from basic: gross {derived.grossMonthly.toLocaleString()} ·
+                      deductions {derived.totalDeductions.toLocaleString()} ·
+                      net {derived.netMonthly.toLocaleString()} · CTC{' '}
+                      {derived.ctcAnnual.toLocaleString()}/yr. The boxes below are ignored while a
+                      structure is selected.
+                    </p>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <Label>Professional Tax</Label>
                   <Input type="number" value={professionalTax} onChange={(e) => setProfessionalTax(e.target.value)} placeholder="e.g. 200" className="bg-card border-border" />

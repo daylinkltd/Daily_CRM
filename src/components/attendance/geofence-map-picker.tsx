@@ -42,7 +42,9 @@ const FALLBACK_CENTRE: [number, number] = [20.5937, 78.9629];
 
 /**
  * Interactive geofence editor: drag the pin or click the map to move the
- * centre, drag the edge handle or use the controls to size the radius.
+ * centre; size the radius with the slider, the +/- steppers or a preset.
+ * (There is no draggable edge handle — an earlier version of this comment
+ * claimed one existed.)
  *
  * Leaflet is imported as a real dependency rather than injected from a
  * CDN at runtime. The previous CDN <script> tag had no integrity hash,
