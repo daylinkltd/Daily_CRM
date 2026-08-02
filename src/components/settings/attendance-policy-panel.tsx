@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { SettingsPanelHead } from "./settings-panel-head";
 import { GeofenceMapPicker } from "@/components/attendance/geofence-map-picker";
+import { WorkLocationsManager } from "./work-locations-manager";
 import {
   WORK_LOCATIONS,
   WORK_LOCATION_LABELS,
@@ -393,6 +394,8 @@ export function AttendancePolicyPanel() {
       )}
 
       <div className="space-y-5">
+        <WorkLocationsManager canEdit={canManage} />
+
         {/* Scope */}
         <Card>
           <CardHeader>

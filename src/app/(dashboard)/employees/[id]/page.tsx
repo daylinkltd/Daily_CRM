@@ -13,6 +13,9 @@ import { useRouter } from 'next/navigation';
 import { EmployeeProfileOverview } from '@/components/employees/employee-profile-overview';
 import { EmployeeAssetsTab } from '@/components/employees/employee-assets-tab';
 import { EmployeeDocumentsTab } from '@/components/employees/employee-documents-tab';
+import { EmployeeAttendanceTab } from '@/components/employees/employee-attendance-tab';
+import { EmployeeCompensationTab } from '@/components/employees/employee-compensation-tab';
+import { EmployeeLettersTab } from '@/components/employees/employee-letters-tab';
 
 export default function EmployeeProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -35,10 +38,14 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
       let empData: any = null;
 
       // Step 1: Query employee_profiles by workspace_member_id or id
+      // employee_profiles is keyed by workspace_member_id and has no `id`
+      // column; the previous `.or(...,id.eq.)` filter referenced a column
+      // that does not exist, so this query always errored and the page
+      // limped along on the fallback below.
       const { data: rawEmp } = await supabase
         .from('employee_profiles')
         .select('*')
-        .or(`workspace_member_id.eq.${id},id.eq.${id}`)
+        .eq('workspace_member_id', id)
         .maybeSingle();
 
       if (rawEmp) {
@@ -204,6 +211,9 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="bg-muted w-full justify-start overflow-x-auto h-auto p-1 rounded-lg">
           <TabsTrigger value="overview" className="py-2">Overview</TabsTrigger>
+          <TabsTrigger value="compensation" className="py-2">Compensation</TabsTrigger>
+          <TabsTrigger value="attendance" className="py-2">Attendance</TabsTrigger>
+          <TabsTrigger value="letters" className="py-2">Letters</TabsTrigger>
           <TabsTrigger value="assets" className="py-2">Assets</TabsTrigger>
           <TabsTrigger value="documents" className="py-2">Documents</TabsTrigger>
         </TabsList>
@@ -218,6 +228,53 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
               canEdit={canManagePeople}
               onSaved={fetchProfileData}
             />
+          </TabsContent>
+          <TabsContent value="compensation" className="m-0 focus-visible:outline-none">
+            {employee.workspace_member_id ? (
+              <EmployeeCompensationTab
+                workspaceMemberId={employee.workspace_member_id}
+                canEdit={canManagePeople}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Onboard this member as an employee before setting compensation.
+              </p>
+            )}
+          </TabsContent>
+          <TabsContent value="attendance" className="m-0 focus-visible:outline-none">
+            {employee.workspace_member_id ? (
+              <EmployeeAttendanceTab
+                workspaceMemberId={employee.workspace_member_id}
+                canEdit={canManagePeople}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Onboard this member as an employee before setting attendance rules.
+              </p>
+            )}
+          </TabsContent>
+          <TabsContent value="letters" className="m-0 focus-visible:outline-none">
+            {employee.workspace_member_id ? (
+              <EmployeeLettersTab
+                workspaceMemberId={employee.workspace_member_id}
+                canEdit={canManagePeople}
+                context={{
+                  employee_name: fullName,
+                  employee_code: employee.employee_code ?? null,
+                  designation:
+                    designations.find((d: any) => d.id === employee.designation_id)?.title ?? null,
+                  department:
+                    departments.find((d: any) => d.id === employee.department_id)?.name ?? null,
+                  joining_date: employee.joining_date ?? null,
+                  email: profile?.email ?? null,
+                  salary: employee.ctc_annual ? String(employee.ctc_annual) : null,
+                }}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Onboard this member as an employee before issuing letters.
+              </p>
+            )}
           </TabsContent>
           <TabsContent value="assets" className="m-0 focus-visible:outline-none">
             <EmployeeAssetsTab employeeId={id} canEdit={canManagePeople} />
