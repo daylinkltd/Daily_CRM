@@ -22,6 +22,7 @@ import { CatalogSettings } from '@/components/settings/catalog-settings';
 import { BrandingSettings } from '@/components/settings/branding-settings';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { HRSettingsPanel } from '@/components/settings/hr-settings-panel';
+import { AttendancePolicyPanel } from '@/components/settings/attendance-policy-panel';
 import RetailSettingsPage from '@/app/(dashboard)/settings/retail/page';
 import { CRMSettingsPanel } from '@/components/settings/crm-settings-panel';
 import { AccountingSettingsPanel } from '@/components/settings/accounting-settings-panel';
@@ -105,6 +106,8 @@ export default function SettingsPage() {
         return <BrandingSettings />;
       case 'hr':
         return <HRSettingsPanel />;
+      case 'attendance':
+        return <AttendancePolicyPanel />;
       case 'retail':
         return <RetailSettingsPage />;
       default:

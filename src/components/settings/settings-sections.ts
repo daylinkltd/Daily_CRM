@@ -17,6 +17,7 @@ import {
   Briefcase,
   Store,
   Landmark,
+  MapPin,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -42,6 +43,7 @@ export const SETTINGS_SECTIONS = [
   'accounting',
   'projects',
   'hr',
+  'attendance',
   'retail',
   'members',
   'roles',
@@ -93,6 +95,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   
   // HR Module Settings
   hr: { id: 'hr', label: 'HR & Operations', icon: Briefcase, group: 'hr_module' },
+  attendance: { id: 'attendance', label: 'Attendance & Punch', icon: MapPin, group: 'hr_module' },
   
   // Retail Module Settings
   retail: { id: 'retail', label: 'Retail Presets', icon: Store, group: 'retail_module' },
