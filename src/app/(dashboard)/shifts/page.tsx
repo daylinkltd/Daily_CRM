@@ -5,6 +5,7 @@ import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Clock, Plus, Loader2 } from 'lucide-react';
+import { Clock, Plus, Layers, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ShiftsPage() {
@@ -29,12 +30,39 @@ export default function ShiftsPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
 
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [startTime, setStartTime] = useState('09:30');
   const [endTime, setEndTime] = useState('18:30');
   const [gracePeriod, setGracePeriod] = useState('15');
+
+  /** Posts through the same API route the single-add form uses, so
+   *  validation and permission checks are identical. Sequential because
+   *  the route takes one record per call. */
+  const bulkAdd = async (rows: Record<string, string>[]) => {
+    const failures: string[] = [];
+    for (const r of rows) {
+      const res = await fetch('/api/hr/shifts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspaceId: activeWorkspace!.id, name: r.name.trim(), code: r.code?.trim() || null, startTime: r.startTime.trim(), endTime: r.endTime.trim() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        failures.push(`${r.name}: ${j.error || res.statusText}`);
+      }
+    }
+    fetchShifts();
+    if (failures.length > 0) {
+      // Partial success is reported honestly rather than as a flat failure.
+      throw new Error(
+        `${rows.length - failures.length} of ${rows.length} added. Failed: ${failures.slice(0, 3).join('; ')}`
+      );
+    }
+    toast.success(`Added ${rows.length} shift${rows.length === 1 ? '' : 's'}.`);
+  };
 
   const fetchShifts = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -97,9 +125,14 @@ export default function ShiftsPage() {
         description="Configure work shifts, start/end hours and grace periods."
         action={
           canManage && (
-            <Button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground">
-              <Plus className="size-4 mr-2" /> Add Shift
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setBulkAddOpen(true)}>
+                <Layers className="size-4 mr-2" /> Bulk add
+              </Button>
+              <Button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground">
+                <Plus className="size-4 mr-2" /> Add Shift
+              </Button>
+            </div>
           )
         }
       />
@@ -193,6 +226,22 @@ export default function ShiftsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        title="Add several shifts"
+        scope="shifts"
+        workspaceId={activeWorkspace?.id}
+        noun="shift"
+        columns={[
+          { key: 'name', label: 'Shift name', required: true, placeholder: 'General' },
+          { key: 'code', label: 'Code', placeholder: 'GEN' },
+          { key: 'startTime', label: 'Start (HH:MM)', required: true, placeholder: '09:30' },
+          { key: 'endTime', label: 'End (HH:MM)', required: true, placeholder: '18:30' },
+        ]}
+        onSubmit={bulkAdd}
+      />
     </div>
   );
 }

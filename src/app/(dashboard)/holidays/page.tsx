@@ -5,6 +5,7 @@ import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Calendar, Plus, Loader2, RefreshCw } from 'lucide-react';
+import { Calendar, Plus, Layers, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function HolidaysPage() {
@@ -35,12 +36,39 @@ export default function HolidaysPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
 
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [holidayType, setHolidayType] = useState('COMPANY');
   const [recurrenceType, setRecurrenceType] = useState('YEARLY');
   const [description] = useState('');
+
+  /** Posts through the same API route the single-add form uses, so
+   *  validation and permission checks are identical. Sequential because
+   *  the route takes one record per call. */
+  const bulkAdd = async (rows: Record<string, string>[]) => {
+    const failures: string[] = [];
+    for (const r of rows) {
+      const res = await fetch('/api/hr/holidays', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspaceId: activeWorkspace!.id, title: r.title.trim(), date: r.date.trim(), description: r.description?.trim() || null }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        failures.push(`${r.title}: ${j.error || res.statusText}`);
+      }
+    }
+    fetchHolidays();
+    if (failures.length > 0) {
+      // Partial success is reported honestly rather than as a flat failure.
+      throw new Error(
+        `${rows.length - failures.length} of ${rows.length} added. Failed: ${failures.slice(0, 3).join('; ')}`
+      );
+    }
+    toast.success(`Added ${rows.length} holiday${rows.length === 1 ? '' : 's'}.`);
+  };
 
   const fetchHolidays = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -102,9 +130,14 @@ export default function HolidaysPage() {
         description="Official national, company, and optional holidays linked to attendance & leave rules."
         action={
           canManage && (
-            <Button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground">
-              <Plus className="size-4 mr-2" /> Add Holiday
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setBulkAddOpen(true)}>
+                <Layers className="size-4 mr-2" /> Bulk add
+              </Button>
+              <Button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground">
+                <Plus className="size-4 mr-2" /> Add Holiday
+              </Button>
+            </div>
           )
         }
       />
@@ -209,6 +242,21 @@ export default function HolidaysPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        title="Add several holidays"
+        scope="holidays"
+        workspaceId={activeWorkspace?.id}
+        noun="holiday"
+        columns={[
+          { key: 'title', label: 'Holiday name', required: true, placeholder: 'Diwali' },
+          { key: 'date', label: 'Date (YYYY-MM-DD)', required: true, placeholder: '2026-11-08' },
+          { key: 'description', label: 'Notes', placeholder: 'Optional' },
+        ]}
+        onSubmit={bulkAdd}
+      />
     </div>
   );
 }
