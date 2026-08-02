@@ -80,9 +80,9 @@ export default function DocumentsVaultPage() {
               <UserCheck className="size-3.5 text-purple-500" /> Signatories
             </Button>
           </Link>
-          <Link href="/documents/templates">
+          <Link href="/settings?tab=templates">
             <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5 border-border">
-              <LayoutGrid className="size-3.5 text-primary" /> Template Studio
+              <LayoutGrid className="size-3.5 text-primary" /> Templates
             </Button>
           </Link>
           <Link href="/documents/new">
