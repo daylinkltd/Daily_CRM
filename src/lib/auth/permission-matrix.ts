@@ -59,7 +59,15 @@ export function normalizePermissions(
   raw: Record<string, unknown> | null | undefined,
 ): PermissionMap {
   const source = raw ?? {};
+  // Start from the stored map rather than an empty object: rebuilding
+  // only from crudPermissionKeys() silently DROPPED every other key, so
+  // saving any role stripped the legacy people_*/attendance_*/leave_*
+  // grants a pre-CRUD workspace still relied on. Unknown keys are now
+  // carried through untouched.
   const out: PermissionMap = {};
+  for (const [key, value] of Object.entries(source)) {
+    if (typeof value === "boolean") out[key] = value;
+  }
 
   for (const key of crudPermissionKeys()) {
     out[key] = source[key] === true;

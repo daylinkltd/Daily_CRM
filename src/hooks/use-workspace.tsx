@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { withDerivedLegacyPermissions } from "@/lib/auth/legacy-permissions";
 import { DEFAULT_CURRENCY } from "@/lib/currency";
 import {
   deriveModuleAccess,
@@ -302,7 +303,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setPermissions({ ...DEFAULT_MEMBER_PERMISSIONS, ...(data as WorkspacePermissions) });
+      // The seeded roles carry only CRUD keys, so the coarse keys the HR
+      // UI gates on (people_manage, attendance_manage, leave_approve) are
+      // absent and the defaults below would deny them forever. Derive them
+      // from the CRUD keys that ARE granted.
+      setPermissions(
+        withDerivedLegacyPermissions({
+          ...DEFAULT_MEMBER_PERMISSIONS,
+          ...(data as WorkspacePermissions),
+        }) as WorkspacePermissions
+      );
     } catch {
       setPermissions(DEFAULT_MEMBER_PERMISSIONS);
     }

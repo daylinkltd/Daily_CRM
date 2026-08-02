@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
+import { IconAction } from '@/components/ui/icon-action';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -248,12 +249,17 @@ export default function UnitsPage() {
                   <TableCell className="text-muted-foreground font-mono text-xs uppercase">{unit.code}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="size-8" onClick={() => handleOpenEdit(unit)}>
-                        <Edit3 className="size-4 text-muted-foreground" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600" onClick={() => handleDelete(unit.id)}>
-                        <Trash2 className="size-4" />
-                      </Button>
+                      <IconAction
+                        label={`Edit ${unit.name}`}
+                        icon={<Edit3 className="size-4" />}
+                        onClick={() => handleOpenEdit(unit)}
+                      />
+                      <IconAction
+                        label={`Delete ${unit.name}`}
+                        icon={<Trash2 className="size-4" />}
+                        onClick={() => handleDelete(unit.id)}
+                        destructive
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

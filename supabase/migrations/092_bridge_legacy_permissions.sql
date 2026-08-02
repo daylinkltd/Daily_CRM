@@ -1,5 +1,3 @@
--- ==================== BEGIN 092_bridge_legacy_permissions ====================
-
 -- ============================================================
 -- 092 — Bridge the two permission namespaces.
 --
@@ -183,5 +181,3 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_user_permissions(UUID) TO authenticated;
-
--- ==================== END 092_bridge_legacy_permissions ====================
