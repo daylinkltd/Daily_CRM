@@ -22,6 +22,7 @@ import { CatalogSettings } from '@/components/settings/catalog-settings';
 import { BrandingSettings } from '@/components/settings/branding-settings';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { HRSettingsPanel } from '@/components/settings/hr-settings-panel';
+import { TemplateLibraryPanel } from '@/components/settings/template-library-panel';
 import { AttendancePolicyPanel } from '@/components/settings/attendance-policy-panel';
 import RetailSettingsPage from '@/app/(dashboard)/settings/retail/page';
 import { CRMSettingsPanel } from '@/components/settings/crm-settings-panel';
@@ -87,6 +88,8 @@ export default function SettingsPage() {
       case 'chatbot':
         return <ChatbotConfig />;
       case 'templates':
+        return <TemplateLibraryPanel />;
+      case 'whatsapp-templates':
         return <TemplateManager />;
       case 'fields':
         return <FieldsAndTagsPanel />;

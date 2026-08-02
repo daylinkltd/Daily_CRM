@@ -38,6 +38,7 @@ export const SETTINGS_SECTIONS = [
   'whatsapp',
   'chatbot',
   'templates',
+  'whatsapp-templates',
   'fields',
   'deals',
   'accounting',
@@ -83,7 +84,8 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   crm: { id: 'crm', label: 'CRM & Pipelines', icon: PlugZap, group: 'crm_module' },
   whatsapp: { id: 'whatsapp', label: 'WhatsApp API', icon: PlugZap, group: 'crm_module' },
   chatbot: { id: 'chatbot', label: 'AI Chatbot', icon: Bot, group: 'crm_module' },
-  templates: { id: 'templates', label: 'Templates', icon: FileText, group: 'crm_module' },
+  templates: { id: 'templates', label: 'Templates', icon: FileText, group: 'top' },
+  'whatsapp-templates': { id: 'whatsapp-templates', label: 'WhatsApp Templates', icon: FileText, group: 'crm_module' },
   fields: { id: 'fields', label: 'Fields & tags', icon: Tags, group: 'crm_module' },
   deals: { id: 'deals', label: 'Deals & currency', icon: Coins, group: 'crm_module' },
   
