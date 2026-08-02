@@ -259,17 +259,16 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
     setStructureCode("");
     setMinBasicPercent("0");
     setIsDefault(false);
-    // A new structure starts with every earning/basic component; the
-    // admin trims what they do not want rather than assembling from empty.
+    // Start with EVERY component — earnings and deductions. Seeding only
+    // earnings produced a structure where gross equalled net, because PF,
+    // professional tax and TDS were silently left out.
     setMembers(
-      components
-        .filter((c) => c.type === "EARNING")
-        .map((c, i) => ({
-          component_id: c.id,
-          value_override: null,
-          calculation_type: null,
-          sort_order: i,
-        }))
+      components.map((c, i) => ({
+        component_id: c.id,
+        value_override: null,
+        calculation_type: null,
+        sort_order: i,
+      }))
     );
     setStructureEditorOpen(true);
   };
@@ -854,39 +853,69 @@ export function SalaryStructuresManager({ canEdit }: { canEdit: boolean }) {
             {/* Component picker */}
             <div className="space-y-2">
               <Label className="text-xs font-semibold">Components</Label>
-              <div className="space-y-1.5 rounded-lg border border-border p-2">
-                {components.map((c) => {
-                  const member = members.find((m) => m.component_id === c.id);
-                  const included = Boolean(member);
+              <div className="space-y-3 rounded-lg border border-border p-2">
+                {(["EARNING", "DEDUCTION"] as const).map((group) => {
+                  const inGroup = components.filter((c) => c.type === group);
+                  if (inGroup.length === 0) return null;
                   return (
-                    <div
-                      key={c.id}
-                      className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${
-                        included ? "bg-muted/60" : ""
-                      }`}
-                    >
-                      <GripVertical className="size-3.5 shrink-0 text-muted-foreground/50" />
-                      <Switch checked={included} onCheckedChange={() => toggleMember(c.id)} />
-                      <span className="min-w-0 flex-1 truncate text-sm">
-                        {c.name}
-                        <span className="ml-1.5 text-xs text-muted-foreground">
-                          {c.type === "EARNING" ? "" : "(deduction)"}
-                        </span>
-                      </span>
-                      {included && (
-                        <div className="flex shrink-0 items-center gap-1">
-                          <Input
-                            type="number"
-                            min={0}
-                            value={member?.value_override ?? c.value_number}
-                            onChange={(e) => setMemberOverride(c.id, e.target.value)}
-                            className="h-7 w-20 font-mono text-xs"
-                          />
-                          <span className="w-8 text-[11px] text-muted-foreground">
-                            {c.calculation_type === "PERCENTAGE_OF_BASIC" ? "%" : "flat"}
-                          </span>
-                        </div>
-                      )}
+                    <div key={group} className="space-y-1.5">
+                      <p className="px-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {group === "EARNING" ? "Earnings & allowances" : "Deductions"}
+                      </p>
+                      {inGroup.map((c) => {
+                        const member = members.find((m) => m.component_id === c.id);
+                        const included = Boolean(member);
+                        // Basic is the figure the whole structure is scaled
+                        // from, so a rate on it is meaningless — showing an
+                        // editable "20%" invites someone to set basic to a
+                        // fifth of itself.
+                        const isBasic = c.payroll_field === "basic_salary";
+                        return (
+                          <div
+                            key={c.id}
+                            className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${
+                              included ? "bg-muted/60" : ""
+                            }`}
+                          >
+                            <GripVertical className="size-3.5 shrink-0 text-muted-foreground/50" />
+                            <Switch
+                              checked={included}
+                              onCheckedChange={() => toggleMember(c.id)}
+                              disabled={isBasic && included}
+                            />
+                            <span className="min-w-0 flex-1 truncate text-sm">
+                              {c.name}
+                              {c.is_statutory && (
+                                <span className="ml-1.5 text-[10px] text-muted-foreground">
+                                  statutory
+                                </span>
+                              )}
+                            </span>
+                            {included && (
+                              <div className="flex shrink-0 items-center gap-1">
+                                {isBasic ? (
+                                  <span className="text-[11px] text-muted-foreground">
+                                    the base figure
+                                  </span>
+                                ) : (
+                                  <>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      value={member?.value_override ?? c.value_number}
+                                      onChange={(e) => setMemberOverride(c.id, e.target.value)}
+                                      className="h-7 w-20 font-mono text-xs"
+                                    />
+                                    <span className="w-8 text-[11px] text-muted-foreground">
+                                      {c.calculation_type === "PERCENTAGE_OF_BASIC" ? "% of basic" : "flat"}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}

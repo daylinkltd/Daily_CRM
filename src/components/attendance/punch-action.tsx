@@ -16,6 +16,13 @@ import {
   MapPin
 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { TimeLogForm } from '@/components/timesheets/time-log-form';
 import { LocationMapModal } from '@/components/attendance/location-map-modal';
 import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
@@ -62,6 +69,10 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   const [workLocation, setWorkLocation] = useState<WorkLocation>('OFFICE');
   const [policy, setPolicy] = useState<AttendancePolicy>(DEFAULT_ATTENDANCE_POLICY);
   const [locatingMessage, setLocatingMessage] = useState<string | null>(null);
+  const [showLocationHelp, setShowLocationHelp] = useState(false);
+  // null = not yet known. Rendering the punch controls before this
+  // resolves would flash them for people who never clock in.
+  const [attendanceEnabled, setAttendanceEnabled] = useState<boolean | null>(null);
   const [breakType, setBreakType] = useState<'LUNCH' | 'TEA' | 'PERSONAL' | 'MEETING'>('LUNCH');
   const [showTimeLogModal, setShowTimeLogModal] = useState(false);
   const [lastLoggedHours, setLastLoggedHours] = useState<number | undefined>(undefined);
@@ -97,6 +108,27 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   useEffect(() => {
     fetchTodayStatus();
   }, [fetchTodayStatus]);
+
+  // Does this person clock in at all? Set per employee in HR; the punch
+  // controls are hidden entirely when it is off.
+  useEffect(() => {
+    if (!activeWorkspace?.id || !activeMember?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('employee_profiles')
+        .select('attendance_enabled')
+        .eq('workspace_id', activeWorkspace.id)
+        .eq('workspace_member_id', activeMember.id)
+        .maybeSingle();
+      if (cancelled) return;
+      // No employee row, or the column not deployed yet: fall back to
+      // showing the controls rather than hiding attendance from everyone.
+      if (error) setAttendanceEnabled(true);
+      else setAttendanceEnabled(data ? data.attendance_enabled !== false : false);
+    })();
+    return () => { cancelled = true; };
+  }, [supabase, activeWorkspace?.id, activeMember?.id]);
 
   // Resolve this member's effective policy for today: which work locations
   // they may pick, whether GPS is required, the geofence, and whether
@@ -154,18 +186,20 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
         .catch(() => null);
 
       if (locationRequired) {
-        // If permission was refused earlier the browser will NOT prompt
-        // again — getCurrentPosition just fails instantly. Say so, rather
-        // than letting it look like the app ignored the click.
+        // Always ATTEMPT the fix, even when the Permissions API reports
+        // 'denied'. Short-circuiting here was wrong: it meant the browser
+        // was never asked, so the native "Allow location?" prompt could
+        // not appear at all. The reported state can also be stale — a
+        // user who has just re-allowed the site still reads as denied
+        // until something queries again. Requesting costs nothing when it
+        // really is blocked; the call simply fails and we explain.
         const permission = await getGeolocationPermission();
-        if (permission === 'denied') {
-          toast.error(GEOLOCATION_FAILURE_MESSAGES.permission_denied, { duration: 8000 });
-          return;
-        }
         setLocatingMessage(
-          permission === 'prompt'
-            ? 'Allow location access when your browser asks…'
-            : 'Getting a precise GPS fix…'
+          permission === 'denied'
+            ? 'Requesting location — allow it if your browser asks…'
+            : permission === 'prompt'
+              ? 'Allow location access when your browser asks…'
+              : 'Getting a precise GPS fix…'
         );
         let fix: PreciseLocation;
         try {
@@ -176,11 +210,21 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
         } catch (geoError) {
           // Surface the reason and stop. Recording a punch with no location
           // when policy demands one is what produced the bad data.
-          const message =
-            geoError instanceof GeolocationFailure
-              ? geoError.message
-              : GEOLOCATION_FAILURE_MESSAGES.position_unavailable;
-          toast.error(message);
+          const failure =
+            geoError instanceof GeolocationFailure ? geoError : null;
+          const message = failure
+            ? failure.message
+            : GEOLOCATION_FAILURE_MESSAGES.position_unavailable;
+
+          // Only a blocked permission needs the browser-settings walkthrough;
+          // a timeout or a bad fix just needs another go.
+          toast.error(message, {
+            duration: 10_000,
+            action:
+              failure?.reason === 'permission_denied'
+                ? { label: 'How to fix', onClick: () => setShowLocationHelp(true) }
+                : { label: 'Try again', onClick: () => handlePunch(type) },
+          });
           return;
         } finally {
           setLocatingMessage(null);
@@ -373,8 +417,63 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
     return null;
   }
 
+  // Hidden while unknown, and for anyone attendance is switched off for.
+  if (attendanceEnabled !== true) {
+    return null;
+  }
+
   return (
     <>
+      {/* Once a browser has been told "block", it will not ask again — the
+          only route back is the site settings, so spell it out per
+          platform rather than repeating "permission denied". */}
+      <Dialog open={showLocationHelp} onOpenChange={setShowLocationHelp}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Turn location back on</DialogTitle>
+            <DialogDescription>
+              Your browser is blocking location for this site, so it will not ask again until you
+              change it here.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div>
+              <p className="font-semibold">Chrome, Edge or Brave</p>
+              <p className="text-muted-foreground">
+                Click the icon at the left of the address bar → Location → Allow. Then reload.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold">Safari</p>
+              <p className="text-muted-foreground">
+                Safari menu → Settings for This Website → Location → Allow.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold">iPhone or Android</p>
+              <p className="text-muted-foreground">
+                Also check that location is enabled for your browser in the phone&rsquo;s own
+                settings, and that GPS is switched on.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 border-t border-border pt-3">
+            <Button variant="outline" onClick={() => setShowLocationHelp(false)}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setShowLocationHelp(false);
+                handlePunch(todayRecord?.punch_in_time && !todayRecord?.punch_out_time ? 'out' : 'in');
+              }}
+              className="gap-1.5"
+            >
+              <Fingerprint className="size-4" /> Try again
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-wrap items-center gap-3">
         {!todayRecord || !todayRecord.punch_in_time ? (
           <div className="flex items-center gap-2">

@@ -1,5 +1,3 @@
--- ==================== BEGIN 091_attendance_enabled_per_employee ====================
-
 -- ============================================================
 -- 091 — Attendance opt-in per employee.
 --
@@ -25,5 +23,3 @@ COMMENT ON COLUMN public.employee_profiles.attendance_enabled IS
 -- the lookup is by workspace_member_id.
 CREATE INDEX IF NOT EXISTS idx_employee_profiles_attendance_enabled
     ON public.employee_profiles (workspace_id, attendance_enabled);
-
--- ==================== END 091_attendance_enabled_per_employee ====================

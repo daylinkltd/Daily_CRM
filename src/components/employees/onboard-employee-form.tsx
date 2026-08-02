@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -51,6 +52,8 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
   
   // Salary Breakdown
   const [basicSalary, setBasicSalary] = useState('');
+  const [professionalTax, setProfessionalTax] = useState('');
+  const [attendanceEnabled, setAttendanceEnabled] = useState(true);
   const [hra, setHra] = useState('');
   const [allowances, setAllowances] = useState('');
   const [pfDeduction, setPfDeduction] = useState('');
@@ -157,6 +160,11 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
           special_allowance: Number(allowances) || 0,
           pf_deduction: Number(pfDeduction) || 0,
           tds_deduction: Number(tds) || 0,
+          // professional_tax exists in 077 and the payroll processor reads
+          // it, but this form never collected it — it silently stayed 0
+          // for every onboarded employee.
+          professional_tax: Number(professionalTax) || 0,
+          attendance_enabled: attendanceEnabled,
           status: 'ACTIVE'
         });
 
@@ -312,6 +320,21 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
                 <div className="space-y-2">
                   <Label>Basic Salary <span className="text-red-500">*</span></Label>
                   <Input type="number" value={basicSalary} onChange={(e) => setBasicSalary(e.target.value)} placeholder="e.g. 25000" className="bg-card border-border" required />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3">
+                    <div>
+                      <p className="text-sm font-medium">Attendance tracking</p>
+                      <p className="text-xs text-muted-foreground">
+                        Leave off for people who do not clock in — they never see the punch controls.
+                      </p>
+                    </div>
+                    <Switch checked={attendanceEnabled} onCheckedChange={setAttendanceEnabled} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Professional Tax</Label>
+                  <Input type="number" value={professionalTax} onChange={(e) => setProfessionalTax(e.target.value)} placeholder="e.g. 200" className="bg-card border-border" />
                 </div>
                 <div className="space-y-2">
                   <Label>HRA (House Rent)</Label>

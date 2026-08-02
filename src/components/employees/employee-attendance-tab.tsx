@@ -114,12 +114,14 @@ export function EmployeeAttendanceTab({
   const [ovLocationId, setOvLocationId] = useState<string>(INHERIT);
   const [ovNote, setOvNote] = useState("");
   const [savingOverride, setSavingOverride] = useState(false);
+  const [attendanceEnabled, setAttendanceEnabled] = useState(true);
+  const [savingEnabled, setSavingEnabled] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!activeWorkspace?.id || !workspaceMemberId) return;
     setLoading(true);
     try {
-      const [locRes, tplRes, polRes, ovRes] = await Promise.all([
+      const [locRes, tplRes, polRes, ovRes, empRes] = await Promise.all([
         supabase
           .from("work_locations")
           .select("id, name, type, latitude, longitude, radius_m")
@@ -144,7 +146,14 @@ export function EmployeeAttendanceTab({
           .eq("workspace_member_id", workspaceMemberId)
           .gte("override_date", new Date().toISOString().split("T")[0])
           .order("override_date"),
+        supabase
+          .from("employee_profiles")
+          .select("attendance_enabled")
+          .eq("workspace_member_id", workspaceMemberId)
+          .maybeSingle(),
       ]);
+
+      setAttendanceEnabled(empRes.data?.attendance_enabled !== false);
 
       setLocations((locRes.data as WorkLocationRow[] | null) || []);
       setTemplates(tplRes.data || []);
@@ -172,6 +181,29 @@ export function EmployeeAttendanceTab({
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  /** Whether this person clocks in at all. Off hides the punch controls. */
+  const handleToggleAttendance = async (enabled: boolean) => {
+    setAttendanceEnabled(enabled);
+    setSavingEnabled(true);
+    try {
+      const { error } = await supabase
+        .from("employee_profiles")
+        .update({ attendance_enabled: enabled })
+        .eq("workspace_member_id", workspaceMemberId);
+      if (error) throw error;
+      toast.success(
+        enabled
+          ? "Attendance switched on — this person will see the punch controls."
+          : "Attendance switched off — the punch controls are now hidden for them."
+      );
+    } catch (err) {
+      setAttendanceEnabled(!enabled); // put the switch back on failure
+      toast.error(errorMessage(err, "Failed to change attendance"));
+    } finally {
+      setSavingEnabled(false);
+    }
+  };
 
   const toggleAllowed = (loc: WorkLocation) => {
     setAllowed((current) => {
@@ -291,6 +323,32 @@ export function EmployeeAttendanceTab({
 
   return (
     <div className="space-y-5">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Attendance tracking</p>
+              <p className="text-xs text-muted-foreground">
+                Off for people who do not clock in — directors, contractors, client users. They
+                stop seeing the punch controls entirely.
+              </p>
+            </div>
+            <Switch
+              checked={attendanceEnabled}
+              onCheckedChange={handleToggleAttendance}
+              disabled={!canEdit || savingEnabled}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {!attendanceEnabled ? (
+        <p className="rounded-lg border border-dashed border-border py-10 text-center text-xs text-muted-foreground">
+          Attendance is off for this employee. Switch it on to set work locations, GPS rules and
+          day exceptions.
+        </p>
+      ) : (
+      <>
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>
@@ -554,6 +612,9 @@ export function EmployeeAttendanceTab({
           )}
         </CardContent>
       </Card>
+
+      </>
+      )}
 
       <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
         <Info className="mt-0.5 size-3.5 shrink-0" />
