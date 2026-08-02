@@ -23,9 +23,41 @@ export async function POST(
       readTillBottom
     } = body;
 
-    if (!workspaceId || !versionId || !memberId || !signatureValue) {
+    if (!workspaceId || !versionId || !signatureValue) {
       return NextResponse.json({ error: 'Missing required signature parameters' }, { status: 400 });
     }
+
+    // A policy acknowledgement is a compliance signature: it is stamped
+    // with a SHA-256 of the content and rendered on the audit trail as
+    // proof that a named person read and accepted it. The signing member
+    // is therefore derived from the SESSION, never from the request body —
+    // trusting `memberId` let anyone file a colleague's signature, with an
+    // arbitrary typed name, against a policy they never opened.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: signingMember } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!signingMember) {
+      return NextResponse.json({ error: 'Not a member of this workspace' }, { status: 403 });
+    }
+
+    // The body's memberId is accepted only when it agrees with the session;
+    // signing on someone else's behalf is never valid.
+    if (memberId && memberId !== signingMember.id) {
+      return NextResponse.json(
+        { error: 'A policy can only be signed by the person signing in.' },
+        { status: 403 }
+      );
+    }
+    const signerId = signingMember.id;
 
     // 1. Fetch version object to verify content_hash
     const { data: version } = await supabase
@@ -49,7 +81,7 @@ export async function POST(
         policy_id: id,
         version_id: versionId,
         version_number: versionNumber || 1,
-        workspace_member_id: memberId,
+        workspace_member_id: signerId,
         content_hash: version.content_hash,
         status: 'ACTIVE',
         signature_type: signatureType || 'TYPED_NAME',

@@ -33,15 +33,41 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { workspaceId, employeeId, requestType, detailsJson, notes } = body;
 
-    if (!workspaceId || !employeeId || !requestType) {
-      return NextResponse.json({ error: 'workspaceId, employeeId, and requestType are required' }, { status: 400 });
+    if (!workspaceId || !requestType) {
+      return NextResponse.json({ error: 'workspaceId and requestType are required' }, { status: 400 });
+    }
+
+    // Derive the requester from the session. REQUEST_TYPES includes
+    // RESIGNATION and BANK_DETAILS_CHANGE, so accepting `employeeId` from
+    // the body let anyone file either in a colleague's name.
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: member } = await supabase
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!member) {
+      return NextResponse.json({ error: 'Not a member of this workspace' }, { status: 403 });
+    }
+
+    if (employeeId && employeeId !== member.id) {
+      return NextResponse.json(
+        { error: 'A request can only be raised for yourself.' },
+        { status: 403 }
+      );
     }
 
     const { data: req, error } = await supabase
       .from('hr_employee_requests')
       .insert({
         workspace_id: workspaceId,
-        hr_employee_id: employeeId,
+        hr_employee_id: member.id,
         request_type: requestType,
         details_json: detailsJson || {},
         notes: notes || '',
