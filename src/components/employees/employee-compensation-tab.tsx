@@ -32,6 +32,7 @@ import {
   type SalaryComponent,
   type PayrollField,
 } from "@/lib/hr/salary";
+import { assertAffected } from "@/lib/supabase/affected-rows";
 
 const NONE = "none";
 
@@ -247,11 +248,15 @@ export function EmployeeCompensationTab({
         });
       }
 
-      const { error } = await supabase
+      // Must be verified BEFORE the revision row is written: reporting a
+      // zero-row update as success also logged a pay revision, so the
+      // history showed a raise that was never actually applied.
+      const result = await supabase
         .from("employee_profiles")
         .update(patch)
-        .eq("workspace_member_id", workspaceMemberId);
-      if (error) throw error;
+        .eq("workspace_member_id", workspaceMemberId)
+        .select("workspace_member_id");
+      assertAffected(result, "this employee's compensation", "save");
 
       // Record the revision so a pay change is auditable.
       const { error: revError } = await supabase.from("hr_salary_revisions").insert({

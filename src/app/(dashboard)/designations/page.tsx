@@ -33,6 +33,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { GatedButton } from '@/components/ui/gated-button';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { useRowSelection } from '@/hooks/use-row-selection';
+import { affectedCount } from '@/lib/supabase/affected-rows';
 import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
 import {
   BulkActionBar,
@@ -118,13 +119,17 @@ export default function DesignationsPage() {
     if (!confirm(`Delete ${ids.length} designation${ids.length === 1 ? '' : 's'}?`)) return;
     setBulkBusy(true);
     try {
-      const { error } = await supabase
+      // .select() so the toast reports what was actually deleted, not what
+      // was requested — RLS can drop rows from the set without erroring.
+      const result = await supabase
         .from('designations')
         .delete()
         .in('id', ids)
-        .eq('workspace_id', activeWorkspace!.id);
-      if (error) throw error;
-      toast.success(`Deleted ${ids.length} designation${ids.length === 1 ? '' : 's'}.`);
+        .eq('workspace_id', activeWorkspace!.id)
+        .select('id');
+      const outcome = affectedCount(result, ids.length, 'designations');
+      if (outcome.partial) toast.warning(outcome.message);
+      else toast.success(outcome.message);
       selection.clear();
       fetchDesignations();
     } catch (err: unknown) {

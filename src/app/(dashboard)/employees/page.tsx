@@ -24,6 +24,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { useRowSelection } from '@/hooks/use-row-selection';
+import { affectedCount } from '@/lib/supabase/affected-rows';
 import {
   BulkActionBar,
   SelectAllCheckbox,
@@ -142,13 +143,15 @@ export default function EmployeesPage() {
     if (ids.length === 0) return;
     setBulkBusy(true);
     try {
-      const { error } = await supabase
+      const result = await supabase
         .from('employee_profiles')
         .update({ status })
         .in('workspace_member_id', ids)
-        .eq('workspace_id', activeWorkspace!.id);
-      if (error) throw error;
-      toast.success(`Updated ${ids.length} employee${ids.length === 1 ? '' : 's'}.`);
+        .eq('workspace_id', activeWorkspace!.id)
+        .select('workspace_member_id');
+      const outcome = affectedCount(result, ids.length, 'employees');
+      if (outcome.partial) toast.warning(outcome.message);
+      else toast.success(outcome.message);
       selection.clear();
       fetchEmployees();
     } catch (err: unknown) {

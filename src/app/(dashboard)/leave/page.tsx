@@ -20,6 +20,7 @@ import {
 import { Search, Loader2, Umbrella, CheckCircle2, XCircle, MoreHorizontal, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { assertAffected } from '@/lib/supabase/affected-rows';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -100,15 +101,18 @@ export default function LeavePage() {
   const handleUpdateStatus = async (id: string, status: 'approved' | 'rejected') => {
     if (!activeMember?.id) return;
     try {
-      const { error } = await supabase
+      // .select() so a zero-row result — RLS filtered the request away —
+      // is caught instead of reported as a successful approval.
+      const result = await supabase
         .from('leave_requests')
-        .update({ 
+        .update({
           status,
-          approved_by: activeMember.id 
+          approved_by: activeMember.id
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select('id');
 
-      if (error) throw error;
+      assertAffected(result, 'the leave request');
       toast.success(`Leave request ${status}`);
       fetchLeaveRequests();
     } catch (error: any) {

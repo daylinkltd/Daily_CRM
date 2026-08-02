@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { assertAffected } from '@/lib/supabase/affected-rows';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -64,12 +65,13 @@ export function EmployeeProfileOverview({
         joining_date: formData.joining_date || null
       };
 
-      const { error } = await supabase
+      const result = await supabase
         .from('employee_profiles')
         .update(payload)
-        .eq('workspace_member_id', employee.workspace_member_id);
+        .eq('workspace_member_id', employee.workspace_member_id)
+        .select('workspace_member_id');
 
-      if (error) throw error;
+      assertAffected(result, 'this employee', 'save');
       toast.success('Profile updated successfully');
       onSaved();
     } catch (err: any) {

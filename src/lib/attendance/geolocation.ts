@@ -47,9 +47,9 @@ export class GeolocationFailure extends Error {
 export const GEOLOCATION_FAILURE_MESSAGES: Record<GeolocationFailureReason, string> = {
   unsupported: "This browser cannot provide location. Use a modern browser to punch in.",
   insecure_context:
-    "Location needs a secure (HTTPS) connection. Open the app over HTTPS to punch in.",
+    "Location needs a secure (HTTPS) connection. Opening the app over http:// on anything other than localhost blocks it outright.",
   permission_denied:
-    "Location permission is blocked. Allow location for this site in your browser settings, then punch in again.",
+    "Location was refused. The site permission may be allowed while your operating system is still blocking the browser — check both.",
   position_unavailable:
     "Your device could not get a location fix. Move somewhere with a clearer view of the sky and try again.",
   timeout:

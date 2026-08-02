@@ -437,26 +437,42 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
+            <p className="text-muted-foreground">
+              Location has <strong>two</strong> switches. The site permission is the one people
+              check; the operating system one is the one that is usually actually off.
+            </p>
             <div>
-              <p className="font-semibold">Chrome, Edge or Brave</p>
+              <p className="font-semibold">1. Your operating system</p>
               <p className="text-muted-foreground">
-                Click the icon at the left of the address bar → Location → Allow. Then reload.
+                macOS: System Settings &rarr; Privacy &amp; Security &rarr; Location Services &rarr;
+                switch it on <em>and</em> tick your browser in the list. Windows: Settings &rarr;
+                Privacy &amp; security &rarr; Location. iPhone or Android: enable location for the
+                browser app, and check GPS is on.
               </p>
             </div>
             <div>
-              <p className="font-semibold">Safari</p>
+              <p className="font-semibold">2. This site</p>
               <p className="text-muted-foreground">
-                Safari menu → Settings for This Website → Location → Allow.
+                Click the icon at the left of the address bar &rarr; Location &rarr; Allow, then
+                reload. In Brave, also check the Shields icon.
               </p>
             </div>
             <div>
-              <p className="font-semibold">iPhone or Android</p>
+              <p className="font-semibold">3. A secure connection</p>
               <p className="text-muted-foreground">
-                Also check that location is enabled for your browser in the phone&rsquo;s own
-                settings, and that GPS is switched on.
+                Browsers block location on plain <code>http://</code> unless the address is exactly{" "}
+                <code>localhost</code>. Opening a dev server by its IP — say{" "}
+                <code>http://192.168.x.x:3000</code> — fails no matter what the permissions say.
               </p>
+              {typeof window !== "undefined" && !window.isSecureContext && (
+                <p className="mt-1 font-medium text-destructive">
+                  This page is NOT on a secure origin, so location cannot work here until you use
+                  HTTPS or localhost.
+                </p>
+              )}
             </div>
           </div>
+
           <div className="flex justify-end gap-2 border-t border-border pt-3">
             <Button variant="outline" onClick={() => setShowLocationHelp(false)}>
               Close

@@ -30,6 +30,7 @@ import {
   type WorkLocation,
 } from "@/lib/attendance/policy";
 import { formatDistance } from "@/lib/attendance/geolocation";
+import { assertAffected } from "@/lib/supabase/affected-rows";
 import { IconAction } from "@/components/ui/icon-action";
 
 const NONE = "none";
@@ -187,11 +188,12 @@ export function EmployeeAttendanceTab({
     setAttendanceEnabled(enabled);
     setSavingEnabled(true);
     try {
-      const { error } = await supabase
+      const result = await supabase
         .from("employee_profiles")
         .update({ attendance_enabled: enabled })
-        .eq("workspace_member_id", workspaceMemberId);
-      if (error) throw error;
+        .eq("workspace_member_id", workspaceMemberId)
+        .select("workspace_member_id");
+      assertAffected(result, "attendance for this employee", "save");
       toast.success(
         enabled
           ? "Attendance switched on — this person will see the punch controls."
