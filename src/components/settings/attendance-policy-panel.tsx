@@ -35,16 +35,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SettingsPanelHead } from "./settings-panel-head";
+import { GeofenceMapPicker } from "@/components/attendance/geofence-map-picker";
 import {
   WORK_LOCATIONS,
   WORK_LOCATION_LABELS,
   type WorkLocation,
 } from "@/lib/attendance/policy";
-import {
-  acquirePreciseLocation,
-  GeolocationFailure,
-  GEOLOCATION_FAILURE_MESSAGES,
-} from "@/lib/attendance/geolocation";
 
 type ScopeType = "WORKSPACE_DEFAULT" | "DEPARTMENT" | "MEMBER";
 
@@ -115,7 +111,6 @@ export function AttendancePolicyPanel() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [locating, setLocating] = useState(false);
 
   const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
   const [members, setMembers] = useState<MemberOption[]>([]);
@@ -242,31 +237,6 @@ export function AttendancePolicyPanel() {
         defaultLocation: allowed.includes(f.defaultLocation) ? f.defaultLocation : allowed[0],
       };
     });
-  };
-
-  const useCurrentLocation = async () => {
-    setLocating(true);
-    try {
-      const fix = await acquirePreciseLocation({ desiredAccuracyM: 30, timeoutMs: 25_000 });
-      setForm((f) => ({
-        ...f,
-        geofenceEnabled: true,
-        lat: fix.latitude.toFixed(6),
-        lng: fix.longitude.toFixed(6),
-      }));
-      toast.success(
-        `Centre set to your position (accurate to ±${Math.round(fix.accuracy)}m).` +
-          (fix.coarse ? " This is a coarse fix — check it on a map before saving." : "")
-      );
-    } catch (err) {
-      toast.error(
-        err instanceof GeolocationFailure
-          ? err.message
-          : GEOLOCATION_FAILURE_MESSAGES.position_unavailable
-      );
-    } finally {
-      setLocating(false);
-    }
   };
 
   const handleSave = async () => {
@@ -604,65 +574,32 @@ export function AttendancePolicyPanel() {
 
             {form.geofenceEnabled && (
               <>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Latitude</Label>
-                    <Input
-                      value={form.lat}
-                      onChange={(e) => setForm((f) => ({ ...f, lat: e.target.value }))}
-                      placeholder="16.466700"
-                      className="font-mono text-xs"
-                      disabled={!canManage}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Longitude</Label>
-                    <Input
-                      value={form.lng}
-                      onChange={(e) => setForm((f) => ({ ...f, lng: e.target.value }))}
-                      placeholder="75.116700"
-                      className="font-mono text-xs"
-                      disabled={!canManage}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Radius (metres)</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={form.radius}
-                      onChange={(e) => setForm((f) => ({ ...f, radius: e.target.value }))}
-                      disabled={!canManage}
-                    />
-                  </div>
-                </div>
+                <GeofenceMapPicker
+                  disabled={!canManage}
+                  label={form.label || undefined}
+                  value={{
+                    latitude: form.lat === "" ? null : Number(form.lat),
+                    longitude: form.lng === "" ? null : Number(form.lng),
+                    radiusM: Number(form.radius) || 100,
+                  }}
+                  onChange={(next) =>
+                    setForm((f) => ({
+                      ...f,
+                      lat: next.latitude == null ? "" : String(next.latitude),
+                      lng: next.longitude == null ? "" : String(next.longitude),
+                      radius: String(next.radiusM),
+                    }))
+                  }
+                />
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Location name</Label>
-                    <Input
-                      value={form.label}
-                      onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-                      placeholder="Head Office"
-                      disabled={!canManage}
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={useCurrentLocation}
-                      disabled={!canManage || locating}
-                      className="gap-1.5"
-                    >
-                      {locating ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Crosshair className="size-4" />
-                      )}
-                      Use my current location
-                    </Button>
-                  </div>
+                <div className="space-y-1.5 sm:max-w-sm">
+                  <Label className="text-xs font-semibold">Location name</Label>
+                  <Input
+                    value={form.label}
+                    onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+                    placeholder="Head Office"
+                    disabled={!canManage}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3">

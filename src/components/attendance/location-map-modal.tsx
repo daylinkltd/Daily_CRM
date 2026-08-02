@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import type * as LeafletNS from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +70,7 @@ export function LocationMapModal({
   ipAddress,
 }: LocationMapModalProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
+  const mapInstanceRef = useRef<LeafletNS.Map | null>(null);
 
   const hasRealGps = Boolean(location && location.latitude && location.longitude);
   const [liveGpsLoading, setLiveGpsLoading] = useState(false);
@@ -119,19 +121,15 @@ export function LocationMapModal({
   useEffect(() => {
     if (!open || !mapContainerRef.current || !activeLocation) return;
 
-    // Load Leaflet CSS dynamically if not present
-    if (!document.getElementById("leaflet-css")) {
-      const link = document.createElement("link");
-      link.id = "leaflet-css";
-      link.rel = "stylesheet";
-      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-      document.head.appendChild(link);
-    }
+    // Leaflet is a real dependency, imported dynamically because it
+    // touches `window` on import and would break SSR. It used to be
+    // injected as a <script src="unpkg.com/..."> with no integrity hash,
+    // which meant a compromise of that CDN — or any MITM — was arbitrary
+    // JS running inside an authenticated session.
+    let cancelled = false;
 
-    // Load Leaflet JS dynamically
-    const initMap = () => {
-      const L = (window as any).L;
-      if (!L || !mapContainerRef.current) return;
+    const initMap = (L: typeof LeafletNS) => {
+      if (cancelled || !mapContainerRef.current) return;
 
       // Clean up existing map instance
       if (mapInstanceRef.current) {
@@ -220,16 +218,10 @@ export function LocationMapModal({
       }, 250);
     };
 
-    if ((window as any).L) {
-      initMap();
-    } else {
-      const script = document.createElement("script");
-      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-      script.onload = initMap;
-      document.body.appendChild(script);
-    }
+    import("leaflet").then((mod) => initMap((mod.default ?? mod) as typeof LeafletNS));
 
     return () => {
+      cancelled = true;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
