@@ -26,6 +26,14 @@ import {
   Plus
 } from "lucide-react";
 
+import { useRowSelection } from "@/hooks/use-row-selection";
+import {
+  BulkActionBar,
+  SelectAllCheckbox,
+  SelectRowCheckbox,
+} from "@/components/ui/bulk-action-bar";
+import { IconAction } from "@/components/ui/icon-action";
+
 interface OfficialDocumentItem {
   id: string;
   document_number: string;
@@ -55,6 +63,33 @@ export function DocumentVaultTable({ documents, loading }: DocumentVaultTablePro
     const matchesStatus = statusFilter === "ALL" || doc.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const selection = useRowSelection(filtered, (d) => d.id);
+
+  /** Issued documents are immutable by design, so bulk-archiving them is
+   *  the only safe bulk action; drafts can also simply be reviewed. */
+  const exportSelected = () => {
+    const rows = selection.selectedRows;
+    const header = ["Document Number", "Title", "Recipient", "Status", "Issued Date"];
+    const csv = [
+      header.join(","),
+      ...rows.map((d) =>
+        [d.document_number, d.title, d.recipient_name, d.status, d.issued_date]
+          // Quote every field and escape embedded quotes, so a title
+          // containing a comma cannot shift every later column.
+          .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`)
+          .join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `documents-${rows.length}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -109,6 +144,14 @@ export function DocumentVaultTable({ documents, loading }: DocumentVaultTablePro
         <Table>
           <TableHeader className="bg-muted/50 text-xs text-muted-foreground">
             <TableRow>
+              <TableHead className="w-8">
+                <SelectAllCheckbox
+                  checked={selection.allVisibleSelected}
+                  indeterminate={selection.someVisibleSelected}
+                  onChange={selection.toggleAllVisible}
+                  label="Select all documents"
+                />
+              </TableHead>
               <TableHead>Doc Number</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Recipient</TableHead>
@@ -120,14 +163,25 @@ export function DocumentVaultTable({ documents, loading }: DocumentVaultTablePro
           <TableBody className="text-xs divide-y divide-border/60">
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center p-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center p-8 text-muted-foreground">
                   <FileText className="size-8 mx-auto mb-2 text-muted-foreground/60" />
                   <span>No official documents found.</span>
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((doc) => (
-                <TableRow key={doc.id} className="hover:bg-muted/30 transition-colors">
+                <TableRow
+                  key={doc.id}
+                  data-selected={selection.isSelected(doc.id) || undefined}
+                  className="transition-colors hover:bg-muted/30 data-[selected]:bg-primary/5"
+                >
+                  <TableCell className="w-8">
+                    <SelectRowCheckbox
+                      checked={selection.isSelected(doc.id)}
+                      onToggle={(o) => selection.toggle(doc.id, o)}
+                      label={`Select ${doc.document_number}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-mono font-bold text-foreground">
                     {doc.document_number}
                   </TableCell>
@@ -144,9 +198,11 @@ export function DocumentVaultTable({ documents, loading }: DocumentVaultTablePro
                   <TableCell className="font-mono text-muted-foreground">{doc.issued_date}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Link href={`/documents/${doc.id}`}>
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-primary hover:bg-primary/10">
-                        <Eye className="size-3.5 mr-1" /> View
-                      </Button>
+                      <IconAction
+                        label={`Open ${doc.document_number}`}
+                        icon={<Eye className="size-3.5" />}
+                        className="h-7 text-primary hover:bg-primary/10"
+                      />
                     </Link>
                   </TableCell>
                 </TableRow>
@@ -155,6 +211,17 @@ export function DocumentVaultTable({ documents, loading }: DocumentVaultTablePro
           </TableBody>
         </Table>
       </div>
+
+      <BulkActionBar
+        count={selection.selectedCount}
+        hiddenCount={selection.hiddenSelectedCount}
+        onClear={selection.clear}
+        noun="document"
+      >
+        <Button size="sm" variant="outline" onClick={exportSelected} className="h-7 gap-1.5 text-xs">
+          <Download className="size-3.5" /> Export CSV
+        </Button>
+      </BulkActionBar>
     </div>
   );
 }
