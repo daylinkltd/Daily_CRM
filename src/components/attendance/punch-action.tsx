@@ -487,14 +487,18 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Never wraps: this sits in a fixed-height header, so a second line
+          overflows the bar instead of growing it. The controls degrade by
+          width instead — the status pill collapses to its icon, the break
+          picker drops out, and the punch button always survives. */}
+      <div className="flex min-w-0 items-center gap-2">
         {!todayRecord || !todayRecord.punch_in_time ? (
           <div className="flex items-center gap-2">
             {/* Work Location Selector — renders only what HR allows this
                 member. An on-site-only employee never sees a WFH option, so
                 a single allowed mode shows as a static label instead. */}
             {policy.allowed_work_locations.length > 1 ? (
-              <div className="flex items-center bg-muted/50 border border-border rounded-lg p-0.5 text-xs">
+              <div className="hidden items-center rounded-lg border border-border bg-muted/50 p-0.5 text-xs sm:flex">
                 {policy.allowed_work_locations.map((option) => {
                   const Icon = WORK_LOCATION_ICONS[option];
                   return (
@@ -531,24 +535,30 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
               icon={loading ? <Loader2 className="size-3.5 animate-spin" /> : <Fingerprint className="size-3.5" />}
               onClick={() => handlePunch('in')}
               disabled={loading}
-              className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white shadow-xs rounded-lg h-9 px-3"
+              className="h-9 shrink-0 rounded-lg bg-emerald-600 px-3 text-white shadow-xs hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500"
             />
 
             {locatingMessage && (
-              <span className="text-[11px] text-muted-foreground">{locatingMessage}</span>
+              <span className="hidden text-[11px] text-muted-foreground lg:inline">{locatingMessage}</span>
             )}
 
             {policy.override_note && (
-              <span className="text-[11px] text-amber-600 dark:text-amber-400">
+              <span className="hidden text-[11px] text-amber-600 lg:inline dark:text-amber-400">
                 {policy.override_note}
               </span>
             )}
           </div>
         ) : todayRecord.punch_in_time && !todayRecord.punch_out_time ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/20">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1.5 rounded-lg border border-emerald-500/20">
               <Clock className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Punched In ({todayRecord.work_location || 'OFFICE'}) at {new Date(todayRecord.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              {/* Below xl only the time survives; below sm, only the icon. */}
+              <span className="hidden truncate sm:inline">
+                <span className="hidden xl:inline">
+                  Punched In ({todayRecord.work_location || 'OFFICE'}) at{' '}
+                </span>
+                {new Date(todayRecord.punch_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
               {todayRecord.punch_in_location && (
                 <button
                   type="button"
@@ -568,10 +578,10 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
                 icon={loading ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />}
                 onClick={() => handleBreak('resume')}
                 disabled={loading}
-                className="bg-amber-600 hover:bg-amber-700 text-white h-9 px-3 rounded-lg shadow-xs"
+                className="h-9 shrink-0 rounded-lg bg-amber-600 px-3 text-white shadow-xs hover:bg-amber-700"
               />
             ) : (
-              <div className="flex items-center gap-1 bg-card border border-border p-0.5 rounded-lg">
+              <div className="hidden items-center gap-1 rounded-lg border border-border bg-card p-0.5 md:flex">
                 <select
                   value={breakType}
                   onChange={(e) => setBreakType(e.target.value as any)}
@@ -594,7 +604,7 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
               icon={loading ? <Loader2 className="size-3.5 animate-spin" /> : <Fingerprint className="size-3.5" />}
               onClick={() => handlePunch('out')}
               disabled={loading}
-              className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white h-9 px-3 rounded-lg shadow-xs"
+              className="h-9 shrink-0 rounded-lg bg-rose-600 px-3 text-white shadow-xs hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500"
             />
           </div>
         ) : (
