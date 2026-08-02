@@ -36,6 +36,11 @@ export interface Workspace {
   logo_url?: string | null;
   /** Workspace default currency (ISO-4217, migration 033). */
   default_currency?: string | null;
+  /** Company identity, edited in Settings -> Branding. Selected here
+   *  because the setup checklist reads them from context — without them
+   *  it reported a saved address as still missing. */
+  company_name?: string | null;
+  company_address?: string | null;
 }
 
 export interface WorkspaceMember {
@@ -193,7 +198,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             plan_limits,
             created_at,
             logo_url,
-            default_currency
+            default_currency,
+            company_name,
+            company_address
           )
         `)
         .eq("user_id", user.id);
