@@ -53,6 +53,7 @@ import { useWorkspace } from '@/hooks/use-workspace';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { TaskForm } from '@/components/tasks/task-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 type ViewMode = 'list' | 'hierarchy';
 
@@ -461,15 +462,13 @@ export default function GlobalTasksPage() {
 
           <TableCell>
             <div className="flex items-center gap-1">
-              <Button
+              <IconAction
+                label="Edit Task"
+                icon={<Pencil className="size-3.5" />}
                 variant="ghost"
-                size="icon"
                 onClick={() => { setEditTask(task); setFormOpen(true); }}
                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                title="Edit Task"
-              >
-                <Pencil className="size-3.5" />
-              </Button>
+              />
 
               <DropdownMenu>
                 <DropdownMenuTrigger

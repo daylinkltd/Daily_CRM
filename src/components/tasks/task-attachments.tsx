@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, UploadCloud, File, Download, Trash2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface TaskAttachmentsProps {
   taskId: string;
@@ -167,12 +168,20 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" className="size-7" onClick={() => window.open(url, '_blank')}>
-                    <Download className="size-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="size-7 text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={() => deleteFile(file.id, file.storage_path)}>
-                    <Trash2 className="size-3.5" />
-                  </Button>
+                  <IconAction
+                    label="Download"
+                    icon={<Download className="size-3.5" />}
+                    variant="ghost"
+                    className="size-7"
+                    onClick={() => window.open(url, '_blank')}
+                  />
+                  <IconAction
+                    label="Delete"
+                    icon={<Trash2 className="size-3.5" />}
+                    variant="ghost"
+                    className="size-7 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                    onClick={() => deleteFile(file.id, file.storage_path)}
+                  />
                 </div>
               </div>
             );

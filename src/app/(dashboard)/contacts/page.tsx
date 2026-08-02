@@ -52,6 +52,7 @@ import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/ui/page-header';
 import { SearchInput } from '@/components/ui/search-input';
 import { DataToolbar } from '@/components/ui/data-toolbar';
+import { IconAction } from "@/components/ui/icon-action";
 
 const PAGE_SIZE = 25;
 
@@ -714,27 +715,25 @@ export default function ContactsPage() {
             {totalCount}
           </p>
           <div className="flex items-center gap-1">
-            <Button
+            <IconAction
+              label="Previous"
+              icon={<ChevronLeft className="size-4" />}
               variant="outline"
-              size="icon-sm"
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
               className="border-border text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
+            />
             <span className="text-xs text-muted-foreground px-2">
               Page {page + 1} of {totalPages}
             </span>
-            <Button
+            <IconAction
+              label="Next"
+              icon={<ChevronRight className="size-4" />}
               variant="outline"
-              size="icon-sm"
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
               className="border-border text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
-            >
-              <ChevronRight className="size-4" />
-            </Button>
+            />
           </div>
         </div>
       )}

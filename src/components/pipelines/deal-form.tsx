@@ -44,6 +44,7 @@ interface DealFormProps {
   onSaved: () => void;
 }
 import { useRef } from "react";
+import { IconAction } from "@/components/ui/icon-action";
 
 export function DealForm({
   open,
@@ -482,7 +483,13 @@ export function DealForm({
                     >
                       Add
                     </Button>
-                    <Button variant="ghost" onClick={() => setIsAddingSource(false)} className="h-9 px-3 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></Button>
+                    <IconAction
+                      label="Close"
+                      icon={<X className="h-4 w-4" />}
+                      variant="ghost"
+                      onClick={() => setIsAddingSource(false)}
+                      className="h-9 px-3 text-muted-foreground hover:text-foreground"
+                    />
                   </div>
                 ) : (
                   <select

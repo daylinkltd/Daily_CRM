@@ -42,6 +42,7 @@ import {
   WORK_LOCATION_LABELS,
   type WorkLocation,
 } from "@/lib/attendance/policy";
+import { IconAction } from "@/components/ui/icon-action";
 
 type ScopeType = "WORKSPACE_DEFAULT" | "DEPARTMENT" | "MEMBER";
 
@@ -752,14 +753,13 @@ export function AttendancePolicyPanel() {
                       </p>
                     </div>
                     {canManage && (
-                      <Button
+                      <IconAction
+                        label="Delete"
+                        icon={<Trash2 className="size-3.5" />}
                         variant="ghost"
-                        size="sm"
                         onClick={() => handleDeleteOverride(o.id)}
                         className="text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
+                      />
                     )}
                   </div>
                 ))}

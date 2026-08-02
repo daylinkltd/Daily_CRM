@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function MediaPage() {
   const { activeWorkspace } = useWorkspace();
@@ -149,9 +150,13 @@ export default function MediaPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
             {currentFolder && (
-              <Button variant="ghost" size="icon" onClick={navigateUp} className="rounded-full">
-                <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-              </Button>
+              <IconAction
+                label="Back"
+                icon={<ArrowLeft className="w-5 h-5 text-muted-foreground" />}
+                variant="ghost"
+                onClick={navigateUp}
+                className="rounded-full"
+              />
             )}
             {currentFolder ? currentFolder.name : "Media Library"}
           </h1>

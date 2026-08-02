@@ -38,6 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { IconAction } from "@/components/ui/icon-action";
 
 export function CatalogSettings() {
   const supabase = createClient();
@@ -328,22 +329,20 @@ export function CatalogSettings() {
                     </div>
                     {canEditSettings && (
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button
+                        <IconAction
+                          label="Edit"
+                          icon={<Edit2 className="size-3.5" />}
                           variant="ghost"
-                          size="icon"
                           onClick={() => handleOpenEdit(item)}
                           className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                        >
-                          <Edit2 className="size-3.5" />
-                        </Button>
-                        <Button
+                        />
+                        <IconAction
+                          label="Delete"
+                          icon={<Trash2 className="size-3.5" />}
                           variant="ghost"
-                          size="icon"
                           onClick={() => handleDeleteItem(item.id)}
                           className="h-8 w-8 text-muted-foreground hover:text-red-400"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
+                        />
                       </div>
                     )}
                   </div>

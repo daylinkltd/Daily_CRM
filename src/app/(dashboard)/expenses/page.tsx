@@ -34,6 +34,7 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { IconAction } from "@/components/ui/icon-action";
 
 const CATEGORIES = ["Travel", "Meals", "Office Supplies", "Client Meeting", "Other"] as const;
 
@@ -257,9 +258,13 @@ export default function ExpensesPage() {
                                 >
                                   <Check /> Approve
                                 </Button>
-                                <Button size="icon-sm" variant="ghost" disabled={busy} aria-label="Reject claim" onClick={() => act(c, "reject")}>
-                                  <X />
-                                </Button>
+                                <IconAction
+                                  label="Reject claim"
+                                  icon={<X />}
+                                  variant="ghost"
+                                  disabled={busy}
+                                  onClick={() => act(c, "reject")}
+                                />
                               </>
                             )}
                             {c.status === "approved" && (

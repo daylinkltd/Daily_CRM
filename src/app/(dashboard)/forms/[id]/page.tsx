@@ -45,6 +45,7 @@ import type {
   FormFieldType,
   FormMappingType,
 } from '@/types';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface CustomFieldDef {
   id: string;
@@ -397,14 +398,13 @@ export default function FormBuilderPage({
       {/* Header Panel */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
         <div className="flex items-center gap-3">
-          <Button
+          <IconAction
+            label="Back"
+            icon={<ArrowLeft className="size-5" />}
             variant="ghost"
-            size="icon"
             onClick={() => router.push('/forms')}
             className="text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="size-5" />
-          </Button>
+          />
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-foreground line-clamp-1">
@@ -581,17 +581,16 @@ export default function FormBuilderPage({
                             </div>
                           </div>
 
-                          <Button
+                          <IconAction
+                            label="Delete"
+                            icon={<Trash2 className="size-4" />}
                             variant="ghost"
-                            size="icon"
                             onClick={(e) => {
                               e.stopPropagation();
                               removeField(field.id!);
                             }}
                             className="text-muted-foreground hover:text-red-400 hover:bg-red-500/10 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          />
                         </div>
                       );
                     })}

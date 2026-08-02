@@ -16,6 +16,7 @@ import {
   Building,
   Loader2
 } from "lucide-react";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function SignatoriesPage() {
   const supabase = createClient();
@@ -164,14 +165,13 @@ export default function SignatoriesPage() {
                 >
                   <Edit3 className="size-3.5 mr-1" /> Edit
                 </Button>
-                <Button
+                <IconAction
+                  label="Delete"
+                  icon={<Trash2 className="size-3.5" />}
                   variant="ghost"
-                  size="sm"
                   onClick={() => handleDelete(sig.id)}
                   className="h-7 px-2 text-xs text-rose-500 hover:bg-rose-500/10"
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
+                />
               </div>
             </div>
           ))}

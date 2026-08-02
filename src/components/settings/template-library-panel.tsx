@@ -56,6 +56,7 @@ import {
   type TemplateModule,
   type TemplateChannel,
 } from "@/lib/templates/catalog";
+import { IconAction } from "@/components/ui/icon-action";
 
 const CHANNEL_ICONS: Record<TemplateChannel, typeof Mail> = {
   whatsapp: MessageCircle,
@@ -596,15 +597,14 @@ export function TemplateLibraryPanel() {
                       >
                         Edit
                       </Button>
-                      <Button
-                        size="sm"
+                      <IconAction
+                        label="Delete"
+                        icon={<Trash2 className="size-3.5" />}
                         variant="ghost"
                         onClick={() => handleDelete(t)}
                         disabled={!canManage || t.id.startsWith("meta:")}
                         className="h-7 px-2 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
+                      />
                     </>
                   )}
                 </div>

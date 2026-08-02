@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { markdownToHtml } from "@/lib/markdown-utils";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface PrintableSection {
   order: number;
@@ -150,9 +151,12 @@ export function PrintableHandbookModal({
             <Button onClick={handlePrintWindow} className="bg-primary text-primary-foreground shadow">
               <Printer className="size-4 mr-2" /> Print / Save PDF
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-              <X className="size-4" />
-            </Button>
+            <IconAction
+              label="Close"
+              icon={<X className="size-4" />}
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+            />
           </div>
         </div>
 

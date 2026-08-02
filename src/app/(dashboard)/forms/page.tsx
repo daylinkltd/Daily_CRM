@@ -245,7 +245,8 @@ export default function FormsPage() {
                     {form.title}
                   </h3>
                   <DropdownMenu>
-                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-foreground" />} >
+                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-foreground" aria-label="More actions"
+                          />} >
                       <MoreVertical className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-card border-border text-foreground">

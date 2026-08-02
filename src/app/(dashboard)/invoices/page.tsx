@@ -40,6 +40,7 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { IconAction } from "@/components/ui/icon-action";
 
 const STATUS_META: Record<string, { label: string; classes: string }> = {
   draft: { label: "Draft", classes: "bg-muted/10 text-muted-foreground border-border/20" },
@@ -401,9 +402,13 @@ export default function InvoicesPage() {
                                 <Button size="sm" variant="outline" disabled={busy} onClick={() => handleSend(inv)}>
                                   {busy ? <Loader2 className="animate-spin" /> : <Send />} Send
                                 </Button>
-                                <Button size="icon-sm" variant="ghost" disabled={busy} onClick={() => handleVoid(inv)} aria-label="Void invoice">
-                                  <X />
-                                </Button>
+                                <IconAction
+                                  label="Void invoice"
+                                  icon={<X />}
+                                  variant="ghost"
+                                  disabled={busy}
+                                  onClick={() => handleVoid(inv)}
+                                />
                               </>
                             )}
                             {["sent", "partially_paid", "overdue"].includes(inv.status) && (
@@ -498,13 +503,13 @@ export default function InvoicesPage() {
                       setNewItems((prev) => prev.map((p, j) => (j === i ? { ...p, unit_price: e.target.value } : p)))
                     }
                   />
-                  <Button
-                    size="icon-sm" variant="ghost" aria-label="Remove line"
+                  <IconAction
+                    label="Remove line"
+                    icon={<Trash2 />}
+                    variant="ghost"
                     disabled={newItems.length === 1}
                     onClick={() => setNewItems((prev) => prev.filter((_, j) => j !== i))}
-                  >
-                    <Trash2 />
-                  </Button>
+                  />
                 </div>
               ))}
               <Button

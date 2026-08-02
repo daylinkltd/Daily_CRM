@@ -45,6 +45,7 @@ import {
   readRecordingEnv,
 } from "@/lib/media/mic-support";
 import { ReplyQuote } from "./reply-quote";
+import { IconAction } from "@/components/ui/icon-action";
 
 /** Media content types an agent can send from the composer. */
 export type ComposerMediaKind = "image" | "video" | "document" | "audio";
@@ -673,14 +674,12 @@ export function MessageComposer({
           >
             Cancel
           </button>
-          <Button
-            size="sm"
+          <IconAction
+            label="Stop and attach"
+            icon={<Square className="h-4 w-4" />}
             onClick={stopRecording}
             className="h-9 w-9 shrink-0 rounded-full bg-primary p-0 hover:bg-primary/90"
-            title="Stop and attach"
-          >
-            <Square className="h-4 w-4" />
-          </Button>
+          />
         </div>
       ) : (
         <div className="flex items-end gap-2">

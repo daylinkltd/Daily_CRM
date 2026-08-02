@@ -40,6 +40,7 @@ import {
   Zap
 } from 'lucide-react';
 import { formatMemberName } from '@/components/tasks/task-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface EpicDetailsModalProps {
   open: boolean;
@@ -240,20 +241,22 @@ export function EpicDetailsModal({
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="size-8 text-muted-foreground">
-                  <Eye className="size-4" />
-                </Button>
+                <IconAction
+                  label="View"
+                  icon={<Eye className="size-4" />}
+                  variant="ghost"
+                  className="size-8 text-muted-foreground"
+                />
                 <Button variant="ghost" size="icon" className="size-8 text-muted-foreground">
                   <Share2 className="size-4" />
                 </Button>
-                <Button
+                <IconAction
+                  label="Close"
+                  icon={<X className="size-4" />}
                   variant="ghost"
-                  size="icon"
                   className="size-8 text-muted-foreground"
                   onClick={() => onOpenChange(false)}
-                >
-                  <X className="size-4" />
-                </Button>
+                />
               </div>
             </div>
 

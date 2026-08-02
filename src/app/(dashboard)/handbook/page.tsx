@@ -34,6 +34,7 @@ import { AddPolicyDialog } from "@/components/handbook/add-policy-dialog";
 import { PrintableHandbookModal } from "@/components/handbook/printable-handbook-modal";
 import { PolicyEditorModal } from "@/components/policies/policy-editor-modal";
 import { IntegrationShareButtons } from "@/components/integrations/integration-share-buttons";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface SectionStatus {
   order: number;
@@ -548,14 +549,13 @@ export default function HandbookPage() {
                                 Read & Sign
                               </Button>
                               {isAdmin && (
-                                <Button
-                                  size="sm"
+                                <IconAction
+                                  label="Delete"
+                                  icon={<Trash2 className="size-3.5" />}
                                   variant="ghost"
                                   className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                                   onClick={() => handleDeletePolicy(s.policy_id!)}
-                                >
-                                  <Trash2 className="size-3.5" />
-                                </Button>
+                                />
                               )}
                             </div>
                           )}

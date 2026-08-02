@@ -38,6 +38,7 @@ import {
   getBroadcastStatus,
   getRecipientStatus,
 } from '@/lib/broadcast-status';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface StatCardProps {
   label: string;
@@ -276,14 +277,13 @@ export default function BroadcastDetailPage() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-4">
-          <Button
+          <IconAction
+            label="Back"
+            icon={<ArrowLeft className="h-4 w-4" />}
             variant="outline"
-            size="icon"
             onClick={() => router.push('/broadcasts')}
             className="border-border"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+          />
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-foreground">{broadcast.name}</h1>

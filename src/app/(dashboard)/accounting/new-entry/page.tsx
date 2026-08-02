@@ -25,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface Account {
   id: string;
@@ -178,13 +179,13 @@ export default function NewEntryPage() {
                   value={l.credit}
                   onChange={(e) => setLine(i, { credit: e.target.value, debit: e.target.value ? "" : l.debit })}
                 />
-                <Button
-                  size="icon-sm" variant="ghost" aria-label="Remove line"
+                <IconAction
+                  label="Remove line"
+                  icon={<Trash2 />}
+                  variant="ghost"
                   disabled={lines.length <= 2}
                   onClick={() => setLines((prev) => prev.filter((_, j) => j !== i))}
-                >
-                  <Trash2 />
-                </Button>
+                />
               </div>
             ))}
             <Button size="sm" variant="outline" onClick={() => setLines((prev) => [...prev, { ...BLANK_LINE }])}>

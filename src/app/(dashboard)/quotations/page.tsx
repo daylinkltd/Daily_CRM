@@ -28,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { IconAction } from "@/components/ui/icon-action";
 
 export default function QuotationsPage() {
   const router = useRouter();
@@ -449,42 +450,34 @@ export default function QuotationsPage() {
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <Button
+                          <IconAction
+                            label="Preview Proposal"
+                            icon={<Eye className="size-4" />}
                             variant="ghost"
-                            size="icon"
-                            title="Preview Proposal"
                             onClick={() => router.push(`/quotations/${q.id}/preview`)}
                             className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                          <Button
+                          />
+                          <IconAction
+                            label="Edit Proposal"
+                            icon={<Edit className="size-4" />}
                             variant="ghost"
-                            size="icon"
-                            title="Edit Proposal"
                             onClick={() => router.push(`/quotations/${q.id}/edit`)}
                             className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          >
-                            <Edit className="size-4" />
-                          </Button>
-                          <Button
+                          />
+                          <IconAction
+                            label="Create New Version"
+                            icon={<Copy className="size-4" />}
                             variant="ghost"
-                            size="icon"
-                            title="Create New Version"
                             onClick={() => handleDuplicateVersion(q)}
                             className="h-8 w-8 text-muted-foreground hover:text-primary"
-                          >
-                            <Copy className="size-4" />
-                          </Button>
-                          <Button
+                          />
+                          <IconAction
+                            label="Delete Proposal"
+                            icon={<Trash2 className="size-4" />}
                             variant="ghost"
-                            size="icon"
-                            title="Delete Proposal"
                             onClick={() => handleDeleteQuotation(q.id)}
                             className="h-8 w-8 text-muted-foreground hover:text-red-400"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          />
                         </div>
                       </td>
                     </tr>

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
+import { IconAction } from "@/components/ui/icon-action";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 interface UserProfile {
@@ -622,10 +623,13 @@ export default function AdminDashboard() {
                         <span>{new Date(ws.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteWorkspace(ws.id, ws.name)}
-                      className="text-rose-400/40 hover:text-rose-400 hover:bg-rose-500/10 h-8 w-8 rounded-lg border border-transparent hover:border-rose-500/20 shrink-0">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    <IconAction
+                      label="Delete"
+                      icon={<Trash2 className="h-3.5 w-3.5" />}
+                      variant="ghost"
+                      onClick={() => handleDeleteWorkspace(ws.id, ws.name)}
+                      className="text-rose-400/40 hover:text-rose-400 hover:bg-rose-500/10 h-8 w-8 rounded-lg border border-transparent hover:border-rose-500/20 shrink-0"
+                    />
                   </div>
                 ))}
             </div>
@@ -689,11 +693,13 @@ export default function AdminDashboard() {
                               {isSuperAdmin ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
                             </Button>
                             {!isSuperAdmin && (
-                              <Button variant="ghost" size="icon" onClick={() => handleDeleteOwner(u.user_id, u.email)}
-                                title="Delete Account"
-                                className="h-7 w-7 rounded-lg border border-transparent text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/10">
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
+                              <IconAction
+                                label="Delete Account"
+                                icon={<Trash2 className="h-3.5 w-3.5" />}
+                                variant="ghost"
+                                onClick={() => handleDeleteOwner(u.user_id, u.email)}
+                                className="h-7 w-7 rounded-lg border border-transparent text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/10"
+                              />
                             )}
                           </>
                         )}
@@ -988,9 +994,13 @@ export default function AdminDashboard() {
                       </div>
                       <div className="text-sm font-medium text-white">{s.name}</div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteSource(s.id)} className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <IconAction
+                      label="Delete"
+                      icon={<Trash2 className="h-4 w-4" />}
+                      variant="ghost"
+                      onClick={() => handleDeleteSource(s.id)}
+                      className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                    />
                   </div>
                 ))}
               </div>
@@ -1037,9 +1047,13 @@ export default function AdminDashboard() {
                       </div>
                       <div className="text-sm font-medium text-white">{r.name}</div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteReason(r.id)} className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <IconAction
+                      label="Delete"
+                      icon={<Trash2 className="h-4 w-4" />}
+                      variant="ghost"
+                      onClick={() => handleDeleteReason(r.id)}
+                      className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                    />
                   </div>
                 ))}
               </div>

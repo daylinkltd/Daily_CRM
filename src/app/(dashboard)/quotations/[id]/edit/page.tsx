@@ -52,6 +52,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -575,14 +576,13 @@ export default function EditQuotationPage({ params }: PageProps) {
       {/* Header controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/40 pb-5">
         <div className="flex items-center gap-3">
-          <Button
+          <IconAction
+            label="Back"
+            icon={<ArrowLeft className="size-4" />}
             variant="outline"
-            size="icon"
             onClick={() => router.push("/quotations")}
             className="border-border bg-transparent text-muted-foreground hover:bg-muted"
-          >
-            <ArrowLeft className="size-4" />
-          </Button>
+          />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
               Edit Proposal {quoteId}
@@ -974,14 +974,13 @@ function SortableSectionCard({
           >
             <Plus className="size-3 mr-1" /> Custom
           </Button>
-          <Button
+          <IconAction
+            label="Delete"
+            icon={<Trash2 className="size-3.5" />}
             variant="ghost"
-            size="icon"
             onClick={() => onDelete(section.id)}
             className="h-7 w-7 text-muted-foreground hover:text-red-400"
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
+          />
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -1155,14 +1154,13 @@ function SortableLineItemRow({
         </div>
       </div>
 
-      <Button
+      <IconAction
+        label="Delete"
+        icon={<Trash2 className="size-3.5" />}
         variant="ghost"
-        size="icon"
         onClick={() => onDelete(secId, item.id)}
         className="h-8 w-8 text-muted-foreground hover:text-red-400 mt-2 shrink-0"
-      >
-        <Trash2 className="size-3.5" />
-      </Button>
+      />
     </div>
   );
 }

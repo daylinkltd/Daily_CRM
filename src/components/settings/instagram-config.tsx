@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { IconAction } from "@/components/ui/icon-action";
 
 type ConnectionStatus = 'connected' | 'disconnected' | 'unknown';
 
@@ -158,14 +159,13 @@ export function InstagramConfig() {
                   value={webhookUrl}
                   className="bg-muted border-border text-foreground font-mono text-sm"
                 />
-                <Button
+                <IconAction
+                  label="Copy"
+                  icon={<Copy className="size-4" />}
                   variant="outline"
-                  size="icon"
                   onClick={handleCopyWebhookUrl}
                   className="shrink-0 border-border text-foreground hover:text-foreground hover:bg-muted"
-                >
-                  <Copy className="size-4" />
-                </Button>
+                />
               </div>
             </div>
           </CardContent>

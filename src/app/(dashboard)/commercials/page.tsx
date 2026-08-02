@@ -43,6 +43,7 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { IconAction } from "@/components/ui/icon-action";
 
 const COMMERCIAL_STATUSES = [
   { value: "draft", label: "Draft" },
@@ -431,9 +432,13 @@ export default function CommercialsPage() {
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             {["draft", "review"].includes(r.status) && (
-                              <Button size="icon-sm" variant="ghost" aria-label="Edit" disabled={busy} onClick={() => openForEdit(r)}>
-                                <Pencil />
-                              </Button>
+                              <IconAction
+                                label="Edit"
+                                icon={<Pencil />}
+                                variant="ghost"
+                                disabled={busy}
+                                onClick={() => openForEdit(r)}
+                              />
                             )}
                             {r.status === "draft" && (
                               <Button size="sm" variant="outline" disabled={busy} onClick={() => act(r, "submit")}>
@@ -445,9 +450,13 @@ export default function CommercialsPage() {
                                 <Button size="sm" variant="outline" disabled={busy} onClick={() => act(r, "approve")}>
                                   <Check /> Approve
                                 </Button>
-                                <Button size="icon-sm" variant="ghost" aria-label="Reject" disabled={busy} onClick={() => act(r, "reject")}>
-                                  <X />
-                                </Button>
+                                <IconAction
+                                  label="Reject"
+                                  icon={<X />}
+                                  variant="ghost"
+                                  disabled={busy}
+                                  onClick={() => act(r, "reject")}
+                                />
                               </>
                             )}
                             {r.status === "approved" && (
@@ -550,17 +559,17 @@ export default function CommercialsPage() {
                     <Input className="text-right" type="number" min="0" value={it.unit_cost} onChange={(e) => setItem(i, { unit_cost: e.target.value })} />
                     <Input className="text-right" type="number" min="0" value={it.unit_price} onChange={(e) => setItem(i, { unit_price: e.target.value })} />
                     <Input className="text-right" type="number" min="0" max="100" value={it.discount_percent} onChange={(e) => setItem(i, { discount_percent: e.target.value })} />
-                    <Button
-                      size="icon-sm" variant="ghost" aria-label="Remove line"
+                    <IconAction
+                      label="Remove line"
+                      icon={<Trash2 />}
+                      variant="ghost"
                       disabled={editor.items.length === 1}
                       onClick={() =>
                         setEditor((prev) =>
                           prev ? { ...prev, items: prev.items.filter((_, j) => j !== i) } : prev
                         )
                       }
-                    >
-                      <Trash2 />
-                    </Button>
+                    />
                   </div>
                 ))}
                 <Button

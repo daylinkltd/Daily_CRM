@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { uploadAccountMedia, MEDIA_MAX_BYTES } from "@/lib/storage/upload-media";
 import { slugify, type BuilderNode } from "../shared";
 import { NextNodeRow, NodeKeySelect, TextRow } from "./fields";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface NodeConfigFormProps {
   node: BuilderNode;
@@ -310,14 +311,13 @@ function SendButtonsForm({
                 onChange={(v) => updateButton(i, { next_node_key: v ?? "" })}
                 placeholder="Next node…"
               />
-              <Button
+              <IconAction
+                label="Delete"
+                icon={<Trash2 className="h-3.5 w-3.5" />}
                 variant="ghost"
-                size="sm"
                 onClick={() => removeButton(i)}
                 className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              />
             </div>
           ))}
         </div>
@@ -483,15 +483,13 @@ function SendListForm({
                 className="bg-muted text-xs"
               />
               {sections.length > 1 && (
-                <Button
+                <IconAction
+                  label="Remove section"
+                  icon={<Trash2 className="h-3.5 w-3.5" />}
                   variant="ghost"
-                  size="sm"
                   onClick={() => removeSection(sIdx)}
                   className="shrink-0 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                  aria-label="Remove section"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                />
               )}
             </div>
             {section.rows.map((row, rIdx) => (
@@ -537,14 +535,13 @@ function SendListForm({
                   }
                   placeholder="Next node…"
                 />
-                <Button
+                <IconAction
+                  label="Delete"
+                  icon={<Trash2 className="h-3.5 w-3.5" />}
                   variant="ghost"
-                  size="sm"
                   onClick={() => removeRow(sIdx, rIdx)}
                   className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                />
               </div>
             ))}
             {totalRows < 10 && (

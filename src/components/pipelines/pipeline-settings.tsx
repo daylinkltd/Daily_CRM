@@ -35,6 +35,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { IconAction } from "@/components/ui/icon-action";
 
 const STAGE_COLORS = [
   "#3b82f6",
@@ -406,14 +407,13 @@ function SortableStageRow({
         onChange={(e) => onNameChange(e.target.value)}
         className="h-7 flex-1 border-transparent bg-transparent text-sm text-foreground focus:border-border"
       />
-      <Button
+      <IconAction
+        label="Delete"
+        icon={<Trash2 className="h-3 w-3" />}
         variant="ghost"
-        size="icon-xs"
         onClick={onRemove}
         className="text-muted-foreground hover:text-red-400"
-      >
-        <Trash2 className="h-3 w-3" />
-      </Button>
+      />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 
 import { formatMemberName } from '@/components/tasks/task-form';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface AutomationsSettingsProps {
   projectId: string;
@@ -258,9 +259,13 @@ export function AutomationsSettings({ projectId }: AutomationsSettingsProps) {
               </div>
               <div className="flex items-center gap-4">
                 <Switch checked={rule.is_active} onCheckedChange={() => toggleRule(rule.id, rule.is_active)} />
-                <Button variant="ghost" size="icon" onClick={() => deleteRule(rule.id)} className="text-muted-foreground hover:text-destructive">
-                  <Trash2 className="size-4" />
-                </Button>
+                <IconAction
+                  label="Delete"
+                  icon={<Trash2 className="size-4" />}
+                  variant="ghost"
+                  onClick={() => deleteRule(rule.id)}
+                  className="text-muted-foreground hover:text-destructive"
+                />
               </div>
             </div>
           );

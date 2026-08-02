@@ -30,6 +30,7 @@ import {
   AccordionContent,
 } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
+import { IconAction } from "@/components/ui/icon-action";
 
 const MASKED_TOKEN = '••••••••••••••••';
 
@@ -847,15 +848,13 @@ export function WhatsAppConfig() {
                     value={webhookUrl}
                     className="bg-muted/50 border-input text-foreground font-mono text-xs sm:text-sm h-9"
                   />
-                  <Button
+                  <IconAction
+                    label="Copy Callback URL"
+                    icon={<Copy className="size-4" />}
                     variant="outline"
-                    size="icon"
                     onClick={handleCopyWebhookUrl}
                     className="shrink-0 border-border text-foreground hover:bg-muted h-9 w-9"
-                    title="Copy Callback URL"
-                  >
-                    <Copy className="size-4" />
-                  </Button>
+                  />
                 </div>
               </div>
 
@@ -869,24 +868,20 @@ export function WhatsAppConfig() {
                       placeholder="e.g. whvt_8a7f9b2c4e1d6a03"
                       className="bg-muted/50 border-input text-foreground font-mono text-xs sm:text-sm h-9"
                     />
-                    <Button
+                    <IconAction
+                      label="Copy Verify Token"
+                      icon={<Copy className="size-4" />}
                       variant="outline"
-                      size="icon"
                       onClick={handleCopyVerifyToken}
                       className="shrink-0 border-border text-foreground hover:bg-muted h-9 w-9"
-                      title="Copy Verify Token"
-                    >
-                      <Copy className="size-4" />
-                    </Button>
-                    <Button
+                    />
+                    <IconAction
+                      label="Generate New Verify Token"
+                      icon={<RotateCcw className="size-4" />}
                       variant="outline"
-                      size="icon"
                       onClick={handleGenerateVerifyToken}
                       className="shrink-0 border-border text-foreground hover:bg-muted h-9 w-9"
-                      title="Generate New Verify Token"
-                    >
-                      <RotateCcw className="size-4" />
-                    </Button>
+                    />
                   </div>
                   <p className="text-[11px] text-muted-foreground">
                     System-generated verification token. Copy &amp; paste this token into Meta Webhook setup.

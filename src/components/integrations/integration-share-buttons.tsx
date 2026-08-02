@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface IntegrationShareButtonsProps {
   workspaceId: string;
@@ -141,29 +142,25 @@ export function IntegrationShareButtons({
       </span>
 
       {waConnected && (
-        <Button
+        <IconAction
+          label="Share via WhatsApp Inbox"
+          icon={<MessageSquare className="size-4" />}
           type="button"
-          size="sm"
           variant="outline"
           onClick={handleOpenWa}
           className="size-8 p-0 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-400"
-          title="Share via WhatsApp Inbox"
-        >
-          <MessageSquare className="size-4" />
-        </Button>
+        />
       )}
 
       {outlookConnected && (
-        <Button
+        <IconAction
+          label="Share via Microsoft Outlook"
+          icon={<Mail className="size-4" />}
           type="button"
-          size="sm"
           variant="outline"
           onClick={handleOpenOutlook}
           className="size-8 p-0 border-blue-500/30 text-blue-500 hover:bg-blue-500/10 hover:text-blue-400"
-          title="Share via Microsoft Outlook"
-        >
-          <Mail className="size-4" />
-        </Button>
+        />
       )}
 
       {/* WhatsApp Share Modal */}

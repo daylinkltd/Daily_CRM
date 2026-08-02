@@ -12,6 +12,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface WorkflowSettingsProps {
   projectId: string;
@@ -220,16 +221,15 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
                 <Label>Public Link</Label>
                 <div className="flex items-center gap-2">
                   <Input readOnly value={shareUrl} className="bg-background font-mono text-xs" />
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
+                  <IconAction
+                    label="Copy"
+                    icon={<Copy className="size-4" />}
+                    variant="outline"
                     onClick={() => {
                       navigator.clipboard.writeText(shareUrl);
                       toast.success('Copied to clipboard');
                     }}
-                  >
-                    <Copy className="size-4" />
-                  </Button>
+                  />
                 </div>
               </div>
 
@@ -431,9 +431,13 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
                       {status.category.replace('_', ' ')}
                     </span>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteStatus(status.id)} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                    <Trash2 className="size-4" />
-                  </Button>
+                  <IconAction
+                    label="Delete"
+                    icon={<Trash2 className="size-4" />}
+                    variant="ghost"
+                    onClick={() => handleDeleteStatus(status.id)}
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  />
                 </div>
               ))
             )}

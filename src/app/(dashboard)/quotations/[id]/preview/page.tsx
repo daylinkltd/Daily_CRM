@@ -25,6 +25,7 @@ import { formatCurrency } from "@/lib/currency";
 import type { Quotation, QuotationSection, Contact } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -422,14 +423,13 @@ export default function QuotationPreviewPage({ params }: PageProps) {
       {/* Action panel header (no-print) */}
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div className="flex items-center gap-3">
-          <Button
+          <IconAction
+            label="Back"
+            icon={<ArrowLeft className="size-4" />}
             variant="outline"
-            size="icon"
             onClick={() => router.push(`/quotations/${quote.id}/edit`)}
             className="border-border bg-transparent text-muted-foreground hover:bg-muted"
-          >
-            <ArrowLeft className="size-4" />
-          </Button>
+          />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
               Proposal Preview

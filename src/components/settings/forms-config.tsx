@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { IconAction } from "@/components/ui/icon-action";
 
 export function FormsConfig() {
   const [saving, setSaving] = useState(false);
@@ -43,9 +44,13 @@ export function FormsConfig() {
               <Label className="text-foreground">Your Unique Capture URL</Label>
               <div className="flex gap-2">
                 <Input readOnly value={webhookUrl} className="bg-muted border-border text-foreground font-mono text-xs" />
-                <Button variant="outline" onClick={copyWebhook} className="border-border text-foreground hover:text-foreground hover:bg-muted shrink-0">
-                  <Copy className="size-4" />
-                </Button>
+                <IconAction
+                  label="Copy"
+                  icon={<Copy className="size-4" />}
+                  variant="outline"
+                  onClick={copyWebhook}
+                  className="border-border text-foreground hover:text-foreground hover:bg-muted shrink-0"
+                />
               </div>
             </div>
           </CardContent>

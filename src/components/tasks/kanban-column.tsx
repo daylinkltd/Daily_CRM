@@ -4,6 +4,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface KanbanColumnProps {
   id: string;
@@ -35,14 +36,13 @@ export function KanbanColumn({ id, title, taskCount, onAddTask, canManage, isBac
           </Badge>
         </h4>
         {canManage && (
-          <Button 
-            variant="ghost" 
-            size="icon"
+          <IconAction
+            label="Add"
+            icon={<Plus className="size-3.5" />}
+            variant="ghost"
             className="h-6 w-6 text-muted-foreground hover:bg-muted"
             onClick={onAddTask}
-          >
-            <Plus className="size-3.5" />
-          </Button>
+          />
         )}
       </div>
       

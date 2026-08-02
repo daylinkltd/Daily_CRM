@@ -20,6 +20,7 @@ import {
   contactInitial,
 } from "@/lib/contact-display";
 import { format } from "date-fns";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface ContactSidebarProps {
   contact: Contact | null;
@@ -267,14 +268,13 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
                   rows={2}
                   className="flex-1 resize-none rounded-lg border border-border bg-muted px-3 py-2 text-xs text-foreground placeholder-muted-foreground outline-none focus:border-primary/50"
                 />
-                <Button
-                  size="sm"
+                <IconAction
+                  label="Add"
+                  icon={<Plus className="h-3 w-3" />}
                   className="h-auto bg-primary px-2 hover:bg-primary/90"
                   onClick={handleAddNote}
                   disabled={!newNote.trim() || addingNote}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
+                />
               </div>
 
               <div className="mt-2 space-y-2">

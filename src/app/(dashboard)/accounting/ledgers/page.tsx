@@ -29,6 +29,7 @@ import {
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { IconAction } from "@/components/ui/icon-action";
 
 const ACCOUNT_TYPES = ["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"] as const;
 
@@ -282,8 +283,10 @@ export default function LedgersPage() {
                         <span className="ml-1 text-xs text-muted-foreground">{bal < 0 ? "Cr" : "Dr"}</span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          size="icon-sm" variant="ghost" aria-label={`Edit ${l.account_name}`}
+                        <IconAction
+                          label={`Edit ${l.account_name}`}
+                          icon={<Pencil />}
+                          variant="ghost"
                           onClick={() =>
                             setEdit({
                               id: l.id,
@@ -294,9 +297,7 @@ export default function LedgersPage() {
                               opening_balance: String(l.opening_balance ?? 0),
                             })
                           }
-                        >
-                          <Pencil />
-                        </Button>
+                        />
                       </TableCell>
                     </TableRow>
                   );

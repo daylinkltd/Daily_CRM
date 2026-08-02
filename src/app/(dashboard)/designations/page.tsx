@@ -290,6 +290,7 @@ export default function DesignationsPage() {
                             variant="ghost"
                             size="icon-sm"
                             className="text-muted-foreground hover:text-foreground"
+                          aria-label="More actions"
                           />
                         }
                       >

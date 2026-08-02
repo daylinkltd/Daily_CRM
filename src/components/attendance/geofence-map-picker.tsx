@@ -14,6 +14,7 @@ import {
   GEOLOCATION_FAILURE_MESSAGES,
   formatDistance,
 } from "@/lib/attendance/geolocation";
+import { IconAction } from "@/components/ui/icon-action";
 
 export interface GeofenceValue {
   latitude: number | null;
@@ -311,26 +312,24 @@ export function GeofenceMapPicker({
             Radius — {formatDistance(value.radiusM)}
           </Label>
           <div className="flex items-center gap-1">
-            <Button
+            <IconAction
+              label="Remove"
+              icon={<Minus className="size-3" />}
               type="button"
               variant="outline"
-              size="sm"
               className="size-7 p-0"
               disabled={disabled || value.radiusM <= MIN_RADIUS}
               onClick={() => setRadius(value.radiusM - (value.radiusM > 100 ? 50 : 10))}
-            >
-              <Minus className="size-3" />
-            </Button>
-            <Button
+            />
+            <IconAction
+              label="Add"
+              icon={<Plus className="size-3" />}
               type="button"
               variant="outline"
-              size="sm"
               className="size-7 p-0"
               disabled={disabled || value.radiusM >= MAX_RADIUS}
               onClick={() => setRadius(value.radiusM + (value.radiusM >= 100 ? 50 : 10))}
-            >
-              <Plus className="size-3" />
-            </Button>
+            />
           </div>
         </div>
 

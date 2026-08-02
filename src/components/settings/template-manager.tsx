@@ -57,6 +57,7 @@ import {
   fillTemplateVariables,
   type LibraryTemplate,
 } from '@/lib/whatsapp/template-library';
+import { IconAction } from "@/components/ui/icon-action";
 
 const CATEGORIES = ['Marketing', 'Utility', 'Authentication'] as const;
 type HeaderFormat = 'none' | 'text' | 'image' | 'video' | 'document';
@@ -1167,15 +1168,14 @@ export function TemplateManager() {
                           }
                           className="flex-1 bg-muted border-border text-foreground placeholder:text-muted-foreground h-8 text-xs"
                         />
-                        <Button
+                        <IconAction
+                          label="Close"
+                          icon={<X className="size-3.5" />}
                           type="button"
                           variant="ghost"
-                          size="icon"
                           onClick={() => removeButton(i)}
                           className="text-muted-foreground hover:text-red-400 hover:bg-red-950/30 size-7"
-                        >
-                          <X className="size-3.5" />
-                        </Button>
+                        />
                       </div>
                       {btn.type === 'URL' && (
                         <div className="space-y-1 pl-1">

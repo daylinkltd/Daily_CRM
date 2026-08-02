@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Plus, FileText, Download } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { IconAction } from "@/components/ui/icon-action";
 
 interface EmployeeDocumentsTabProps {
   employeeId: string;
@@ -140,9 +141,12 @@ export function EmployeeDocumentsTab({ employeeId, canEdit }: EmployeeDocumentsT
                   </TableCell>
                   <TableCell>
                     <a href={doc.storage_path} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" size="icon-sm" className="hover:bg-muted text-muted-foreground hover:text-foreground">
-                        <Download className="size-4" />
-                      </Button>
+                      <IconAction
+                        label="Download"
+                        icon={<Download className="size-4" />}
+                        variant="ghost"
+                        className="hover:bg-muted text-muted-foreground hover:text-foreground"
+                      />
                     </a>
                   </TableCell>
                 </TableRow>
