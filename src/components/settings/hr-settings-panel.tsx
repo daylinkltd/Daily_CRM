@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SettingsPanelHead } from "./settings-panel-head";
+import { SalaryStructuresManager } from "./salary-structures-manager";
 
 type ScopeType = 'WORKSPACE_DEFAULT' | 'DEPARTMENT' | 'DESIGNATION';
 
@@ -405,6 +406,14 @@ export function HRSettingsPanel() {
           </Button>
         </div>
       )}
+
+      <div className="pt-8 mt-2 border-t border-border">
+        <SettingsPanelHead
+          title="Salary structures"
+          description="Define reusable pay slabs and the components they are built from. Assign a structure to an employee on their Compensation tab and the full breakdown is derived from their basic salary."
+        />
+        <SalaryStructuresManager canEdit={canManage} />
+      </div>
     </div>
   );
 }
