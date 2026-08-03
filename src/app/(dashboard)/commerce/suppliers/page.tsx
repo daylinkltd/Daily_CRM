@@ -1,21 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Plus, RefreshCw, Search, Phone, Mail, MapPin, FileText, X } from "lucide-react";
+import { Building2, Plus, RefreshCw, Search, Phone, Mail, X, Layers, Edit3, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { IconAction } from "@/components/ui/icon-action";
+import { BulkEntryDialog } from "@/components/ui/bulk-entry-dialog";
+import { BulkActionBar, SelectAllCheckbox, SelectRowCheckbox } from "@/components/ui/bulk-action-bar";
 
 export default function SuppliersPage() {
   const { activeWorkspace } = useWorkspace();
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  
+  // Modal & Selection state
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<any | null>(null);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Form state
   const [companyName, setCompanyName] = useState("");
@@ -24,8 +32,9 @@ export default function SuppliersPage() {
   const [email, setEmail] = useState("");
   const [gstin, setGstin] = useState("");
   const [address, setAddress] = useState("");
+  const [outstandingBalance, setOutstandingBalance] = useState("0");
 
-  const fetchSuppliers = async () => {
+  const fetchSuppliers = useCallback(async () => {
     if (!activeWorkspace?.id) return;
     setLoading(true);
     try {
@@ -39,51 +48,157 @@ export default function SuppliersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeWorkspace?.id]);
 
   useEffect(() => {
     fetchSuppliers();
-  }, [activeWorkspace?.id]);
+  }, [fetchSuppliers]);
 
-  const handleCreateSupplier = async (e: React.FormEvent) => {
+  const handleOpenAdd = () => {
+    setEditingSupplier(null);
+    setCompanyName("");
+    setContactPerson("");
+    setPhone("");
+    setEmail("");
+    setGstin("");
+    setAddress("");
+    setOutstandingBalance("0");
+    setShowAddModal(true);
+  };
+
+  const handleOpenEdit = (supplier: any) => {
+    setEditingSupplier(supplier);
+    setCompanyName(supplier.company_name || "");
+    setContactPerson(supplier.contact_person || "");
+    setPhone(supplier.phone || "");
+    setEmail(supplier.email || "");
+    setGstin(supplier.gstin || "");
+    setAddress(supplier.address || "");
+    setOutstandingBalance(String(supplier.outstanding_balance || 0));
+    setShowAddModal(true);
+  };
+
+  const handleSaveSupplier = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeWorkspace?.id || !companyName) {
+    if (!activeWorkspace?.id || !companyName.trim()) {
       toast.error("Company Name is required");
       return;
     }
 
     setSaving(true);
     try {
-      const res = await fetch("/api/commerce/suppliers", {
-        method: "POST",
+      const isEdit = !!editingSupplier?.id;
+      const url = "/api/commerce/suppliers";
+      const method = isEdit ? "PUT" : "POST";
+      const payload = {
+        id: editingSupplier?.id,
+        workspace_id: activeWorkspace.id,
+        company_name: companyName.trim(),
+        contact_person: contactPerson.trim() || undefined,
+        phone: phone.trim() || undefined,
+        email: email.trim() || undefined,
+        gstin: gstin.trim() || undefined,
+        address: address.trim() || undefined,
+        outstanding_balance: Number(outstandingBalance) || 0,
+      };
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          workspace_id: activeWorkspace.id,
-          company_name: companyName,
-          contact_person: contactPerson || undefined,
-          phone: phone || undefined,
-          email: email || undefined,
-          gstin: gstin || undefined,
-          address: address || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed to create supplier");
+      if (!res.ok) throw new Error(json.error || `Failed to ${isEdit ? "update" : "create"} supplier`);
 
-      toast.success("Supplier added to Master Directory!");
+      toast.success(isEdit ? "Supplier updated successfully!" : "Supplier added to Master Directory!");
       setShowAddModal(false);
-      setCompanyName("");
-      setContactPerson("");
-      setPhone("");
-      setEmail("");
-      setGstin("");
-      setAddress("");
       fetchSuppliers();
     } catch (err: any) {
       toast.error(err.message || "Failed to save supplier");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteSupplier = async (id: string, name: string) => {
+    if (!activeWorkspace?.id) return;
+    if (!confirm(`Are you sure you want to delete supplier "${name}"?`)) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/commerce/suppliers?id=${id}&workspace_id=${activeWorkspace.id}`, {
+        method: "DELETE",
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete supplier");
+
+      toast.success("Supplier deleted successfully!");
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      fetchSuppliers();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete supplier");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!activeWorkspace?.id || selectedIds.size === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} selected supplier(s)?`)) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/commerce/suppliers", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspace_id: activeWorkspace.id,
+          ids: Array.from(selectedIds),
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to delete selected suppliers");
+
+      toast.success(`Deleted ${selectedIds.size} suppliers.`);
+      setSelectedIds(new Set());
+      fetchSuppliers();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete selected suppliers");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleBulkAddSuppliers = async (rows: Record<string, string>[]) => {
+    if (!activeWorkspace?.id) return;
+    try {
+      for (const row of rows) {
+        if (!row.company_name?.trim()) continue;
+        await fetch("/api/commerce/suppliers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            workspace_id: activeWorkspace.id,
+            company_name: row.company_name.trim(),
+            contact_person: row.contact_person?.trim() || undefined,
+            phone: row.phone?.trim() || undefined,
+            email: row.email?.trim() || undefined,
+            gstin: row.gstin?.trim() || undefined,
+            address: row.address?.trim() || undefined,
+          }),
+        });
+      }
+      toast.success(`Added ${rows.length} supplier${rows.length === 1 ? "" : "s"}.`);
+      fetchSuppliers();
+    } catch {
+      toast.error("Failed to bulk add suppliers.");
     }
   };
 
@@ -94,6 +209,31 @@ export default function SuppliersPage() {
       s.phone?.includes(query) ||
       s.gstin?.toLowerCase().includes(query.toLowerCase())
   );
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every((s) => selectedIds.has(s.id));
+  const someFilteredSelected = filtered.some((s) => selectedIds.has(s.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      const next = new Set(selectedIds);
+      filtered.forEach((s) => next.delete(s.id));
+      setSelectedIds(next);
+    } else {
+      const next = new Set(selectedIds);
+      filtered.forEach((s) => next.add(s.id));
+      setSelectedIds(next);
+    }
+  };
+
+  const toggleSelectRow = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedIds(next);
+  };
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -110,7 +250,8 @@ export default function SuppliersPage() {
         </div>
         <div className="flex items-center gap-2">
           <IconAction label="Refresh" icon={<RefreshCw className="h-4 w-4" />} onClick={fetchSuppliers} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11" />
-          <IconAction label="Add New Supplier" icon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}
+          <IconAction label="Bulk Add" icon={<Layers className="h-4 w-4" />} onClick={() => setBulkAddOpen(true)} variant="outline" className="border-border text-foreground gap-1.5 rounded-xl h-11" />
+          <IconAction label="Add New Supplier" icon={<Plus className="h-4 w-4" />} onClick={handleOpenAdd}
             className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl shadow-lg shadow-[#00aef0]/20 gap-2 h-11" />
         </div>
       </div>
@@ -135,86 +276,160 @@ export default function SuppliersPage() {
           <table className="w-full text-left text-sm text-foreground">
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
+                <th className="py-3.5 px-4 w-10">
+                  <SelectAllCheckbox
+                    checked={allFilteredSelected}
+                    indeterminate={someFilteredSelected && !allFilteredSelected}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
                 <th className="py-3.5 px-4">Company Name</th>
                 <th className="py-3.5 px-4">Contact Person</th>
                 <th className="py-3.5 px-4">Phone & Email</th>
                 <th className="py-3.5 px-4">GSTIN</th>
                 <th className="py-3.5 px-4">Address</th>
                 <th className="py-3.5 px-4 text-right">Outstanding Balance</th>
+                <th className="py-3.5 px-4 text-right w-24">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-sm">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground text-sm">
                     Loading Suppliers...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-muted-foreground text-sm space-y-3">
+                  <td colSpan={8} className="py-12 text-center text-muted-foreground text-sm space-y-3">
                     <Building2 className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
                     <p className="text-foreground font-semibold">No Suppliers Registered Yet</p>
                     <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       Add vendor details, GSTIN, contact numbers, and track supplier payables.
                     </p>
-                    <IconAction label="Add New Supplier" icon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}
+                    <IconAction label="Add New Supplier" icon={<Plus className="h-4 w-4" />} onClick={handleOpenAdd}
                       className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl gap-2 mt-2" />
                   </td>
                 </tr>
               ) : (
-                filtered.map((supplier) => (
-                  <tr key={supplier.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-foreground">
-                      {supplier.company_name}
-                    </td>
-                    <td className="py-3.5 px-4 text-xs text-foreground">
-                      {supplier.contact_person || "N/A"}
-                    </td>
-                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
-                      {supplier.phone && (
-                        <div className="flex items-center gap-1 text-foreground">
-                          <Phone className="h-3 w-3 text-[#00aef0]" /> {supplier.phone}
+                filtered.map((supplier) => {
+                  const isSelected = selectedIds.has(supplier.id);
+                  return (
+                    <tr key={supplier.id} className={`hover:bg-muted/40 transition-colors ${isSelected ? "bg-muted/30" : ""}`}>
+                      <td className="py-3.5 px-4">
+                        <SelectRowCheckbox
+                          checked={isSelected}
+                          onToggle={() => toggleSelectRow(supplier.id)}
+                          label={`Select ${supplier.company_name}`}
+                        />
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-foreground">
+                        {supplier.company_name}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-foreground">
+                        {supplier.contact_person || "N/A"}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                        {supplier.phone && (
+                          <div className="flex items-center gap-1 text-foreground">
+                            <Phone className="h-3 w-3 text-[#00aef0]" /> {supplier.phone}
+                          </div>
+                        )}
+                        {supplier.email && (
+                          <div className="flex items-center gap-1 text-muted-foreground text-[11px]">
+                            <Mail className="h-3 w-3 text-muted-foreground" /> {supplier.email}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-xs text-[#00aef0]">
+                        {supplier.gstin || "URP"}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                        {supplier.address || "N/A"}
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-extrabold text-foreground">
+                        ₹{Number(supplier.outstanding_balance || 0).toFixed(2)}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <IconAction
+                            label="Edit"
+                            icon={<Edit3 className="h-4 w-4" />}
+                            onClick={() => handleOpenEdit(supplier)}
+                            variant="ghost"
+                            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+                          />
+                          <IconAction
+                            label="Delete"
+                            icon={<Trash2 className="h-4 w-4 text-destructive" />}
+                            onClick={() => handleDeleteSupplier(supplier.id, supplier.company_name)}
+                            variant="ghost"
+                            className="h-8 w-8 rounded-lg hover:bg-destructive/10"
+                          />
                         </div>
-                      )}
-                      {supplier.email && (
-                        <div className="flex items-center gap-1 text-muted-foreground text-[11px]">
-                          <Mail className="h-3 w-3 text-muted-foreground" /> {supplier.email}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-[#00aef0]">
-                      {supplier.gstin || "URP"}
-                    </td>
-                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
-                      {supplier.address || "N/A"}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-foreground">
-                      ₹{Number(supplier.outstanding_balance || 0).toFixed(2)}
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Add Modal */}
+      {/* Bulk Action Bar */}
+      <BulkActionBar
+        count={selectedIds.size}
+        onClear={() => setSelectedIds(new Set())}
+        noun="supplier"
+        busy={deleting}
+      >
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={handleBulkDelete}
+          disabled={deleting}
+          className="rounded-lg h-8 px-3 text-xs gap-1.5"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Delete Selected ({selectedIds.size})
+        </Button>
+      </BulkActionBar>
+
+      {/* Bulk Entry Dialog */}
+      <BulkEntryDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        scope="suppliers"
+        workspaceId={activeWorkspace?.id || ""}
+        title="Bulk Add Suppliers & Vendors"
+        description="Paste or type multiple supplier details at once. Enter one supplier per row."
+        columns={[
+          { key: "company_name", label: "Company Name *", required: true },
+          { key: "contact_person", label: "Contact Person" },
+          { key: "phone", label: "Phone Number" },
+          { key: "email", label: "Email Address" },
+          { key: "gstin", label: "GSTIN Number" },
+          { key: "address", label: "Address" },
+        ]}
+        onSubmit={handleBulkAddSuppliers}
+      />
+
+      {/* Add / Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="bg-card border border-border rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-foreground overflow-x-hidden">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-[#00aef0]" />
-                Add New Supplier / Vendor
+                {editingSupplier ? "Edit Supplier / Vendor" : "Add New Supplier / Vendor"}
               </h2>
               <button onClick={() => setShowAddModal(false)} className="text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSupplier} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveSupplier} className="space-y-3 text-xs">
               <div className="space-y-1">
                 <Label className="text-xs text-foreground">Supplier / Company Name *</Label>
                 <Input
@@ -273,15 +488,28 @@ export default function SuppliersPage() {
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs text-foreground">Office / Warehouse Address</Label>
-                <Input
-                  type="text"
-                  placeholder="e.g. Plot 42, Industrial Area, Mumbai"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-foreground">Office / Warehouse Address</Label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Plot 42, Industrial Area, Mumbai"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-foreground">Outstanding Balance (₹)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={outstandingBalance}
+                    onChange={(e) => setOutstandingBalance(e.target.value)}
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-xs font-mono"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
@@ -289,7 +517,7 @@ export default function SuppliersPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">
-                  {saving ? "Saving..." : "Save Supplier"}
+                  {saving ? (editingSupplier ? "Updating..." : "Saving...") : (editingSupplier ? "Update Supplier" : "Save Supplier")}
                 </Button>
               </div>
             </form>
