@@ -140,6 +140,10 @@ export function RichTextEditor({
 
   const [recovered, setRecovered] = useState<{ html: string; at: number; baseChanged: boolean } | null>(null);
   const [draftDismissed, setDraftDismissed] = useState(false);
+  const [blockValue, setBlockValue] = useState("p");
+  const [fontSizeValue, setFontSizeValue] = useState("3");
+  // Position of the floating selection toolbar, null when nothing is selected.
+  const [bubble, setBubble] = useState<{ top: number; left: number } | null>(null);
   // What the server gave us when this editor mounted, so a draft can tell
   // whether the underlying record has since changed.
   const baseValueRef = useRef(value);
@@ -166,6 +170,47 @@ export function RichTextEditor({
     }, 600);
     return () => clearTimeout(t);
   }, [value, autosave, disabled, storageKey]);
+
+  /**
+   * Show the floating toolbar over a non-empty selection inside this
+   * editor, so formatting is reachable without scrolling to the top of a
+   * long document.
+   */
+  const updateBubble = () => {
+    if (disabled || typeof window === "undefined") return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+      setBubble(null);
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    // Only for selections that belong to THIS editor — several can be on
+    // one page.
+    if (!editorRef.current?.contains(range.commonAncestorContainer)) {
+      setBubble(null);
+      return;
+    }
+    const rect = range.getBoundingClientRect();
+    const host = editorRef.current.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+      setBubble(null);
+      return;
+    }
+    setBubble({
+      // Relative to the editor shell, which is the positioning context.
+      top: rect.top - host.top - 44,
+      left: Math.max(4, rect.left - host.left + rect.width / 2 - 90),
+    });
+    setBlockValue(currentBlock());
+  };
+
+  useEffect(() => {
+    if (disabled) return;
+    const onSelectionChange = () => updateBubble();
+    document.addEventListener("selectionchange", onSelectionChange);
+    return () => document.removeEventListener("selectionchange", onSelectionChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disabled]);
 
   const handleInput = () => {
     if (!editorRef.current) return;
@@ -200,8 +245,69 @@ export function RichTextEditor({
   const exec = (command: string, value: string | undefined = undefined) => {
     if (disabled) return;
     editorRef.current?.focus();
+    // THE fix for "bold does not survive a save". With styleWithCSS on —
+    // which is the default in some engines and gets switched on implicitly
+    // by other operations — the browser emits
+    // `<span style="font-weight:700">` instead of `<b>`. The sanitiser
+    // strips `style` (correctly; it carries url() and expression()), so the
+    // formatting was thrown away on save and came back plain. Off, the
+    // browser emits semantic tags, which the allowlist keeps.
+    try {
+      document.execCommand("styleWithCSS", false, "false");
+    } catch {
+      // Not supported everywhere; the command below still runs.
+    }
     document.execCommand(command, false, value);
     handleInput();
+  };
+
+  /** Font size 1–7 as execCommand understands it, labelled in points. */
+  const FONT_SIZES: { value: string; label: string }[] = [
+    { value: "1", label: "8 pt" },
+    { value: "2", label: "10 pt" },
+    { value: "3", label: "12 pt" },
+    { value: "4", label: "14 pt" },
+    { value: "5", label: "18 pt" },
+    { value: "6", label: "24 pt" },
+    { value: "7", label: "36 pt" },
+  ];
+
+  const BLOCK_OPTIONS: { value: string; label: string }[] = [
+    { value: "p", label: "Normal text" },
+    { value: "h1", label: "Heading 1" },
+    { value: "h2", label: "Heading 2" },
+    { value: "h3", label: "Heading 3" },
+    { value: "blockquote", label: "Quote" },
+    { value: "pre", label: "Code block" },
+  ];
+
+  /** The block tag the caret currently sits in, for the dropdown. */
+  const currentBlock = (): string => {
+    try {
+      const v = (document.queryCommandValue("formatBlock") || "").toLowerCase().replace(/[<>]/g, "");
+      return BLOCK_OPTIONS.some((o) => o.value === v) ? v : "p";
+    } catch {
+      return "p";
+    }
+  };
+
+  /**
+   * Sets the block directly rather than toggling. A dropdown showing the
+   * current value makes "turn this heading back into normal text" an
+   * explicit choice — pressing an H1 button to undo an H1 was the part
+   * people could not find.
+   */
+  const applyBlock = (tag: string) => {
+    if (disabled) return;
+    editorRef.current?.focus();
+    try {
+      document.execCommand("styleWithCSS", false, "false");
+    } catch {
+      /* ignore */
+    }
+    document.execCommand("formatBlock", false, tag);
+    handleInput();
+    setBlockValue(tag);
   };
 
   /**
@@ -241,7 +347,7 @@ export function RichTextEditor({
 
   return (
     <div
-      className={`rounded-md border border-input bg-card shadow-sm transition-colors ${
+      className={`relative rounded-md border border-input bg-card shadow-sm transition-colors ${
         isFocused ? "ring-2 ring-ring border-transparent" : ""
       } ${disabled ? "opacity-60 pointer-events-none" : ""} ${className}`}
     >
@@ -280,8 +386,11 @@ export function RichTextEditor({
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 border-b border-border/80 bg-muted/40 p-1.5 text-foreground">
+      {/* Toolbar. `sticky` so it stays reachable partway down a long
+          document instead of forcing a scroll back to the top. It sticks to
+          the top of the nearest scroll container, which is the editor's own
+          overflow area or the dialog body. */}
+      <div className="sticky top-0 z-20 flex flex-wrap items-center gap-1 rounded-t-md border-b border-border/80 bg-muted/95 p-1.5 text-foreground backdrop-blur supports-[backdrop-filter]:bg-muted/80">
         <ToolbarButton onAction={() => exec("bold")} label="Bold (Ctrl+B)" disabled={disabled}>
           <Bold className="size-4" />
         </ToolbarButton>
@@ -297,15 +406,34 @@ export function RichTextEditor({
 
         <div className="h-4 w-px bg-border mx-0.5" />
 
-        <ToolbarButton onAction={() => toggleBlock("h1")} label="Heading 1" disabled={disabled}>
-          <Heading1 className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton onAction={() => toggleBlock("h2")} label="Heading 2" disabled={disabled}>
-          <Heading2 className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton onAction={() => toggleBlock("h3")} label="Heading 3" disabled={disabled}>
-          <Heading3 className="size-4" />
-        </ToolbarButton>
+        <select
+          aria-label="Paragraph style"
+          value={blockValue}
+          disabled={disabled}
+          onMouseDown={(e) => e.stopPropagation()}
+          onChange={(e) => applyBlock(e.target.value)}
+          className="h-7 rounded-md border border-input bg-background px-1.5 text-[11px]"
+        >
+          {BLOCK_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+
+        <select
+          aria-label="Font size"
+          value={fontSizeValue}
+          disabled={disabled}
+          onChange={(e) => {
+            setFontSizeValue(e.target.value);
+            exec("fontSize", e.target.value);
+          }}
+          className="h-7 rounded-md border border-input bg-background px-1.5 text-[11px]"
+        >
+          {FONT_SIZES.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+
 
         <div className="h-4 w-px bg-border mx-0.5" />
 
@@ -348,13 +476,69 @@ export function RichTextEditor({
             {placeholder}
           </div>
         )}
+        {bubble && !disabled && (
+          <div
+            // Appears over the selection so formatting is reachable in a
+            // long document without going back to the toolbar.
+            style={{ top: bubble.top, left: bubble.left }}
+            className="absolute z-30 flex items-center gap-0.5 rounded-lg border border-border bg-popover px-1 py-0.5 shadow-lg"
+            // Keep the selection alive: any focus change would collapse it
+            // and leave execCommand with nothing to act on.
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <ToolbarButton onAction={() => exec("bold")} label="Bold" disabled={disabled}>
+              <Bold className="size-3.5" />
+            </ToolbarButton>
+            <ToolbarButton onAction={() => exec("italic")} label="Italic" disabled={disabled}>
+              <Italic className="size-3.5" />
+            </ToolbarButton>
+            <ToolbarButton onAction={() => exec("underline")} label="Underline" disabled={disabled}>
+              <Underline className="size-3.5" />
+            </ToolbarButton>
+            <div className="mx-0.5 h-4 w-px bg-border" />
+            <select
+              aria-label="Paragraph style"
+              value={blockValue}
+              onChange={(e) => applyBlock(e.target.value)}
+              className="h-6 rounded border border-input bg-background px-1 text-[11px]"
+            >
+              {BLOCK_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <select
+              aria-label="Font size"
+              value={fontSizeValue}
+              onChange={(e) => {
+                setFontSizeValue(e.target.value);
+                exec("fontSize", e.target.value);
+              }}
+              className="h-6 rounded border border-input bg-background px-1 text-[11px]"
+            >
+              {FONT_SIZES.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            <ToolbarButton onAction={handleAddLink} label="Insert link" disabled={disabled}>
+              <LinkIcon className="size-3.5" />
+            </ToolbarButton>
+          </div>
+        )}
+
         <div
           ref={editorRef}
           contentEditable={!disabled}
           onInput={handleInput}
           onPaste={handlePaste}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            setIsFocused(false);
+            // Delayed: clicking the bubble itself blurs the editor, and
+            // removing it immediately would cancel the click.
+            setTimeout(() => setBubble(null), 200);
+          }}
+          onKeyUp={updateBubble}
+          onMouseUp={updateBubble}
           style={{ minHeight }}
           className="rich-text max-w-none overflow-y-auto text-xs leading-relaxed focus:outline-none"
         />

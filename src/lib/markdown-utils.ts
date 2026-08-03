@@ -22,12 +22,20 @@ const ALLOWED_TAGS = new Set([
   "strong", "b", "em", "i", "u", "s", "strike", "del",
   "ul", "ol", "li", "blockquote", "pre", "code",
   "a", "table", "thead", "tbody", "tr", "th", "td",
+  // <font size="1..7"> is what execCommand("fontSize") emits. It is inert
+  // — no script, no url() — and allowing it is what lets a chosen font
+  // size survive sanitisation. Without it the size was silently stripped
+  // on save.
+  "font",
 ]);
 
 /** Attributes allowed to survive sanitisation, per tag. */
 const ALLOWED_ATTRS: Record<string, Set<string>> = {
   "*": new Set(["class"]),
   a: new Set(["class", "href", "target", "rel"]),
+  // `size` only — deliberately NOT `color` or `face`, which are wider
+  // surfaces for no benefit here.
+  font: new Set(["class", "size"]),
 };
 
 const SAFE_URL = /^(https?:|mailto:|tel:|#|\/)/i;
