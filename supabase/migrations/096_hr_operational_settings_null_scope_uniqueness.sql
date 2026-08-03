@@ -43,7 +43,9 @@ BEGIN
       AND rel.relname = 'hr_operational_settings'
       AND con.contype = 'u'
       AND (
-        SELECT array_agg(att.attname ORDER BY att.attname)
+        -- attname is `name`, not `text`, and there is no name[] = text[]
+        -- operator — cast per element so the comparison resolves.
+        SELECT array_agg(att.attname::text ORDER BY att.attname::text)
         FROM unnest(con.conkey) AS k(attnum)
         JOIN pg_attribute att
           ON att.attrelid = con.conrelid AND att.attnum = k.attnum
