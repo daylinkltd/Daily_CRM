@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { defaultSystemRoleName, type WorkspaceDbRole } from '@/lib/auth/roles';
 
 /** Helper: verify caller is workspace owner or admin */
 async function verifyWorkspaceAdmin(workspaceId: string) {
@@ -160,14 +161,39 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    const dbRole = (workspace_role || 'member') as WorkspaceDbRole;
     const memberInsert: Record<string, unknown> = {
       workspace_id,
       user_id: targetUserId,
-      role: workspace_role || 'member',
+      role: dbRole,
     };
 
     if (role_id) {
       memberInsert.role_id = role_id;
+    } else {
+      // A NULL role_id locks the member out of every catalogued table —
+      // the CRUD policies are RESTRICTIVE and fail closed — so fall back
+      // to the workspace's built-in role rather than leaving it unset.
+      const { data: fallbackRole } = await adminClient
+        .from('workspace_roles')
+        .select('id')
+        .eq('workspace_id', workspace_id)
+        .eq('is_system', true)
+        .eq('name', defaultSystemRoleName(dbRole))
+        .maybeSingle();
+
+      if (!fallbackRole) {
+        // Seeded per workspace at creation (migrations 015/021). Absent
+        // means the workspace was provisioned incompletely; say so rather
+        // than create a member who silently cannot read anything.
+        return NextResponse.json(
+          {
+            error: `This workspace has no built-in "${defaultSystemRoleName(dbRole)}" role, so no permissions could be assigned. Create a role under Settings → Roles and pass its role_id.`,
+          },
+          { status: 409 }
+        );
+      }
+      memberInsert.role_id = fallbackRole.id;
     }
 
     const { error: insertError } = await adminClient
@@ -219,7 +245,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updates: Record<string, unknown> = {};
-    if (role_id !== undefined) updates.role_id = role_id;
+    if (role_id) updates.role_id = role_id;
     // Whitelist — the DB enum also accepts 'owner', so an unchecked
     // value would let an admin promote themselves to owner.
     if (workspace_role) {
@@ -232,11 +258,45 @@ export async function PATCH(request: NextRequest) {
       updates.role = workspace_role;
     }
 
+    const adminClient = createAdminClient();
+
+    // An explicit null means "reset to the workspace default", not "strip
+    // all permissions": a NULL role_id fails closed against every
+    // RESTRICTIVE CRUD policy and leaves the member unable to read
+    // anything, which is never what clearing a role is meant to do.
+    if (role_id === null) {
+      const targetDbRole = (workspace_role
+        ?? (await adminClient
+          .from('workspace_members')
+          .select('role')
+          .eq('workspace_id', workspace_id)
+          .eq('id', member_id)
+          .maybeSingle()).data?.role
+        ?? 'member') as WorkspaceDbRole;
+
+      const { data: fallbackRole } = await adminClient
+        .from('workspace_roles')
+        .select('id')
+        .eq('workspace_id', workspace_id)
+        .eq('is_system', true)
+        .eq('name', defaultSystemRoleName(targetDbRole))
+        .maybeSingle();
+
+      if (!fallbackRole) {
+        return NextResponse.json(
+          {
+            error: `This workspace has no built-in "${defaultSystemRoleName(targetDbRole)}" role to fall back to. Assign a role_id explicitly.`,
+          },
+          { status: 409 }
+        );
+      }
+      updates.role_id = fallbackRole.id;
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No updates provided' }, { status: 400 });
     }
 
-    const adminClient = createAdminClient();
     const { error } = await adminClient
       .from('workspace_members')
       .update(updates)

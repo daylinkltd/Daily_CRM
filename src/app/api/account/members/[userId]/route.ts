@@ -17,7 +17,7 @@
 import { NextResponse } from "next/server";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
-import { isAccountRole, toDbRole } from "@/lib/auth/roles";
+import { defaultSystemRoleName, isAccountRole, toDbRole } from "@/lib/auth/roles";
 import {
   checkRateLimit,
   rateLimitResponse,
@@ -129,6 +129,30 @@ export async function PATCH(
 
     const updatePayload: Record<string, unknown> = { role: dbRole };
     if (hasRoleId) updatePayload.role_id = roleId;
+
+    // Clearing the role must not mean "revoke everything". role_id is what
+    // the RESTRICTIVE CRUD policies from 074 consult, and NULL fails closed
+    // on every catalogued table — including SELECT — so an explicit null
+    // resolves to the workspace's built-in role for the new enum role.
+    if (hasRoleId && roleId === null) {
+      const { data: fallbackRole } = await ctx.supabase
+        .from("workspace_roles")
+        .select("id")
+        .eq("workspace_id", ctx.accountId)
+        .eq("is_system", true)
+        .eq("name", defaultSystemRoleName(dbRole))
+        .maybeSingle();
+
+      if (!fallbackRole) {
+        return NextResponse.json(
+          {
+            error: `This workspace has no built-in "${defaultSystemRoleName(dbRole)}" role to fall back to. Assign a role explicitly.`,
+          },
+          { status: 409 },
+        );
+      }
+      updatePayload.role_id = fallbackRole.id;
+    }
 
     const { error } = await ctx.supabase
       .from("workspace_members")

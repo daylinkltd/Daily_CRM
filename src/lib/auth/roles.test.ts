@@ -4,11 +4,36 @@ import {
   ACCOUNT_ROLES,
   canSendMessages,
   canViewOnly,
+  defaultSystemRoleName,
   fromDbRole,
   hasMinRole,
   toDbRole,
   type AccountRole,
 } from "./roles";
+
+describe("defaultSystemRoleName", () => {
+  // Must match migration 073's backfill CASE and the trigger in 097 —
+  // if these three disagree, new members land somewhere existing ones
+  // are not.
+  it("maps owner and admin to the Admin role", () => {
+    expect(defaultSystemRoleName("owner")).toBe("Admin");
+    expect(defaultSystemRoleName("admin")).toBe("Admin");
+  });
+
+  it("maps everyone else to Agent, matching migration 073", () => {
+    expect(defaultSystemRoleName("member")).toBe("Agent");
+    expect(defaultSystemRoleName("viewer")).toBe("Agent");
+  });
+
+  it("never returns Viewer, which would expose payroll to plain members", () => {
+    // The seeded Viewer role grants payroll:read and accounting:read, so
+    // it is deliberately not the fallback for a plain member.
+    const names = (["owner", "admin", "member", "viewer"] as const).map(
+      defaultSystemRoleName
+    );
+    expect(names).not.toContain("Viewer");
+  });
+});
 
 describe("toDbRole / fromDbRole", () => {
   it("persists 'viewer' distinctly instead of collapsing onto 'member'", () => {

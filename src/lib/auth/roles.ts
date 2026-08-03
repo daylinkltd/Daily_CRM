@@ -99,6 +99,25 @@ export function fromDbRole(dbRole: string | null | undefined): AccountRole {
   }
 }
 
+/**
+ * The built-in system role a member should fall back to when no custom
+ * role is chosen for them.
+ *
+ * `workspace_members.role_id` must never be NULL. The CRUD policies from
+ * migration 074 are RESTRICTIVE and `has_resource_permission` returns
+ * FALSE when the role JOIN finds nothing, so a role-less member is denied
+ * every operation — including SELECT — on every catalogued table, while
+ * `get_user_permissions` still hands the UI a set of coarse keys and
+ * happily renders pages the database will then refuse.
+ *
+ * This is the same mapping migration 073 used to backfill the column, so
+ * new members land where existing ones already are. Kept in one place
+ * because the trigger in migration 097 encodes it too.
+ */
+export function defaultSystemRoleName(dbRole: WorkspaceDbRole): "Admin" | "Agent" {
+  return dbRole === "owner" || dbRole === "admin" ? "Admin" : "Agent";
+}
+
 // ============================================================
 // Capability predicates
 //
