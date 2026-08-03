@@ -141,12 +141,16 @@ export function LocationMapModal({
       const { latitude, longitude, accuracy } = activeLocation;
 
       // Initialize Leaflet Map
-      const map = L.map(mapContainerRef.current).setView([latitude, longitude], 16);
+      const map = L.map(mapContainerRef.current, {
+        zoomControl: true,
+        scrollWheelZoom: true,
+      }).setView([latitude, longitude], 16);
       mapInstanceRef.current = map;
 
-      // Add OpenStreetMap tiles
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      // Add CartoDB / OpenStreetMap tiles (faster & reliable CDN)
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
         maxZoom: 19,
       }).addTo(map);
 
@@ -178,12 +182,6 @@ export function LocationMapModal({
       });
 
       // Add Marker.
-      //
-      // The popup is built from DOM nodes rather than an HTML string:
-      // Leaflet assigns a string argument straight to innerHTML, and
-      // `employeeName` is a self-served profile name, so interpolating it
-      // would execute any markup a member puts in their own name for every
-      // manager who opens this map.
       const marker = L.marker([latitude, longitude], { icon: customIcon }).addTo(map);
 
       const popupNode = document.createElement("div");
@@ -213,10 +211,14 @@ export function LocationMapModal({
         }).addTo(map);
       }
 
-      // Ensure map resizes correctly inside modal
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 250);
+      // Multi-phase invalidateSize to handle modal animation pop-in seamlessly
+      [50, 150, 300, 600, 1000].forEach((delay) => {
+        setTimeout(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.invalidateSize();
+          }
+        }, delay);
+      });
     };
 
     import("leaflet").then((mod) => initMap((mod.default ?? mod) as typeof LeafletNS));
@@ -297,10 +299,15 @@ export function LocationMapModal({
           </div>
         </DialogHeader>
 
-        {/* Leaflet Map Container */}
-        <div className="relative w-full h-[340px] bg-muted">
+        {/* Leaflet / OpenStreetMap Map Container */}
+        <div className="relative w-full h-[340px] bg-muted overflow-hidden">
           {activeLocation ? (
-            <div ref={mapContainerRef} className="w-full h-full z-0" />
+            <iframe
+              title="Attendance GPS Map Location"
+              className="w-full h-[340px] border-0"
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${activeLocation.longitude - 0.005}%2C${activeLocation.latitude - 0.004}%2C${activeLocation.longitude + 0.005}%2C${activeLocation.latitude + 0.004}&layer=mapnik&marker=${activeLocation.latitude}%2C${activeLocation.longitude}`}
+              style={{ width: "100%", height: "340px", border: 0 }}
+            />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center">
               <MapPin className="size-8 text-muted-foreground/40" />

@@ -11,13 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
-import { Search, Loader2, Umbrella, CheckCircle2, XCircle, MoreHorizontal, Plus } from 'lucide-react';
+import { Search, Loader2, Umbrella, CheckCircle2, XCircle, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { assertAffected } from '@/lib/supabase/affected-rows';
@@ -99,11 +93,12 @@ export default function LeavePage() {
     fetchLeaveRequests();
   }, [fetchLeaveRequests]);
 
+  const [actionLoadingId, setActionLoadingId] = useState<{ id: string; action: 'approved' | 'rejected' } | null>(null);
+
   const handleUpdateStatus = async (id: string, status: 'approved' | 'rejected') => {
     if (!activeMember?.id) return;
+    setActionLoadingId({ id, action: status });
     try {
-      // .select() so a zero-row result — RLS filtered the request away —
-      // is caught instead of reported as a successful approval.
       const result = await supabase
         .from('leave_requests')
         .update({
@@ -114,19 +109,36 @@ export default function LeavePage() {
         .select('id');
 
       assertAffected(result, 'the leave request');
-      toast.success(`Leave request ${status}`);
+      toast.success(`Leave request ${status === 'approved' ? 'approved' : 'rejected'}`);
       fetchLeaveRequests();
     } catch (error: any) {
       toast.error(error.message || `Failed to ${status} request`);
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'bg-emerald-500/15 text-emerald-700 border-emerald-200';
-      case 'rejected': return 'bg-red-500/15 text-red-700 border-red-200';
-      default: return 'bg-orange-500/15 text-orange-700 border-orange-200';
+  const renderStatusBadge = (status: string) => {
+    const s = (status || 'pending').toLowerCase();
+    if (s === 'approved') {
+      return (
+        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1 font-semibold px-2.5 py-0.5 rounded-full">
+          <CheckCircle2 className="size-3.5 text-emerald-500" /> Approved
+        </Badge>
+      );
     }
+    if (s === 'rejected') {
+      return (
+        <Badge variant="outline" className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30 gap-1 font-semibold px-2.5 py-0.5 rounded-full">
+          <XCircle className="size-3.5 text-red-500" /> Rejected
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 font-semibold px-2.5 py-0.5 rounded-full">
+        Pending
+      </Badge>
+    );
   };
 
   return (
@@ -160,7 +172,7 @@ export default function LeavePage() {
               <TableHead className="text-muted-foreground">Dates</TableHead>
               <TableHead className="text-muted-foreground hidden lg:table-cell">Reason</TableHead>
               <TableHead className="text-muted-foreground">Status</TableHead>
-              <TableHead className="text-muted-foreground w-12" />
+              <TableHead className="text-muted-foreground text-right pr-6">{canApproveLeave ? "Actions" : ""}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -194,9 +206,11 @@ export default function LeavePage() {
                 const from = new Date(record.from_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const to = new Date(record.to_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const dateStr = from === to ? from : `${from} - ${to}`;
+                const isPending = (record.status || 'pending').toLowerCase() === 'pending';
+                const isRowLoading = actionLoadingId?.id === record.id;
 
                 return (
-                  <TableRow key={record.id} className="border-border hover:bg-muted/50">
+                  <TableRow key={record.id} className="border-border hover:bg-muted/50 transition-colors">
                     {canApproveLeave && (
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -220,32 +234,44 @@ export default function LeavePage() {
                       {record.reason || '-'}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={getStatusColor(record.status)}>
-                        {(record.status ?? 'pending').toUpperCase()}
-                      </Badge>
+                      {renderStatusBadge(record.status)}
                     </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                          <MoreHorizontal className="size-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-popover border-border w-40">
-                          {canApproveLeave && record.status === 'pending' ? (
-                            <>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(record.id, 'approved')} className="text-emerald-600 focus:text-emerald-700 focus:bg-emerald-50 cursor-pointer">
-                                <CheckCircle2 className="size-4 mr-2" /> Approve
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateStatus(record.id, 'rejected')} className="text-red-600 focus:text-red-700 focus:bg-red-50 cursor-pointer">
-                                <XCircle className="size-4 mr-2" /> Reject
-                              </DropdownMenuItem>
-                            </>
-                          ) : (
-                            <DropdownMenuItem disabled className="text-muted-foreground">
-                              No actions available
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <TableCell className="text-right pr-4">
+                      {canApproveLeave && isPending ? (
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleUpdateStatus(record.id, 'approved')}
+                            disabled={isRowLoading}
+                            className="h-8 px-3 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white shadow-sm gap-1.5 transition-all rounded-lg"
+                          >
+                            {isRowLoading && actionLoadingId?.action === 'approved' ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="size-3.5" />
+                            )}
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleUpdateStatus(record.id, 'rejected')}
+                            disabled={isRowLoading}
+                            className="h-8 px-3 text-xs font-semibold border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:text-red-700 active:scale-95 shadow-xs gap-1.5 transition-all rounded-lg"
+                          >
+                            {isRowLoading && actionLoadingId?.action === 'rejected' ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <XCircle className="size-3.5" />
+                            )}
+                            Reject
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground font-mono">
+                          {record.approver?.profiles?.full_name ? `By ${record.approver.profiles.full_name}` : '—'}
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

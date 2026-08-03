@@ -99,7 +99,11 @@ function SelectValue({
         }
         const valStr = String(val);
         const mappedLabel = ctx?.labelsMap.get(valStr);
-        return mappedLabel || valStr;
+        if (mappedLabel) return mappedLabel;
+        if (/^[0-9a-fA-F-]{32,36}$/.test(valStr)) {
+          return placeholder ?? "-- Select --";
+        }
+        return valStr;
       }}
     </SelectPrimitive.Value>
   )
