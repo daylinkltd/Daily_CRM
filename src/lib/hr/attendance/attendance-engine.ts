@@ -4,21 +4,47 @@
  * and automated status determinations.
  */
 
+import { round2 } from "@/lib/hr/salary";
+
 export interface AttendanceMetricsInput {
   punchInTime: string;
   punchOutTime?: string;
   totalBreakMinutes?: number;
-  shiftStartHour?: number; // e.g. 9 for 09:00 AM
-  gracePeriodMinutes?: number; // e.g. 15 mins
+  /**
+   * Shift start as minutes after midnight IN THE WORKSPACE'S timezone
+   * (e.g. 540 for 09:00), together with the UTC offset that timezone was
+   * at on the punch date.
+   *
+   * Both are required to score lateness and there is deliberately NO
+   * default: `hr_shifts` is empty in every workspace today and no
+   * timezone is stored anywhere, so a default would invent policy. A
+   * punch at 06:04Z is on time for a 09:00 UTC shift and 2h34m late for
+   * a 09:00 IST one — guessing silently mislabels people as late in a
+   * field that feeds payroll disputes. Omit `shift` and lateness is
+   * reported as null ("not assessed"), never as zero ("on time").
+   */
+  shift?: {
+    startMinutesLocal: number;
+    /** Minutes to ADD to UTC for the workspace's local time (IST = 330). */
+    utcOffsetMinutes: number;
+    gracePeriodMinutes?: number;
+  };
+  /** Net hours below which a present day counts as a half day. */
+  halfDayThresholdHours?: number;
+  /** Net hours beyond which the excess is overtime. */
+  standardDayHours?: number;
 }
+
+export type AttendanceStatus = 'Present' | 'Late' | 'Half-Day' | 'Absent' | 'Remote';
 
 export interface AttendanceMetricsResult {
   totalHours: number;
   breakHours: number;
   netProductiveHours: number;
-  lateMinutes: number;
+  /** Null when no shift was supplied — "not assessed", distinct from 0. */
+  lateMinutes: number | null;
   overtimeHours: number;
-  status: 'Present' | 'Late' | 'Half-Day' | 'Absent' | 'Remote';
+  status: AttendanceStatus;
 }
 
 export function calculateAttendanceMetrics(input: AttendanceMetricsInput): AttendanceMetricsResult {
@@ -26,12 +52,13 @@ export function calculateAttendanceMetrics(input: AttendanceMetricsInput): Atten
     punchInTime,
     punchOutTime,
     totalBreakMinutes = 0,
-    shiftStartHour = 9,
-    gracePeriodMinutes = 15,
+    shift,
+    halfDayThresholdHours = 4,
+    standardDayHours = 8,
   } = input;
 
   const punchIn = new Date(punchInTime);
-  const breakHours = Math.round((totalBreakMinutes / 60) * 100) / 100;
+  const breakHours = round2(totalBreakMinutes / 60);
 
   let totalHours = 0;
   let netProductiveHours = 0;
@@ -40,30 +67,37 @@ export function calculateAttendanceMetrics(input: AttendanceMetricsInput): Atten
   if (punchOutTime) {
     const punchOut = new Date(punchOutTime);
     const diffMs = punchOut.getTime() - punchIn.getTime();
-    totalHours = Math.max(0, Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100);
-    netProductiveHours = Math.max(0, Math.round((totalHours - breakHours) * 100) / 100);
-    
-    // Overtime > 8 hours net productive
-    if (netProductiveHours > 8) {
-      overtimeHours = Math.round((netProductiveHours - 8) * 100) / 100;
+    totalHours = Math.max(0, round2(diffMs / (1000 * 60 * 60)));
+    netProductiveHours = Math.max(0, round2(totalHours - breakHours));
+
+    if (netProductiveHours > standardDayHours) {
+      overtimeHours = round2(netProductiveHours - standardDayHours);
     }
   }
 
-  // Late calculation
-  const shiftStart = new Date(punchIn);
-  shiftStart.setHours(shiftStartHour, 0, 0, 0);
-  const graceCutoff = new Date(shiftStart.getTime() + gracePeriodMinutes * 60 * 1000);
-
-  let lateMinutes = 0;
-  if (punchIn > graceCutoff) {
-    lateMinutes = Math.round((punchIn.getTime() - shiftStart.getTime()) / (1000 * 60));
+  // Lateness is measured entirely in workspace-local minutes-after-midnight,
+  // so it never depends on the server's timezone. Comparing UTC instants
+  // through `setHours` — as this did before — silently scored every punch in
+  // whatever zone the container happened to run in.
+  let lateMinutes: number | null = null;
+  if (shift) {
+    const localMs = punchIn.getTime() + shift.utcOffsetMinutes * 60 * 1000;
+    const local = new Date(localMs);
+    const minutesAfterLocalMidnight = local.getUTCHours() * 60 + local.getUTCMinutes();
+    const grace = shift.gracePeriodMinutes ?? 0;
+    const minutesLate = minutesAfterLocalMidnight - shift.startMinutesLocal;
+    // Past grace, the whole delay counts — grace forgives the arrival, it
+    // does not shorten it.
+    lateMinutes = minutesLate > grace ? minutesLate : 0;
   }
 
-  let status: 'Present' | 'Late' | 'Half-Day' | 'Absent' | 'Remote' = 'Present';
-  if (lateMinutes > 0) {
+  let status: AttendanceStatus = 'Present';
+  if (lateMinutes !== null && lateMinutes > 0) {
     status = 'Late';
   }
-  if (netProductiveHours > 0 && netProductiveHours < 4) {
+  // A short day outranks a late one: it is the more consequential fact for
+  // payroll, and the two are reported separately anyway via lateMinutes.
+  if (netProductiveHours > 0 && netProductiveHours < halfDayThresholdHours) {
     status = 'Half-Day';
   }
 

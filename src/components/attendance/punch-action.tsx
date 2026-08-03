@@ -38,6 +38,7 @@ import {
   type PreciseLocation,
 } from '@/lib/attendance/geolocation';
 import { collectDeviceInfo } from '@/lib/attendance/device-info';
+import { calculateAttendanceMetrics } from '@/lib/hr/attendance/attendance-engine';
 import {
   DEFAULT_ATTENDANCE_POLICY,
   parseAttendancePolicy,
@@ -388,12 +389,22 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
           await handleBreak('resume');
         }
 
-        const punchIn = new Date(todayRecord.punch_in_time);
-        const punchOut = new Date(now);
-        const diffMs = punchOut.getTime() - punchIn.getTime();
-        const workingHours = parseFloat((diffMs / (1000 * 60 * 60)).toFixed(2));
+        // Single source of truth for attendance arithmetic — this used to
+        // recompute it inline and never derived overtime, which is why the
+        // "Approved Overtime" KPI on /attendance was permanently 0.
+        //
+        // No `shift` is passed: hr_shifts is empty and no workspace timezone
+        // is stored, so lateness cannot be scored honestly yet. The engine
+        // returns null for it rather than a made-up 0, and status/late_minutes
+        // are left untouched here.
         const breakHours = Number(todayRecord.break_hours || 0);
-        const netProductive = Math.max(0, parseFloat((workingHours - breakHours).toFixed(2)));
+        const metrics = calculateAttendanceMetrics({
+          punchInTime: todayRecord.punch_in_time,
+          punchOutTime: now,
+          totalBreakMinutes: breakHours * 60,
+        });
+        const workingHours = metrics.totalHours;
+        const netProductive = metrics.netProductiveHours;
 
         const { error } = await supabase
           .from('attendance')
@@ -410,7 +421,8 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             // valid but worth a look.
             review_flags: skipLocation ? ['PUNCH_OUT_WITHOUT_LOCATION'] : null,
             working_hours: workingHours,
-            net_productive_hours: netProductive
+            net_productive_hours: netProductive,
+            overtime_hours: metrics.overtimeHours
           })
           .eq('id', todayRecord.id);
         if (error) throw error;

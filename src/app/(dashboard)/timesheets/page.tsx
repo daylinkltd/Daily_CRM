@@ -108,7 +108,11 @@ export default function TimesheetsPage() {
           status: att?.status || 'OFF',
           attendanceHours,
           loggedTime,
-          discrepancy: loggedTime - attendanceHours
+          // Unlogged time = clocked minus logged. This was the other way
+          // round, so the column labelled "Unlogged time" lit up orange for
+          // people who had logged MORE than they clocked, and showed a green
+          // surplus for the ones with an actual gap.
+          discrepancy: attendanceHours - loggedTime
         };
       });
 

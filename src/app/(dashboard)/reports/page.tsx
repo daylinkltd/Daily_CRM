@@ -107,13 +107,16 @@ export default function ReportsDashboard() {
         .lte('created_at', endDate);
 
       // 6. Fetch Timesheets / Time Logs (safe query)
+      // `time_logs` has no `status` column — approval is the boolean
+      // `approved`. Filtering on `status` errored, so `timesheets` came back
+      // null and every timesheet figure below silently read as zero.
       const { data: timesheets } = await supabase
         .from('time_logs')
         .select('workspace_member_id, duration')
         .eq('workspace_id', activeWorkspace.id)
         .gte('log_date', format(startOfMonth(new Date()), 'yyyy-MM-dd'))
         .lte('log_date', format(endOfMonth(new Date()), 'yyyy-MM-dd'))
-        .eq('status', 'approved');
+        .eq('approved', true);
 
       // 7. Fetch Attendance (safe query)
       const { data: attendance } = await supabase
