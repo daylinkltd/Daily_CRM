@@ -1,5 +1,8 @@
+import { Fragment } from 'react';
+
 import { API_KEY_PREFIX } from '@/lib/api-keys/keys';
-import { API_SCOPES, SCOPE_DESCRIPTIONS } from '@/lib/api-keys/scopes';
+import { SCOPE_DESCRIPTIONS, SCOPE_GROUPS } from '@/lib/api-keys/scopes';
+import { V1_PATHS } from '@/lib/api/v1/resource-registry';
 
 /**
  * Developer documentation for the public REST API.
@@ -34,7 +37,7 @@ function Endpoint({
   scope,
   children,
 }: {
-  method: 'GET' | 'POST';
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   path: string;
   scope: string;
   children: React.ReactNode;
@@ -101,15 +104,27 @@ export default function DocsPage() {
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <tbody>
-              {API_SCOPES.map((scope) => (
-                <tr key={scope} className="border-b border-border last:border-0">
-                  <td className="whitespace-nowrap px-4 py-2 font-mono text-[13px] text-foreground">
-                    {scope}
-                  </td>
-                  <td className="px-4 py-2 text-muted-foreground">
-                    {SCOPE_DESCRIPTIONS[scope]}
-                  </td>
-                </tr>
+              {SCOPE_GROUPS.map((group) => (
+                <Fragment key={group.label}>
+                  <tr className="border-b border-border bg-muted/50">
+                    <td
+                      colSpan={2}
+                      className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      {group.label}
+                    </td>
+                  </tr>
+                  {group.scopes.map((scope) => (
+                    <tr key={scope} className="border-b border-border last:border-0">
+                      <td className="whitespace-nowrap px-4 py-2 font-mono text-[13px] text-foreground">
+                        {scope}
+                      </td>
+                      <td className="px-4 py-2 text-muted-foreground">
+                        {SCOPE_DESCRIPTIONS[scope]}
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -227,6 +242,73 @@ export default function DocsPage() {
           Returns the workspace a key belongs to and the scopes it holds —
           handy as a credential health check.
         </Endpoint>
+      </section>
+
+      {/* Every other resource */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-foreground">
+          All modules ({V1_PATHS.length} endpoints)
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Every resource in CRM, HR, retail, accounting and projects is
+          reachable through one uniform set of endpoints. Substitute the
+          resource name below for <Code>{'{resource}'}</Code>.
+        </p>
+        <Endpoint method="GET" path="/api/v1/{resource}" scope="{resource}:read">
+          Lists rows in your workspace. Supports <Code>limit</Code> (max 200,
+          default 50), <Code>offset</Code>, and <Code>order</Code> with{' '}
+          <Code>dir=asc|desc</Code>. Responds with{' '}
+          <Code>{'{ items, pagination: { limit, offset, total } }'}</Code>.
+        </Endpoint>
+        <Endpoint method="POST" path="/api/v1/{resource}" scope="{resource}:write">
+          Creates a row. <Code>workspace_id</Code> is taken from your key and
+          ignored in the body, so a key can only ever write into its own
+          workspace. Returns <Code>201</Code>.
+        </Endpoint>
+        <Endpoint method="GET" path="/api/v1/{resource}/{id}" scope="{resource}:read">
+          Fetches one row. A row belonging to another workspace returns{' '}
+          <Code>404</Code>, never <Code>403</Code>.
+        </Endpoint>
+        <Endpoint
+          method="PATCH"
+          path="/api/v1/{resource}/{id}"
+          scope="{resource}:write"
+        >
+          Updates the supplied fields only. <Code>id</Code> and{' '}
+          <Code>workspace_id</Code> are ignored.
+        </Endpoint>
+        <Endpoint
+          method="DELETE"
+          path="/api/v1/{resource}/{id}"
+          scope="{resource}:delete"
+        >
+          Deletes the row. Split from <Code>:write</Code> so a key can create
+          and edit without being able to destroy.
+        </Endpoint>
+        <Snippet>{`curl "${BASE_URL}/api/v1/payroll?limit=10&order=created_at" \\
+  -H "Authorization: Bearer ${API_KEY_PREFIX}…"`}</Snippet>
+        <p className="text-sm text-muted-foreground">
+          Resource names, grouped by module:
+        </p>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <tbody>
+              {SCOPE_GROUPS.filter((g) => g.module).map((group) => (
+                <tr key={group.label} className="border-b border-border last:border-0">
+                  <td className="whitespace-nowrap px-4 py-2 align-top text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {group.label}
+                  </td>
+                  <td className="px-4 py-2 font-mono text-[13px] text-foreground">
+                    {V1_PATHS.filter((r) => r.module === group.module)
+                      .map((r) => r.path)
+                      .sort()
+                      .join(', ')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {/* Errors + limits */}

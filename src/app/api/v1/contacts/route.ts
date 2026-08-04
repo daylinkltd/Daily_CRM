@@ -1,8 +1,18 @@
 import { requireApiKey } from '@/lib/auth/api-context';
 import { ok, toApiErrorResponse, badRequest } from '@/lib/api/v1/respond';
+import { listResource } from '@/lib/api/v1/generic-crud';
 import { normalizePhone } from '@/lib/whatsapp/phone-utils';
 import { findContactByPhoneDigits } from '@/lib/contacts/find-by-phone';
 import { resolveImportTagIds, assignImportedContactTags } from '@/lib/contacts/resolve-import-tags';
+
+/**
+ * Listing needs no special handling, but this static route shadows the
+ * dynamic `/api/v1/[resource]` segment — so without an explicit GET here,
+ * `contacts:read` would be grantable while the endpoint answered 405.
+ */
+export async function GET(request: Request) {
+  return listResource(request, 'contacts');
+}
 
 export async function POST(request: Request) {
   try {
