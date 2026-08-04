@@ -58,14 +58,17 @@ export default function BrandsPage() {
         .order('name', { ascending: true });
 
       if (error) {
-        // Fallback: search products manufacturers/brands
+        // Fallback: derive brands from products. The table is
+        // `commerce_products` (there is no `products`) and the column is
+        // `manufacturer_name`, so this fallback previously errored too and
+        // always produced an empty list.
         const { data: prodData } = await supabase
-          .from('products')
-          .select('manufacturer')
+          .from('commerce_products')
+          .select('manufacturer_name')
           .eq('workspace_id', activeWorkspace.id);
 
         const uniqueBrands = Array.from(
-          new Set((prodData || []).map(p => p.manufacturer).filter(Boolean))
+          new Set((prodData || []).map(p => p.manufacturer_name).filter(Boolean))
         ).map((bName, idx) => ({
           id: `brand_${idx}`,
           name: bName,

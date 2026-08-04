@@ -42,7 +42,9 @@ export function ProjectTimeline({ projectId }: ProjectTimelineProps) {
       // Fetch all tasks for this project
       const { data: rawTasks } = await supabase
         .from('tasks')
-        .select('id, title, start_date, due_date, epic_id, status_id, status, priority, created_at')
+        // `status` is not a column on tasks (completion lives in
+        // project_statuses via status_id) and was never read here.
+        .select('id, title, start_date, due_date, epic_id, status_id, priority, created_at')
         .eq('project_id', projectId);
 
       // Fetch epics

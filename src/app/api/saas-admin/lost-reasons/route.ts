@@ -4,12 +4,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 async function isSuperAdmin(userId: string) {
   const supabase = createAdminClient();
+  // See deal-sources/route.ts: the flag is `system_role`, not
+  // `is_super_admin`, and the lookup key is `user_id`, not `id`.
   const { data } = await supabase
     .from("profiles")
-    .select("is_super_admin")
-    .eq("id", userId)
-    .single();
-  return !!data?.is_super_admin;
+    .select("system_role")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data?.system_role === "super_admin";
 }
 
 export async function GET() {

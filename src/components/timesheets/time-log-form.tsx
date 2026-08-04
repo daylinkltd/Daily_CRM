@@ -60,12 +60,23 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
   useEffect(() => {
     if (open && activeWorkspace?.id && activeMember?.id) {
       // Fetch open tasks assigned to the user
+      // `tasks` has no `status` column — completion is
+      // project_statuses.category via status_id. The old .neq('status','DONE')
+      // errored, so `data` was null and the task dropdown was always empty.
+      // Filtered client-side rather than with .not('status_id','in',…) because
+      // a task with no status set has status_id NULL, and NULL NOT IN (…)
+      // yields NULL — which would silently drop unstatused tasks.
       supabase.from('tasks')
-        .select('id, title, project_id, project:projects!tasks_project_id_fkey(name)')
+        .select('id, title, project_id, project:projects!tasks_project_id_fkey(name), status:project_statuses(category)')
         .eq('workspace_id', activeWorkspace.id)
         .eq('assigned_workspace_member_id', activeMember.id)
-        .neq('status', 'DONE')
-        .then(({ data }) => setTasks(data || []));
+        .then(({ data }) =>
+          setTasks(
+            (data || []).filter(
+              (t) => (t.status as { category?: string } | null)?.category !== 'DONE'
+            )
+          )
+        );
 
       setLogDate(new Date().toISOString().split('T')[0]);
       

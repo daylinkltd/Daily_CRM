@@ -58,14 +58,21 @@ export default function CategoriesPage() {
         .order('name', { ascending: true });
 
       if (error) {
-        // Fallback: search products categories
+        // Fallback: derive categories from products. The table is
+        // `commerce_products` (there is no `products`) and the category is a
+        // `category_id` FK rather than a name column, so this fallback
+        // previously errored too and always produced an empty list.
         const { data: prodData } = await supabase
-          .from('products')
-          .select('category_name')
+          .from('commerce_products')
+          .select('category_id, commerce_categories(name)')
           .eq('workspace_id', activeWorkspace.id);
 
         const uniqueCats = Array.from(
-          new Set((prodData || []).map(p => p.category_name).filter(Boolean))
+          new Set(
+            (prodData || [])
+              .map((p) => (p.commerce_categories as { name?: string } | null)?.name)
+              .filter(Boolean)
+          )
         ).map((catName, idx) => ({
           id: `cat_${idx}`,
           name: catName,
