@@ -286,12 +286,18 @@ export function NewChatModal({
                 </div>
               ) : (
                 filteredContacts.map((c) => (
-                  <button
+                  <div
                     key={c.id}
-                    type="button"
-                    disabled={submitting}
-                    onClick={() => handleStartChatWithContact(c.id)}
-                    className="flex w-full items-center justify-between p-2.5 rounded-lg bg-muted/40 hover:bg-muted border border-border/50 transition-colors text-left gap-3 min-w-0 group"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => !submitting && handleStartChatWithContact(c.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        if (!submitting) handleStartChatWithContact(c.id);
+                      }
+                    }}
+                    className="flex w-full items-center justify-between p-2.5 rounded-lg bg-muted/40 hover:bg-muted border border-border/50 transition-colors text-left gap-3 min-w-0 group cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
@@ -314,7 +320,7 @@ export function NewChatModal({
                     >
                       Chat
                     </Button>
-                  </button>
+                  </div>
                 ))
               )}
             </div>

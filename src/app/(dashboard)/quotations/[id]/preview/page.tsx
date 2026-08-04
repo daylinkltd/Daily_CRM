@@ -11,10 +11,6 @@ import {
   MessageSquare,
   CheckCircle,
   XCircle,
-  FileText,
-  Briefcase,
-  Calendar,
-  Sparkles,
   Receipt,
 } from "lucide-react";
 
@@ -23,9 +19,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { formatCurrency } from "@/lib/currency";
 import type { Quotation, QuotationSection, Contact } from "@/types";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IconAction } from "@/components/ui/icon-action";
+import { contactDisplayName } from "@/lib/contact-display";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -58,10 +54,9 @@ export default function QuotationPreviewPage({ params }: PageProps) {
     company_address: string | null;
   } | null>(null);
 
-  // Interactive View Toggles
-  const [showRecommended, setShowRecommended] = useState(true);
-  const [showDescriptions, setShowDescriptions] = useState(true);
-  const [showCategories, setShowCategories] = useState(true);
+  // Dynamic Tax Controls
+  const [taxMode, setTaxMode] = useState<"gst_split" | "igst" | "exempt">("gst_split");
+  const [taxRatePercent, setTaxRatePercent] = useState<number>(18);
 
   // Load quotation data
   const loadQuotation = async () => {
@@ -130,7 +125,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
     }
   }, [workspaceId, quotationUuid]);
 
-  // Pricing calculations
+  // Pricing & Dynamic GST calculations
   const totals = useMemo(() => {
     let oneTime = 0;
     let monthly = 0;
@@ -150,13 +145,50 @@ export default function QuotationPreviewPage({ params }: PageProps) {
       });
     });
 
+    let sgstRate = 0;
+    let cgstRate = 0;
+    let igstRate = 0;
+    let sgstAmount = 0;
+    let cgstAmount = 0;
+    let igstAmount = 0;
+    let totalTaxes = 0;
+
+    if (taxMode === "gst_split") {
+      sgstRate = taxRatePercent / 2;
+      cgstRate = taxRatePercent / 2;
+      sgstAmount = oneTime * (sgstRate / 100);
+      cgstAmount = oneTime * (cgstRate / 100);
+      totalTaxes = sgstAmount + cgstAmount;
+    } else if (taxMode === "igst") {
+      igstRate = taxRatePercent;
+      igstAmount = oneTime * (igstRate / 100);
+      totalTaxes = igstAmount;
+    } else if (taxMode === "exempt") {
+      totalTaxes = 0;
+    }
+
+    const grandTotalInclusive = oneTime + totalTaxes;
+
+    const monthlyTaxAmount = monthly * (taxMode === "exempt" ? 0 : taxRatePercent / 100);
+    const monthlyInclusive = monthly + monthlyTaxAmount;
+
     return {
       oneTime,
       monthly,
       yearly,
+      sgstRate,
+      cgstRate,
+      igstRate,
+      sgstAmount,
+      cgstAmount,
+      igstAmount,
+      totalTaxes,
+      grandTotalInclusive,
+      monthlyInclusive,
+      monthlyTaxAmount,
       recurring: monthly + (yearly / 12),
     };
-  }, [sections]);
+  }, [sections, taxMode, taxRatePercent]);
 
   // Native Browser Print/PDF Export
   const handlePrint = () => {
@@ -172,7 +204,6 @@ export default function QuotationPreviewPage({ params }: PageProps) {
 
     setActionLoading(true);
     try {
-      // 1. Fetch or create a conversation with the contact
       let conversationId = "";
       const { data: convData, error: convErr } = await supabase
         .from("conversations")
@@ -186,7 +217,6 @@ export default function QuotationPreviewPage({ params }: PageProps) {
       if (convData) {
         conversationId = convData.id;
       } else {
-        // Create conversation
         const { data: newConv, error: newConvErr } = await supabase
           .from("conversations")
           .insert({
@@ -201,12 +231,11 @@ export default function QuotationPreviewPage({ params }: PageProps) {
         conversationId = newConv.id;
       }
 
-      // 2. Formulate message text
       const previewUrl = `${window.location.origin}/quotations/${quote.id}/preview`;
-      const companyName = workspace?.company_name || "our company";
-      const msgText = `Hello ${client.name},\n\nHere is your quotation ${quote.quotation_id} for "${quote.document_title}" from ${companyName}:\n\n${previewUrl}\n\nPlease review and let us know if you have any questions!`;
+      const companyName = workspace?.company_name || "Daylink Tech Labs";
+      const cName = contactDisplayName(client?.name, client?.phone, "Client");
+      const msgText = `Hello ${cName},\n\nHere is your commercial proposal ${quote.quotation_id} for "${quote.document_title}" from ${companyName}:\n\n${previewUrl}\n\nPlease review and let us know if you have any questions!`;
 
-      // 3. POST to WhatsApp Send API
       const res = await fetch("/api/whatsapp/send", {
         method: "POST",
         headers: {
@@ -222,7 +251,6 @@ export default function QuotationPreviewPage({ params }: PageProps) {
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "WhatsApp sending failed");
 
-      // 4. Update status to Sent if it was Draft
       if (quote.status === "Draft") {
         await supabase
           .from("quotations")
@@ -239,9 +267,6 @@ export default function QuotationPreviewPage({ params }: PageProps) {
     }
   };
 
-  // Turn the accepted quotation into a draft invoice. Items, client
-  // and deal are copied server-side; billing then continues on the
-  // Invoices page (send → post to accounting → collect payments).
   const handleGenerateInvoice = async () => {
     if (!quote || !workspaceId) return;
     setActionLoading(true);
@@ -249,56 +274,43 @@ export default function QuotationPreviewPage({ params }: PageProps) {
       const res = await fetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspace_id: workspaceId, quotation_id: quote.id }),
+        body: JSON.stringify({
+          workspace_id: workspaceId,
+          quotation_id: quote.id,
+          contact_id: quote.client_id,
+          deal_id: quote.deal_id,
+        }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed to generate invoice");
-      toast.success(`Draft invoice ${json.invoice.invoice_number} created`);
-      router.push("/invoices");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to generate invoice");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create invoice");
+      toast.success("Invoice created successfully");
+      router.push(`/invoices/${data.invoice?.id || ""}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create invoice");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Accept Quotation and Sync with Pipeline Deal
   const handleAcceptQuotation = async () => {
-    if (!quote) return;
-    if (!confirm("Mark this quotation as Accepted and transition the deal pipeline?")) return;
-
+    if (!quote || !workspaceId) return;
     setActionLoading(true);
     try {
-      // 1. Update quotation status
-      const { error: qErr } = await supabase
+      const { error } = await supabase
         .from("quotations")
         .update({ status: "Accepted" })
         .eq("id", quote.id);
 
-      if (qErr) throw qErr;
+      if (error) throw error;
 
-      // 2. Link/create Won Deal
-      if (quote.deal_id) {
-        // Update existing deal to won and set value
-        const { error: dErr } = await supabase
-          .from("deals")
-          .update({
-            status: "won",
-            value: totals.oneTime,
-          })
-          .eq("id", quote.deal_id);
-
-        if (dErr) throw dErr;
-        toast.success("Quotation accepted & pipeline deal updated to Won!");
-      } else {
-        // Find default pipeline and won stage
+      if (!quote.deal_id) {
         const { data: pipelines } = await supabase
           .from("pipelines")
           .select("id")
-          .eq("workspace_id", workspaceId);
+          .eq("workspace_id", workspaceId)
+          .limit(1);
 
         if (pipelines && pipelines.length > 0) {
-          // Find the last stage in this pipeline
           const { data: stages } = await supabase
             .from("pipeline_stages")
             .select("id, name")
@@ -306,10 +318,9 @@ export default function QuotationPreviewPage({ params }: PageProps) {
             .order("position", { ascending: false });
 
           if (stages && stages.length > 0) {
-            const clientName = client?.name || "Client";
+            const clientName = contactDisplayName(client?.name, client?.phone, "Client");
             const dealTitle = `${quote.document_title} - ${clientName}`;
 
-            // Create won deal
             const { data: newDeal, error: dealErr } = await supabase
               .from("deals")
               .insert({
@@ -317,7 +328,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
                 title: dealTitle,
                 contact_id: quote.client_id,
                 pipeline_id: pipelines[0].id,
-                stage_id: stages[0].id, // last stage (Won)
+                stage_id: stages[0].id,
                 value: totals.oneTime,
                 status: "won",
               })
@@ -326,13 +337,12 @@ export default function QuotationPreviewPage({ params }: PageProps) {
 
             if (dealErr) throw dealErr;
 
-            // Link quotation to new deal
             await supabase
               .from("quotations")
               .update({ deal_id: newDeal.id })
               .eq("id", quote.id);
 
-            toast.success("Quotation accepted & new Won Deal created in pipeline!");
+            toast.success("Quotation accepted & new Won Deal created!");
           }
         }
       }
@@ -345,7 +355,6 @@ export default function QuotationPreviewPage({ params }: PageProps) {
     }
   };
 
-  // Reject Quotation Flow
   const handleRejectQuotation = async () => {
     if (!quote) return;
     if (!confirm("Mark this quotation as Rejected?")) return;
@@ -372,7 +381,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] gap-3">
         <Loader2 className="size-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Generating branded preview...</p>
+        <p className="text-sm text-muted-foreground">Generating branded commercial proposal...</p>
       </div>
     );
   }
@@ -386,15 +395,18 @@ export default function QuotationPreviewPage({ params }: PageProps) {
     Expired: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   };
 
+  const clientNameSafe = contactDisplayName(client?.name, client?.phone, "Valued Client");
+  const clientCompanySafe = client?.company || "";
+
   return (
     <div className="space-y-6 p-6 max-w-5xl mx-auto animate-in fade-in-50 duration-200">
-      {/* CSS @media print style tag for high-end corporate proposals */}
+      {/* Print CSS styling */}
       <style jsx global>{`
         @media print {
           body {
             background: white !important;
             color: black !important;
-            font-size: 12pt !important;
+            font-size: 11pt !important;
           }
           .no-print {
             display: none !important;
@@ -409,10 +421,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
           .page-break-before {
             page-break-before: always !important;
           }
-          .line-item-row {
-            page-break-inside: avoid !important;
-          }
-          h1, h2, h3, table {
+          h1, h2, h3, h4, table {
             color: black !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -432,13 +441,13 @@ export default function QuotationPreviewPage({ params }: PageProps) {
           />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              Proposal Preview
+              Commercial Proposal Preview
               <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${statusColors[quote.status]}`}>
                 {quote.status}
               </span>
             </h1>
             <p className="text-xs text-muted-foreground">
-              Branded commercial proposal layout for client presentation.
+              Official Daylink Tech Labs proposal document layout.
             </p>
           </div>
         </div>
@@ -474,277 +483,336 @@ export default function QuotationPreviewPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Control panel for toggles (no-print) */}
+      {/* Control panel for dynamic Tax Toggles (no-print) */}
       <div className="no-print p-4 border border-border bg-muted/30 rounded-lg flex flex-wrap items-center justify-between gap-4 text-xs">
-        <span className="font-semibold text-muted-foreground">Interactive Proposal Controls:</span>
-        <div className="flex flex-wrap items-center gap-6">
-          <label className="flex items-center gap-2 cursor-pointer font-medium text-foreground">
-            <input
-              type="checkbox"
-              checked={showRecommended}
-              onChange={(e) => setShowRecommended(e.target.checked)}
-              className="rounded-none border-border text-primary focus:ring-primary size-4"
-            />
-            Show &quot;Recommended&quot; Badges
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer font-medium text-foreground">
-            <input
-              type="checkbox"
-              checked={showDescriptions}
-              onChange={(e) => setShowDescriptions(e.target.checked)}
-              className="rounded-none border-border text-primary focus:ring-primary size-4"
-            />
-            Show Item Descriptions
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer font-medium text-foreground">
-            <input
-              type="checkbox"
-              checked={showCategories}
-              onChange={(e) => setShowCategories(e.target.checked)}
-              className="rounded-none border-border text-primary focus:ring-primary size-4"
-            />
-            Show Service Categories
-          </label>
+        <span className="font-semibold text-muted-foreground">Dynamic Tax &amp; Billing Selector:</span>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-foreground">Tax Type:</span>
+            <select
+              value={taxMode}
+              onChange={(e) => setTaxMode(e.target.value as any)}
+              className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+            >
+              <option value="gst_split">SGST + CGST (Intra-State / Within State)</option>
+              <option value="igst">IGST (Inter-State / Outside State)</option>
+              <option value="exempt">Exempt / SEZ / Zero-Rated (0% Tax)</option>
+            </select>
+          </div>
+
+          {taxMode !== "exempt" && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-foreground">Tax Rate:</span>
+              <select
+                value={taxRatePercent}
+                onChange={(e) => setTaxRatePercent(Number(e.target.value))}
+                className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              >
+                <option value={18}>18% GST</option>
+                <option value={12}>12% GST</option>
+                <option value={5}>5% GST</option>
+                <option value={28}>28% GST</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* The Printable Proposal Document */}
-      <Card className="print-content border-border bg-card shadow-lg p-8 sm:p-12 text-foreground space-y-8 max-w-4xl mx-auto">
-        {/* Document Header Branding - Centered Style */}
-        <div className="flex flex-col items-center justify-center text-center pb-6 border-b-4 border-primary">
+      {/* Printable Commercial Proposal Document */}
+      <Card className="print-content border-border bg-card shadow-lg p-8 sm:p-12 text-foreground space-y-8 max-w-4xl mx-auto font-sans">
+        {/* Header Letterhead Branding */}
+        <div className="flex flex-col items-center justify-center text-center pb-6 border-b-2 border-[#00aef0]">
           {workspace?.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={workspace.logo_url}
-              alt={workspace.company_name || "Company Logo"}
-              className="h-24 sm:h-32 max-w-[400px] object-contain mb-2"
+              alt={workspace.company_name || "Daylink Tech Labs"}
+              className="h-20 sm:h-24 max-w-[400px] object-contain mb-2"
             />
           ) : (
-              <h1 className="text-lg sm:text-lg font-serif font-semibold text-foreground uppercase tracking-wide mb-1">
-                {workspace?.company_name || "DAYLINK TECH LABS PRIVATE LIMITED"}
+            <div className="text-center mb-2">
+              <h1 className="text-2xl font-bold tracking-wider text-[#00aef0] uppercase">
+                DAYLINK TECH LABS PRIVATE LIMITED
               </h1>
-          )}
-          
-          {workspace?.company_tagline && (
-            <p className="text-lg text-primary font-medium mb-2">
-              {workspace.company_tagline}
-            </p>
-          )}
-
-          <div className="text-sm text-muted-foreground space-y-1">
-            {workspace?.company_address && <p>{workspace.company_address}</p>}
-            <p className="flex items-center justify-center gap-2">
-              {workspace?.company_phone && <span>{workspace.company_phone}</span>}
-              {workspace?.company_phone && workspace?.company_email && <span>|</span>}
-              {workspace?.company_email && <span>{workspace.company_email}</span>}
-            </p>
-          </div>
-        </div>
-
-        {/* Proposal Title & Details */}
-        <div className="flex flex-col sm:flex-row justify-between gap-6 pt-4">
-          <div className="sm:text-left space-y-1">
-            <h2 className="text-lg font-semibold text-foreground tracking-tight uppercase">
-              {quote.document_title}
-            </h2>
-            {quote.document_subtitle && (
-              <p className="text-sm font-semibold text-primary">{quote.document_subtitle}</p>
-            )}
-            <p className="text-xs font-mono text-muted-foreground pt-1">
-              Proposal Identifier: {quote.quotation_id} (v{quote.version})
-            </p>
-          </div>
-        </div>
-
-        {/* Client Billing Info & Dates */}
-        <div className="grid grid-cols-2 gap-6 text-sm">
-          <div className="space-y-1">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-              Prepared For:
-            </h3>
-            {client ? (
-              <div className="text-xs space-y-0.5">
-                <p className="font-bold text-sm text-foreground">{client.name}</p>
-                {client.company && <p className="font-semibold text-foreground">{client.company}</p>}
-                {client.email && <p className="text-muted-foreground">{client.email}</p>}
-                {client.phone && <p className="text-muted-foreground">{client.phone}</p>}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-xs">Client not assigned</p>
-            )}
-          </div>
-
-          <div className="space-y-1 sm:text-right">
-            <h3 className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
-              Document Details:
-            </h3>
-            <div className="text-xs text-muted-foreground space-y-0.5">
-              <p>
-                <Calendar className="inline size-3 mr-1" />
-                Date Created: {new Date(quote.date_created).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+              <p className="text-xs text-muted-foreground tracking-widest font-semibold uppercase mt-0.5">
+                Empowering Your Digital Future
               </p>
-              <p>
-                <FileText className="inline size-3 mr-1 text-red-400" />
-                Valid Until: {new Date(quote.valid_until).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              {quote.deal_id && (
-                <p>
-                  <Briefcase className="inline size-3 mr-1" />
-                  Deal Ref: Linked to pipeline
-                </p>
-              )}
             </div>
+          )}
+
+          <div className="text-xs text-muted-foreground space-y-0.5">
+            <p>{workspace?.company_address || "21/1, KHB, AUTO NAGAR, BELAGAVI - 590016"}</p>
+            <p className="flex items-center justify-center gap-3">
+              <span>{workspace?.company_phone || "9902319132 | 8050594245"}</span>
+              <span>|</span>
+              <span>{workspace?.company_email || "info@daylink.in"}</span>
+            </p>
           </div>
         </div>
 
-        {/* Quotation Line Items Table */}
-        <div className="space-y-6 pt-4">
-          {sections.length === 0 ? (
-            <p className="text-center py-6 text-xs text-muted-foreground">
-              No proposal lines configured.
+        {/* Commercial Proposal Title */}
+        <div className="text-center space-y-1 py-2">
+          <h2 className="text-xl font-extrabold tracking-wide text-foreground uppercase">
+            COMMERCIAL PROPOSAL
+          </h2>
+          <p className="text-xs font-semibold text-[#00aef0]">
+            {quote.document_subtitle || "Licensing, Compliance, Marketplace Onboarding & Digital Services"}
+          </p>
+        </div>
+
+        {/* Proposal Header Metadata Table */}
+        <div className="border border-border/80 rounded-sm overflow-hidden text-xs">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-muted/60 border-b border-border/80 text-[11px] font-bold text-muted-foreground uppercase">
+                <th className="p-2.5 border-r border-border/80 w-1/4">Prepared for</th>
+                <th className="p-2.5 border-r border-border/80 w-1/4">Prepared by</th>
+                <th className="p-2.5 border-r border-border/80 w-1/4">Date</th>
+                <th className="p-2.5 w-1/4">Version</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="divide-x divide-border/80 font-medium">
+                <td className="p-2.5 font-bold text-foreground">
+                  {clientCompanySafe || clientNameSafe}
+                </td>
+                <td className="p-2.5 text-foreground">
+                  {workspace?.company_name || "Daylink Tech Labs Pvt. Ltd."}
+                </td>
+                <td className="p-2.5 text-foreground">
+                  {new Date(quote.date_created).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </td>
+                <td className="p-2.5 text-foreground">
+                  {quote.version}.0 (Revised)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Section 1: Proposal Overview */}
+        <div className="space-y-2">
+          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
+            1. PROPOSAL OVERVIEW
+          </h3>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Daylink Tech Labs proposes to support <strong className="text-foreground">{clientCompanySafe || clientNameSafe}</strong> in formalizing its business structure, licensing compliance, marketplace onboarding, and digital presence. This engagement covers onboarding to Amazon &amp; Blinkit, website development, ongoing marketplace management, and monthly digital marketing services.
+          </p>
+        </div>
+
+        {/* Section 2: Scope of Work Table */}
+        <div className="space-y-3">
+          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
+            2. SCOPE OF WORK
+          </h3>
+
+          <div className="border border-border/80 rounded-sm overflow-hidden text-xs">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#1e293b] text-white border-b border-border/80 text-[11px] font-bold uppercase">
+                  <th className="p-2.5 border-r border-border/60 w-1/3">Service Area</th>
+                  <th className="p-2.5 w-2/3">Scope Included</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {sections.length > 0 ? (
+                  sections.map((sec) => (
+                    <React.Fragment key={sec.id}>
+                      {sec.items.map((item) => (
+                        <tr key={item.id} className="hover:bg-muted/20">
+                          <td className="p-2.5 border-r border-border/60 font-bold text-foreground align-top">
+                            {item.name}
+                          </td>
+                          <td className="p-2.5 text-muted-foreground align-top leading-relaxed">
+                            {item.description || "Scope included as specified in engagement terms."}
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={2} className="p-4 text-center text-muted-foreground italic">
+                      No scope items configured.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Section 3: Statutory Taxes & Financial Breakdown */}
+        <div className="space-y-3">
+          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
+            3. FINANCIAL PROPOSAL &amp; STATUTORY TAXES ({taxMode === "exempt" ? "0% EXEMPT" : `${taxRatePercent}% GST`})
+          </h3>
+
+          <div className="border border-border/80 rounded-sm overflow-hidden text-xs">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-muted/60 border-b border-border/80 text-[11px] font-bold text-muted-foreground uppercase">
+                  <th className="p-2 border-r border-border/80 w-16 text-center">Sr No.</th>
+                  <th className="p-2 border-r border-border/80">Description</th>
+                  <th className="p-2 border-r border-border/80 w-28 text-center">Tax Rate</th>
+                  <th className="p-2 w-36 text-right">Amount (INR)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/80 font-mono">
+                {taxMode === "gst_split" && (
+                  <>
+                    <tr>
+                      <td className="p-2 border-r border-border/80 text-center text-muted-foreground">1</td>
+                      <td className="p-2 border-r border-border/80 text-foreground font-sans font-medium">SGST (State Tax)</td>
+                      <td className="p-2 border-r border-border/80 text-center text-foreground">{totals.sgstRate}%</td>
+                      <td className="p-2 text-right text-foreground">
+                        {formatCurrency(totals.sgstAmount, defaultCurrency, { decimals: 0 })}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 border-r border-border/80 text-center text-muted-foreground">2</td>
+                      <td className="p-2 border-r border-border/80 text-foreground font-sans font-medium">CGST (Central Tax)</td>
+                      <td className="p-2 border-r border-border/80 text-center text-foreground">{totals.cgstRate}%</td>
+                      <td className="p-2 text-right text-foreground">
+                        {formatCurrency(totals.cgstAmount, defaultCurrency, { decimals: 0 })}
+                      </td>
+                    </tr>
+                  </>
+                )}
+
+                {taxMode === "igst" && (
+                  <tr>
+                    <td className="p-2 border-r border-border/80 text-center text-muted-foreground">1</td>
+                    <td className="p-2 border-r border-border/80 text-foreground font-sans font-medium">IGST (Integrated Tax)</td>
+                    <td className="p-2 border-r border-border/80 text-center text-foreground">{totals.igstRate}%</td>
+                    <td className="p-2 text-right text-foreground">
+                      {formatCurrency(totals.igstAmount, defaultCurrency, { decimals: 0 })}
+                    </td>
+                  </tr>
+                )}
+
+                {taxMode === "exempt" && (
+                  <tr>
+                    <td className="p-2 border-r border-border/80 text-center text-muted-foreground">1</td>
+                    <td className="p-2 border-r border-border/80 text-foreground font-sans font-medium">Exempt / SEZ / Export Tax</td>
+                    <td className="p-2 border-r border-border/80 text-center text-foreground">0%</td>
+                    <td className="p-2 text-right text-foreground">₹0</td>
+                  </tr>
+                )}
+
+                <tr className="bg-muted/30 font-bold font-sans">
+                  <td colSpan={3} className="p-2 border-r border-border/80 text-foreground">
+                    Total Taxable Value (One-Time Setup)
+                  </td>
+                  <td className="p-2 text-right font-mono text-foreground">
+                    {formatCurrency(totals.oneTime, defaultCurrency, { decimals: 0 })}
+                  </td>
+                </tr>
+                <tr className="bg-muted/60 font-extrabold font-sans text-sm">
+                  <td colSpan={3} className="p-2.5 border-r border-border/80 text-foreground">
+                    Grand Total (Inclusive of Taxes)
+                  </td>
+                  <td className="p-2.5 text-right font-mono text-[#00aef0]">
+                    {formatCurrency(totals.grandTotalInclusive, defaultCurrency, { decimals: 0 })}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {totals.monthly > 0 && (
+            <p className="text-[11px] text-muted-foreground italic pt-1 leading-relaxed">
+              * Note: Monthly recurring charges of <strong>{formatCurrency(totals.monthly, defaultCurrency, { decimals: 0 })}</strong> {taxMode === "exempt" ? "are exempt from tax." : `will attract GST at ${taxRatePercent}% extra (${formatCurrency(totals.monthlyTaxAmount, defaultCurrency, { decimals: 0 })}), i.e. `}<strong>{formatCurrency(totals.monthlyInclusive, defaultCurrency, { decimals: 0 })} per month</strong>, billed in advance at the start of each billing cycle.
             </p>
-          ) : (
-            sections.map((section) => (
-              <div key={section.id} className="space-y-2 line-item-row">
-                <div className="flex items-center gap-2 border-b border-border/40 pb-1 mt-6">
-                  <h4 className="font-bold text-xs uppercase tracking-wider text-primary">
-                    {section.title}
-                  </h4>
-                  {showCategories && section.items[0]?.source === "catalog" && (
-                    <span className="text-[9px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded-none">
-                      Catalog Solution
-                    </span>
-                  )}
-                </div>
-
-                <div className="divide-y divide-border/40">
-                  {section.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`py-3.5 flex justify-between gap-4 text-xs items-start line-item-row ${
-                        item.is_recommended && showRecommended ? "bg-primary/5 border-l-2 border-l-primary pl-3 pr-2" : ""
-                      }`}
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm text-foreground">{item.name}</span>
-                          {item.is_recommended && showRecommended && (
-                            <span className="inline-flex items-center rounded-none bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                              Recommended
-                            </span>
-                          )}
-                          {item.is_free && (
-                            <span className="inline-flex items-center rounded-none bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 uppercase">
-                              Free
-                            </span>
-                          )}
-                        </div>
-
-                        {showDescriptions && item.description && (
-                          <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
-                            {item.description}
-                          </p>
-                        )}
-
-                        {item.is_free && item.free_condition_note && (
-                          <p className="text-[10px] text-emerald-400 italic">
-                            * Note: {item.free_condition_note}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <p className="font-mono text-muted-foreground">
-                          {item.qty} x {formatCurrency(item.price, defaultCurrency, { decimals: 2 })}
-                        </p>
-                        <p className="font-mono text-[10px] text-primary uppercase pt-0.5">
-                          {item.pricing_type.replace("_", " ")}
-                        </p>
-                        <p className="font-bold font-mono text-foreground pt-0.5">
-                          {item.is_free ? (
-                            <span className="text-emerald-400 font-semibold uppercase">Free</span>
-                          ) : (
-                            formatCurrency(item.price * item.qty, defaultCurrency, { decimals: 2 })
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
           )}
         </div>
 
-        {/* Subtotals & Totals Summaries */}
-        <div className="border-t border-border/80 pt-6 flex justify-end">
-          <div className="w-80 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">One-time Services subtotal:</span>
-              <span className="font-bold font-mono text-foreground">
-                {formatCurrency(totals.oneTime, defaultCurrency, { decimals: 2 })}
+        {/* Section 4: Project Scope & Delivery Approach */}
+        <div className="space-y-3">
+          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
+            4. PROJECT SCOPE &amp; DELIVERY APPROACH
+          </h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Our execution approach follows a practical phase-wise delivery model to ensure a smooth launch across ecommerce marketplaces and quick commerce platforms:
+          </p>
+          <ul className="space-y-2 text-xs text-muted-foreground pl-1">
+            <li className="flex items-start gap-2">
+              <span className="font-bold text-foreground shrink-0">• Phase 1: Business &amp; Platform Readiness</span>
+              <span>Collection of business details, GST/KYC documents, brand info, approvals, and platform onboarding requirements.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold text-foreground shrink-0">• Phase 2: Marketplace Setup &amp; Cataloging</span>
+              <span>Seller account setup, category mapping, product listings, SKU structure, pricing, variants, and inventory configuration.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold text-foreground shrink-0">• Phase 3: Content &amp; Website Setup</span>
+              <span>Product content preparation, SEO-friendly listing content, static website design and development, and integration of WhatsApp contact options.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="font-bold text-foreground shrink-0">• Phase 4: Launch &amp; Maintenance Support</span>
+              <span>Go-live support, listing corrections, maintenance assistance, regular marketplace updates, and monthly digital marketing content publishing.</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Section 5: Terms & Conditions */}
+        <div className="space-y-3">
+          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
+            5. TERMS &amp; CONDITIONS
+          </h3>
+          <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+            <p>
+              <strong className="text-foreground">• Scope of Services:</strong> The quotation covers onboarding to Amazon &amp; Blinkit, listing setup, website development (up to 5 pages), ongoing marketplace management, and monthly digital marketing services as specifically mentioned above.
+            </p>
+            <p>
+              <strong className="text-foreground">• Client Dependencies:</strong> Timely completion depends on the client providing required documents, product details, images, approvals, GST/KYC information, and access credentials on time.
+            </p>
+            <p>
+              <strong className="text-foreground">• Payment Terms:</strong> 50% advance to initiate the project and 50% before final handover of the initial setup. Monthly maintenance and digital marketing charges are payable in advance at the start of each billing cycle.
+            </p>
+            <p>
+              <strong className="text-foreground">• Digital Marketing Deliverables:</strong> Monthly deliverables include 20–24 creatives (16–20 static posts and 4 reels) with captions, hashtags, and scheduling as per an approved content calendar.
+            </p>
+            <p>
+              <strong className="text-foreground">• Validity &amp; Jurisdiction:</strong> This quotation is valid for 15 days from the date of issue. Any disputes shall be subject to the jurisdiction of courts in Belagavi, Karnataka.
+            </p>
+          </div>
+        </div>
+
+        {/* Section 6: Acceptance & Dual Signature Block */}
+        <div className="space-y-4 pt-4 border-t border-border/60">
+          <p className="text-xs text-muted-foreground font-semibold">
+            Acceptance: By signing below or issuing a Purchase Order, the client accepts this proposal and the commercial terms mentioned above.
+          </p>
+
+          <div className="grid grid-cols-2 gap-8 text-xs pt-2">
+            <div className="border border-border/80 rounded-sm p-4 h-32 flex flex-col justify-between">
+              <span className="font-bold text-foreground">
+                For {clientCompanySafe || clientNameSafe}
+              </span>
+              <span className="text-muted-foreground text-[11px]">
+                (Signature &amp; Stamp)
               </span>
             </div>
 
-            {totals.monthly > 0 && (
-              <div className="flex justify-between text-xs text-primary font-medium">
-                <span>Monthly subscriptions subtotal:</span>
-                <span className="font-mono">{formatCurrency(totals.monthly, defaultCurrency, { decimals: 2 })}/mo</span>
-              </div>
-            )}
-
-            {totals.yearly > 0 && (
-              <div className="flex justify-between text-xs text-primary font-medium">
-                <span>Yearly subscriptions subtotal:</span>
-                <span className="font-mono">{formatCurrency(totals.yearly, defaultCurrency, { decimals: 2 })}/yr</span>
-              </div>
-            )}
-
-            <div className="border-t-2 border-border pt-3 flex justify-between font-extrabold text-base">
-              <span className="text-foreground uppercase tracking-wider text-xs self-center">
-                Total Proposal Value
+            <div className="border border-border/80 rounded-sm p-4 h-32 flex flex-col justify-between">
+              <span className="font-bold text-foreground">
+                For {workspace?.company_name || "Daylink Tech Labs Pvt Ltd"}
               </span>
-              <span className="text-primary font-mono text-lg">
-                {formatCurrency(totals.oneTime + totals.recurring, defaultCurrency, { decimals: 2 })}
+              <span className="text-muted-foreground text-[11px]">
+                (Signature &amp; Stamp)
               </span>
             </div>
           </div>
         </div>
 
-        {/* Notes & Milestones Grid */}
-        <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-border/60 text-xs">
-          {quote.payment_terms && (
-            <div className="space-y-1">
-              <h4 className="font-bold text-xs uppercase text-primary">Payment Schedule</h4>
-              <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
-                {quote.payment_terms}
-              </p>
-            </div>
-          )}
-
-          {quote.notes_terms && (
-            <div className="space-y-1">
-              <h4 className="font-bold text-xs uppercase text-primary">Terms & Notes</h4>
-              <p className="text-muted-foreground font-mono leading-relaxed whitespace-pre-line bg-muted/10 p-3 rounded-none border border-border/40">
-                {quote.notes_terms}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer info branding */}
-        <div className="border-t border-border/60 pt-6 text-center text-[10px] text-muted-foreground">
-          This quotation is confidential and proprietary to{" "}
-          {workspace?.company_name || "our company"}. Unless stated otherwise,
-          amounts are calculated in US Dollars ($). Thank you for your business!
+        {/* Document Footer */}
+        <div className="border-t border-border/60 pt-4 text-center text-[10px] text-muted-foreground">
+          {workspace?.company_name || "Daylink Tech Labs Pvt. Ltd."} | Commercial Proposal — {clientCompanySafe || clientNameSafe} | Confidential
         </div>
       </Card>
     </div>

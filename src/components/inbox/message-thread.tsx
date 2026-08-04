@@ -54,6 +54,7 @@ import {
 import { deleteAccountMedia } from "@/lib/storage/upload-media";
 import { TemplatePicker } from "./template-picker";
 import { buildReplyPreview } from "./reply-quote";
+import { AiSummaryModal } from "./ai-summary-modal";
 import {
   contactDisplayName as formatContactName,
   contactInitial,
@@ -959,6 +960,9 @@ export function MessageThread({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* AI Conversation Summary Button */}
+          <AiSummaryModal conversationId={conversation.id} />
+
           {/* Chatbot pause/resume toggle — only rendered when the
               workspace's chatbot feature is enabled in Settings. */}
           {chatbotEnabled && (
