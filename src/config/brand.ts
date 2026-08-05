@@ -46,9 +46,14 @@ export const BRAND = {
     support: 'support@dailybuz.com',
   },
 
-  /** Only list profiles that actually exist — sameAs feeds entity graphs. */
+  /**
+   * Only list profiles that VERIFIABLY exist — sameAs feeds entity graphs,
+   * and a wrong link actively corrupts them. The parent company's own site
+   * is the one identity we can vouch for today; add LinkedIn/X here only
+   * after confirming the exact URL, not from memory.
+   */
   social: {
-    linkedin: 'https://www.linkedin.com/company/daylink-tech-labs',
+    parentCompany: 'https://daylink.in',
   },
 
   address: {
