@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { IconAction } from "@/components/ui/icon-action";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default function MediaPage() {
   const { activeWorkspace } = useWorkspace();
@@ -210,10 +211,16 @@ export default function MediaPage() {
       ) : (
         <div className="flex-1 bg-card/50 border border-border rounded-xl p-6 overflow-y-auto">
           {folders.length === 0 && files.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-4">
-              <Folder className="w-16 h-16 text-foreground" />
-              <p>This folder is empty</p>
-            </div>
+            <EmptyState
+              icon={Folder}
+              title="This folder is empty"
+              description="Upload images, documents, or create sub-folders to organize media."
+              action={{
+                label: "Upload File",
+                onClick: () => fileInputRef.current?.click(),
+                icon: Upload,
+              }}
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {/* Folders */}

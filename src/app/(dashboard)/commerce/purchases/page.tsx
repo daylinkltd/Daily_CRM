@@ -223,9 +223,9 @@ export default function PurchasesPage() {
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">PO #</th>
-                <th className="py-3.5 px-4">Date</th>
+                <th className="py-3.5 px-4 hidden sm:table-cell">Date</th>
                 <th className="py-3.5 px-4">Supplier</th>
-                <th className="py-3.5 px-4 text-center">Items Count</th>
+                <th className="py-3.5 px-4 text-center hidden md:table-cell">Items Count</th>
                 <th className="py-3.5 px-4 text-right">Total Cost</th>
                 <th className="py-3.5 px-4 text-center">Status</th>
               </tr>
@@ -255,13 +255,13 @@ export default function PurchasesPage() {
                     <td className="py-3.5 px-4 font-mono font-bold text-foreground">
                       #{po.po_number}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground hidden sm:table-cell">
                       {new Date(po.created_at).toLocaleDateString()}
                     </td>
                     <td className="py-3.5 px-4 text-xs font-semibold text-foreground">
                       {po.supplier?.company_name || "Direct Vendor"}
                     </td>
-                    <td className="py-3.5 px-4 text-center text-xs font-bold text-[#00aef0]">
+                    <td className="py-3.5 px-4 text-center text-xs font-bold text-[#00aef0] hidden md:table-cell">
                       {po.items?.length || 0} Items
                     </td>
                     <td className="py-3.5 px-4 text-right font-extrabold text-foreground">

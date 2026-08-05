@@ -241,10 +241,10 @@ export default function InventoryPage() {
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Product Name</th>
-                <th className="py-3.5 px-4">SKU / Barcode</th>
-                <th className="py-3.5 px-4 text-center">Unit</th>
+                <th className="py-3.5 px-4 hidden sm:table-cell">SKU / Barcode</th>
+                <th className="py-3.5 px-4 text-center hidden md:table-cell">Unit</th>
                 <th className="py-3.5 px-4 text-right">Current Stock</th>
-                <th className="py-3.5 px-4 text-right">Reorder Threshold</th>
+                <th className="py-3.5 px-4 text-right hidden sm:table-cell">Reorder Threshold</th>
                 <th className="py-3.5 px-4 text-center">Stock Status</th>
               </tr>
             </thead>
@@ -270,7 +270,7 @@ export default function InventoryPage() {
                       <td className="py-3.5 px-4 font-semibold text-foreground">
                         {item.name}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground">
+                      <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground hidden sm:table-cell">
                         <div>{item.sku}</div>
                         {item.barcode && (
                           <div className="text-[11px] text-[#00aef0] flex items-center gap-1 mt-0.5">
@@ -278,13 +278,13 @@ export default function InventoryPage() {
                           </div>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-center uppercase text-xs text-muted-foreground font-mono">
+                      <td className="py-3.5 px-4 text-center uppercase text-xs text-muted-foreground font-mono hidden md:table-cell">
                         {item.unit}
                       </td>
                       <td className="py-3.5 px-4 text-right font-extrabold text-base text-foreground">
                         {currentQty} <span className="text-xs font-normal text-muted-foreground">{item.unit}</span>
                       </td>
-                      <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
+                      <td className="py-3.5 px-4 text-right text-xs text-muted-foreground hidden sm:table-cell">
                         {item.reorder_level || 10} {item.unit}
                       </td>
                       <td className="py-3.5 px-4 text-center">

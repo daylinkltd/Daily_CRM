@@ -108,11 +108,11 @@ export default function SalesPage() {
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Order / Invoice #</th>
-                <th className="py-3.5 px-4">Date & Time</th>
+                <th className="py-3.5 px-4 hidden sm:table-cell">Date &amp; Time</th>
                 <th className="py-3.5 px-4">Customer</th>
-                <th className="py-3.5 px-4">Channel</th>
-                <th className="py-3.5 px-4">Payment Method</th>
-                <th className="py-3.5 px-4 text-right">Tax Total</th>
+                <th className="py-3.5 px-4 hidden lg:table-cell">Channel</th>
+                <th className="py-3.5 px-4 hidden md:table-cell">Payment Method</th>
+                <th className="py-3.5 px-4 text-right hidden lg:table-cell">Tax Total</th>
                 <th className="py-3.5 px-4 text-right">Grand Total</th>
                 <th className="py-3.5 px-4 text-center">Status</th>
                 <th className="py-3.5 px-4 text-center">Actions</th>
@@ -153,7 +153,7 @@ export default function SalesPage() {
                           #{order.order_number}
                         </button>
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                      <td className="py-3.5 px-4 text-xs text-muted-foreground hidden sm:table-cell">
                         {new Date(order.created_at).toLocaleString("en-IN", {
                           dateStyle: "medium",
                           timeStyle: "short",
@@ -167,12 +167,12 @@ export default function SalesPage() {
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 uppercase text-xs font-bold text-[#00aef0]">
+                      <td className="py-3.5 px-4 uppercase text-xs font-bold text-[#00aef0] hidden lg:table-cell">
                         <span className="bg-[#00aef0]/10 px-2 py-0.5 rounded-lg border border-[#00aef0]/20">
                           {order.channel || "POS"}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-foreground font-semibold">
+                      <td className="py-3.5 px-4 text-xs text-foreground font-semibold hidden md:table-cell">
                         <span className="flex items-center gap-1.5">
                           {order.payment_method === "CASH" && <Banknote className="h-3.5 w-3.5 text-emerald-400" />}
                           {order.payment_method === "UPI" && <Smartphone className="h-3.5 w-3.5 text-purple-400" />}
@@ -181,7 +181,7 @@ export default function SalesPage() {
                           {order.payment_method}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
+                      <td className="py-3.5 px-4 text-right text-xs text-muted-foreground hidden lg:table-cell">
                         ₹{Number(order.tax_total || 0).toFixed(2)}
                       </td>
                       <td className="py-3.5 px-4 text-right font-extrabold text-foreground">

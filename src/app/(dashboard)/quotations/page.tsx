@@ -29,6 +29,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { IconAction } from "@/components/ui/icon-action";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 export default function QuotationsPage() {
   const router = useRouter();
@@ -381,8 +382,23 @@ export default function QuotationsPage() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="size-8 animate-spin text-muted-foreground" />
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground uppercase">
+                    <th className="p-4">Quotation ID</th>
+                    <th className="p-4">Client</th>
+                    <th className="p-4 hidden md:table-cell">Proposal Title</th>
+                    <th className="p-4 hidden sm:table-cell">Valid Until</th>
+                    <th className="p-4">Totals</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <TableSkeleton columns={7} rows={5} />
+                </tbody>
+              </table>
             </div>
           ) : filteredQuotes.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground text-sm border-0">
@@ -395,8 +411,8 @@ export default function QuotationsPage() {
                   <tr className="border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground uppercase">
                     <th className="p-4">Quotation ID</th>
                     <th className="p-4">Client</th>
-                    <th className="p-4">Proposal Title</th>
-                    <th className="p-4">Valid Until</th>
+                    <th className="p-4 hidden md:table-cell">Proposal Title</th>
+                    <th className="p-4 hidden sm:table-cell">Valid Until</th>
                     <th className="p-4">Totals</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 text-right">Actions</th>
@@ -423,13 +439,13 @@ export default function QuotationsPage() {
                           <span className="text-muted-foreground text-xs">Unassigned</span>
                         )}
                       </td>
-                      <td className="p-4 text-muted-foreground font-medium max-w-xs truncate">
+                      <td className="p-4 text-muted-foreground font-medium max-w-xs truncate hidden md:table-cell">
                         {q.document_title}
                         {q.document_subtitle && (
                           <span className="block text-xs font-normal">{q.document_subtitle}</span>
                         )}
                       </td>
-                      <td className="p-4 text-muted-foreground font-medium">
+                      <td className="p-4 text-muted-foreground font-medium hidden sm:table-cell">
                         {new Date(q.valid_until).toLocaleDateString()}
                       </td>
                       <td className="p-4 font-medium text-foreground">

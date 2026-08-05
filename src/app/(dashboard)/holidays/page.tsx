@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { BulkEntryDialog } from '@/components/ui/bulk-entry-dialog';
 import { Badge } from '@/components/ui/badge';
@@ -144,18 +145,20 @@ export default function HolidaysPage() {
           <Loader2 className="size-8 animate-spin text-primary" />
         </div>
       ) : holidays.length === 0 ? (
-        <Card className="border-border bg-card shadow-sm">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Calendar className="size-12 text-muted-foreground opacity-20 mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">No Holidays Added</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mb-6">
-              Add company holidays and national days to automatically exclude them from attendance & leave calculations.
-            </p>
-            {canManage && (
-              <IconAction label="Add First Holiday" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} />
-            )}
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Calendar}
+          title="No holidays added yet"
+          description="Add company holidays and national observances to automatically adjust attendance & leave calculations."
+          action={
+            canManage
+              ? {
+                  label: "Add First Holiday",
+                  onClick: () => setModalOpen(true),
+                  icon: Plus,
+                }
+              : undefined
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {holidays.map(h => (
