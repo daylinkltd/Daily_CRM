@@ -128,10 +128,30 @@ export const OWNER_PERMISSIONS: WorkspacePermissions = {
   leave_approve: true,
 };
 
+/** The bits of `employee_profiles` the shell needs to gate on. */
+export interface EmployeeProfileSummary {
+  workspace_member_id: string;
+  employee_code: string | null;
+  status: string | null;
+  designation_id: string | null;
+  department_id: string | null;
+}
+
 interface WorkspaceContextValue {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
   activeMember: { id: string } | null;
+  /**
+   * The member's HR record, or null when they are a member but not staff.
+   * Null is the normal case for a solo owner or an external collaborator.
+   */
+  employeeProfile: EmployeeProfileSummary | null;
+  /**
+   * True when an employee_profiles row exists for this member. Gates the
+   * employee-only self-service pages (payslips, leave, attendance,
+   * requests, documents, handbook), which are meaningless without one.
+   */
+  isEmployee: boolean;
   activeRole: "owner" | "admin" | "member" | "viewer" | null;
   permissions: WorkspacePermissions;
   /**
@@ -157,6 +177,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
   const [activeMember, setActiveMember] = useState<{ id: string } | null>(null);
+  const [employeeProfile, setEmployeeProfile] =
+    useState<EmployeeProfileSummary | null>(null);
   const [activeRole, setActiveRole] = useState<"owner" | "admin" | "member" | "viewer" | null>(null);
   const [permissions, setPermissions] = useState<WorkspacePermissions>(DEFAULT_MEMBER_PERMISSIONS);
   // Raw `workspace_roles.permissions` JSONB for the active member's custom
@@ -175,6 +197,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setWorkspaces([]);
       setActiveWorkspace(null);
       setActiveMember(null);
+      setEmployeeProfile(null);
       setActiveRole(null);
       setPermissions(DEFAULT_MEMBER_PERMISSIONS);
       setRolePermissions(null);
@@ -251,10 +274,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           chosenRole,
           roleIdMap[chosenWorkspace.id] ?? null,
         );
+
+        await loadEmployeeProfile(
+          supabase,
+          chosenWorkspace.id,
+          memberMap[chosenWorkspace.id]?.id ?? null,
+        );
       } else {
         setWorkspaces([]);
         setActiveWorkspace(null);
         setActiveMember(null);
+        setEmployeeProfile(null);
         setActiveRole(null);
         setPermissions(DEFAULT_MEMBER_PERMISSIONS);
         setRolePermissions(null);
@@ -265,6 +295,38 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, [user?.id, authLoading]);
+
+  /**
+   * Does this member have an HR employee record?
+   *
+   * Drives the employee-only half of the My Workspace module. A workspace
+   * owner who runs the business alone, an external collaborator, or an
+   * agency user is a member without being staff — showing them "My
+   * Payslips" and a staff handbook is noise at best, and at worst implies
+   * an employment relationship that doesn't exist.
+   *
+   * `employee_profiles` is the live table and it has NO `id` column — it
+   * is keyed by `workspace_member_id`. (`hr_employees` is dormant and
+   * empty; do not use it.)
+   */
+  const loadEmployeeProfile = async (
+    supabase: ReturnType<typeof createClient>,
+    workspaceId: string,
+    memberId: string | null,
+  ) => {
+    if (!memberId) {
+      setEmployeeProfile(null);
+      return;
+    }
+    const { data } = await supabase
+      .from("employee_profiles")
+      .select("workspace_member_id, employee_code, status, designation_id, department_id")
+      .eq("workspace_id", workspaceId)
+      .eq("workspace_member_id", memberId)
+      .maybeSingle();
+
+    setEmployeeProfile((data as EmployeeProfileSummary | null) ?? null);
+  };
 
   const loadPermissions = async (
     supabase: ReturnType<typeof createClient>,
@@ -397,6 +459,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         workspaces,
         activeWorkspace,
         activeMember,
+        employeeProfile,
+        isEmployee: employeeProfile !== null,
         activeRole,
         permissions,
         moduleAccess,

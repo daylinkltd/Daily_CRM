@@ -35,6 +35,7 @@ import { PrintableHandbookModal } from "@/components/handbook/printable-handbook
 import { PolicyEditorModal } from "@/components/policies/policy-editor-modal";
 import { IntegrationShareButtons } from "@/components/integrations/integration-share-buttons";
 import { IconAction } from "@/components/ui/icon-action";
+import { EmployeeGuard } from "@/components/layout/employee-guard";
 
 interface SectionStatus {
   order: number;
@@ -94,7 +95,7 @@ const STATUS_CLASSES: Record<string, string> = {
   ARCHIVED: "bg-muted/10 text-muted-foreground border-border/20",
 };
 
-export default function HandbookPage() {
+function HandbookContent() {
   const router = useRouter();
   const supabase = createClient();
   const { activeWorkspace, activeRole, activeMember, can } = useWorkspace();
@@ -576,5 +577,17 @@ export default function HandbookPage() {
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * Employee-only. A member without an `employee_profiles` row sees an
+ * explanation instead of an empty page — see EmployeeGuard.
+ */
+export default function HandbookPage() {
+  return (
+    <EmployeeGuard feature="The handbook">
+      <HandbookContent />
+    </EmployeeGuard>
   );
 }

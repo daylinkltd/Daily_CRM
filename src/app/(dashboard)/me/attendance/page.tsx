@@ -1,12 +1,13 @@
 "use client";
 
 import { MyRecordsList } from "@/components/self-service/my-records-list";
+import { EmployeeGuard } from "@/components/layout/employee-guard";
 
 const time = (v: unknown) =>
   v ? new Date(String(v)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
 
 /** The employee's own attendance history. */
-export default function MyAttendancePage() {
+function MyAttendanceContent() {
   return (
     <MyRecordsList
       title="My Attendance"
@@ -30,5 +31,17 @@ export default function MyAttendancePage() {
         </div>
       )}
     />
+  );
+}
+
+/**
+ * Employee-only. A member without an `employee_profiles` row sees an
+ * explanation instead of an empty page — see EmployeeGuard.
+ */
+export default function MyAttendancePage() {
+  return (
+    <EmployeeGuard feature="Attendance">
+      <MyAttendanceContent />
+    </EmployeeGuard>
   );
 }

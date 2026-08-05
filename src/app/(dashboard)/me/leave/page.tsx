@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { LeaveRequestForm } from "@/components/leave/leave-request-form";
 import { IconAction } from "@/components/ui/icon-action";
+import { EmployeeGuard } from "@/components/layout/employee-guard";
 
 interface LeaveRow {
   id: string;
@@ -35,7 +36,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 /** The employee's own leave: request it, and see where each request stands. */
-export default function MyLeavePage() {
+function MyLeaveContent() {
   const supabase = createClient();
   const { activeWorkspace, activeMember } = useWorkspace();
   const [rows, setRows] = useState<LeaveRow[]>([]);
@@ -161,5 +162,17 @@ export default function MyLeavePage() {
 
       <LeaveRequestForm open={formOpen} onOpenChange={setFormOpen} onSaved={fetchMine} />
     </div>
+  );
+}
+
+/**
+ * Employee-only. A member without an `employee_profiles` row sees an
+ * explanation instead of an empty page — see EmployeeGuard.
+ */
+export default function MyLeavePage() {
+  return (
+    <EmployeeGuard feature="Leave">
+      <MyLeaveContent />
+    </EmployeeGuard>
   );
 }

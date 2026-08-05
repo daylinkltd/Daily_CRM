@@ -2,12 +2,13 @@
 
 import { MyRecordsList } from "@/components/self-service/my-records-list";
 import { Badge } from "@/components/ui/badge";
+import { EmployeeGuard } from "@/components/layout/employee-guard";
 
 /**
  * The employee's own HR requests. Keyed on hr_employee_id, which migration
  * 079 repointed at workspace_members — not the dormant hr_employees table.
  */
-export default function MyRequestsPage() {
+function MyRequestsContent() {
   return (
     <MyRecordsList
       title="My Requests"
@@ -34,5 +35,17 @@ export default function MyRequestsPage() {
         </div>
       )}
     />
+  );
+}
+
+/**
+ * Employee-only. A member without an `employee_profiles` row sees an
+ * explanation instead of an empty page — see EmployeeGuard.
+ */
+export default function MyRequestsPage() {
+  return (
+    <EmployeeGuard feature="Requests">
+      <MyRequestsContent />
+    </EmployeeGuard>
   );
 }

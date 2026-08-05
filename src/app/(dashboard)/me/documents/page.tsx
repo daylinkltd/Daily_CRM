@@ -1,9 +1,10 @@
 "use client";
 
 import { MyRecordsList } from "@/components/self-service/my-records-list";
+import { EmployeeGuard } from "@/components/layout/employee-guard";
 
 /** The employee's own documents on file. */
-export default function MyDocumentsPage() {
+function MyDocumentsContent() {
   return (
     <MyRecordsList
       title="My Documents"
@@ -25,5 +26,17 @@ export default function MyDocumentsPage() {
         </div>
       )}
     />
+  );
+}
+
+/**
+ * Employee-only. A member without an `employee_profiles` row sees an
+ * explanation instead of an empty page — see EmployeeGuard.
+ */
+export default function MyDocumentsPage() {
+  return (
+    <EmployeeGuard feature="Documents">
+      <MyDocumentsContent />
+    </EmployeeGuard>
   );
 }

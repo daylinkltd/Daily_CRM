@@ -15,6 +15,9 @@ import {
   MessageSquare,
   Users,
   UserCircle,
+  Inbox,
+  ListChecks,
+  NotebookPen,
   GitBranch,
   Radio,
   Zap,
@@ -82,6 +85,15 @@ type NavItem = {
   icon: React.ElementType;
   permission?: keyof WorkspacePermissions;
   badge?: boolean;
+  /**
+   * Hide unless the member has an `employee_profiles` row.
+   *
+   * Not a permission — an entitlement of a different kind. A solo owner or
+   * an external collaborator is a member without being staff, and payslips,
+   * leave balances and a staff handbook are meaningless (and misleading)
+   * for them. The pages guard themselves too; this only tidies the nav.
+   */
+  employeeOnly?: boolean;
 };
 
 type NavGroup = {
@@ -110,19 +122,46 @@ const NAV_GROUP_MODULE: Record<string, ModuleKey | null> = {
   System: null,
 };
 
+/**
+ * Two independent gates: a permission the member's role must grant, and —
+ * for the employee self-service pages — an `employee_profiles` row. Both
+ * must pass.
+ *
+ * Deliberately a plain function rather than a useCallback: as a hook its
+ * `can` dependency comes from context, which the React Compiler cannot
+ * prove stable, so it reported the surrounding memoization as unpreservable.
+ */
+function isItemVisible(
+  item: NavItem,
+  can: (key: keyof WorkspacePermissions) => boolean,
+  isEmployee: boolean,
+): boolean {
+  return (
+    (!item.permission || can(item.permission)) &&
+    (!item.employeeOnly || isEmployee)
+  );
+}
+
 const navGroups: NavGroup[] = [
   {
     label: "My Workspace",
     icon: UserCircle,
     items: [
       { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-      { href: "/me/attendance", label: "My Attendance", icon: CalendarClock },
-      { href: "/me/leave", label: "My Leave", icon: Umbrella },
+      // Everything assigned to me, from every module.
+      { href: "/me/work", label: "My Work", icon: Inbox },
+      { href: "/me/todos", label: "My To-dos", icon: ListChecks },
+      { href: "/me/notes", label: "My Notes", icon: NotebookPen },
+      // Employee self-service — hidden without an employee_profiles row.
+      { href: "/me/attendance", label: "My Attendance", icon: CalendarClock, employeeOnly: true },
+      { href: "/me/leave", label: "My Leave", icon: Umbrella, employeeOnly: true },
+      // Timesheets stay ungated: time is logged against project tasks, which
+      // a contractor or agency member does without being on the payroll.
       { href: "/me/timesheets", label: "My Timesheets", icon: Clock },
-      { href: "/me/payslips", label: "My Payslips", icon: Banknote },
-      { href: "/me/requests", label: "My Requests", icon: FileCheck },
-      { href: "/me/documents", label: "My Documents", icon: FileText },
-      { href: "/handbook", label: "Handbook", icon: BookOpen },
+      { href: "/me/payslips", label: "My Payslips", icon: Banknote, employeeOnly: true },
+      { href: "/me/requests", label: "My Requests", icon: FileCheck, employeeOnly: true },
+      { href: "/me/documents", label: "My Documents", icon: FileText, employeeOnly: true },
+      { href: "/handbook", label: "Handbook", icon: BookOpen, employeeOnly: true },
       { href: "/settings?tab=profile", label: "My Profile", icon: Settings },
     ]
   },
@@ -247,7 +286,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { profile, signOut } = useAuth();
-  const { can, moduleAccess, activeWorkspace } = useWorkspace();
+  const { can, moduleAccess, activeWorkspace, isEmployee } = useWorkspace();
   const totalUnread = useTotalUnread();
   const { mode } = useTheme();
   const isDark = mode === "dark";
@@ -329,7 +368,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     // Auto-navigate to first item of switched module for clean user flow
     const group = accessibleGroups.find(g => g.label === moduleLabel);
     if (group && group.items.length > 0) {
-      const firstItem = group.items.find(item => !item.permission || can(item.permission));
+      const firstItem = group.items.find((item) => isItemVisible(item, can, isEmployee));
       if (firstItem) {
         router.push(firstItem.href);
       }
@@ -340,8 +379,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const visibleItems = useMemo(() => {
     const group = accessibleGroups.find(g => g.label === activeModule);
     if (!group) return [];
-    return group.items.filter(item => !item.permission || can(item.permission));
-  }, [accessibleGroups, activeModule, can]);
+    return group.items.filter((item) => isItemVisible(item, can, isEmployee));
+  }, [accessibleGroups, activeModule, can, isEmployee]);
 
   // Find active group icon
   const ActiveGroupIcon = useMemo(() => {
