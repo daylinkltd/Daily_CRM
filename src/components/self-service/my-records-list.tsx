@@ -26,6 +26,8 @@ export function MyRecordsList({
   columns,
   orderBy,
   memberColumn = "workspace_member_id",
+  equals,
+  isNull,
   renderRow,
   emptyMessage,
   actions,
@@ -36,12 +38,18 @@ export function MyRecordsList({
   columns: string;
   orderBy: string;
   memberColumn?: string;
+  /** Extra equality filters, e.g. { linked_entity_type: "Employee" }. */
+  equals?: Record<string, string>;
+  /** Columns that must be NULL, e.g. ["deleted_at"] for soft deletes. */
+  isNull?: string[];
   renderRow: (row: Row) => ReactNode;
   emptyMessage: string;
   actions?: ReactNode;
 }) {
   const supabase = createClient();
   const { activeWorkspace, activeMember } = useWorkspace();
+  const equalsKey = JSON.stringify(equals ?? {});
+  const isNullKey = (isNull ?? []).join(",");
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState<string | null>(null);
@@ -51,12 +59,24 @@ export function MyRecordsList({
     setLoading(true);
     setFailed(null);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from(table)
         .select(columns)
         .eq("workspace_id", activeWorkspace.id)
-        .eq(memberColumn, activeMember.id)
-        .order(orderBy, { ascending: false });
+        .eq(memberColumn, activeMember.id);
+
+      for (const [column, value] of Object.entries(
+        JSON.parse(equalsKey) as Record<string, string>,
+      )) {
+        query = query.eq(column, value);
+      }
+      // Soft-deleted rows must disappear here the moment HR removes them —
+      // there is one table, so "deleted there" has to mean "gone here".
+      for (const column of isNullKey ? isNullKey.split(",") : []) {
+        query = query.is(column, null);
+      }
+
+      const { data, error } = await query.order(orderBy, { ascending: false });
       if (error) throw error;
       // `columns` is a runtime string, so PostgREST's generic types cannot
       // infer the row shape — via unknown rather than a direct assertion.
@@ -71,7 +91,19 @@ export function MyRecordsList({
     } finally {
       setLoading(false);
     }
-  }, [supabase, activeWorkspace?.id, activeMember?.id, table, columns, orderBy, memberColumn]);
+  }, [
+    supabase,
+    activeWorkspace?.id,
+    activeMember?.id,
+    table,
+    columns,
+    orderBy,
+    memberColumn,
+    // Serialised: callers pass object/array literals, whose identity changes
+    // every render — depending on them directly would refetch forever.
+    equalsKey,
+    isNullKey,
+  ]);
 
   useEffect(() => {
     fetchMine();

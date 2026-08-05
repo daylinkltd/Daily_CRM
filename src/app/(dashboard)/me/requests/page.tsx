@@ -1,40 +1,101 @@
 "use client";
 
-import { MyRecordsList } from "@/components/self-service/my-records-list";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { CalendarClock, Umbrella, Send, CheckCircle2 } from "lucide-react";
+
 import { EmployeeGuard } from "@/components/layout/employee-guard";
+import { PageHeader } from "@/components/ui/page-header";
+import { LeaveRequestForm } from "@/components/leave/leave-request-form";
+import { AttendanceRequestModal } from "@/components/attendance/request-modal";
 
 /**
- * The employee's own HR requests. Keyed on hr_employee_id, which migration
- * 079 repointed at workspace_members — not the dormant hr_employees table.
+ * Submit-only. Deliberately shows no list, no status and no history.
+ *
+ * Once a request is sent it belongs to HR: they see it, action it and
+ * communicate the outcome. A status column here would create a second
+ * place to check and invite "why is it still pending?" before HR has even
+ * opened it.
+ *
+ * Leave lives here too — there is no separate My Leave page any more. The
+ * employee submits and everything after that happens in the HR module.
+ * The two forms write to different tables (`leave_requests` and
+ * `hr_attendance_requests`), so this page routes to the right one rather
+ * than pretending they are one thing.
  */
 function MyRequestsContent() {
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const [sent, setSent] = useState<string | null>(null);
+
   return (
-    <MyRecordsList
-      title="My Requests"
-      description="Certificates, letters and changes you have asked HR for."
-      table="hr_employee_requests"
-      columns="id, request_type, status, notes, created_at"
-      orderBy="created_at"
-      memberColumn="hr_employee_id"
-      emptyMessage="Requests you raise with HR will appear here."
-      renderRow={(r) => (
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground">
-              {String(r.request_type).replace(/_/g, " ")}
-            </p>
-            <p className="truncate text-xs text-muted-foreground">
-              {new Date(String(r.created_at)).toLocaleDateString()}
-              {r.notes ? ` · ${String(r.notes)}` : ""}
+    <div className="space-y-6">
+      <PageHeader
+        title="Raise a Request"
+        description="Send a request to HR. They'll pick it up and get back to you."
+      />
+
+      {sent && (
+        <div className="flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
+          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <div>
+            <p className="text-sm font-medium text-foreground">{sent} sent to HR</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              HR will review it and get back to you directly.
             </p>
           </div>
-          <Badge variant="secondary" className="shrink-0 text-[10px]">
-            {String(r.status)}
-          </Badge>
         </div>
       )}
-    />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => setLeaveOpen(true)}
+          className="rounded-lg border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
+        >
+          <Umbrella className="size-5 text-primary" />
+          <h3 className="mt-3 text-sm font-semibold text-foreground">Leave request</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Planned time off — holiday, sick leave, personal days.
+          </p>
+          <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary">
+            <Send className="size-3" /> Submit
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAttendanceOpen(true)}
+          className="rounded-lg border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
+        >
+          <CalendarClock className="size-5 text-primary" />
+          <h3 className="mt-3 text-sm font-semibold text-foreground">
+            Attendance request
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Missed punch, correction, early exit, work from home or overtime.
+          </p>
+          <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary">
+            <Send className="size-3" /> Submit
+          </span>
+        </button>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        Submitted requests are handled by HR. You won&apos;t see a status here —
+        speak to HR if you need an update.
+      </p>
+
+      <LeaveRequestForm
+        open={leaveOpen}
+        onOpenChange={setLeaveOpen}
+        onSaved={() => setSent("Leave request")}
+      />
+      <AttendanceRequestModal
+        open={attendanceOpen}
+        onOpenChange={setAttendanceOpen}
+        onSubmitted={() => setSent("Attendance request")}
+      />
+    </div>
   );
 }
 

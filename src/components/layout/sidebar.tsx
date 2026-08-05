@@ -152,14 +152,13 @@ const navGroups: NavGroup[] = [
       { href: "/me/work", label: "My Work", icon: Inbox },
       { href: "/me/todos", label: "My To-dos", icon: ListChecks },
       { href: "/me/notes", label: "My Notes", icon: NotebookPen },
-      // Employee self-service — hidden without an employee_profiles row.
-      { href: "/me/attendance", label: "My Attendance", icon: CalendarClock, employeeOnly: true },
-      { href: "/me/leave", label: "My Leave", icon: Umbrella, employeeOnly: true },
       // Timesheets stay ungated: time is logged against project tasks, which
       // a contractor or agency member does without being on the payroll.
       { href: "/me/timesheets", label: "My Timesheets", icon: Clock },
-      { href: "/me/payslips", label: "My Payslips", icon: Banknote, employeeOnly: true },
-      { href: "/me/requests", label: "My Requests", icon: FileCheck, employeeOnly: true },
+      // Submit-only. There is deliberately no My Attendance / My Leave /
+      // My Payslips: an employee punches in and out and raises requests,
+      // and everything after that is HR's to see and act on.
+      { href: "/me/requests", label: "Raise a Request", icon: FileCheck, employeeOnly: true },
       { href: "/me/documents", label: "My Documents", icon: FileText, employeeOnly: true },
       { href: "/handbook", label: "Handbook", icon: BookOpen, employeeOnly: true },
       { href: "/settings?tab=profile", label: "My Profile", icon: Settings },
