@@ -1,11 +1,20 @@
 "use client";
 
-import { useEffect, useState, startTransition } from "react";
-import { BRAND } from "@/config/brand";
+import { useEffect, useState } from "react";
 import Script from "next/script";
-import { PLANS, Plan, chargeablePaise, seatRate, monthlyTotal, type BillingPeriod } from "@/config/plans";
+import {
+  PLANS,
+  BUSINESS_PLAN,
+  Plan,
+  chargeablePaise,
+  seatRate,
+  monthlyTotal,
+  annualSavingPercent,
+  type BillingPeriod,
+} from "@/config/plans";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { Check, AlertTriangle, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
+import { clampSeats, seatFloor as computeSeatFloor, MAX_SEATS } from "@/lib/billing/seats";
+import { Check, AlertTriangle, ArrowRight, ShieldCheck, Loader2, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 
 interface WorkspaceUsage {
@@ -22,7 +31,7 @@ interface WorkspaceUsage {
 }
 
 export function BillingPanel() {
-  const { activeWorkspace, refreshWorkspaces, activeRole } = useWorkspace();
+  const { activeWorkspace, activeRole } = useWorkspace();
   const [usage, setUsage] = useState<WorkspaceUsage | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
@@ -39,6 +48,10 @@ export function BillingPanel() {
       if (res.ok) {
         const data = await res.json();
         setUsage(data);
+        // Seats default to the people already in the workspace. Buying
+        // fewer than that is not a thing anyone means to do, and starting
+        // at 1 made the panel quote a price nobody could actually use.
+        setSeatCount(Math.max(1, Number(data.memberCount) || 1));
       }
     } catch (err) {
       console.error("Failed to fetch billing usage:", err);
@@ -50,6 +63,17 @@ export function BillingPanel() {
   useEffect(() => {
     fetchUsage();
   }, [activeWorkspace?.id]);
+
+  // Seats can never go below the people already in the workspace: the
+  // subscription has to cover everyone who can log in, and letting someone
+  // buy 3 seats for a team of 8 just produces a support ticket later.
+  const memberFloor = Math.max(1, usage?.memberCount ?? 1);
+  const seatFloor = computeSeatFloor(BUSINESS_PLAN, memberFloor);
+  const seats = clampSeats(BUSINESS_PLAN, memberFloor, seatCount);
+
+  const setSeats = (next: number) => {
+    setSeatCount(clampSeats(BUSINESS_PLAN, memberFloor, next));
+  };
 
   const handleUpgrade = async (plan: Plan) => {
     if (!activeWorkspace?.id) return;
@@ -72,7 +96,7 @@ export function BillingPanel() {
     // Seats the workspace is buying. The server recomputes the amount from
     // the same helper and rejects any mismatch, so this is a display and
     // request value, never the authority.
-    const seats = Math.max(seatCount, plan.minSeats);
+    const buyingSeats = Math.max(seats, plan.minSeats);
 
     // Razorpay only opens its modal on daylink.in (the only domain
     // registered against the account), so checkout is hosted there. This
@@ -88,7 +112,7 @@ export function BillingPanel() {
         body: JSON.stringify({
           workspace_id: activeWorkspace.id,
           plan_id: plan.id,
-          seats,
+          seats: buyingSeats,
           period,
         }),
       });
@@ -128,6 +152,11 @@ export function BillingPanel() {
   const totalMembers = usage?.memberCount || 1;
   const maxMembers = usage?.maxUsers || 2;
   const membersPercent = Math.min(Math.round((totalMembers / maxMembers) * 100), 100);
+
+  // What the buyer will actually be charged, from the same helper the
+  // server verifies against — so the number on screen and the number in
+  // the Razorpay order can never drift apart.
+  const billedNowPaise = chargeablePaise(BUSINESS_PLAN, seats, billingCycle) ?? 0;
 
   const totalWorkspaces = usage?.workspaceCount || 1;
   const maxWorkspaces = usage?.maxWorkspaces || 1;
@@ -285,7 +314,97 @@ export function BillingPanel() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Seat picker.
+
+            The panel had a seatCount state with no way to change it, so
+            every quote and every order was for exactly one seat regardless
+            of team size — the single most expensive kind of silent bug on
+            a billing page. */}
+        <div className="mb-6 rounded-xl border border-border bg-background/40 p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <span className="block text-xs font-semibold text-muted-foreground">
+                How many seats?
+              </span>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                One seat per person who can log in. You have {memberFloor}{" "}
+                {memberFloor === 1 ? "member" : "members"}, so seats cannot go
+                below that.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSeats(seats - 1)}
+                disabled={seats <= seatFloor}
+                aria-label="Remove a seat"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <input
+                type="number"
+                min={seatFloor}
+                max={MAX_SEATS}
+                value={seats}
+                onChange={(e) => setSeats(Number(e.target.value))}
+                aria-label="Number of seats"
+                className="h-9 w-20 rounded-lg border border-border bg-card text-center text-sm font-bold text-foreground focus:border-primary focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setSeats(seats + 1)}
+                disabled={seats >= MAX_SEATS}
+                aria-label="Add a seat"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          <input
+            type="range"
+            min={seatFloor}
+            max={Math.max(seatFloor + 1, 50)}
+            value={Math.min(seats, Math.max(seatFloor + 1, 50))}
+            onChange={(e) => setSeats(Number(e.target.value))}
+            aria-label="Seat slider"
+            className="mt-4 w-full accent-primary"
+          />
+
+          <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-border/60 pt-4">
+            <div>
+              <span className="block text-[10px] uppercase tracking-wide text-muted-foreground">
+                {billingCycle === "annual" ? "Billed today (12 months)" : "Billed monthly"}
+              </span>
+              <span className="text-2xl font-black text-foreground">
+                ₹{(billedNowPaise / 100).toLocaleString("en-IN")}
+              </span>
+              <span className="ml-1 text-[10px] text-muted-foreground">excl. GST</span>
+            </div>
+            <div className="text-right">
+              <span className="block text-[11px] text-muted-foreground">
+                ₹{seatRate(BUSINESS_PLAN, billingCycle).toLocaleString()} × {seats}{" "}
+                {seats === 1 ? "seat" : "seats"}
+                {billingCycle === "annual" ? " × 12 months" : " per month"}
+              </span>
+              {billingCycle === "monthly" ? (
+                <span className="block text-[11px] font-semibold text-emerald-500">
+                  Save {annualSavingPercent(BUSINESS_PLAN)}% by paying annually
+                </span>
+              ) : (
+                <span className="block text-[11px] text-muted-foreground">
+                  Works out to ₹
+                  {monthlyTotal(BUSINESS_PLAN, seats, "annual").toLocaleString()}/month
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {PLANS.filter((p) => p.id !== "free").map((plan) => {
             const isCurrent = usage?.planId === plan.id;
             const isCustom = plan.id === "custom";
@@ -318,7 +437,7 @@ export function BillingPanel() {
                   {!isCustom && (
                     <span className="text-[9px] text-muted-foreground block">
                       {plan.pricePerSeatMonthly > 0
-                        ? `₹${monthlyTotal(plan, seatCount, isAnnual ? "annual" : "monthly").toLocaleString()}/mo for ${seatCount} seat${seatCount === 1 ? "" : "s"}`
+                        ? `₹${monthlyTotal(plan, seats, isAnnual ? "annual" : "monthly").toLocaleString()}/mo for ${seats} seat${seats === 1 ? "" : "s"}`
                         : "Free while you trial"}
                       {" (excl. GST)"}
                     </span>

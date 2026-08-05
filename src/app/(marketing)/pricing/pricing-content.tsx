@@ -34,13 +34,8 @@ export function PricingContent({
 
   const business = PLANS.find((p) => p.id === "business")!;
   const trial = PLANS.find((p) => p.id === "free")!;
-  const solo = PLANS.find((p) => p.id === "solo")!;
   const enterprise = PLANS.find((p) => p.id === "custom")!;
 
-  // The calculator prices a team, so it quotes Business. A single person is
-  // better served by Solo, and quoting them ₹799 when ₹299 would do is the
-  // kind of thing that loses the sale on the pricing page itself.
-  const soloIsBetter = seats === 1;
 
   return (
     <>
@@ -112,19 +107,13 @@ export function PricingContent({
             />
             <p className="mt-3 text-center">
               <span className="text-3xl font-extrabold text-[var(--mkt-fg)]">
-                ₹
-                {monthlyTotal(soloIsBetter ? solo : business, seats, period).toLocaleString()}
+                ₹{monthlyTotal(business, seats, period).toLocaleString()}
               </span>
               <span className="text-xs text-[var(--mkt-fg-muted)]">
                 {" "}
                 /month, all modules, excl. GST
               </span>
             </p>
-            {soloIsBetter && (
-              <p className="mt-1 text-center text-[11px] text-[var(--mkt-fg-subtle)]">
-                On the Solo plan — one user, everything included.
-              </p>
-            )}
           </div>
         </div>
       </section>
@@ -133,8 +122,8 @@ export function PricingContent({
 
       {/* Plans */}
       <section className="mkt-section">
-        <div className="mkt-container grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {[trial, solo, business, enterprise].map((plan, i) => {
+        <div className="mkt-container grid gap-5 lg:grid-cols-3">
+          {[trial, business, enterprise].map((plan, i) => {
             const isTrial = plan.id === "free";
             const isEnterprise = plan.id === "custom";
             const rate = seatRate(plan, period);

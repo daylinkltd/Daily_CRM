@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { PLANS, chargeablePaise, type BillingPeriod } from '@/config/plans';
 import { encodeHandoff } from '@/lib/payments/handoff';
+import { validateSeats } from '@/lib/billing/seats';
 import { createHubOrder } from '@/lib/payments/hub-client';
 import { BRAND } from '@/config/brand';
 
@@ -63,25 +64,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unknown plan' }, { status: 400 });
     }
 
-    const seatCount = Number(seats);
-    if (!Number.isInteger(seatCount) || seatCount < 1 || seatCount > 10_000) {
-      return NextResponse.json(
-        { error: 'seats must be a whole number between 1 and 10,000' },
-        { status: 400 },
-      );
-    }
+    // Seats are what the price is multiplied by, so they are validated
+    // against the workspace's real headcount rather than trusted. The UI
+    // clamps the stepper, but a clamp in a React component is a
+    // suggestion — this is the rule.
+    const { count: memberCount } = await supabase
+      .from('workspace_members')
+      .select('user_id', { count: 'exact', head: true })
+      .eq('workspace_id', workspace_id);
 
-    // A plan with a user ceiling must not be sold more seats than it can
-    // hold — Solo caps at one, and billing five would take money for
-    // logins the plan will then refuse to create.
-    if (plan.maxUsers !== null && seatCount > plan.maxUsers) {
-      return NextResponse.json(
-        {
-          error: `The ${plan.name} plan is limited to ${plan.maxUsers} user${plan.maxUsers === 1 ? '' : 's'}. Choose Business for a larger team.`,
-        },
-        { status: 400 },
-      );
+    const seatCheck = validateSeats(plan, memberCount ?? 1, seats);
+    if (!seatCheck.ok) {
+      return NextResponse.json({ error: seatCheck.error }, { status: 400 });
     }
+    const seatCount = Number(seats);
 
     const billingPeriod: BillingPeriod = period === 'annual' ? 'annual' : 'monthly';
     const amount = chargeablePaise(plan, seatCount, billingPeriod);

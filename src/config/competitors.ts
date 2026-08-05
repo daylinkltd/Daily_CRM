@@ -22,7 +22,7 @@
 // a stale price on a comparison page is the fastest way to lose trust.
 // ============================================================
 
-import { BUSINESS_PLAN, SOLO_PLAN } from './plans';
+import { BUSINESS_PLAN } from './plans';
 
 export interface Competitor {
   slug: string;
@@ -155,7 +155,7 @@ export const COMPETITORS: Competitor[] = [
     whereTheyWin:
       'Cheapest way to raise a GST invoice and track who owes you money. Excellent on mobile and genuinely easy for a one-person business.',
     whereWeDiffer:
-      `They are billing tools, not systems of record — no team inbox, no pipelines, no payroll, no double-entry books. Dailybuz Solo is ₹${SOLO_PLAN.pricePerSeatMonthly}/month for a single user with all of that included, so you are not choosing between price and a system that survives your next five hires.`,
+      'They are billing tools, not systems of record — no team inbox, no pipelines, no payroll, no double-entry books. Businesses usually outgrow them at around five to ten people, which is where Dailybuz starts.',
     coverage: {
       crm: 'none',
       hr: 'none',
@@ -172,7 +172,7 @@ export const OURS = {
   name: 'Dailybuz',
   // Derived, never typed twice — a comparison page with a stale own-price
   // is worse than one with a stale competitor price.
-  priceNote: `₹${SOLO_PLAN.pricePerSeatMonthly}/month solo, ₹${BUSINESS_PLAN.pricePerSeatMonthly}/user/month for teams`,
+  priceNote: `₹${BUSINESS_PLAN.pricePerSeatMonthly}/user/month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually`,
   coverage: {
     crm: 'full',
     hr: 'full',

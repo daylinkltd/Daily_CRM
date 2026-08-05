@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Minus, X, CircleDollarSign, Hammer } from "lucide-react";
 
 import { BRAND, absoluteUrl, pageTitle } from "@/config/brand";
-import { BUSINESS_PLAN, SOLO_PLAN } from "@/config/plans";
+import { BUSINESS_PLAN } from "@/config/plans";
 import {
   COMPETITORS,
   COVERAGE_ROWS,
@@ -54,7 +54,7 @@ const FAQ = [
   },
   {
     question: "Is Dailybuz cheaper than the alternatives?",
-    answer: `At ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included, Dailybuz is cheaper per user than Zoho One and Odoo Standard. For a single user, Solo is ₹${SOLO_PLAN.pricePerSeatMonthly} per month with the same modules, which undercuts most billing-only apps while doing considerably more.`,
+    answer: `At ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included, Dailybuz is cheaper per user than Zoho One and Odoo Standard. It is more than a billing-only app such as Vyapar, which is the honest comparison — that is one price for CRM, HR, payroll, books and POS against one price for invoices.`,
   },
 ];
 

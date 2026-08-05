@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { PLANS, SOLO_PLAN, BUSINESS_PLAN, chargeablePaise, seatRate } from './plans';
+import { PLANS, BUSINESS_PLAN, chargeablePaise, seatRate } from './plans';
 import { MODULES, allCapabilities } from './modules-content';
 import { ROADMAP } from './competitors';
 
@@ -16,9 +16,14 @@ import { ROADMAP } from './competitors';
  */
 
 describe('plan pricing', () => {
-  it('never makes a larger tier cheaper than a smaller one', () => {
-    expect(SOLO_PLAN.pricePerSeatMonthly).toBeLessThan(BUSINESS_PLAN.pricePerSeatMonthly);
-    expect(SOLO_PLAN.pricePerSeatAnnual).toBeLessThan(BUSINESS_PLAN.pricePerSeatAnnual);
+  it('keeps exactly one purchasable price', () => {
+    // A cheap single-user tier was tried and pulled: with an identical
+    // feature set it repriced the product rather than winning a new
+    // customer. If a second buyable plan is ever added, the JSON-LD in
+    // structured-data.ts must become an AggregateOffer at the same time —
+    // this test is the reminder.
+    const buyable = PLANS.filter((p) => p.ctaType === 'subscribe');
+    expect(buyable.map((p) => p.id)).toEqual(['business']);
   });
 
   it('always makes annual cheaper per month than monthly', () => {
@@ -26,12 +31,6 @@ describe('plan pricing', () => {
       if (plan.pricePerSeatMonthly <= 0) continue;
       expect(plan.pricePerSeatAnnual).toBeLessThan(plan.pricePerSeatMonthly);
     }
-  });
-
-  it('caps Solo at a single user', () => {
-    // The whole justification for the lower price. If this ever becomes
-    // null, Solo silently turns into an unlimited plan at ₹299.
-    expect(SOLO_PLAN.maxUsers).toBe(1);
   });
 
   it('charges twelve months up front on annual', () => {
