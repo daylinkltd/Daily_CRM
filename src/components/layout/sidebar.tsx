@@ -403,7 +403,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                   than ours. Falls back to ours only when none is set. */}
               <Link href="/dashboard" className="shrink-0 flex items-center justify-center">
                 {activeWorkspace?.logo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- a
+                   
                   // user-uploaded URL on an arbitrary host; next/image would
                   // need every one of them in remotePatterns.
                   <img

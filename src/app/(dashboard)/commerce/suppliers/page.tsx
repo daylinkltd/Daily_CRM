@@ -5,7 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Plus, RefreshCw, Search, Phone, Mail, X, Layers, Edit3, Trash2 } from "lucide-react";
+import { Building2, Plus, RefreshCw, Search, Phone, Mail, X, Layers, Edit3, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { IconAction } from "@/components/ui/icon-action";
 import { BulkEntryDialog } from "@/components/ui/bulk-entry-dialog";

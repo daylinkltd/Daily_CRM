@@ -109,7 +109,7 @@ export default function AttendancePage() {
         query = query.eq('workspace_member_id', activeMember.id);
       }
 
-      // eslint-disable-next-line prefer-const -- `data` is reassigned in the fallback path below
+       
       const { data: rawData, error } = await query;
       if (error) throw error;
 

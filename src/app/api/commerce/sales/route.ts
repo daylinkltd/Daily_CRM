@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     const customerIds = (salesOrders || []).map((o) => o.customer_id).filter(Boolean);
 
     // Fetch customer contacts if any
-    let contactsMap: Record<string, any> = {};
+    const contactsMap: Record<string, any> = {};
     if (customerIds.length > 0) {
       const { data: contacts } = await supabase
         .from("contacts")
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
     }
 
     // Fetch items for sales orders
-    let itemsByOrder: Record<string, any[]> = {};
+    const itemsByOrder: Record<string, any[]> = {};
     if (orderIds.length > 0) {
       const { data: itemsData } = await supabase
         .from("commerce_sales_items")
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
         .in("sales_order_id", orderIds);
 
       const productIds = Array.from(new Set((itemsData || []).map((i) => i.product_id).filter(Boolean)));
-      let productsMap: Record<string, any> = {};
+      const productsMap: Record<string, any> = {};
 
       if (productIds.length > 0) {
         const { data: productsData } = await supabase

@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     const contactIds = (contacts || []).map((c) => c.id);
 
     // 2. Fetch Khata ledgers for these contacts
-    let khataMap: Record<string, any> = {};
+    const khataMap: Record<string, any> = {};
     if (contactIds.length > 0) {
       const { data: khataRecords } = await supabase
         .from("commerce_customer_khata")

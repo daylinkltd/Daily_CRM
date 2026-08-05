@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     const supplierIds = (purchaseOrders || []).map((p) => p.supplier_id).filter(Boolean);
 
     // Fetch Suppliers Map
-    let supplierMap: Record<string, any> = {};
+    const supplierMap: Record<string, any> = {};
     if (supplierIds.length > 0) {
       const { data: suppliers } = await supabase
         .from("commerce_suppliers")
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     // Fetch PO Items Map
-    let itemsMap: Record<string, any[]> = {};
+    const itemsMap: Record<string, any[]> = {};
     if (poIds.length > 0) {
       const { data: items } = await supabase
         .from("commerce_purchase_items")
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
         .in("po_id", poIds);
 
       const productIds = Array.from(new Set((items || []).map((i) => i.product_id).filter(Boolean)));
-      let productMap: Record<string, any> = {};
+      const productMap: Record<string, any> = {};
 
       if (productIds.length > 0) {
         const { data: products } = await supabase

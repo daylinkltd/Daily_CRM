@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     }
 
     const orderIds = (returnsData || []).map((r) => r.sales_order_id).filter(Boolean);
-    let ordersMap: Record<string, any> = {};
+    const ordersMap: Record<string, any> = {};
 
     if (orderIds.length > 0) {
       const { data: orders } = await supabase
