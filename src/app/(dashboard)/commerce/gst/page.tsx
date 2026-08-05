@@ -10,7 +10,8 @@ import {
   Search, 
   Download, 
   QrCode, 
-  ShieldCheck
+  ShieldCheck,
+  AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
@@ -112,7 +113,7 @@ export default function GstReportsPage() {
             GST Filing & E-Invoicing Engine
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            GSTR-1 Sales Report, GSTR-2B Input Tax Credit (ITC), CGST/SGST/IGST splitting, and B2B IRN generation.
+            GSTR-1 Sales Report, GSTR-2B Input Tax Credit (ITC) and CGST/SGST/IGST splitting. E-invoice IRNs are shown when registered with the IRP; Dailybuz does not register them for you yet.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -262,6 +263,11 @@ export default function GstReportsPage() {
                       ₹{Number(e.total_invoice_amount).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 text-center">
+                      {/* "IRN Active" used to show for locally invented
+                          IRNs. The badge now only appears for an
+                          acknowledgement that actually came from the IRP,
+                          and B2B rows without one say so plainly rather
+                          than looking like consumer sales. */}
                       {e.irn_number ? (
                         <button
                           onClick={() => setSelectedEInvoice(e)}
@@ -270,6 +276,14 @@ export default function GstReportsPage() {
                           <ShieldCheck className="h-3 w-3" />
                           IRN Active
                         </button>
+                      ) : e.is_b2b ? (
+                        <span
+                          title="This B2B invoice has not been registered with the Invoice Registration Portal. Register it on the GST portal if e-invoicing applies to your turnover."
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                        >
+                          <AlertTriangle className="h-3 w-3" />
+                          Not e-invoiced
+                        </span>
                       ) : (
                         <span className="text-muted-foreground text-xs">B2C Retail</span>
                       )}

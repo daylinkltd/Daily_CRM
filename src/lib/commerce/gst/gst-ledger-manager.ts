@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { calculateGst } from "./gst-calculator";
-import { generateEInvoiceIRN } from "./e-invoice";
+import { NO_IRN, isEInvoicingConfigured } from "./e-invoice";
 
 export interface GstLedgerEntryPayload {
   workspace_id: string;
@@ -17,7 +17,6 @@ export interface GstLedgerEntryPayload {
   gst_rate: number;
   is_tax_inclusive?: boolean;
   is_b2b?: boolean;
-  seller_gstin?: string;
 }
 
 export async function recordGstLedgerEntry(
@@ -32,15 +31,36 @@ export async function recordGstLedgerEntry(
     invoice_date = new Date().toISOString().split("T")[0],
     party_name,
     gstin,
-    source_state_code = "27",
-    destination_state_code = "27",
+    source_state_code: source_state_code_input,
+    destination_state_code: destination_state_code_input,
     hsn_sac_code = "7113",
     base_amount,
     gst_rate,
     is_tax_inclusive = false,
     is_b2b = false,
-    seller_gstin = "27AAAAA0000A1Z5",
   } = payload;
+
+  // Where the seller is, and where the supply lands. These two decide
+  // CGST+SGST versus IGST, which is the whole shape of the entry.
+  //
+  // They used to default to '27' each, so every sale was booked as
+  // intra-state Maharashtra whatever the workspace actually was. Now the
+  // seller's state comes from the workspace and the buyer's from their
+  // GSTIN (its first two characters ARE the state code), and when the
+  // seller's state is genuinely unknown the entry is booked intra-state
+  // AND flagged in the log rather than quietly guessing a state.
+  const sellerState = source_state_code_input ?? (await workspaceStateCode(supabase, workspace_id));
+  const buyerState =
+    destination_state_code_input ?? (gstin ? gstin.slice(0, 2) : null) ?? sellerState;
+
+  if (!sellerState) {
+    console.warn(
+      `[gst] ${invoice_number}: workspace has no GST state code, so CGST/SGST vs IGST cannot be determined. Recorded as intra-state. Set it in Settings → Branding.`,
+    );
+  }
+
+  const source_state_code = sellerState ?? "";
+  const destination_state_code = buyerState ?? source_state_code;
 
   const gstCalc = calculateGst({
     baseAmount: base_amount,
@@ -50,25 +70,20 @@ export async function recordGstLedgerEntry(
     destinationStateCode: destination_state_code,
   });
 
-  let irnNumber = null;
-  let ackNumber = null;
-  let ackDate = null;
-  let qrCodePayload = null;
+  // E-invoice columns stay empty until a real IRP acknowledgement exists.
+  //
+  // This block used to fabricate an IRN locally for every B2B outward
+  // sale. An IRN is issued by the government's Invoice Registration
+  // Portal and cannot be computed by anyone else, so what it produced was
+  // a fake acknowledgement stored and displayed as a real one. Empty is
+  // incomplete; fake is a false compliance claim made on the customer's
+  // behalf. See e-invoice.ts for the integration this is waiting on.
+  const irnColumns = NO_IRN;
 
-  // Auto-generate E-Invoice if B2B Outward Sale
-  if (is_b2b && ledger_type === "OUTPUT" && gstin) {
-    const eInv = generateEInvoiceIRN({
-      sellerGstin: seller_gstin,
-      buyerGstin: gstin,
-      docNumber: invoice_number,
-      docDate: invoice_date,
-      totalValue: gstCalc.totalAmount,
-      mainHsnCode: hsn_sac_code,
-    });
-    irnNumber = eInv.irn;
-    ackNumber = eInv.ackNo;
-    ackDate = eInv.ackDate;
-    qrCodePayload = eInv.qrCodePayload;
+  if (is_b2b && ledger_type === "OUTPUT" && gstin && !isEInvoicingConfigured()) {
+    console.info(
+      `[gst] ${invoice_number}: B2B sale recorded without an IRN — e-invoicing is not connected to an IRP on this environment.`,
+    );
   }
 
   const { data, error } = await supabase
@@ -95,10 +110,7 @@ export async function recordGstLedgerEntry(
       total_gst: gstCalc.totalGst,
       total_invoice_amount: gstCalc.totalAmount,
       is_b2b,
-      irn_number: irnNumber,
-      ack_number: ackNumber,
-      ack_date: ackDate,
-      qr_code_payload: qrCodePayload,
+      ...irnColumns,
       status: "ACTIVE",
     })
     .select()
@@ -109,6 +121,27 @@ export async function recordGstLedgerEntry(
   }
 
   return data;
+}
+
+/**
+ * The workspace's own GST state code, or null when it has not been set.
+ *
+ * Null is returned deliberately instead of a fallback. A wrong state code
+ * produces a wrong tax split in a filed return, which is far worse than a
+ * missing one that shows up as a warning.
+ */
+async function workspaceStateCode(
+  supabase: SupabaseClient,
+  workspaceId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("workspaces")
+    .select("state_code, gstin")
+    .eq("id", workspaceId)
+    .maybeSingle();
+
+  if (!data) return null;
+  return data.state_code || (data.gstin ? String(data.gstin).slice(0, 2) : null);
 }
 
 export async function reverseGstLedgerEntry(supabase: SupabaseClient, invoiceId: string) {
