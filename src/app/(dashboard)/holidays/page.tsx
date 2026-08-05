@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Calendar, Plus, Layers, Loader2, RefreshCw } from 'lucide-react';
+import { Calendar, Plus, Layers, Loader2, RefreshCw, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconAction } from "@/components/ui/icon-action";
 
@@ -44,6 +44,9 @@ export default function HolidaysPage() {
   const [date, setDate] = useState('');
   const [holidayType, setHolidayType] = useState('COMPANY');
   const [recurrenceType, setRecurrenceType] = useState('YEARLY');
+  // Non-null while editing; the same modal serves add and edit so the two
+  // forms cannot drift apart.
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [description] = useState('');
 
   /** Posts through the same API route the single-add form uses, so
@@ -91,6 +94,44 @@ export default function HolidaysPage() {
     fetchHolidays();
   }, [fetchHolidays]);
 
+  const openCreate = () => {
+    setEditingId(null);
+    setTitle('');
+    setDate('');
+    setHolidayType('COMPANY');
+    setRecurrenceType('YEARLY');
+    setModalOpen(true);
+  };
+
+  const openEdit = (h: Record<string, unknown>) => {
+    setEditingId(String(h.id));
+    setTitle(String(h.title ?? ''));
+    setDate(String(h.date ?? ''));
+    setHolidayType(String(h.holiday_type ?? 'COMPANY'));
+    setRecurrenceType(String(h.recurrence_type ?? 'YEARLY'));
+    setModalOpen(true);
+  };
+
+  const handleDeleteHoliday = async (h: Record<string, unknown>) => {
+    if (!activeWorkspace?.id) return;
+    const snapshot = holidays;
+    // Optimistic; restored below if the server refuses.
+    setHolidays((prev) => prev.filter((x) => x.id !== h.id));
+
+    try {
+      const res = await fetch(
+        `/api/hr/holidays?workspaceId=${activeWorkspace.id}&id=${h.id}`,
+        { method: 'DELETE' },
+      );
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      toast.success('Holiday removed');
+    } catch (err) {
+      setHolidays(snapshot);
+      toast.error(err instanceof Error ? err.message : 'Failed to remove holiday');
+    }
+  };
+
   const handleCreateHoliday = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !date) return;
@@ -99,10 +140,11 @@ export default function HolidaysPage() {
     setSaving(true);
     try {
       const res = await fetch('/api/hr/holidays', {
-        method: 'POST',
+        method: editingId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           workspaceId: activeWorkspace.id,
+          ...(editingId ? { id: editingId } : {}),
           title,
           date,
           holidayType,
@@ -113,9 +155,10 @@ export default function HolidaysPage() {
       const json = await res.json();
       if (json.error) throw new Error(json.error);
 
-      toast.success('Holiday added to company calendar');
+      toast.success(editingId ? 'Holiday updated' : 'Holiday added to company calendar');
       setTitle('');
       setDate('');
+      setEditingId(null);
       setModalOpen(false);
       fetchHolidays();
     } catch (err: any) {
@@ -134,7 +177,7 @@ export default function HolidaysPage() {
           canManage && (
             <div className="flex items-center gap-2">
               <IconAction label="Bulk add" icon={<Layers className="size-4 " />} variant="outline" onClick={() => setBulkAddOpen(true)} />
-              <IconAction label="Add Holiday" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground" />
+              <IconAction label="Add Holiday" icon={<Plus className="size-4 " />} onClick={openCreate} className="bg-primary text-primary-foreground" />
             </div>
           )
         }
@@ -153,7 +196,7 @@ export default function HolidaysPage() {
             canManage
               ? {
                   label: "Add First Holiday",
-                  onClick: () => setModalOpen(true),
+                  onClick: openCreate,
                   icon: Plus,
                 }
               : undefined
@@ -182,6 +225,21 @@ export default function HolidaysPage() {
                   <RefreshCw className="size-3 text-muted-foreground" />
                   {h.recurrence_type === 'YEARLY' ? 'Repeats Every Year' : h.recurrence_type === 'MONTHLY' ? 'Repeats Monthly' : 'One-time Event'}
                 </span>
+                {canManage && (
+                  <span className="flex items-center">
+                    <IconAction
+                      label="Edit holiday"
+                      icon={<Pencil className="size-3.5" />}
+                      onClick={() => openEdit(h)}
+                    />
+                    <IconAction
+                      label="Delete holiday"
+                      icon={<Trash2 className="size-3.5" />}
+                      destructive
+                      onClick={() => void handleDeleteHoliday(h)}
+                    />
+                  </span>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -192,8 +250,8 @@ export default function HolidaysPage() {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Company Holiday</DialogTitle>
-            <DialogDescription>Add a holiday date to the company calendar.</DialogDescription>
+            <DialogTitle>{editingId ? 'Edit Holiday' : 'Add Company Holiday'}</DialogTitle>
+            <DialogDescription>{editingId ? 'Update this holiday.' : 'Add a holiday date to the company calendar.'}</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCreateHoliday} className="space-y-4 py-2">

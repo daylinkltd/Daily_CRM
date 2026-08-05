@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { assertAffected } from "@/lib/supabase/affected-rows";
 import { calculateAttendanceMetrics } from "@/lib/hr/attendance/attendance-engine";
 
@@ -217,19 +218,18 @@ export function AttendanceEditModal({
           <div className="grid gap-2 sm:grid-cols-2">
             <div>
               <Label className="text-foreground">Employee</Label>
-              <select
-                value={memberId}
-                onChange={(e) => setMemberId(e.target.value)}
+              {/* Searchable: a workspace's headcount is unbounded. */}
+              <SearchableSelect
+                className="mt-1.5"
+                ariaLabel="Employee"
+                options={members.map((m) => ({ value: m.id, label: m.name }))}
+                value={memberId || null}
+                onChange={(v) => setMemberId(v ?? "")}
                 disabled={isEdit}
-                className="mt-1.5 h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground disabled:opacity-60"
-              >
-                <option value="">Select…</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
+                placeholder="Select an employee…"
+                searchPlaceholder="Search employees…"
+                emptyMessage="No employees match"
+              />
             </div>
             <div>
               <Label className="text-foreground">Date</Label>

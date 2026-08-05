@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Check,
   X,
@@ -383,18 +384,22 @@ export function DealForm({
 
             <div className="grid gap-2">
               <Label className="text-foreground">Contact</Label>
-              <select
-                value={contactId}
-                onChange={(e) => setContactId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-              >
-                <option value="">Select a contact</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name || c.phone}
-                  </option>
-                ))}
-              </select>
+              {/* Searchable: a workspace can hold thousands of contacts, and
+                  a native select offers no way to find one. */}
+              <SearchableSelect
+                ariaLabel="Contact"
+                options={contacts.map((c) => ({
+                  value: c.id,
+                  label: c.name || c.phone,
+                  hint: c.name ? c.phone : null,
+                }))}
+                value={contactId || null}
+                onChange={(v) => setContactId(v ?? "")}
+                placeholder="Select a contact"
+                searchPlaceholder="Search by name or phone…"
+                emptyMessage="No contacts match"
+                clearable
+              />
 
               {linkedConversation && (
                 <Link
@@ -527,18 +532,20 @@ export function DealForm({
 
             <div className="grid gap-2">
               <Label className="text-foreground">Assigned To</Label>
-              <select
-                value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
-              >
-                <option value="">Unassigned</option>
-                {profiles.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.full_name || p.email}
-                  </option>
-                ))}
-              </select>
+              <SearchableSelect
+                ariaLabel="Assigned to"
+                options={profiles.map((p) => ({
+                  value: p.id,
+                  label: p.full_name || p.email,
+                  hint: p.full_name ? p.email : null,
+                }))}
+                value={assignedTo || null}
+                onChange={(v) => setAssignedTo(v ?? "")}
+                placeholder="Unassigned"
+                searchPlaceholder="Search people…"
+                emptyMessage="No people match"
+                clearable
+              />
             </div>
 
             <div className="grid gap-2">

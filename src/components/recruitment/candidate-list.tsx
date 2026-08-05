@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { IconAction } from "@/components/ui/icon-action";
@@ -37,12 +37,14 @@ export function CandidateList({
   canManage,
   onMove,
   onDelete,
+  onEdit,
 }: {
   stages: string[];
   applications: CandidateApplication[];
   canManage: boolean;
   onMove: (applicationId: string, stage: string) => void;
   onDelete: (application: CandidateApplication) => void;
+  onEdit: (application: CandidateApplication) => void;
 }) {
   if (applications.length === 0) {
     return (
@@ -63,7 +65,7 @@ export function CandidateList({
             <TableHead>Email</TableHead>
             <TableHead>Applied for</TableHead>
             <TableHead>Stage</TableHead>
-            {canManage && <TableHead className="text-right">Remove</TableHead>}
+            {canManage && <TableHead className="text-right">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -103,6 +105,11 @@ export function CandidateList({
               </TableCell>
               {canManage && (
                 <TableCell className="text-right">
+                  <IconAction
+                    label="Edit application"
+                    icon={<Pencil className="size-3.5" />}
+                    onClick={() => onEdit(app)}
+                  />
                   <IconAction
                     label="Remove application"
                     icon={<Trash2 className="size-3.5" />}

@@ -12,7 +12,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Trash2, GripVertical } from "lucide-react";
+import { Trash2, GripVertical, Pencil } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { IconAction } from "@/components/ui/icon-action";
@@ -20,7 +20,13 @@ import { IconAction } from "@/components/ui/icon-action";
 export interface CandidateApplication {
   id: string;
   stage: string;
-  candidate?: { full_name?: string | null; email?: string | null } | null;
+  candidate_id?: string | null;
+  job_id?: string | null;
+  candidate?: {
+    full_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  } | null;
   job?: { title?: string | null } | null;
 }
 
@@ -38,12 +44,14 @@ export function CandidateBoard({
   canManage,
   onMove,
   onDelete,
+  onEdit,
 }: {
   stages: string[];
   applications: CandidateApplication[];
   canManage: boolean;
   onMove: (applicationId: string, stage: string) => void;
   onDelete: (application: CandidateApplication) => void;
+  onEdit: (application: CandidateApplication) => void;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -97,6 +105,7 @@ export function CandidateBoard({
             applications={byStage.get(stage) ?? []}
             canManage={canManage}
             onDelete={onDelete}
+            onEdit={onEdit}
           />
         ))}
       </div>
@@ -123,11 +132,13 @@ function StageColumn({
   applications,
   canManage,
   onDelete,
+  onEdit,
 }: {
   stage: string;
   applications: CandidateApplication[];
   canManage: boolean;
   onDelete: (application: CandidateApplication) => void;
+  onEdit: (application: CandidateApplication) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage });
 
@@ -152,6 +163,7 @@ function StageColumn({
             application={app}
             canManage={canManage}
             onDelete={onDelete}
+            onEdit={onEdit}
           />
         ))}
         {applications.length === 0 && (
@@ -168,10 +180,12 @@ function CandidateCard({
   application,
   canManage,
   onDelete,
+  onEdit,
 }: {
   application: CandidateApplication;
   canManage: boolean;
   onDelete: (application: CandidateApplication) => void;
+  onEdit: (application: CandidateApplication) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: application.id,
@@ -208,12 +222,19 @@ function CandidateCard({
           </div>
         </div>
         {canManage && (
-          <IconAction
-            label="Remove application"
-            icon={<Trash2 className="size-3.5" />}
-            destructive
-            onClick={() => onDelete(application)}
-          />
+          <>
+            <IconAction
+              label="Edit application"
+              icon={<Pencil className="size-3.5" />}
+              onClick={() => onEdit(application)}
+            />
+            <IconAction
+              label="Remove application"
+              icon={<Trash2 className="size-3.5" />}
+              destructive
+              onClick={() => onDelete(application)}
+            />
+          </>
         )}
       </div>
 

@@ -30,6 +30,7 @@ import { IconAction } from "@/components/ui/icon-action";
 import { CandidateBoard, type CandidateApplication } from '@/components/recruitment/candidate-board';
 import { CandidateList } from '@/components/recruitment/candidate-list';
 import { ViewToggle, type BoardView } from '@/components/ui/view-toggle';
+import { ApplicationEditModal, type EditableApplication } from '@/components/recruitment/application-edit-modal';
 
 const STAGES = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'HIRED', 'REJECTED'];
 
@@ -43,6 +44,13 @@ export default function RecruitmentPage() {
   const [loading, setLoading] = useState(true);
   // Board to move people along, list to see everyone at once.
   const [view, setView] = useState<BoardView>('kanban');
+  const [editApp, setEditApp] = useState<EditableApplication | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const openEdit = (application: CandidateApplication) => {
+    setEditApp(application as EditableApplication);
+    setEditOpen(true);
+  };
 
   const [jobModalOpen, setJobModalOpen] = useState(false);
   const [candModalOpen, setCandModalOpen] = useState(false);
@@ -249,6 +257,7 @@ export default function RecruitmentPage() {
                   canManage={canManage}
                   onMove={handleMoveStage}
                   onDelete={handleDeleteApplication}
+                  onEdit={openEdit}
                 />
               ) : (
                 <CandidateList
@@ -257,6 +266,7 @@ export default function RecruitmentPage() {
                   canManage={canManage}
                   onMove={handleMoveStage}
                   onDelete={handleDeleteApplication}
+                  onEdit={openEdit}
                 />
               )}
             </>
@@ -363,6 +373,16 @@ export default function RecruitmentPage() {
           </form>
         </DialogContent>
       </Dialog>
+      <ApplicationEditModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        application={editApp}
+        jobs={jobs.map((j) => ({ id: j.id, title: j.title }))}
+        stages={STAGES}
+        workspaceId={activeWorkspace?.id}
+        onSaved={fetchRecruitment}
+      />
+
     </div>
   );
 }

@@ -109,13 +109,28 @@ export async function POST(request: Request) {
         .select();
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-      // Supabase reports success on a zero-row update, so an application
-      // that no longer exists would otherwise look like a successful move.
+      // Supabase reports success on a zero-row update, so distinguish
+      // "gone" from "RLS refused" the same way DELETE does below.
       if (!rows || rows.length === 0) {
-        return NextResponse.json(
-          { error: 'That application no longer exists' },
-          { status: 404 }
-        );
+        const { data: stillThere } = await supabase
+          .from('hr_job_applications')
+          .select('id')
+          .eq('id', applicationId)
+          .eq('workspace_id', workspaceId)
+          .maybeSingle();
+
+        return stillThere
+          ? NextResponse.json(
+              {
+                error:
+                  'You do not have permission to move this application. It needs the "people_manage" permission on this workspace.',
+              },
+              { status: 403 }
+            )
+          : NextResponse.json(
+              { error: 'That application no longer exists' },
+              { status: 404 }
+            );
       }
       return NextResponse.json({ application: rows[0] });
     }
@@ -131,15 +146,92 @@ export async function POST(request: Request) {
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       if (!rows || rows.length === 0) {
-        return NextResponse.json(
-          { error: 'That application no longer exists' },
-          { status: 404 }
-        );
+        // Zero rows has two very different causes and Supabase reports both
+        // as success: the row is gone, or RLS filtered the DELETE away. Read
+        // it back to tell them apart — "no longer exists" on a row the user
+        // can plainly still see is the least useful message possible.
+        const { data: stillThere } = await supabase
+          .from('hr_job_applications')
+          .select('id')
+          .eq('id', applicationId)
+          .eq('workspace_id', workspaceId)
+          .maybeSingle();
+
+        return stillThere
+          ? NextResponse.json(
+              {
+                error:
+                  'You do not have permission to remove this application. It needs the "people_manage" permission on this workspace.',
+              },
+              { status: 403 }
+            )
+          : NextResponse.json(
+              { error: 'That application no longer exists' },
+              { status: 404 }
+            );
       }
       // The candidate row is intentionally left alone: a person can apply
       // to more than one opening, so removing an application must not
       // delete the human from the ATS.
       return NextResponse.json({ deleted: applicationId });
+    }
+
+    if (action === 'UPDATE_APPLICATION') {
+      const { applicationId, candidateId, fullName, email, phone, jobId, stage } = body;
+
+      // The candidate's details live on hr_candidates; the opening and
+      // stage live on the application. An edit usually touches both, so
+      // this action updates each side rather than making the UI do two
+      // round trips that can half-fail.
+      if (candidateId && (fullName || email || phone)) {
+        const candidatePatch: Record<string, unknown> = {};
+        if (fullName !== undefined) candidatePatch.full_name = fullName;
+        if (email !== undefined) candidatePatch.email = email || null;
+        if (phone !== undefined) candidatePatch.phone = phone || null;
+
+        const { data: candRows, error: candErr } = await supabase
+          .from('hr_candidates')
+          .update(candidatePatch)
+          .eq('id', candidateId)
+          .eq('workspace_id', workspaceId)
+          .select();
+        if (candErr) {
+          return NextResponse.json({ error: candErr.message }, { status: 500 });
+        }
+        if (!candRows || candRows.length === 0) {
+          return NextResponse.json(
+            { error: 'Could not update the candidate — you may not have permission.' },
+            { status: 403 }
+          );
+        }
+      }
+
+      const appPatch: Record<string, unknown> = {};
+      if (jobId !== undefined) appPatch.job_id = jobId;
+      if (stage !== undefined) {
+        appPatch.stage = stage;
+        appPatch.stage_changed_at = new Date().toISOString();
+      }
+
+      if (Object.keys(appPatch).length > 0) {
+        const { data: appRows, error: appErr } = await supabase
+          .from('hr_job_applications')
+          .update(appPatch)
+          .eq('id', applicationId)
+          .eq('workspace_id', workspaceId)
+          .select();
+        if (appErr) {
+          return NextResponse.json({ error: appErr.message }, { status: 500 });
+        }
+        if (!appRows || appRows.length === 0) {
+          return NextResponse.json(
+            { error: 'Could not update the application — you may not have permission.' },
+            { status: 403 }
+          );
+        }
+      }
+
+      return NextResponse.json({ updated: applicationId });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

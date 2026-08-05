@@ -19,13 +19,30 @@ import {
   Send,
   Loader2,
   Layers,
-  Trash2
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ComplianceBanner } from '@/components/policies/compliance-banner';
 import { PolicyEditorModal } from '@/components/policies/policy-editor-modal';
 import { IconAction } from "@/components/ui/icon-action";
+import { ViewToggle, type BoardView } from '@/components/ui/view-toggle';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+/** The bits of a policy version this page reads. */
+interface PolicyVersion {
+  version_number?: number;
+  mandatory?: boolean;
+  change_summary?: string | null;
+}
 
 export default function PoliciesDashboardPage() {
   const router = useRouter();
@@ -40,6 +57,9 @@ export default function PoliciesDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
+  // Cards read well for a handful of policies; a list is what you want
+  // once there are enough to scan or compare review dates across.
+  const [view, setView] = useState<BoardView>('kanban');
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingPolicyId, setEditingPolicyId] = useState<string | null>(null);
@@ -225,6 +245,10 @@ export default function PoliciesDashboardPage() {
           </TabsList>
         </Tabs>
 
+        <div className="flex w-full items-center gap-3 sm:w-auto">
+          <ViewToggle value={view} onChange={setView} label="Policy view" />
+        </div>
+
         <div className="relative w-full sm:w-[260px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -254,6 +278,75 @@ export default function PoliciesDashboardPage() {
             )}
           </CardContent>
         </Card>
+      ) : view === 'list' ? (
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead>Policy</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Sign-off</TableHead>
+                <TableHead>Updated</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredPolicies.map((p) => {
+                const versions: PolicyVersion[] = p.versions || [];
+                const maxVerNum = versions.reduce(
+                  (max: number, v) => Math.max(max, v.version_number || 1),
+                  0,
+                );
+                const latestVer = versions.find((v) => v.version_number === maxVerNum);
+
+                return (
+                  <TableRow key={p.id} className="border-border hover:bg-muted/40">
+                    <TableCell className="font-medium text-foreground">{p.title}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {p.category.replace(/_/g, ' ')}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={p.status === 'PUBLISHED' ? 'default' : 'secondary'}
+                        className={p.status === 'PUBLISHED' ? 'bg-emerald-600 text-foreground' : ''}
+                      >
+                        {p.status === 'PUBLISHED' ? `v${maxVerNum} Published` : 'Draft'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {latestVer?.mandatory ? 'Mandatory' : 'Optional'}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {new Date(p.updated_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap">
+                      {p.status === 'PUBLISHED' ? (
+                        <>
+                          <IconAction label="Audit Trail" icon={<FileCode2 className="size-3.5" />}
+                            onClick={() => router.push(`/policies/${p.id}/audit`)} />
+                          <IconAction label="Read & Sign" icon={<Eye className="size-3.5" />}
+                            onClick={() => router.push(`/policies/${p.id}/read`)} />
+                        </>
+                      ) : (
+                        canManage && (
+                          <>
+                            <IconAction label="Edit draft" icon={<Pencil className="size-3.5" />}
+                              onClick={() => { setEditingPolicyId(p.id); setEditorOpen(true); }} />
+                            <IconAction label="Approve & Publish" icon={<Send className="size-3.5" />}
+                              onClick={() => handleApprove(p.id)} />
+                            <IconAction label="Delete" icon={<Trash2 className="size-3.5" />} destructive
+                              onClick={() => handleDelete(p.id)} />
+                          </>
+                        )
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPolicies.map((p) => {
