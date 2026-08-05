@@ -21,7 +21,8 @@ import {
   Briefcase, 
   FileCheck2, 
   Clock,
-  Plus
+  Plus,
+  Pencil
 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,11 @@ import { Badge } from '@/components/ui/badge';
 import { LocationMapModal } from '@/components/attendance/location-map-modal';
 import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
 import { IconAction } from "@/components/ui/icon-action";
+import {
+  AttendanceEditModal,
+  type AttendanceEditRow,
+  type MemberOption,
+} from '@/components/attendance/attendance-edit-modal';
 
 export default function AttendancePage() {
   const supabase = createClient();
@@ -45,6 +51,10 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showRequestModal, setShowRequestModal] = useState(false);
+  // HR logging/correcting a record by hand. `null` record = create.
+  const [editOpen, setEditOpen] = useState(false);
+  const [editRecord, setEditRecord] = useState<AttendanceEditRow | null>(null);
+  const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
 
   // Leaflet Location Map Modal State
   const [mapModalOpen, setMapModalOpen] = useState(false);
@@ -127,6 +137,16 @@ export default function AttendancePage() {
       (members || []).forEach((m) => {
         memberProfilesMap[m.id] = { ...m, profiles: profileByUser[m.user_id] || null };
       });
+
+      // Same list the edit dialog offers, so HR can log for anyone here.
+      setMemberOptions(
+        (members || []).map((m) => ({
+          id: m.id,
+          name:
+            (profileByUser[m.user_id] as { full_name?: string } | undefined)?.full_name ||
+            'Team Member',
+        })),
+      );
 
       const data = (rawData || []).map((r) => ({
         ...r,
@@ -284,6 +304,14 @@ export default function AttendancePage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <PunchAction onPunch={fetchAttendanceData} />
+          {canManageAttendance && (
+            <IconAction
+              label="Log Attendance"
+              icon={<Plus className="h-4 w-4" />}
+              onClick={() => { setEditRecord(null); setEditOpen(true); }}
+              className="bg-primary text-primary-foreground font-bold rounded-xl h-10 gap-1.5 text-xs"
+            />
+          )}
           <IconAction label="Regularization Request" icon={<Plus className="h-4 w-4 text-[#00aef0]" />} onClick={() => setShowRequestModal(true)}
             variant="outline"
             className="border-border bg-background text-foreground hover:text-foreground font-bold rounded-xl h-10 gap-1.5 text-xs" />
@@ -385,6 +413,7 @@ export default function AttendancePage() {
                   <TableHead>Punch Out</TableHead>
                   <TableHead>Break Hours</TableHead>
                   <TableHead className="text-right">Net Productive</TableHead>
+                  {canManageAttendance && <TableHead className="text-right">Edit</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-border/60 text-xs">
@@ -484,6 +513,28 @@ export default function AttendancePage() {
                       <TableCell className="text-right font-mono font-extrabold text-[#00aef0]">
                         {r.net_productive_hours || r.working_hours || 0} hrs
                       </TableCell>
+                      {canManageAttendance && (
+                        <TableCell className="text-right">
+                          <IconAction
+                            label="Edit attendance"
+                            icon={<Pencil className="h-3.5 w-3.5" />}
+                            onClick={() => {
+                              setEditRecord({
+                                id: r.id,
+                                workspace_member_id: r.workspace_member_id,
+                                attendance_date: r.attendance_date,
+                                punch_in_time: r.punch_in_time,
+                                punch_out_time: r.punch_out_time,
+                                status: r.status,
+                                work_location: r.work_location,
+                                break_hours: r.break_hours,
+                                remarks: r.remarks,
+                              });
+                              setEditOpen(true);
+                            }}
+                          />
+                        </TableCell>
+                      )}
                     </TableRow>
                   );
                 })}
@@ -573,6 +624,15 @@ export default function AttendancePage() {
           )}
         </div>
       )}
+
+      {/* HR logging or correcting a record by hand */}
+      <AttendanceEditModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        record={editRecord}
+        members={memberOptions}
+        onSaved={fetchAttendanceData}
+      />
 
       {/* Regularization Modal */}
       <AttendanceRequestModal
