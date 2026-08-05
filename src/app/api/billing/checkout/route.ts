@@ -132,7 +132,7 @@ export async function POST(request: Request) {
         currency: String(order.currency),
         description: `${plan.name} — ${seatCount} seat${seatCount === 1 ? '' : 's'} (${
           billingPeriod === 'annual' ? 'annual' : 'monthly'
-        })`,
+        }, incl. 18% GST)`,
         reference: [workspace_id, plan.id, seatCount, billingPeriod].join('|'),
       },
       handoffSecret,

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { PLANS, BUSINESS_PLAN, chargeablePaise, seatRate } from './plans';
+import { PLANS, BUSINESS_PLAN, GST_RATE, billBreakdown, chargeablePaise, seatRate } from './plans';
 import { MODULES, allCapabilities } from './modules-content';
 import { ROADMAP } from './competitors';
 
@@ -33,11 +33,24 @@ describe('plan pricing', () => {
     }
   });
 
-  it('charges twelve months up front on annual', () => {
-    const monthly = chargeablePaise(BUSINESS_PLAN, 3, 'monthly');
-    const annual = chargeablePaise(BUSINESS_PLAN, 3, 'annual');
-    expect(monthly).toBe(BUSINESS_PLAN.pricePerSeatMonthly * 3 * 100);
-    expect(annual).toBe(BUSINESS_PLAN.pricePerSeatAnnual * 3 * 12 * 100);
+  it('charges twelve months up front on annual, GST inclusive', () => {
+    const monthlyBase = BUSINESS_PLAN.pricePerSeatMonthly * 3 * 100;
+    const annualBase = BUSINESS_PLAN.pricePerSeatAnnual * 3 * 12 * 100;
+    expect(chargeablePaise(BUSINESS_PLAN, 3, 'monthly')).toBe(Math.round(monthlyBase * (1 + GST_RATE)));
+    expect(chargeablePaise(BUSINESS_PLAN, 3, 'annual')).toBe(Math.round(annualBase * (1 + GST_RATE)));
+  });
+
+  it('keeps the breakdown internally consistent', () => {
+    // The invoice line items must sum to the amount charged — a breakdown
+    // that is off by a paisa fails the verify-payment amount check.
+    for (const seats of [1, 3, 7, 49]) {
+      for (const period of ['monthly', 'annual'] as const) {
+        const b = billBreakdown(BUSINESS_PLAN, seats, period)!;
+        expect(b.basePaise + b.gstPaise).toBe(b.totalPaise);
+        expect(b.gstPaise).toBe(Math.round(b.basePaise * GST_RATE));
+        expect(chargeablePaise(BUSINESS_PLAN, seats, period)).toBe(b.totalPaise);
+      }
+    }
   });
 
   it('refuses to price plans that cannot be bought', () => {

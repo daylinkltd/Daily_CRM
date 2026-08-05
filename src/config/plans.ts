@@ -32,6 +32,13 @@
 
 export type BillingPeriod = 'monthly' | 'annual';
 
+/**
+ * GST on SaaS in India. One constant, used by the pricing page, the
+ * billing panel and checkout alike — if the rate ever changes in a
+ * Budget, it changes here and nowhere else.
+ */
+export const GST_RATE = 0.18;
+
 export interface Plan {
   id: string;
   name: string;
@@ -156,28 +163,57 @@ export function seatRate(plan: Plan, period: BillingPeriod): number {
 }
 
 /**
- * What to charge, in paise.
+ * The bill, in paise, split into base and GST.
  *
- * Annual bills twelve months up front, which is why it is `x 12` rather
- * than a discounted single month. Returns null for plans that cannot be
- * bought through checkout (trial, enterprise) so callers must handle them
- * rather than charging zero or a negative amount.
+ * Returns null for plans that cannot be bought through checkout (trial,
+ * enterprise) so callers must handle them rather than charging zero.
+ *
+ * GST is computed on the TOTAL base in paise and rounded once, not per
+ * seat and summed — per-seat rounding drifts by a paisa per seat, and a
+ * total that differs from base x 1.18 by even one paisa fails the
+ * verify-payment amount check we ourselves enforce.
+ */
+export interface BillBreakdown {
+  /** Seat price x seats x months, before tax. */
+  basePaise: number;
+  /** 18% of base, rounded to the paisa. */
+  gstPaise: number;
+  /** What Razorpay is asked to charge. */
+  totalPaise: number;
+}
+
+export function billBreakdown(
+  plan: Plan,
+  seats: number,
+  period: BillingPeriod,
+): BillBreakdown | null {
+  const rate = seatRate(plan, period);
+  if (rate <= 0) return null;
+
+  const billedSeats = Math.max(seats, plan.minSeats);
+  const months = period === 'annual' ? 12 : 1;
+  const basePaise = Math.round(rate * billedSeats * months * 100);
+  const gstPaise = Math.round(basePaise * GST_RATE);
+  return { basePaise, gstPaise, totalPaise: basePaise + gstPaise };
+}
+
+/**
+ * What to charge, in paise — GST INCLUSIVE.
  *
  * This is the single definition of "the right price". /api/verify-payment
  * checks the amount Razorpay actually captured against it — the payment
  * signature only proves an order was paid, not that it was paid enough.
+ *
+ * Until 2026-08 this returned the ex-GST base, which meant every order
+ * was raised 18% short of what the invoice had to say. Callers that want
+ * the split for display use billBreakdown().
  */
 export function chargeablePaise(
   plan: Plan,
   seats: number,
   period: BillingPeriod,
 ): number | null {
-  const rate = seatRate(plan, period);
-  if (rate <= 0) return null;
-
-  const billedSeats = Math.max(seats, plan.minSeats);
-  const months = period === 'annual' ? 12 : 1;
-  return Math.round(rate * billedSeats * months * 100);
+  return billBreakdown(plan, seats, period)?.totalPaise ?? null;
 }
 
 /** Display total per month for a seat count, excluding GST. */

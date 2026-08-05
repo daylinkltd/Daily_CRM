@@ -8,6 +8,7 @@ import { BRAND } from "@/config/brand";
 import {
   PLANS,
   INCLUDED_MODULES,
+  GST_RATE,
   seatRate,
   monthlyTotal,
   annualSavingPercent,
@@ -57,7 +58,8 @@ export function PricingContent({
             className="mkt-lead mt-5"
           >
             No module upsells, no feature gates, no per-integration fees. Add
-            people as you grow and the bill follows. Prices exclude GST.
+            people as you grow and the bill follows. Per-seat prices exclude
+            GST; totals below show it added.
           </p>
 
           {/* Billing toggle */}
@@ -111,8 +113,19 @@ export function PricingContent({
               </span>
               <span className="text-xs text-[var(--mkt-fg-muted)]">
                 {" "}
-                /month, all modules, excl. GST
+                /month, all modules
               </span>
+            </p>
+            {/* The number a buyer's card is actually charged. Quoting only
+                the ex-GST figure reads as a bait-and-switch at checkout,
+                which is a worse first impression than an 18% bigger number
+                on the pricing page. */}
+            <p className="mt-1 text-center text-[11px] text-[var(--mkt-fg-subtle)]">
+              ₹
+              {Math.round(
+                monthlyTotal(business, seats, period) * (1 + GST_RATE),
+              ).toLocaleString()}{" "}
+              incl. 18% GST
             </p>
           </div>
         </div>

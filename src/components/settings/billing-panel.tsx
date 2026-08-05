@@ -6,7 +6,7 @@ import {
   PLANS,
   BUSINESS_PLAN,
   Plan,
-  chargeablePaise,
+  billBreakdown,
   seatRate,
   monthlyTotal,
   annualSavingPercent,
@@ -155,8 +155,11 @@ export function BillingPanel() {
 
   // What the buyer will actually be charged, from the same helper the
   // server verifies against — so the number on screen and the number in
-  // the Razorpay order can never drift apart.
-  const billedNowPaise = chargeablePaise(BUSINESS_PLAN, seats, billingCycle) ?? 0;
+  // the Razorpay order can never drift apart. GST is in the total, and
+  // the split is shown: a business buyer needs the base for their books
+  // and the total for their bank statement.
+  const bill = billBreakdown(BUSINESS_PLAN, seats, billingCycle);
+  const billedNowPaise = bill?.totalPaise ?? 0;
 
   const totalWorkspaces = usage?.workspaceCount || 1;
   const maxWorkspaces = usage?.maxWorkspaces || 1;
@@ -382,7 +385,13 @@ export function BillingPanel() {
               <span className="text-2xl font-black text-foreground">
                 ₹{(billedNowPaise / 100).toLocaleString("en-IN")}
               </span>
-              <span className="ml-1 text-[10px] text-muted-foreground">excl. GST</span>
+              <span className="ml-1 text-[10px] text-muted-foreground">incl. GST</span>
+              {bill && (
+                <span className="block text-[11px] text-muted-foreground">
+                  ₹{(bill.basePaise / 100).toLocaleString("en-IN")} + ₹
+                  {(bill.gstPaise / 100).toLocaleString("en-IN")} GST (18%)
+                </span>
+              )}
             </div>
             <div className="text-right">
               <span className="block text-[11px] text-muted-foreground">
