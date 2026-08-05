@@ -5,7 +5,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Plus, RefreshCw, Search, Phone, Mail, X, Layers, Edit3, Trash2 } from "lucide-react";
+import { Building2, Plus, RefreshCw, Search, Phone, Mail, X, Layers, Edit3, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { IconAction } from "@/components/ui/icon-action";
 import { BulkEntryDialog } from "@/components/ui/bulk-entry-dialog";
@@ -284,10 +284,10 @@ export default function SuppliersPage() {
                   />
                 </th>
                 <th className="py-3.5 px-4">Company Name</th>
-                <th className="py-3.5 px-4">Contact Person</th>
-                <th className="py-3.5 px-4">Phone & Email</th>
-                <th className="py-3.5 px-4">GSTIN</th>
-                <th className="py-3.5 px-4">Address</th>
+                <th className="py-3.5 px-4 hidden md:table-cell">Contact Person</th>
+                <th className="py-3.5 px-4">Phone &amp; Email</th>
+                <th className="py-3.5 px-4 hidden sm:table-cell">GSTIN</th>
+                <th className="py-3.5 px-4 hidden lg:table-cell">Address</th>
                 <th className="py-3.5 px-4 text-right">Outstanding Balance</th>
                 <th className="py-3.5 px-4 text-right w-24">Actions</th>
               </tr>
@@ -326,7 +326,7 @@ export default function SuppliersPage() {
                       <td className="py-3.5 px-4 font-bold text-foreground">
                         {supplier.company_name}
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-foreground">
+                      <td className="py-3.5 px-4 text-xs text-foreground hidden md:table-cell">
                         {supplier.contact_person || "N/A"}
                       </td>
                       <td className="py-3.5 px-4 text-xs text-muted-foreground">
@@ -341,10 +341,10 @@ export default function SuppliersPage() {
                           </div>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-xs text-[#00aef0]">
+                      <td className="py-3.5 px-4 font-mono text-xs text-[#00aef0] hidden sm:table-cell">
                         {supplier.gstin || "URP"}
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                      <td className="py-3.5 px-4 text-xs text-muted-foreground hidden lg:table-cell">
                         {supplier.address || "N/A"}
                       </td>
                       <td className="py-3.5 px-4 text-right font-extrabold text-foreground">
@@ -517,7 +517,16 @@ export default function SuppliersPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-5">
-                  {saving ? (editingSupplier ? "Updating..." : "Saving...") : (editingSupplier ? "Update Supplier" : "Save Supplier")}
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      {editingSupplier ? "Updating..." : "Saving..."}
+                    </>
+                  ) : editingSupplier ? (
+                    "Update Supplier"
+                  ) : (
+                    "Save Supplier"
+                  )}
                 </Button>
               </div>
             </form>

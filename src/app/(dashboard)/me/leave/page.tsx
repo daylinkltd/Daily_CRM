@@ -58,7 +58,7 @@ export default function MyLeavePage() {
 
       if (error) throw error;
 
-      let resultRows = (data as any[] | null) || [];
+      const resultRows = (data as any[] | null) || [];
 
       if (resultRows.length > 0) {
         const approverUserIds = resultRows.map((r) => r.approver?.user_id).filter(Boolean);

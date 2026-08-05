@@ -449,7 +449,7 @@ export function BrandingSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-5">
-          <div className="rounded-lg border border-border bg-white dark:bg-zinc-950 p-8 flex flex-col items-center justify-center text-center pb-6 border-b-4 border-b-primary shadow-sm">
+          <div className="rounded-lg border border-border bg-card text-card-foreground p-8 flex flex-col items-center justify-center text-center pb-6 border-b-4 border-b-primary shadow-sm">
             {currentLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

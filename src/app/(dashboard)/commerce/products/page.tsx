@@ -6,7 +6,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Package, Plus, Search, Barcode, Tag, RefreshCw, Printer, X, ShieldCheck, Banknote, Warehouse, Sliders, Sparkles, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2, Eye, Edit3 as Pencil } from "lucide-react";
+import { Package, Plus, Search, Barcode, Tag, RefreshCw, Printer, X, ShieldCheck, Banknote, Warehouse, Sliders, Sparkles, Smartphone, Shirt, Gem, Settings, Car, BookOpen, Wrench, Armchair, Utensils, Factory, Glasses, Sparkle, Dog, FlaskConical, Sprout, Baby, PlusCircle, Trash2, Eye, Edit3 as Pencil, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { BarcodeTagModal } from "@/components/commerce/barcode-tag-modal";
 import { ProductDetailsModal } from "@/components/commerce/product-details-modal";
@@ -649,12 +649,12 @@ export default function ProductsPage() {
             <thead className="bg-background/80 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <tr>
                 <th className="py-3.5 px-4">Product Name</th>
-                <th className="py-3.5 px-4">SKU / Barcode</th>
-                <th className="py-3.5 px-4">HSN Code</th>
-                <th className="py-3.5 px-4">Units & Conversion</th>
-                <th className="py-3.5 px-4 text-right">MRP</th>
+                <th className="py-3.5 px-4 hidden sm:table-cell">SKU / Barcode</th>
+                <th className="py-3.5 px-4 hidden md:table-cell">HSN Code</th>
+                <th className="py-3.5 px-4 hidden lg:table-cell">Units & Conversion</th>
+                <th className="py-3.5 px-4 text-right hidden sm:table-cell">MRP</th>
                 <th className="py-3.5 px-4 text-right">Selling Price</th>
-                <th className="py-3.5 px-4 text-right">GST Rate</th>
+                <th className="py-3.5 px-4 text-right hidden md:table-cell">GST Rate</th>
                 <th className="py-3.5 px-4 text-center">Actions</th>
               </tr>
             </thead>
@@ -702,7 +702,7 @@ export default function ProductsPage() {
                         )}
                       </button>
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground">
+                    <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground hidden sm:table-cell">
                       <div>{product.sku}</div>
                       {product.barcode && (
                         <div className="flex items-center gap-1 text-[11px] text-[#00aef0] mt-0.5">
@@ -711,19 +711,19 @@ export default function ProductsPage() {
                         </div>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground">
+                    <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground hidden md:table-cell">
                       {product.hsn_sac_code || "6203"}
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-muted-foreground">
+                    <td className="py-3.5 px-4 text-xs text-muted-foreground hidden lg:table-cell">
                       {product.base_unit || "PCS"} (1 {product.purchase_unit || "PACK"} = {product.unit_conversion_factor || 6})
                     </td>
-                    <td className="py-3.5 px-4 text-right text-muted-foreground">
+                    <td className="py-3.5 px-4 text-right text-muted-foreground hidden sm:table-cell">
                       ₹{Number(product.mrp || product.selling_price).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-4 text-right font-bold text-[#00aef0]">
                       ₹{Number(product.selling_price).toFixed(2)}
                     </td>
-                    <td className="py-3.5 px-4 text-right text-xs text-muted-foreground">
+                    <td className="py-3.5 px-4 text-right text-xs text-muted-foreground hidden md:table-cell">
                       {product.tax_rate}%
                     </td>
                     <td className="py-3.5 px-4 text-center">
@@ -1860,13 +1860,16 @@ export default function ProductsPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving} className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold rounded-xl h-10 px-6">
-                  {saving
-                    ? editingProduct
-                      ? "Updating Product..."
-                      : "Saving Product..."
-                    : editingProduct
-                    ? "Update Product Master"
-                    : "Save Product Master"}
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      {editingProduct ? "Updating Product..." : "Saving Product..."}
+                    </>
+                  ) : editingProduct ? (
+                    "Update Product Master"
+                  ) : (
+                    "Save Product Master"
+                  )}
                 </Button>
               </div>
             </form>

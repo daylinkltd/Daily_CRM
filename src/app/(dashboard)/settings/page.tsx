@@ -95,7 +95,7 @@ export default function SettingsPage() {
               rawTab === 'deals' || rawTab === 'fields' || rawTab === 'tags' ? rawTab : undefined
             }
             tabs={[
-              { id: 'crm', label: 'General', render: () => <CRMSettingsPanel /> },
+              { id: 'crm-general', label: 'General', render: () => <CRMSettingsPanel /> },
               { id: 'deals', label: 'Deals', render: () => <DealsSettings /> },
               { id: 'fields', label: 'Fields & tags', render: () => <FieldsAndTagsPanel /> },
             ]}
@@ -129,7 +129,7 @@ export default function SettingsPage() {
           <SettingsSubtabs
             initialTab={rawTab === 'roles' || rawTab === 'permissions' ? 'roles' : undefined}
             tabs={[
-              { id: 'members', label: 'Members', render: () => <MembersTab /> },
+              { id: 'members-list', label: 'Members', render: () => <MembersTab /> },
               { id: 'roles', label: 'Roles & permissions', render: () => <RolesPanel /> },
             ]}
           />

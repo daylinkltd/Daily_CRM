@@ -44,6 +44,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { IconAction } from "@/components/ui/icon-action";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 const COMMERCIAL_STATUSES = [
   { value: "draft", label: "Draft" },
@@ -368,9 +369,23 @@ export default function CommercialsPage() {
             </div>
 
             {loading ? (
-              <div className="flex min-h-[200px] items-center justify-center text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Reference</TableHead>
+                    <TableHead className="hidden sm:table-cell">Deal</TableHead>
+                    <TableHead className="hidden md:table-cell">Customer</TableHead>
+                    <TableHead className="text-right hidden md:table-cell">Cost</TableHead>
+                    <TableHead className="text-right">Value</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">Margin</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableSkeleton columns={8} rows={5} />
+                </TableBody>
+              </Table>
             ) : filtered.length === 0 ? (
               <EmptyState
                 icon={Handshake}
@@ -386,11 +401,11 @@ export default function CommercialsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Reference</TableHead>
-                    <TableHead>Deal</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead className="text-right">Cost</TableHead>
+                    <TableHead className="hidden sm:table-cell">Deal</TableHead>
+                    <TableHead className="hidden md:table-cell">Customer</TableHead>
+                    <TableHead className="text-right hidden md:table-cell">Cost</TableHead>
                     <TableHead className="text-right">Value</TableHead>
-                    <TableHead className="text-right">Margin</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">Margin</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -407,17 +422,17 @@ export default function CommercialsPage() {
                             <p className="mt-0.5 text-xs font-normal text-muted-foreground">{r.title}</p>
                           )}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">{r.deal?.title || "—"}</TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="text-muted-foreground hidden sm:table-cell">{r.deal?.title || "—"}</TableCell>
+                        <TableCell className="text-muted-foreground hidden md:table-cell">
                           {r.contact?.company || r.contact?.name || "—"}
                         </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
+                        <TableCell className="text-right text-muted-foreground hidden md:table-cell">
                           {formatCurrency(Number(r.total_cost ?? 0), r.currency || defaultCurrency, { decimals: 2 })}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(Number(r.total_value ?? 0), r.currency || defaultCurrency, { decimals: 2 })}
                         </TableCell>
-                        <TableCell className={`text-right ${margin < 0 ? "text-red-400" : margin < 15 ? "text-yellow-400" : "text-emerald-400"}`}>
+                        <TableCell className={`text-right hidden sm:table-cell ${margin < 0 ? "text-red-400" : margin < 15 ? "text-yellow-400" : "text-emerald-400"}`}>
                           {margin.toFixed(1)}%
                         </TableCell>
                         <TableCell>

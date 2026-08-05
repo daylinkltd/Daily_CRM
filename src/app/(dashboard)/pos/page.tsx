@@ -349,35 +349,37 @@ function POSTerminalPageContent() {
       {/* LEFT: Product Catalog & Search */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
         {/* Search Bar & Actions */}
-        <div className="flex items-center gap-3 bg-card/90 p-3.5 rounded-2xl border border-border backdrop-blur-md shadow-lg">
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-card/90 p-2.5 sm:p-3.5 rounded-2xl border border-border backdrop-blur-md shadow-lg">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               ref={searchInputRef}
               type="text"
-              placeholder="Scan Barcode or Search Products (F2)..."
+              placeholder="Scan Barcode or Search (F2)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-10 h-11 bg-background border-border text-foreground rounded-xl focus:border-[#00aef0] font-medium"
+              className="pl-9 h-10 sm:h-11 bg-background border-border text-foreground rounded-xl focus:border-[#00aef0] font-medium text-xs sm:text-sm"
             />
           </div>
-          <IconAction label="Held Bills ()" icon={<PauseCircle className="h-4 w-4" />} variant="outline"
-            onClick={() => setShowHeldDrawer(true)}
-            className="h-11 border-border bg-background text-amber-400 hover:bg-card gap-2 rounded-xl" />
-          <IconAction label="Close Shift / Z-Report" icon={<Calculator className="h-4 w-4" />} variant="outline"
-            onClick={() => setShowShiftCloseModal(true)}
-            className="h-11 border-border bg-background text-emerald-400 hover:bg-card gap-2 rounded-xl" />
+          <div className="flex items-center gap-2 shrink-0">
+            <IconAction label="Held Bills" icon={<PauseCircle className="h-4 w-4" />} variant="outline"
+              onClick={() => setShowHeldDrawer(true)}
+              className="h-10 sm:h-11 border-border bg-background text-amber-400 hover:bg-card gap-1.5 rounded-xl px-2.5 text-xs" />
+            <IconAction label="Z-Report" icon={<Calculator className="h-4 w-4" />} variant="outline"
+              onClick={() => setShowShiftCloseModal(true)}
+              className="h-10 sm:h-11 border-border bg-background text-emerald-400 hover:bg-card gap-1.5 rounded-xl px-2.5 text-xs" />
+          </div>
         </div>
 
         {/* Customer Type Selector */}
-        <div className="flex items-center justify-between bg-card/50 p-2.5 rounded-xl border border-border/80">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground font-bold px-2">Customer Type:</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-card/50 p-2.5 rounded-xl border border-border/80 gap-2.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <span className="text-xs text-muted-foreground font-bold shrink-0 pr-1">Customer Type:</span>
             {(["RETAIL", "WHOLESALE", "DISTRIBUTOR"] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setCustomerType(type)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
                   customerType === type
                     ? "bg-[#00aef0] text-foreground shadow-md"
                     : "text-muted-foreground hover:text-foreground"
@@ -387,13 +389,13 @@ function POSTerminalPageContent() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Input
               type="text"
               placeholder="Customer Mobile #"
               value={customerMobile}
               onChange={(e) => setCustomerMobile(e.target.value)}
-              className="h-8 w-36 bg-background border-border text-xs text-foreground rounded-lg"
+              className="h-8 w-full sm:w-36 bg-background border-border text-xs text-foreground rounded-lg"
             />
           </div>
         </div>

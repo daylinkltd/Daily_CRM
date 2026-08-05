@@ -159,7 +159,7 @@ export function PrintableHandbookModal({
         </div>
 
         {/* Scrollable Printable Document Canvas */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 bg-slate-100 text-black font-sans leading-relaxed print:p-0 print:overflow-visible print:bg-white">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 bg-muted/40 text-foreground font-sans leading-relaxed print:p-0 print:overflow-visible print:bg-white print:text-black">
           {loading ? (
             <div className="flex h-64 items-center justify-center text-muted-foreground print:hidden">
               <Loader2 className="size-8 animate-spin text-primary mr-2" /> Generating Official Handbook Letterhead...

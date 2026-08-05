@@ -57,7 +57,7 @@ export function SheetsConfig() {
             {connectionStatus === 'connected' ? 'Your Google Workspace account is successfully linked.' : 'Authenticate with Google to enable 2-way sync.'}
           </AlertDescription>
           {connectionStatus === 'disconnected' && (
-            <Button onClick={handleConnect} className="mt-4 bg-white text-black hover:bg-muted">
+            <Button onClick={handleConnect} className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
               Sign in with Google
             </Button>
           )}
