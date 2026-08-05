@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
-import Razorpay from 'razorpay';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { PLANS, chargeablePaise, type BillingPeriod } from '@/config/plans';
+import { verifyHubPayment } from '@/lib/payments/hub-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,32 +57,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    if (!keyId || !keySecret) {
-      console.error('[verify-payment] Razorpay secret not configured in environment');
-      return NextResponse.json(
-        { error: 'Razorpay integration keys are not configured.' },
-        { status: 500 }
-      );
+    // Signature checking and the Razorpay lookup happen on the Daylink hub,
+    // which is the only host holding the account credentials. It returns
+    // FACTS — was the signature valid, how much was actually captured —
+    // and the approve/reject decision below stays here, in the app that
+    // knows what the plan costs.
+    const verification = await verifyHubPayment({
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    });
+
+    if (!verification.ok) {
+      console.error('[verify-payment] hub error:', verification.error);
+      return NextResponse.json({ error: verification.error }, { status: verification.status });
     }
 
-    // Verify HMAC-SHA256 signature: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
-    const generatedSignature = crypto
-      .createHmac('sha256', keySecret)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest('hex');
-
-    if (generatedSignature !== razorpay_signature) {
+    if (!verification.data.signature_valid) {
       return NextResponse.json(
         { error: 'Payment signature mismatch. Verification failed.' },
         { status: 400 }
       );
     }
 
-    // Signatures match! Resolve the plan and verify the PAID AMOUNT
-    // actually covers it — the signature only proves "this order was
-    // paid", not "the right price was paid for this plan".
     const planConfig = PLANS.find((p) => p.id === plan_id);
     if (!planConfig) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
@@ -95,10 +91,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Seats are part of the price now, so they are part of what gets
-    // verified. A caller who sends seats: 1 and pays for one seat must not
-    // end up on a 50-seat workspace, so the seat count is written to
-    // plan_limits below and enforced there.
+    // Seats are part of the price, so they are part of what gets verified.
+    // A caller who sends seats: 1 and pays for one seat must not end up on
+    // a 50-seat workspace, so the count is written to plan_limits below.
     const seatCount = Number(seats);
     if (!Number.isInteger(seatCount) || seatCount < 1 || seatCount > 10_000) {
       return NextResponse.json(
@@ -108,19 +103,25 @@ export async function POST(request: NextRequest) {
     }
     const billingPeriod: BillingPeriod = period === 'annual' ? 'annual' : 'monthly';
 
-    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
-    let order: { amount: string | number; currency: string };
-    try {
-      order = await razorpay.orders.fetch(razorpay_order_id);
-    } catch (err) {
-      console.error('[verify-payment] Failed to fetch order from Razorpay:', err);
+    // STRICTLY amount_paid, never falling back to `amount`. `amount` is
+    // what the order ASKED for; `amount_paid` is what Razorpay actually
+    // captured. An unpaid order reports amount_paid: 0 alongside the full
+    // `amount`, so a `amount_paid || amount` fallback would treat an
+    // untouched order as fully paid — caught by testing an unpaid order
+    // against the live API rather than by reading the code.
+    const paidPaise = Number(verification.data.amount_paid ?? 0);
+
+    // Belt and braces: Razorpay flips the order to 'paid' only once it is
+    // settled in full, so this rejects partial captures too.
+    if (verification.data.status !== 'paid') {
+      console.error(
+        `[verify-payment] Order ${razorpay_order_id} is '${verification.data.status}', not paid`,
+      );
       return NextResponse.json(
-        { error: 'Could not verify the payment order with Razorpay.' },
+        { error: 'That payment has not completed. Nothing has been charged to your plan.' },
         { status: 400 }
       );
     }
-
-    const paidPaise = Number(order.amount);
     const expectedPaise = chargeablePaise(planConfig, seatCount, billingPeriod);
     if (expectedPaise === null) {
       return NextResponse.json(
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
     }
     // The signature only proves this order was paid — not that it was paid
     // ENOUGH, and now not that it was paid for the right number of seats.
-    if (order.currency !== 'INR' || paidPaise !== expectedPaise) {
+    if (verification.data.currency !== 'INR' || paidPaise !== expectedPaise) {
       console.error(
         `[verify-payment] Amount mismatch for ${plan_id} x${seatCount} ${billingPeriod}: paid ${paidPaise}, expected ${expectedPaise}`
       );

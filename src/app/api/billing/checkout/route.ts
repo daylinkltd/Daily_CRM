@@ -1,28 +1,25 @@
 import { NextResponse } from 'next/server';
-import Razorpay from 'razorpay';
 
 import { createClient } from '@/lib/supabase/server';
 import { PLANS, chargeablePaise, type BillingPeriod } from '@/config/plans';
 import { encodeHandoff } from '@/lib/payments/handoff';
+import { createHubOrder } from '@/lib/payments/hub-client';
 import { BRAND } from '@/config/brand';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Start a checkout: create the Razorpay order here, then hand off to the
- * daylink.in hub which actually opens the modal.
+ * Start a checkout.
  *
- * WHY THE ORDER IS CREATED HERE AND NOT ON THE HUB. Razorpay's
- * authorised-domain restriction applies to the Checkout modal, not the
- * Orders API — so this app can still create the order server-side, with
- * the amount computed from its own plan config and its own seat count.
- * The hub receives an order id whose amount is already fixed and cannot
- * change it. That keeps every pricing decision, and every verification,
- * inside the product that owns the customer.
+ * THIS APP DECIDES THE PRICE; THE HUB HOLDS THE CREDENTIALS. The amount is
+ * computed here from our own plan config and seat count, then the Daylink
+ * hub creates the Razorpay order for exactly that amount and hosts the
+ * modal (daylink.in being the only domain registered with Razorpay).
  *
- * The alternative — letting the hub price things — would make one bug
- * there a mis-charge across every product on the hub. Not worth the
- * convenience.
+ * Splitting it this way means the account's secret exists in one place
+ * rather than being copied into every product that ever bills a customer,
+ * while pricing and the eventual approve/reject decision stay with the app
+ * that actually knows what a seat costs.
  */
 export async function POST(request: Request) {
   try {
@@ -83,17 +80,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
     const handoffSecret = process.env.DAYLINK_PAY_SECRET;
     const hubUrl = process.env.DAYLINK_PAY_URL || 'https://daylink.in/pay';
 
-    if (!keyId || !keySecret) {
-      return NextResponse.json(
-        { error: 'Razorpay is not configured on this environment.' },
-        { status: 500 },
-      );
-    }
     if (!handoffSecret) {
       // Refuse rather than fall back to an unsigned handoff — an unsigned
       // one would let anybody craft a payment link on our behalf.
@@ -103,8 +92,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
-    const order = await razorpay.orders.create({
+    // The hub holds the Razorpay credentials and creates the order for the
+    // amount we computed. It cannot change that amount, and we re-check
+    // what was actually captured before granting anything.
+    const created = await createHubOrder({
       amount,
       currency: BRAND.currency,
       receipt: `wsp_${String(workspace_id).slice(0, 8)}_${Date.now()}`,
@@ -117,13 +108,18 @@ export async function POST(request: Request) {
       },
     });
 
+    if (!created.ok) {
+      return NextResponse.json({ error: created.error }, { status: created.status });
+    }
+    const order = created.data;
+
     // `reference` is opaque to the hub and comes back untouched, which is
     // how the callback knows what was being bought without trusting the
     // buyer to tell it again.
     const { data, sig, nonce } = encodeHandoff(
       {
         product: 'dailybuz',
-        orderId: order.id,
+        orderId: order.order_id,
         amount: Number(order.amount),
         currency: String(order.currency),
         description: `${plan.name} — ${seatCount} seat${seatCount === 1 ? '' : 's'} (${
@@ -140,7 +136,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       redirect_url: redirectUrl.toString(),
-      order_id: order.id,
+      order_id: order.order_id,
       amount,
       nonce,
     });
