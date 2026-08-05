@@ -101,6 +101,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    if (planConfig.maxUsers !== null && seatCount > planConfig.maxUsers) {
+      return NextResponse.json(
+        { error: `The ${planConfig.name} plan cannot hold ${seatCount} users.` },
+        { status: 400 }
+      );
+    }
     const billingPeriod: BillingPeriod = period === 'annual' ? 'annual' : 'monthly';
 
     // STRICTLY amount_paid, never falling back to `amount`. `amount` is

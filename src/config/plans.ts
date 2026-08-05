@@ -10,6 +10,12 @@
 // Now there is ONE product. Every module (CRM, HR, Accounting, Retail,
 // Projects) is in every paid seat, and the only variable is headcount.
 //
+// WHY THERE IS A SOLO TIER. At ₹799 a one-person business was better off
+// with a ₹300 billing app, and the comparison page said so outright. Solo
+// closes that at ₹299 with the whole product and a hard one-user cap — it
+// undercuts a billing app while giving far more, and it cannot be abused
+// as a cheap team plan.
+//
 // WHATSAPP CONVERSATIONS ARE NOT FREE TO US. Meta bills per conversation,
 // so a seat price with unlimited messaging is an open-ended liability: one
 // broadcast-heavy customer can cost more than they pay. Each plan
@@ -91,6 +97,29 @@ export const PLANS: Plan[] = [
     ctaType: 'trial',
   },
   {
+    id: 'solo',
+    name: 'Solo',
+    tagline: 'One person, the whole system.',
+    pricePerSeatMonthly: 299,
+    pricePerSeatAnnual: 249,
+    minSeats: 1,
+    // Hard cap of one. The moment a second person needs a login, Business
+    // is the honest answer — this tier exists to beat a billing app on
+    // price for a one-person business, not to be a cheap team plan.
+    maxUsers: 1,
+    maxWorkspaces: 1,
+    monthlyMessageAllowance: 500,
+    features: [
+      'Every module, same as Business',
+      'One user',
+      '500 WhatsApp conversations/month',
+      'GST invoicing and double-entry books',
+      'Email support',
+    ],
+    isRecommended: false,
+    ctaType: 'subscribe',
+  },
+  {
     id: 'business',
     name: 'Business',
     tagline: 'Every module, one price per person.',
@@ -139,6 +168,7 @@ export const PLANS: Plan[] = [
 ];
 
 export const BUSINESS_PLAN = PLANS.find((p) => p.id === 'business')!;
+export const SOLO_PLAN = PLANS.find((p) => p.id === 'solo')!;
 
 /** Per-seat rate for a billing period. */
 export function seatRate(plan: Plan, period: BillingPeriod): number {

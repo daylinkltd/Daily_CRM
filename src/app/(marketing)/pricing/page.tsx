@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { BRAND, absoluteUrl, pageTitle } from "@/config/brand";
-import { BUSINESS_PLAN } from "@/config/plans";
+import { BUSINESS_PLAN, SOLO_PLAN } from "@/config/plans";
 import { PricingContent } from "./pricing-content";
 import { jsonLdGraph, breadcrumbSchema, faqSchema } from "@/lib/seo/structured-data";
 
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 const FAQ = [
   {
     question: `How much does ${BRAND.name} cost?`,
-    answer: `${BRAND.name} costs ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month billed monthly, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually. Prices exclude GST. Every module is included at that price.`,
+    answer: `A single user pays ₹${SOLO_PLAN.pricePerSeatMonthly} per month on Solo (₹${SOLO_PLAN.pricePerSeatAnnual} billed annually). Teams pay ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually. Prices exclude GST, and every module is included on both.`,
   },
   {
     question: "Is there a free trial?",

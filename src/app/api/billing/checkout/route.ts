@@ -71,6 +71,18 @@ export async function POST(request: Request) {
       );
     }
 
+    // A plan with a user ceiling must not be sold more seats than it can
+    // hold — Solo caps at one, and billing five would take money for
+    // logins the plan will then refuse to create.
+    if (plan.maxUsers !== null && seatCount > plan.maxUsers) {
+      return NextResponse.json(
+        {
+          error: `The ${plan.name} plan is limited to ${plan.maxUsers} user${plan.maxUsers === 1 ? '' : 's'}. Choose Business for a larger team.`,
+        },
+        { status: 400 },
+      );
+    }
+
     const billingPeriod: BillingPeriod = period === 'annual' ? 'annual' : 'monthly';
     const amount = chargeablePaise(plan, seatCount, billingPeriod);
     if (amount === null) {

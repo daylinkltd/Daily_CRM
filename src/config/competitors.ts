@@ -22,6 +22,8 @@
 // a stale price on a comparison page is the fastest way to lose trust.
 // ============================================================
 
+import { BUSINESS_PLAN, SOLO_PLAN } from './plans';
+
 export interface Competitor {
   slug: string;
   name: string;
@@ -153,7 +155,7 @@ export const COMPETITORS: Competitor[] = [
     whereTheyWin:
       'Cheapest way to raise a GST invoice and track who owes you money. Excellent on mobile and genuinely easy for a one-person business.',
     whereWeDiffer:
-      'They are billing tools, not systems of record — no team inbox, no pipelines, no payroll, no double-entry books. Businesses usually outgrow them at around five to ten people, which is where Dailybuz starts.',
+      `They are billing tools, not systems of record — no team inbox, no pipelines, no payroll, no double-entry books. Dailybuz Solo is ₹${SOLO_PLAN.pricePerSeatMonthly}/month for a single user with all of that included, so you are not choosing between price and a system that survives your next five hires.`,
     coverage: {
       crm: 'none',
       hr: 'none',
@@ -168,7 +170,9 @@ export const COMPETITORS: Competitor[] = [
 /** Dailybuz's own row, so the table has a like-for-like first column. */
 export const OURS = {
   name: 'Dailybuz',
-  priceNote: '₹799/user/month, or ₹639 billed annually',
+  // Derived, never typed twice — a comparison page with a stale own-price
+  // is worse than one with a stale competitor price.
+  priceNote: `₹${SOLO_PLAN.pricePerSeatMonthly}/month solo, ₹${BUSINESS_PLAN.pricePerSeatMonthly}/user/month for teams`,
   coverage: {
     crm: 'full',
     hr: 'full',
@@ -188,10 +192,82 @@ export const COVERAGE_ROWS = [
   { key: 'projects', label: 'Projects & timesheets' },
 ] as const;
 
-/** When Dailybuz is the wrong answer. Stated plainly, on the page. */
-export const NOT_FOR_YOU = [
-  'You need manufacturing or production planning — look at Odoo.',
-  'Payroll compliance is your single biggest problem — Keka or greytHR go deeper.',
-  'You are one person raising a few invoices a month — Vyapar is cheaper and enough.',
-  'You operate outside India — GST and INR-first pricing are built in, not bolted on.',
+/**
+ * What is not built yet, stated as roadmap rather than as a reason to buy
+ * a competitor.
+ *
+ * The page used to carry a "when Dailybuz is the wrong choice" list that
+ * ended each line by naming a rival to go and buy. That was more
+ * self-defeating than honest — a prospect does not need to be handed a
+ * competitor's name on our own site.
+ *
+ * But the underlying facts have not changed, so they are not deleted:
+ * there is genuinely no manufacturing module, no statutory payroll filing,
+ * and no multi-currency ledger today. Saying so as a roadmap is truthful
+ * AND commercially sane. Claiming otherwise would put false statements on
+ * a page that AI assistants quote, which is a slower and worse problem
+ * than losing a deal we were going to lose anyway.
+ *
+ * REMOVE AN ITEM FROM HERE ONLY WHEN IT SHIPS. Not when it is started.
+ */
+export interface RoadmapItem {
+  title: string;
+  detail: string;
+  /** Rough sequencing, so the page does not read as vapourware. */
+  horizon: 'building' | 'next' | 'later';
+}
+
+export const ROADMAP: RoadmapItem[] = [
+  {
+    title: 'E-invoicing (IRN) and e-way bills',
+    detail:
+      'Direct IRN generation against the GST portal, and e-way bills for goods movement. Mandatory for businesses above the turnover threshold, so this leads the queue.',
+    horizon: 'building',
+  },
+  {
+    title: 'Bank reconciliation',
+    detail:
+      'Import a statement and match it against the ledger, so the books close without a spreadsheet.',
+    horizon: 'building',
+  },
+  {
+    title: 'Credit and debit notes',
+    detail:
+      'Sales returns and adjustments as first-class documents that flow into the GST return.',
+    horizon: 'next',
+  },
+  {
+    title: 'Recurring invoices',
+    detail: 'Retainers and subscriptions billed on a schedule without re-keying.',
+    horizon: 'next',
+  },
+  {
+    title: 'Deeper payroll compliance',
+    detail:
+      'PF and ESI challans, Form 16, and full-and-final settlement. Today Dailybuz computes and posts payroll; the statutory filing paperwork is not generated for you.',
+    horizon: 'next',
+  },
+  {
+    title: 'Two-factor authentication',
+    detail: 'TOTP on login, for workspaces holding payroll and banking data.',
+    horizon: 'next',
+  },
+  {
+    title: 'Multi-currency',
+    detail:
+      'Invoicing and books in more than one currency, with exchange differences posted properly. Dailybuz is INR-first today.',
+    horizon: 'later',
+  },
+  {
+    title: 'Manufacturing and production planning',
+    detail:
+      'Bills of materials, work orders and material planning. Not started — if production planning is your core need today, Dailybuz is not yet that tool.',
+    horizon: 'later',
+  },
 ];
+
+export const HORIZON_LABEL: Record<RoadmapItem['horizon'], string> = {
+  building: 'In progress',
+  next: 'Next',
+  later: 'Planned',
+};

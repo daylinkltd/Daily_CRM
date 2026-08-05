@@ -144,6 +144,9 @@ export const MODULES: ModuleContent[] = [
     roadmap: [
       'Shift-based late-arrival scoring',
       'Automatic unpaid-leave deduction in payroll',
+      'PF and ESI challan generation',
+      'Form 16 issuance',
+      'Full-and-final settlement workflow',
     ],
   },
   {
@@ -187,7 +190,16 @@ export const MODULES: ModuleContent[] = [
       'Accounts receivable',
       'Journal entries',
     ],
-    roadmap: ['Payroll statutory dues posted as separate liabilities'],
+    roadmap: [
+      'Payroll statutory dues posted as separate liabilities',
+      'E-invoicing with IRN generation',
+      'Bank statement import and reconciliation',
+      'Credit and debit notes',
+      'Recurring invoices',
+      'Fixed assets and depreciation schedules',
+      'TDS on purchases',
+      'Multi-currency invoicing and books',
+    ],
   },
   {
     slug: 'retail',
@@ -229,6 +241,11 @@ export const MODULES: ModuleContent[] = [
       'Supplier management',
       'Price lists',
       'Stock audits',
+    ],
+    roadmap: [
+      'E-way bill generation for goods movement',
+      'Bills of materials and work orders',
+      'Multi-branch stock transfers',
     ],
   },
   {

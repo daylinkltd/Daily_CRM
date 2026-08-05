@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Check, Minus, X, CircleDollarSign } from "lucide-react";
+import { ArrowRight, Check, Minus, X, CircleDollarSign, Hammer } from "lucide-react";
 
 import { BRAND, absoluteUrl, pageTitle } from "@/config/brand";
-import { BUSINESS_PLAN } from "@/config/plans";
+import { BUSINESS_PLAN, SOLO_PLAN } from "@/config/plans";
 import {
   COMPETITORS,
   COVERAGE_ROWS,
   COVERAGE_LABEL,
-  NOT_FOR_YOU,
+  ROADMAP,
+  HORIZON_LABEL,
   OURS,
   type Coverage,
 } from "@/config/competitors";
@@ -53,7 +54,7 @@ const FAQ = [
   },
   {
     question: "Is Dailybuz cheaper than the alternatives?",
-    answer: `At ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included, Dailybuz is cheaper per user than Zoho One and Odoo Standard. It is more expensive than a billing-only app such as Vyapar, which does far less.`,
+    answer: `At ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included, Dailybuz is cheaper per user than Zoho One and Odoo Standard. For a single user, Solo is ₹${SOLO_PLAN.pricePerSeatMonthly} per month with the same modules, which undercuts most billing-only apps while doing considerably more.`,
   },
 ];
 
@@ -229,25 +230,48 @@ export default function ComparePage() {
         </div>
       </section>
 
-      {/* When not to buy us */}
+      {/* Roadmap — the same facts, forward-looking. */}
       <section className="mkt-section">
-        <div className="mkt-container mkt-container-narrow">
-          <Reveal className="border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-7">
-            <h2 className="text-xl font-extrabold text-[var(--mkt-fg)]">
-              When {BRAND.name} is the wrong choice
-            </h2>
-            <p className="mt-3 text-sm text-[var(--mkt-fg-muted)]">
-              We would rather you buy the right thing than churn in a month.
+        <div className="mkt-container">
+          <Reveal className="mb-8 max-w-2xl">
+            <div className="mkt-eyebrow mb-4">
+              <Hammer className="size-3" /> What we&apos;re building
+            </div>
+            <h2 className="mkt-h2">Where {BRAND.name} is still growing</h2>
+            <p className="mkt-lead mt-3">
+              We would rather tell you what is coming than let you find out
+              after you have signed up. Nothing below ships until it ships —
+              this list shortens, it does not get reworded.
             </p>
-            <ul className="mt-5 space-y-3">
-              {NOT_FOR_YOU.map((item) => (
-                <li key={item} className="flex items-start gap-2.5 text-sm text-[var(--mkt-fg-muted)]">
-                  <X className="mt-0.5 size-4 shrink-0 text-[var(--mkt-fg-subtle)]" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
           </Reveal>
+
+          <div className="grid gap-px border border-[var(--mkt-line)] bg-[var(--mkt-line)] sm:grid-cols-2">
+            {ROADMAP.map((item, i) => (
+              <Reveal
+                key={item.title}
+                delay={Math.min(i * 45, 300)}
+                className="border border-transparent bg-[var(--mkt-surface)] p-5"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-sm font-bold text-[var(--mkt-fg)]">{item.title}</h3>
+                  <span
+                    className={`shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                      item.horizon === "building"
+                        ? "border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+                        : item.horizon === "next"
+                          ? "border-amber-500/40 text-amber-600 dark:text-amber-400"
+                          : "border-[var(--mkt-line)] text-[var(--mkt-fg-subtle)]"
+                    }`}
+                  >
+                    {HORIZON_LABEL[item.horizon]}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--mkt-fg-muted)]">
+                  {item.detail}
+                </p>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 

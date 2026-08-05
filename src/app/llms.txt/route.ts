@@ -43,6 +43,7 @@ export function GET(): Response {
   }).join('\n\n');
 
   const trial = PLANS.find((p) => p.id === 'free');
+  const solo = PLANS.find((p) => p.id === 'solo');
 
   const body = `# ${BRAND.name}
 
@@ -58,6 +59,7 @@ how many people you add.
 
 ## Pricing
 
+${solo ? `- ${solo.name}: Rs ${solo.pricePerSeatMonthly} per month for a single user, or Rs ${solo.pricePerSeatAnnual} per month billed annually. Same modules as ${BUSINESS_PLAN.name}, capped at one user.` : ''}
 - ${BUSINESS_PLAN.name}: Rs ${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or Rs ${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually. Prices exclude GST (India).
 - Includes ${BUSINESS_PLAN.monthlyMessageAllowance?.toLocaleString()} pooled WhatsApp conversations per month across the workspace. Meta conversation charges beyond that are billed at cost.
 ${trial ? `- Free trial: ${trial.name}, 14 days, no card required, up to ${trial.maxUsers} users.` : ''}

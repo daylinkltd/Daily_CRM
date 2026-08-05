@@ -27,7 +27,7 @@
 
 import { BRAND, absoluteUrl } from '@/config/brand';
 import { MODULES, allCapabilities } from '@/config/modules-content';
-import { BUSINESS_PLAN } from '@/config/plans';
+import { BUSINESS_PLAN, SOLO_PLAN } from '@/config/plans';
 
 type Json = Record<string, unknown>;
 
@@ -103,24 +103,38 @@ export function softwareApplicationSchema(): Json {
     description: BRAND.description,
     publisher: { '@id': ORG_ID },
     featureList: allCapabilities(),
+    // AggregateOffer rather than a single Offer, because there are now two
+    // real prices. Publishing only the team price would have an assistant
+    // answer "how much is Dailybuz?" with a figure nearly three times the
+    // actual entry point.
     offers: {
-      '@type': 'Offer',
+      '@type': 'AggregateOffer',
       category: 'SaaS subscription',
-      price: BUSINESS_PLAN.pricePerSeatMonthly,
       priceCurrency: BRAND.currency,
-      priceSpecification: {
-        '@type': 'UnitPriceSpecification',
-        price: BUSINESS_PLAN.pricePerSeatMonthly,
-        priceCurrency: BRAND.currency,
-        unitText: 'user per month',
-        referenceQuantity: {
-          '@type': 'QuantitativeValue',
-          value: 1,
-          unitCode: 'C62', // UN/CEFACT: "one" — i.e. one user
-        },
-      },
+      lowPrice: SOLO_PLAN.pricePerSeatMonthly,
+      highPrice: BUSINESS_PLAN.pricePerSeatMonthly,
+      offerCount: 2,
       availability: 'https://schema.org/InStock',
       url: absoluteUrl('/pricing'),
+      offers: [SOLO_PLAN, BUSINESS_PLAN].map((plan) => ({
+        '@type': 'Offer',
+        name: plan.name,
+        price: plan.pricePerSeatMonthly,
+        priceCurrency: BRAND.currency,
+        priceSpecification: {
+          '@type': 'UnitPriceSpecification',
+          price: plan.pricePerSeatMonthly,
+          priceCurrency: BRAND.currency,
+          unitText: 'user per month',
+          referenceQuantity: {
+            '@type': 'QuantitativeValue',
+            value: 1,
+            unitCode: 'C62', // UN/CEFACT: "one" — i.e. one user
+          },
+        },
+        availability: 'https://schema.org/InStock',
+        url: absoluteUrl('/pricing'),
+      })),
     },
     // Deliberately no aggregateRating: we have no verified review corpus,
     // and inventing one is both a policy violation and a lie an assistant

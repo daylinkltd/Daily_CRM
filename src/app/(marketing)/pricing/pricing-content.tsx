@@ -34,7 +34,13 @@ export function PricingContent({
 
   const business = PLANS.find((p) => p.id === "business")!;
   const trial = PLANS.find((p) => p.id === "free")!;
+  const solo = PLANS.find((p) => p.id === "solo")!;
   const enterprise = PLANS.find((p) => p.id === "custom")!;
+
+  // The calculator prices a team, so it quotes Business. A single person is
+  // better served by Solo, and quoting them ₹799 when ₹299 would do is the
+  // kind of thing that loses the sale on the pricing page itself.
+  const soloIsBetter = seats === 1;
 
   return (
     <>
@@ -106,13 +112,19 @@ export function PricingContent({
             />
             <p className="mt-3 text-center">
               <span className="text-3xl font-extrabold text-[var(--mkt-fg)]">
-                ₹{monthlyTotal(business, seats, period).toLocaleString()}
+                ₹
+                {monthlyTotal(soloIsBetter ? solo : business, seats, period).toLocaleString()}
               </span>
               <span className="text-xs text-[var(--mkt-fg-muted)]">
                 {" "}
                 /month, all modules, excl. GST
               </span>
             </p>
+            {soloIsBetter && (
+              <p className="mt-1 text-center text-[11px] text-[var(--mkt-fg-subtle)]">
+                On the Solo plan — one user, everything included.
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -121,11 +133,14 @@ export function PricingContent({
 
       {/* Plans */}
       <section className="mkt-section">
-        <div className="mkt-container grid gap-5 lg:grid-cols-3">
-          {[trial, business, enterprise].map((plan, i) => {
+        <div className="mkt-container grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[trial, solo, business, enterprise].map((plan, i) => {
             const isTrial = plan.id === "free";
             const isEnterprise = plan.id === "custom";
             const rate = seatRate(plan, period);
+            // Solo is capped at one user, so it must never be linked with the
+            // calculator's seat count — checkout rejects seats above the cap.
+            const linkSeats = plan.maxUsers ? Math.min(seats, plan.maxUsers) : seats;
 
             return (
               <Reveal
@@ -147,7 +162,11 @@ export function PricingContent({
                     {isTrial ? "₹0" : isEnterprise ? "Custom" : `₹${rate.toLocaleString()}`}
                   </span>
                   {!isTrial && !isEnterprise && (
-                    <span className="text-xs text-[var(--mkt-fg-subtle)]"> /user/month</span>
+                    <span className="text-xs text-[var(--mkt-fg-subtle)]">
+                      {/* "per user" on a one-user plan reads like there is a
+                          second user to buy. There is not. */}
+                      {plan.maxUsers === 1 ? " /month" : " /user/month"}
+                    </span>
                   )}
                   {isTrial && <span className="text-xs text-[var(--mkt-fg-subtle)]"> /14 days</span>}
                 </p>
@@ -171,7 +190,7 @@ export function PricingContent({
                   </button>
                 ) : (
                   <Link
-                    href={`${BRAND.appUrl}/signup?plan=${plan.id}&cycle=${period}&seats=${seats}`}
+                    href={`${BRAND.appUrl}/signup?plan=${plan.id}&cycle=${period}&seats=${linkSeats}`}
                     className={`mkt-btn mkt-btn-md mt-7 w-full ${
                       plan.isRecommended ? "mkt-btn-primary" : "mkt-btn-secondary"
                     }`}
