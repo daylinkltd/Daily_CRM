@@ -2,10 +2,6 @@
 
 import { useEffect, useState, startTransition } from "react";
 import { BRAND } from "@/config/brand";
-import {
-  razorpayKeyId,
-  RAZORPAY_NOT_CONFIGURED,
-} from "@/lib/payments/razorpay-client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Script from "next/script";
@@ -222,104 +218,28 @@ function OnboardingInner() {
         // A brand-new workspace has exactly one member — the founder — so
         // onboarding buys one seat. More are added from Billing later.
         const seats = Math.max(1, plan.minSeats);
-        const amountPaise = chargeablePaise(plan, seats, period);
-        if (amountPaise === null) {
-          toast.error("That plan can't be purchased online — please contact us.");
-          setLoading(false);
-          return;
-        }
 
-        toast.loading("Preparing payment window...");
-
-        const razorpayKey = razorpayKeyId();
-        if (!razorpayKey) {
-          // Better a clear refusal than a checkout that appears to work and
-          // settles into the wrong account.
-          toast.error(RAZORPAY_NOT_CONFIGURED);
-          return;
-        }
-
-        const orderRes = await fetch("/api/create-order", {
+        // Checkout is hosted on daylink.in, the only domain registered with
+        // Razorpay. The buyer is returned to /billing/callback afterwards,
+        // which verifies the payment and activates the plan — so leaving
+        // onboarding here does not lose the workspace we just created.
+        const res = await fetch("/api/billing/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            amount: amountPaise,
-            currency: "INR",
-            receipt: `rcpt_onb_${workspaceId.substring(0, 10)}`,
+            workspace_id: workspaceId,
+            plan_id: plan.id,
+            seats,
+            period,
           }),
         });
+        const json = await res.json();
 
-        const orderResult = await orderRes.json();
-        toast.dismiss();
-
-        if (!orderRes.ok || !orderResult.order_id) {
-          throw new Error(orderResult.error || "Failed to initialize payment gateway order.");
+        if (!res.ok || !json.redirect_url) {
+          throw new Error(json.error || "Could not start checkout.");
         }
-
-        const options = {
-          key: razorpayKey,
-          amount: orderResult.amount,
-          currency: orderResult.currency,
-          name: BRAND.payments.merchantName,
-          description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
-          order_id: orderResult.order_id,
-          handler: async function (response: any) {
-            try {
-              toast.loading("Verifying payment transaction...");
-              const verifyRes = await fetch("/api/verify-payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_signature: response.razorpay_signature,
-                  workspace_id: workspaceId,
-                  plan_id: plan.id,
-                }),
-              });
-
-              const verifyResult = await verifyRes.json();
-              toast.dismiss();
-
-              if (verifyRes.ok && verifyResult.success) {
-                toast.success(`Success! Workspace upgraded to ${plan.name}.`);
-                startTransition(() => {
-                  refreshWorkspaces();
-                  router.push("/dashboard");
-                });
-              } else {
-                toast.error(verifyResult.error || "Failed to verify transaction signature.");
-                // Let user into the free trial first
-                router.push("/dashboard");
-              }
-            } catch (err: any) {
-              toast.dismiss();
-              toast.error(err.message || "Payment verification failed.");
-              router.push("/dashboard");
-            }
-          },
-          prefill: {
-            name: orgName,
-          },
-          theme: {
-            color: "#0284C7",
-          },
-          modal: {
-            ondismiss: function () {
-              toast.info("Payment checkout cancelled. Your workspace has been initialized on Free Trial tier. You can upgrade from Settings anytime.");
-              router.push("/dashboard");
-            },
-          },
-        };
-
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
-      } else {
-        toast.success("Welcome aboard! Your workspace has been successfully created.");
-        startTransition(() => {
-          refreshWorkspaces();
-          router.push("/dashboard");
-        });
+        window.location.href = json.redirect_url;
+        return;
       }
     } catch (err: any) {
       toast.dismiss();

@@ -2,10 +2,6 @@
 
 import { useEffect, useState, startTransition } from "react";
 import { BRAND } from "@/config/brand";
-import {
-  razorpayKeyId,
-  RAZORPAY_NOT_CONFIGURED,
-} from "@/lib/payments/razorpay-client";
 import Script from "next/script";
 import { PLANS, Plan, chargeablePaise, seatRate, monthlyTotal, type BillingPeriod } from "@/config/plans";
 import { useWorkspace } from "@/hooks/use-workspace";
