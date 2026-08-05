@@ -242,7 +242,9 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
   useEffect(() => {
     if (projectId && projectId !== 'none') {
       supabase.from('sprints').select('id, name').eq('project_id', projectId).then(({ data }) => setSprints(data || []));
-      supabase.from('epics').select('id, name, title').eq('project_id', projectId).then(({ data }) => {
+      // `epics` has no `title` — selecting it errored and left the epic
+      // dropdown permanently empty. The UI renders `name` anyway.
+      supabase.from('epics').select('id, name').eq('project_id', projectId).then(({ data }) => {
         const loaded = data || [];
         setEpics(loaded);
         // Apply defaultEpicId only after epics are loaded so SelectItem exists
@@ -274,7 +276,8 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
 
   const fetchSubtasks = async (parentId: string) => {
     setLoadingSubtasks(true);
-    const { data } = await supabase.from('tasks').select('id, title, status, priority').eq('parent_id', parentId).order('created_at', { ascending: true });
+    // No `status` column on tasks; it was never read from this result anyway.
+    const { data } = await supabase.from('tasks').select('id, title, priority').eq('parent_id', parentId).order('created_at', { ascending: true });
     setSubtasks(data || []);
     setLoadingSubtasks(false);
   };

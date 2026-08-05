@@ -42,10 +42,14 @@ export async function findExistingContact(
 
   const suffix = normalized.length >= 8 ? normalized.slice(-8) : normalized;
 
+  // `contacts` is scoped by `workspace_id`; there is no `account_id` column.
+  // As written this always errored and returned null, so the caller would
+  // treat every contact as new. Currently unused — the WhatsApp webhook has
+  // its own RPC-based matcher — but wrong in a way that silently duplicates.
   const { data, error } = await db
     .from("contacts")
     .select("*")
-    .eq("account_id", accountId)
+    .eq("workspace_id", accountId)
     .like("phone", `%${suffix}`);
 
   if (error || !data) return null;

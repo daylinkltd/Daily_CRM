@@ -16,7 +16,10 @@ export default async function PortalPage({ params }: { params: Promise<{ token: 
   // Fetch project using the public token
   const { data: project } = await supabase
     .from('projects')
-    .select('id, name, description, is_public, portal_settings, workspaces(name, logo_url)')
+    // `projects` has no `description` column. Selecting it errored, so
+    // `project` was null and every share link fell through to notFound() —
+    // the whole public portal returned 404.
+    .select('id, name, is_public, portal_settings, workspaces(name, logo_url)')
     .eq('public_share_token', token)
     .single();
 
@@ -54,9 +57,9 @@ export default async function PortalPage({ params }: { params: Promise<{ token: 
       <main className="flex-1 p-6 max-w-[1400px] mx-auto w-full">
         <div className="mb-8">
           <h2 className="text-lg font-semibold tracking-tight mb-2">Project Overview</h2>
-          {project.description && (
-            <p className="text-muted-foreground max-w-3xl">{project.description}</p>
-          )}
+          {/* No description paragraph: `projects` has no such column, so this
+              block could never render. Add one to the table first if the
+              portal should show a project blurb. */}
         </div>
 
         {(!settings.show_timeline && !settings.show_board) ? (

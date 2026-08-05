@@ -4,12 +4,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 async function isSuperAdmin(userId: string) {
   const supabase = createAdminClient();
+  // `profiles.is_super_admin` does not exist — the flag is `system_role`,
+  // and the row is keyed by `user_id` (an auth user id), not `id` (the
+  // profile's own PK; the two are never equal). Both mistakes made this
+  // select error, so `data` was null and every caller — including genuine
+  // super admins — got a permanent 401.
   const { data } = await supabase
     .from("profiles")
-    .select("is_super_admin")
-    .eq("id", userId)
-    .single();
-  return !!data?.is_super_admin;
+    .select("system_role")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data?.system_role === "super_admin";
 }
 
 export async function GET() {

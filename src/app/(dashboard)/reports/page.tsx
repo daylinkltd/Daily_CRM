@@ -99,9 +99,12 @@ export default function ReportsDashboard() {
       const endDate = endOfMonth(new Date()).toISOString();
 
       // 5. Fetch Tasks (safe query)
+      // `tasks` has no `status` column — completion lives in
+      // project_statuses.category via status_id. Selecting `status` errored,
+      // so `tasks` was null and every "tasks completed" figure read zero.
       const { data: tasks } = await supabase
         .from('tasks')
-        .select('id, assigned_workspace_member_id, status')
+        .select('id, assigned_workspace_member_id, status:project_statuses(category)')
         .eq('workspace_id', activeWorkspace.id)
         .gte('created_at', startDate)
         .lte('created_at', endDate);
@@ -148,7 +151,9 @@ export default function ReportsDashboard() {
         
         // Tasks
         const memTasks = (tasks || []).filter(t => t.assigned_workspace_member_id === mem.id);
-        const compTasks = memTasks.filter(t => t.status === 'completed' || t.status === 'DONE').length;
+        const compTasks = memTasks.filter(
+          (t) => (t.status as { category?: string } | null)?.category === 'DONE'
+        ).length;
         totalCT += compTasks;
 
         // Hours

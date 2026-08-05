@@ -29,7 +29,7 @@ import {
 import { RequireRole } from '@/components/auth/require-role';
 import { useAuth } from '@/hooks/use-auth';
 import { SettingsPanelHead } from './settings-panel-head';
-import { API_SCOPES, SCOPE_DESCRIPTIONS, type ApiScope } from '@/lib/api-keys/scopes';
+import { API_SCOPES, SCOPE_DESCRIPTIONS, SCOPE_GROUPS, type ApiScope } from '@/lib/api-keys/scopes';
 import { IconAction } from "@/components/ui/icon-action";
 
 interface ApiKey {
@@ -100,6 +100,16 @@ export function ApiKeysSettings() {
     } else {
       setSelectedScopes([...API_SCOPES]);
     }
+  };
+
+  /** Select or clear one module's scopes without touching the others. */
+  const handleToggleGroup = (scopes: readonly ApiScope[]) => {
+    const allSelected = scopes.every((s) => selectedScopes.includes(s));
+    setSelectedScopes((prev) =>
+      allSelected
+        ? prev.filter((s) => !scopes.includes(s))
+        : [...new Set([...prev, ...scopes])]
+    );
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -411,32 +421,56 @@ export function ApiKeysSettings() {
                   </Button>
                 </div>
                 
-                <div className="border border-border rounded-lg bg-muted p-3 space-y-2.5 divide-y divide-border/40">
-                  {API_SCOPES.map((scope) => {
-                    const checked = selectedScopes.includes(scope);
-                    return (
-                      <div key={scope} className="flex items-start gap-3 pt-2.5 first:pt-0">
-                        <input
-                          type="checkbox"
-                          id={`scope-${scope}`}
-                          checked={checked}
-                          onChange={() => handleToggleScope(scope)}
-                          className="mt-1 size-4 rounded-none border-border text-primary bg-background focus:ring-primary focus:ring-offset-background"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <Label
-                            htmlFor={`scope-${scope}`}
-                            className="font-mono text-xs font-semibold text-foreground cursor-pointer block"
-                          >
-                            {scope}
-                          </Label>
-                          <span className="text-[11px] text-muted-foreground leading-normal block mt-0.5">
-                            {SCOPE_DESCRIPTIONS[scope]}
-                          </span>
-                        </div>
+                {/* Grouped by module: there is one scope per resource per
+                    action now, so a single flat column ran to ~100 rows and
+                    was impossible to scan. */}
+                <div className="border border-border rounded-lg bg-muted p-3 max-h-80 overflow-y-auto space-y-4">
+                  {SCOPE_GROUPS.map((group) => (
+                    <div key={group.label}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          {group.label}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="link"
+                          onClick={() => handleToggleGroup(group.scopes)}
+                          className="h-auto p-0 text-[11px] text-primary hover:text-primary/80"
+                        >
+                          {group.scopes.every((s) => selectedScopes.includes(s))
+                            ? 'Clear'
+                            : 'Select all'}
+                        </Button>
                       </div>
-                    );
-                  })}
+                      <div className="space-y-2.5 divide-y divide-border/40">
+                        {group.scopes.map((scope) => {
+                          const checked = selectedScopes.includes(scope);
+                          return (
+                            <div key={scope} className="flex items-start gap-3 pt-2.5 first:pt-0">
+                              <input
+                                type="checkbox"
+                                id={`scope-${scope}`}
+                                checked={checked}
+                                onChange={() => handleToggleScope(scope)}
+                                className="mt-1 size-4 rounded-none border-border text-primary bg-background focus:ring-primary focus:ring-offset-background"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <Label
+                                  htmlFor={`scope-${scope}`}
+                                  className="font-mono text-xs font-semibold text-foreground cursor-pointer block"
+                                >
+                                  {scope}
+                                </Label>
+                                <span className="text-[11px] text-muted-foreground leading-normal block mt-0.5">
+                                  {SCOPE_DESCRIPTIONS[scope]}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

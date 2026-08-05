@@ -37,7 +37,8 @@ export function ProjectActivityLog({ projectId }: ProjectActivityLogProps) {
       // 2. Fetch epics in this project
       const { data: epics } = await supabase
         .from('epics')
-        .select('id, title, created_at, status')
+        // `epics` names its label column `name`, not `title`.
+        .select('id, name, created_at, status')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -74,8 +75,8 @@ export function ProjectActivityLog({ projectId }: ProjectActivityLogProps) {
         items.push({
           id: `epic-${epic.id}`,
           type: 'EPIC_CREATED',
-          title: `Created epic "${epic.title}"`,
-          itemTitle: epic.title,
+          title: `Created epic "${epic.name}"`,
+          itemTitle: epic.name,
           badge: 'EPIC',
           statusName: epic.status || 'IN_PROGRESS',
           timestamp: new Date(epic.created_at),
