@@ -1,6 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState, Suspense, startTransition } from "react";
+import { BRAND } from "@/config/brand";
+import {
+  razorpayKeyId,
+  RAZORPAY_NOT_CONFIGURED,
+} from "@/lib/payments/razorpay-client";
 import { useRouter, usePathname } from "next/navigation";
 import Script from "next/script";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
@@ -62,6 +67,14 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
 
       toast.loading("Preparing payment window...");
 
+      const razorpayKey = razorpayKeyId();
+      if (!razorpayKey) {
+        // Better a clear refusal than a checkout that appears to work and
+        // settles into the wrong account.
+        toast.error(RAZORPAY_NOT_CONFIGURED);
+        return;
+      }
+
       const orderRes = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,10 +93,10 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
       }
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TEus8m7ilDoAio",
+        key: razorpayKey,
         amount: orderResult.amount,
         currency: orderResult.currency,
-        name: "Dailybuz",
+        name: BRAND.payments.merchantName,
         description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
         order_id: orderResult.order_id,
         handler: async function (response: any) {

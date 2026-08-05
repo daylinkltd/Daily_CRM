@@ -60,6 +60,25 @@ export const BRAND = {
   /** ISO-4217. Everything on the marketing site is quoted in this. */
   currency: 'INR',
 
+  /**
+   * Who actually takes the money.
+   *
+   * The product is sold as Dailybuz, but the Razorpay account, the GST
+   * registration and the bank settlement all belong to Daylink Tech Labs.
+   * The checkout therefore shows the LEGAL ENTITY alongside the product
+   * name: the customer's card statement will read "Daylink", and a charge
+   * from a name they do not recognise is the single most common cause of
+   * a chargeback.
+   */
+  payments: {
+    /** Shown as the merchant name in the Razorpay checkout modal. */
+    merchantName: 'Daylink Tech Labs',
+    /** The entity's own site, shown to customers who want to verify us. */
+    merchantUrl: 'https://daylink.in',
+    /** Where billing questions go. */
+    supportEmail: 'billing@daylink.in',
+  },
+
   /** Founded year, for Organization structured data. */
   foundingYear: 2024,
 } as const;

@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useState, startTransition } from "react";
+import { BRAND } from "@/config/brand";
+import {
+  razorpayKeyId,
+  RAZORPAY_NOT_CONFIGURED,
+} from "@/lib/payments/razorpay-client";
 import Script from "next/script";
 import { PLANS, Plan, chargeablePaise, seatRate, monthlyTotal, type BillingPeriod } from "@/config/plans";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -81,6 +86,14 @@ export function BillingPanel() {
       setIsUpgrading(plan.id);
       toast.loading("Initializing secure payment order...");
 
+      const razorpayKey = razorpayKeyId();
+      if (!razorpayKey) {
+        // Better a clear refusal than a checkout that appears to work and
+        // settles into the wrong account.
+        toast.error(RAZORPAY_NOT_CONFIGURED);
+        return;
+      }
+
       const orderRes = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -99,10 +112,10 @@ export function BillingPanel() {
       }
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TEus8m7ilDoAio",
+        key: razorpayKey,
         amount: orderResult.amount,
         currency: orderResult.currency,
-        name: "Dailybuz",
+        name: BRAND.payments.merchantName,
         description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
         order_id: orderResult.order_id,
         handler: async function (response: any) {
