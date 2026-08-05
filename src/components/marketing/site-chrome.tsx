@@ -8,9 +8,11 @@ import { ArrowRight, Menu, X } from "lucide-react";
 import { BRAND } from "@/config/brand";
 import { MODULES } from "@/config/modules-content";
 import { ThemeToggle } from "./theme-toggle";
+import { Logo } from "./logo";
 
 const NAV = [
   { href: "/modules", label: "Modules" },
+  { href: "/compare", label: "Compare" },
   { href: "/pricing", label: "Pricing" },
 ];
 
@@ -32,8 +34,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--mkt-line)] bg-[color-mix(in_oklab,var(--mkt-canvas)_88%,transparent)] backdrop-blur">
       <div className="mkt-container flex h-16 items-center justify-between gap-4 px-6">
-        <Link href="/" className="text-base font-extrabold tracking-tight text-[var(--mkt-fg)]">
-          {BRAND.name}
+        <Link href="/" aria-label={`${BRAND.name} home`}>
+          <Logo />
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
@@ -103,7 +105,7 @@ export function SiteFooter() {
       <div className="mkt-container px-6 py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="text-base font-extrabold text-[var(--mkt-fg)]">{BRAND.name}</p>
+            <Logo />
             <p className="mt-2 max-w-xs text-sm text-[var(--mkt-fg-muted)]">
               {BRAND.tagline}. Built in {BRAND.address.city} for Indian businesses.
             </p>
@@ -135,6 +137,11 @@ export function SiteFooter() {
               <li>
                 <Link href="/modules" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
                   All modules
+                </Link>
+              </li>
+              <li>
+                <Link href="/compare" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  Compare alternatives
                 </Link>
               </li>
               <li>

@@ -67,7 +67,7 @@ export default async function ModulePage({
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: graph }} />
 
-      <section className="mkt-aurora mkt-section">
+      <section className="mkt-hero mkt-section">
         <div className="mkt-container">
           {/* Visible breadcrumb, matching the structured data. */}
           <nav aria-label="Breadcrumb" className="mb-8">

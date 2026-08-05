@@ -555,3 +555,87 @@ html[data-mode="light"] .marketing .mkt-aurora::before {
 html[data-mode="light"] .marketing [class*="blur-["] {
   opacity: 0.35;
 }
+
+/* ===========================================================================
+ * HERO CANVAS
+ *
+ * The hero was a flat colour with one soft blob, which read as a template.
+ * This layers four cheap effects that survive both modes:
+ *
+ *   1. a fine grid, masked so it fades out before the copy starts
+ *   2. two slow-drifting colour fields
+ *   3. a soft vignette so the edges do not compete with the headline
+ *   4. a hairline at the bottom to seat the section
+ *
+ * All of it lives on pseudo-elements at negative z-index, so nothing here
+ * participates in layout or intercepts a click — a decorative layer that
+ * eats pointer events on the primary CTA is a real and common bug.
+ *
+ * No images: this renders identically at any DPI, costs no request, and
+ * cannot be the thing that delays LCP.
+ * =========================================================================== */
+.marketing .mkt-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Layer 1 — the grid. */
+.marketing .mkt-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--mkt-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--mkt-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  /* Fades before it reaches the headline, so text never sits on a line. */
+  mask-image: radial-gradient(ellipse 78% 62% at 50% 0%, #000 20%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 78% 62% at 50% 0%, #000 20%, transparent 78%);
+}
+
+/* Layer 2 + 3 — colour fields and vignette in one element. */
+.marketing .mkt-hero::after {
+  content: "";
+  position: absolute;
+  inset: -30% -10% auto -10%;
+  height: 150%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(46% 40% at 22% 12%, color-mix(in oklch, var(--primary) 20%, transparent), transparent 68%),
+    radial-gradient(40% 36% at 80% 8%, color-mix(in oklch, var(--mkt-hero-accent-2) 22%, transparent), transparent 68%),
+    radial-gradient(70% 50% at 50% 0%, color-mix(in oklch, var(--primary) 10%, transparent), transparent 72%);
+  filter: blur(26px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marketing .mkt-hero::after {
+    animation: mkt-hero-drift 26s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes mkt-hero-drift {
+  from { transform: translate3d(-1.5%, 0, 0) scale(1); }
+  to   { transform: translate3d(1.5%, 1.5%, 0) scale(1.05); }
+}
+
+/* Dark: a luminous grid over a deep canvas. */
+html[data-mode] .marketing {
+  --mkt-grid-line: oklch(1 0 0 / 0.055);
+  --mkt-hero-accent-2: oklch(0.62 0.19 285); /* violet, against the blue */
+}
+
+/* Light: the same grid has to be a shadow, not a highlight — a white grid
+   on white is invisible, and the blobs need pulling right back or the
+   headline loses contrast. */
+html[data-mode="light"] .marketing {
+  --mkt-grid-line: oklch(0.2 0.02 270 / 0.055);
+  --mkt-hero-accent-2: oklch(0.58 0.16 285);
+}
+
+html[data-mode="light"] .marketing .mkt-hero::after {
+  opacity: 0.55;
+}

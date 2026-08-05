@@ -83,7 +83,7 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: graph }} />
 
       {/* ── HERO ───────────────────────────────────────────────────────── */}
-      <section className="mkt-aurora mkt-section">
+      <section className="mkt-hero mkt-section">
         <div className="mkt-container mkt-container-narrow text-center">
           <div data-enter className="mkt-eyebrow mb-6">
             CRM · HR · Accounting · Retail · Projects

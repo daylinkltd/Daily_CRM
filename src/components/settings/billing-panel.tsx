@@ -73,104 +73,42 @@ export function BillingPanel() {
     }
 
     const period: BillingPeriod = billingCycle === "annual" ? "annual" : "monthly";
-    // Bill for the seats the workspace actually has. The server recomputes
-    // this from the same helper and rejects any mismatch.
+    // Seats the workspace is buying. The server recomputes the amount from
+    // the same helper and rejects any mismatch, so this is a display and
+    // request value, never the authority.
     const seats = Math.max(seatCount, plan.minSeats);
-    const amountPaise = chargeablePaise(plan, seats, period);
-    if (amountPaise === null) {
-      toast.error("That plan can't be purchased online — please contact us.");
-      return;
-    }
 
+    // Razorpay only opens its modal on daylink.in (the only domain
+    // registered against the account), so checkout is hosted there. This
+    // app still creates the order — with its own seat-verified amount —
+    // and hands over an order id the hub cannot change.
     try {
       setIsUpgrading(plan.id);
-      toast.loading("Initializing secure payment order...");
+      toast.loading("Preparing secure checkout...");
 
-      const razorpayKey = razorpayKeyId();
-      if (!razorpayKey) {
-        // Better a clear refusal than a checkout that appears to work and
-        // settles into the wrong account.
-        toast.error(RAZORPAY_NOT_CONFIGURED);
-        return;
-      }
-
-      const orderRes = await fetch("/api/create-order", {
+      const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: amountPaise,
-          currency: "INR",
-          receipt: `rcpt_${activeWorkspace.id.substring(0, 10)}`,
+          workspace_id: activeWorkspace.id,
+          plan_id: plan.id,
+          seats,
+          period,
         }),
       });
-
-      const orderResult = await orderRes.json();
+      const json = await res.json();
       toast.dismiss();
 
-      if (!orderRes.ok || !orderResult.order_id) {
-        throw new Error(orderResult.error || "Failed to initialize payment order.");
+      if (!res.ok || !json.redirect_url) {
+        throw new Error(json.error || "Could not start checkout.");
       }
 
-      const options = {
-        key: razorpayKey,
-        amount: orderResult.amount,
-        currency: orderResult.currency,
-        name: BRAND.payments.merchantName,
-        description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
-        order_id: orderResult.order_id,
-        handler: async function (response: any) {
-          try {
-            toast.loading("Verifying payment transaction...");
-            const verifyRes = await fetch("/api/verify-payment", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                workspace_id: activeWorkspace.id,
-                plan_id: plan.id,
-                seats,
-                period,
-              }),
-            });
-
-            const verifyResult = await verifyRes.json();
-            toast.dismiss();
-
-            if (verifyRes.ok && verifyResult.success) {
-              toast.success(`Success! Workspace upgraded to ${plan.name}.`);
-              startTransition(() => {
-                refreshWorkspaces();
-                fetchUsage();
-              });
-            } else {
-              toast.error(verifyResult.error || "Failed to verify transaction signature.");
-            }
-          } catch (err: any) {
-            toast.dismiss();
-            toast.error(err.message || "Payment verification failed.");
-          }
-        },
-        prefill: {
-          name: activeWorkspace.name,
-        },
-        theme: {
-          color: "#0284C7",
-        },
-        modal: {
-          ondismiss: function () {
-            toast.error("Checkout cancelled.");
-          },
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
-    } catch (err: any) {
+      // Full navigation, not a new tab: popup blockers eat tabs opened
+      // after an await, and the buyer comes straight back here afterwards.
+      window.location.href = json.redirect_url;
+    } catch (err) {
       toast.dismiss();
-      toast.error(err.message || "Checkout failed to initialize.");
-    } finally {
+      toast.error(err instanceof Error ? err.message : "Could not start checkout.");
       setIsUpgrading(null);
     }
   };

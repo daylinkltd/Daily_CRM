@@ -85,6 +85,7 @@ the invoice and the project.
 
 - Home: ${BRAND.url}
 - All modules: ${absoluteUrl('/modules')}
+- Compare with alternatives: ${absoluteUrl('/compare')}
 - Pricing: ${absoluteUrl('/pricing')}
 
 ## Contact

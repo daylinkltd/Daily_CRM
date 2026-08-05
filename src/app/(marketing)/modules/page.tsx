@@ -72,7 +72,7 @@ export default function ModulesPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: graph }} />
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <section className="mkt-aurora mkt-section">
+      <section className="mkt-hero mkt-section">
         <div className="mkt-container mkt-container-narrow text-center">
           <div data-enter className="mkt-eyebrow mb-5">
             Five modules, one product

@@ -38,7 +38,7 @@ export function PricingContent({
 
   return (
     <>
-      <section className="mkt-aurora mkt-section">
+      <section className="mkt-hero mkt-section">
         <div className="mkt-container mkt-container-narrow text-center">
           <div data-enter className="mkt-eyebrow mb-5">
             One price per person
