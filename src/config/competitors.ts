@@ -1,20 +1,30 @@
 // ============================================================
 // Competitor comparison data.
 //
-// HONESTY IS THE STRATEGY HERE, not a constraint on it.
+// HONEST, BUT NOT NEUTRAL. This is our page.
 //
 // Comparison pages are the most-linked and most-quoted pages a B2B site
-// has, and they are read by three audiences who all punish exaggeration:
-// buyers who are actively evaluating the competitor, the competitor
-// themselves, and AI assistants that increasingly answer "X vs Y"
-// directly. A page claiming Dailybuz beats Odoo on manufacturing depth
-// would be trivially falsifiable and would cost more credibility than the
-// win is worth.
+// has, read by buyers actively evaluating the competitor, by the
+// competitor, and by AI assistants that answer "X vs Y" directly. All
+// three punish exaggeration, so nothing here is false and every rival
+// keeps a `whereTheyWin` that is genuinely true.
 //
-// So every entry carries a `whereTheyWin` that is real, and the pitch is
-// positional rather than absolute: Dailybuz is cheaper, simpler and
-// India-first; the incumbents are deeper and more configurable. Both are
-// true, and buyers who need depth should go and buy depth.
+// But an earlier version confused honesty with even-handedness. It gave
+// each competitor three sentences of praise, ended Odoo's with "and we
+// would say so", called Vyapar "excellent", and closed FAQ answers with
+// "choose Zoho if…". A visitor reading it came away better sold on the
+// alternatives than on us — which is not integrity, it is just bad
+// writing on our own website.
+//
+// The rule now:
+//   - OUR CASE GOES FIRST, and is the longer, more specific one. It is
+//     rendered in the first column, which is what gets read.
+//   - `whereTheyWin` states the competitor's real advantage in one
+//     sentence. Accurate, not enthusiastic. No superlatives, no
+//     recommendation to go and buy it.
+//   - Where an advantage of theirs comes with a cost — an implementation
+//     partner, a second system, a per-app bill — that cost is named,
+//     because leaving it out would itself be the misleading version.
 //
 // PRICES ARE INDICATIVE AND DATED. Public list pricing as researched in
 // August 2026, converted at roughly ₹83/USD where the vendor quotes USD.
@@ -63,9 +73,9 @@ export const COMPETITORS: Competitor[] = [
     category: 'Bundle of 40+ separate applications',
     priceNote: '≈ ₹3,700/user/month (US$45) on the all-employee plan',
     whereTheyWin:
-      'Enormous breadth — 40+ apps covering things Dailybuz does not attempt, like expense travel, e-signature and a full BI suite. Mature marketplace and a large partner network in India.',
+      'More breadth: 40+ apps including expense travel, e-signature and a BI suite that Dailybuz does not attempt.',
     whereWeDiffer:
-      'Zoho One is a bundle of separate products that each keep their own data and are joined by integrations. Dailybuz is one database, so a POS sale posts to the ledger without a sync step — and costs roughly a fifth as much per user.',
+      'Zoho One is forty products, not one. Each keeps its own data and they are joined by integrations you configure and then maintain — so a sale in CRM reaches Books when a sync says so, and reconciling the two is somebody\'s job. Dailybuz is a single database: the POS sale, the ledger entry and the customer record are the same rows, so there is nothing to sync and nothing to reconcile. At roughly a fifth of the per-user price.',
     coverage: {
       crm: 'full',
       hr: 'full',
@@ -81,9 +91,9 @@ export const COMPETITORS: Competitor[] = [
     category: 'Open-source ERP, unified database',
     priceNote: '≈ ₹2,100–2,600/user/month (US$25–31) Standard, plus implementation',
     whereTheyWin:
-      'Genuinely deeper. Manufacturing, MRP, field service, ecommerce and a huge module ecosystem, all on one database. If you need production planning or heavy customisation, Odoo is the better tool and we would say so.',
+      'Deeper in manufacturing, MRP and field service, with a large module ecosystem for heavy customisation.',
     whereWeDiffer:
-      'Odoo generally needs a partner to implement and someone to maintain it. Dailybuz is opinionated and ready on signup, WhatsApp-first, and priced without an implementation project attached.',
+      'Odoo is powerful and almost never bought alone — the list price is the start, and a partner-led implementation is typically a project in its own right before anyone logs in, plus someone technical to keep it upgraded. Dailybuz is opinionated on purpose: you sign up, your team is working the same afternoon, and the price on the page is the price. WhatsApp is the primary channel rather than a module you add.',
     coverage: {
       crm: 'full',
       hr: 'full',
@@ -99,9 +109,9 @@ export const COMPETITORS: Competitor[] = [
     category: 'The Indian status quo — desktop accounting plus something else',
     priceNote: '≈ ₹18,000 one-time per licence, plus whatever CRM you add',
     whereTheyWin:
-      'Every accountant in India already knows Tally. Statutory compliance is battle-tested over decades, and your CA will not ask you to explain it.',
+      'Decades of statutory depth, and every accountant in India already knows it.',
     whereWeDiffer:
-      'Tally is accounting only and desktop-first, so sales, staff and stock live somewhere else and are reconciled by hand. Dailybuz keeps them in one place, in the browser, with the same GST outputs.',
+      'Tally does accounting and nothing else, on a desktop in your office. Customers, staff, stock and conversations live in other tools, and the joining-up is done by hand, by you, every month. Dailybuz keeps real double-entry books with the same GST outputs your CA expects — and keeps them alongside the sale that created the entry, in a browser, from anywhere. Your accountant can still have their export.',
     coverage: {
       crm: 'none',
       hr: 'partial',
@@ -117,9 +127,9 @@ export const COMPETITORS: Competitor[] = [
     category: 'CRM and support suite',
     priceNote: '≈ ₹1,000–4,000/user/month depending on tier',
     whereTheyWin:
-      'A polished, well-supported CRM with strong telephony and support-desk tooling, built in India with local sales coverage.',
+      'A more mature CRM, with stronger telephony and a full support desk.',
     whereWeDiffer:
-      'Freshworks is a sales and support product. It has no payroll, no ledger and no POS, so books and staff still need separate tools. Dailybuz includes them at one price.',
+      'Freshworks sells and supports; it does not run a business. No ledger, no payroll, no stock, no POS — so you buy it and then buy the rest, and pay per user for each. Dailybuz covers the same pipelines and shared inbox and then keeps going into books, staff and stock, on one bill and one login.',
     coverage: {
       crm: 'full',
       hr: 'none',
@@ -135,9 +145,9 @@ export const COMPETITORS: Competitor[] = [
     category: 'HR and payroll platforms',
     priceNote: '≈ ₹100–200/employee/month, typically with a monthly minimum',
     whereTheyWin:
-      'Deeper HR than Dailybuz: statutory filings, Form 16, full-and-final settlement and compliance workflows refined over years. If payroll compliance is your main pain, start there.',
+      'Deeper statutory payroll: PF and ESI challans, Form 16 and full-and-final settlement, which Dailybuz has on its roadmap rather than shipped.',
     whereWeDiffer:
-      'They are HR-only, so customers, invoices and stock live elsewhere. Dailybuz covers HR alongside the rest — and is honest that its payroll is younger.',
+      'Dailybuz already does the HR most SMBs actually run on every day: attendance with GPS punch-in, leave, payroll runs, payslips, documents and hiring. What it adds is everything around them — the payroll cost posts straight to the P&L instead of being re-keyed, and the same seat covers your customers and your books. An HR-only tool is a second subscription, a second login and a second export.',
     coverage: {
       crm: 'none',
       hr: 'full',
@@ -153,9 +163,9 @@ export const COMPETITORS: Competitor[] = [
     category: 'Billing and khata apps for very small businesses',
     priceNote: '≈ ₹300–800/month per device or business',
     whereTheyWin:
-      'Cheapest way to raise a GST invoice and track who owes you money. Excellent on mobile and genuinely easy for a one-person business.',
+      'Cheaper, and enough if all you will ever need is a GST invoice and a list of who owes you.',
     whereWeDiffer:
-      'They are billing tools, not systems of record — no team inbox, no pipelines, no payroll, no double-entry books. Businesses usually outgrow them at around five to ten people, which is where Dailybuz starts.',
+      'These are billing apps, not systems of record — no team inbox, no pipelines, no payroll, no real double-entry books, and no way for two people to work in them properly. The usual story is that they work until the fifth or sixth hire and then everything moves to spreadsheets. Dailybuz is built for the business you are about to be, and the migration you avoid is worth more than the monthly difference.',
     coverage: {
       crm: 'none',
       hr: 'none',

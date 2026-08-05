@@ -16,7 +16,7 @@ import {
 import { Reveal } from "@/components/marketing/reveal";
 import { jsonLdGraph, breadcrumbSchema, faqSchema } from "@/lib/seo/structured-data";
 
-const DESCRIPTION = `How Dailybuz compares to Zoho One, Odoo, TallyPrime, Freshworks, Keka and Vyapar for Indian SMBs — on price, module coverage and where each one is genuinely the better choice.`;
+const DESCRIPTION = `Dailybuz vs Zoho One, Odoo, TallyPrime, Freshworks, Keka and Vyapar. One system covering CRM, HR, accounting, retail and projects at ₹799 per user per month — compared on price, module coverage and architecture, with the gaps stated plainly.`;
 
 export const metadata: Metadata = {
   title: { absolute: pageTitle("Compare Alternatives") },
@@ -36,25 +36,30 @@ export const metadata: Metadata = {
  * answers therefore name the competitor AND concede their strength — an
  * answer that only praises us reads as marketing and gets discounted;
  * one that concedes something specific gets quoted.
+ *
+ * Each answer therefore LEADS with the case for Dailybuz and ends with the
+ * genuine caveat, rather than the other way round. An assistant asked "X
+ * vs Y" usually surfaces the first sentence or two, and the previous
+ * version's answers opened by describing the competitor.
  */
 const FAQ = [
   {
     question: "Dailybuz vs Zoho One — which is better for an Indian SMB?",
-    answer: `Zoho One bundles 40+ separate applications for roughly ₹3,700 per user per month. Dailybuz is a single application covering CRM, HR, accounting, retail and projects for ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month. Zoho has far more breadth; Dailybuz keeps everything in one database so a sale posts to the ledger without an integration step. Choose Zoho if you need its long tail of apps, Dailybuz if you want one system at a fifth of the price.`,
+    answer: `For most Indian SMBs, Dailybuz. It covers CRM, HR, accounting, retail and projects in one application for ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, against roughly ₹3,700 for Zoho One — about a fifth of the price. The bigger difference is architectural: Zoho One is forty separate products joined by integrations you configure and maintain, so data moves between them on a sync. Dailybuz is one database, so a POS sale, its ledger entry and the customer record are the same rows. Zoho is the better answer if you specifically need its long tail of apps, such as expense travel or its BI suite.`,
   },
   {
     question: "Dailybuz vs Odoo — what is the difference?",
     answer:
-      "Odoo is a deeper open-source ERP with manufacturing, MRP, field service and a large module ecosystem, typically implemented with a partner and maintained by someone technical. Dailybuz covers less ground but is ready on signup, WhatsApp-first, and priced without an implementation project. If you need production planning, Odoo is the better tool.",
+      "Time to value and total cost. Dailybuz is ready on signup — your team is working the same afternoon, WhatsApp is the primary channel rather than an add-on, and the price on the page is the price. Odoo is a deeper ERP, but it is rarely bought alone: a partner-led implementation is usually a project before anyone logs in, and it needs someone technical to keep it upgraded. Odoo is the right choice if you need manufacturing and production planning, which Dailybuz does not have.",
   },
   {
     question: "Can Dailybuz replace Tally?",
     answer:
-      "For day-to-day bookkeeping, largely yes: Dailybuz keeps real double-entry books with a chart of accounts, trial balance, profit and loss, balance sheet and GST reports, and sales, purchases and payroll post automatically. Tally remains the tool most Indian accountants know best, and many businesses still hand over an export at year end.",
+      "For day-to-day books, yes. Dailybuz keeps real double-entry accounting — chart of accounts, trial balance, profit and loss, balance sheet and GST reports — and sales, purchases and payroll post to it automatically instead of being re-keyed from another system. It also does what Tally does not: customers, staff, stock and conversations sit alongside the entries, in a browser, from anywhere. Tally still has decades more statutory depth, and most businesses keep handing their CA an export at year end, which Dailybuz supports.",
   },
   {
     question: "Is Dailybuz cheaper than the alternatives?",
-    answer: `At ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included, Dailybuz is cheaper per user than Zoho One and Odoo Standard. It is more than a billing-only app such as Vyapar, which is the honest comparison — that is one price for CRM, HR, payroll, books and POS against one price for invoices.`,
+    answer: `Against anything comparable, yes. At ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included, Dailybuz is cheaper per user than Zoho One and Odoo Standard, and it replaces the separate CRM, HR and accounting subscriptions most teams are already paying for in parallel. A billing-only app such as Vyapar costs less because it does less — one price for invoices, against one price for CRM, HR, payroll, books and POS.`,
   },
 ];
 
@@ -105,9 +110,10 @@ export default function ComparePage() {
             style={{ "--enter-delay": "160ms" } as React.CSSProperties}
             className="mkt-lead mt-5"
           >
-            Every one of these tools is a reasonable choice for someone. Below
-            is what each does better than us, what we do differently, and the
-            cases where you should buy theirs instead.
+            Most Indian SMBs end up paying for three or four of the tools
+            below at once, then paying again — in time — to keep them in step.
+            {" "}{BRAND.name} is one system at one price per person. Here is
+            how it compares, including the places the others are still ahead.
           </p>
         </div>
       </section>
@@ -191,7 +197,7 @@ export default function ComparePage() {
       <section className="mkt-section mkt-band-surface">
         <div className="mkt-container space-y-5">
           <Reveal className="mb-6">
-            <h2 className="mkt-h2">Where each one wins</h2>
+            <h2 className="mkt-h2">Head to head</h2>
           </Reveal>
 
           {COMPETITORS.map((c, i) => (
@@ -207,21 +213,26 @@ export default function ComparePage() {
                 <span className="text-xs text-[var(--mkt-fg-subtle)]">{c.category}</span>
               </div>
 
-              <div className="mt-5 grid gap-6 md:grid-cols-2">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
-                    Where {c.name} wins
+              {/* Our case first and wider. The competitor's advantage is
+                  still stated in full — the page is worthless without it —
+                  but as the caveat it is, not as the headline. Reading
+                  order is the whole argument here: whichever column comes
+                  first is the one a skimming visitor takes away. */}
+              <div className="mt-5 grid gap-6 md:grid-cols-5">
+                <div className="md:col-span-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mkt-accent-text)]">
+                    Why teams choose {BRAND.name}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--mkt-fg)]">
+                    {c.whereWeDiffer}
+                  </p>
+                </div>
+                <div className="md:col-span-2 md:border-l md:border-[var(--mkt-line)] md:pl-6">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mkt-fg-subtle)]">
+                    Where {c.name} is ahead
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--mkt-fg-muted)]">
                     {c.whereTheyWin}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mkt-accent-text)]">
-                    Where {BRAND.name} differs
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-[var(--mkt-fg-muted)]">
-                    {c.whereWeDiffer}
                   </p>
                 </div>
               </div>
@@ -301,10 +312,15 @@ export default function ComparePage() {
       <section className="mkt-section">
         <div className="mkt-container mkt-container-narrow text-center">
           <Reveal>
-            <h2 className="mkt-h2 mb-4">See if it fits in 14 days</h2>
+            <h2 className="mkt-h2 mb-4">Try it against your own numbers</h2>
             <p className="mkt-lead mb-8">
-              Every module, no card. If one of the above suits you better,
-              we&apos;d rather you found out for free.
+              {/* The old copy ended the page by inviting the visitor to
+                  pick a competitor. Confidence and honesty are not in
+                  tension: 14 days with real data settles it either way, and
+                  we win that comparison more often than we lose it. */}
+              Fourteen days, every module, no card. Load your customers, run
+              a payroll, raise an invoice — it is a faster answer than any
+              comparison table, including this one.
             </p>
             <Link href={`${BRAND.appUrl}/signup`} className="mkt-btn mkt-btn-md mkt-btn-primary">
               Start free trial
