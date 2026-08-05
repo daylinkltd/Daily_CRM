@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
-import { PLANS } from "@/config/plans";
+import { PLANS, chargeablePaise, monthlyTotal, type BillingPeriod } from "@/config/plans";
 import { AlertTriangle, Check, Loader2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,9 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   // Lockout states
-  const [selectedPlan, setSelectedPlan] = useState<string>("growth");
+  const [selectedPlan, setSelectedPlan] = useState<string>("business");
+  // Seats are the unit of pricing; default to one and let the buyer set it.
+  const [seatCount, setSeatCount] = useState<number>(1);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const [upgrading, setUpgrading] = useState(false);
 
@@ -46,9 +48,17 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
 
     setUpgrading(true);
     try {
-      const isAnnual = billingCycle === "annual";
-      const price = isAnnual ? plan.priceYearly : plan.priceMonthly;
-      const amountPaise = price * 100;
+      const period: BillingPeriod = billingCycle === "annual" ? "annual" : "monthly";
+      // Seats drive the price now. Bill for the team that exists today;
+      // the server recomputes this and rejects a mismatch, so a tampered
+      // client cannot buy fifty seats for the price of one.
+      const seats = Math.max(seatCount, plan.minSeats);
+      const amountPaise = chargeablePaise(plan, seats, period);
+      if (amountPaise === null) {
+        toast.error("This plan can't be purchased online — please contact us.");
+        setUpgrading(false);
+        return;
+      }
 
       toast.loading("Preparing payment window...");
 
@@ -74,7 +84,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
         amount: orderResult.amount,
         currency: orderResult.currency,
         name: "Daily CRM",
-        description: `${plan.name} Tier Upgrade (${isAnnual ? "Annual" : "Monthly"})`,
+        description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
         order_id: orderResult.order_id,
         handler: async function (response: any) {
           try {
@@ -88,6 +98,8 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
                 razorpay_signature: response.razorpay_signature,
                 workspace_id: activeWorkspace.id,
                 plan_id: plan.id,
+                seats,
+                period,
               }),
             });
 
@@ -227,7 +239,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {PLANS.filter((p) => p.id !== "free" && p.id !== "custom").map((plan) => {
                 const isSelected = selectedPlan === plan.id;
-                const price = billingCycle === "annual" ? plan.priceYearly : plan.priceMonthly;
+                const price = monthlyTotal(plan, seatCount, billingCycle === "annual" ? "annual" : "monthly");
                 const displayPrice = `₹${price.toLocaleString()}`;
                 const periodLabel = billingCycle === "annual" ? "/yr" : "/mo";
 

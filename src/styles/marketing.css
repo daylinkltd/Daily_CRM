@@ -338,3 +338,153 @@ html[data-mode] .marketing {
 .mkt-mock__aside {
   background-color: color-mix(in oklab, var(--mkt-band) 60%, var(--mkt-canvas));
 }
+
+/* ===========================================================================
+ * Squared edges
+ *
+ * The marketing surface commits to sharp corners: pills and soft cards read
+ * as consumer-app, and this product sits next to accounting ledgers and
+ * payroll runs. Overriding the radius TOKENS inside `.marketing` squares
+ * every component at once — buttons, inputs, cards, the dialog — without
+ * touching the app shell, which keeps its own radii.
+ *
+ * Scoped to `html[data-mode] .marketing` for the same specificity reason
+ * documented at the top of this file.
+ * =========================================================================== */
+html[data-mode] .marketing {
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-input: 0px;
+  --radius-modal: 0px;
+  /* Not zero: a "full" radius is used for status dots and avatars, where a
+     square would look like a rendering bug rather than a decision. */
+  --radius-full: 9999px;
+}
+
+/* Tailwind's rounded-* utilities set the property directly, so the token
+   override above cannot reach them. Square them here, leaving rounded-full
+   alone for genuinely circular elements. */
+.marketing :is(.rounded, .rounded-sm, .rounded-md, .rounded-lg, .rounded-xl,
+  .rounded-2xl, .rounded-3xl, .rounded-t-lg, .rounded-b-lg, .rounded-bl-lg,
+  .rounded-br-lg, .rounded-tl-lg, .rounded-tr-lg) {
+  border-radius: 0;
+}
+
+/* ===========================================================================
+ * Motion
+ *
+ * Two rules the whole page follows:
+ *
+ * 1. Content is VISIBLE BY DEFAULT and animation is opt-in via [data-reveal].
+ *    The reverse — hiding everything then revealing with JS — leaves the page
+ *    blank for anyone with JS disabled or a failed hydration, and blank is a
+ *    worse failure than unanimated.
+ *
+ * 2. Everything here collapses under prefers-reduced-motion. Parallax and
+ *    long slides are a genuine accessibility problem, not a taste question.
+ * =========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .marketing [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+    transition:
+      opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  .marketing [data-reveal="visible"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Hero copy animates on load rather than on scroll — it is already in
+     view, so waiting for an intersection would just delay it. */
+  .marketing [data-enter] {
+    animation: mkt-enter 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--enter-delay, 0ms);
+  }
+}
+
+@keyframes mkt-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* A slow conic sweep behind the hero. Sits on a pseudo-element so it never
+   participates in layout or intercepts a click. */
+.marketing .mkt-aurora {
+  position: relative;
+  isolation: isolate;
+}
+
+.marketing .mkt-aurora::before {
+  content: "";
+  position: absolute;
+  inset: -40% -20% auto -20%;
+  height: 140%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 50% 0%, color-mix(in oklch, var(--primary) 22%, transparent), transparent 70%),
+    radial-gradient(40% 40% at 15% 20%, color-mix(in oklch, var(--primary) 12%, transparent), transparent 70%);
+  filter: blur(18px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marketing .mkt-aurora::before {
+    animation: mkt-drift 22s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes mkt-drift {
+  from { transform: translate3d(-2%, 0, 0) scale(1); }
+  to   { transform: translate3d(2%, 2%, 0) scale(1.06); }
+}
+
+/* Hairline that draws itself in — used to separate major bands. */
+.marketing .mkt-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--mkt-line) 20%,
+    var(--mkt-line) 80%,
+    transparent
+  );
+}
+
+/* Cards lift slightly on hover. Transform only — animating box-shadow or
+   border-color forces paint on every frame. */
+.marketing .mkt-lift {
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 240ms ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marketing .mkt-lift:hover {
+    transform: translate3d(0, -3px, 0);
+  }
+}
+
+.marketing .mkt-lift:hover {
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--mkt-line));
+}
+
+/* Buttons, eyebrows and chips are built on --radius-full, which stays 9999px
+   for genuinely circular elements (avatars, status dots, the channel icon
+   badges). Square those three explicitly rather than flattening the token,
+   so a circle that should stay a circle still can. */
+.marketing :is(.mkt-btn, .mkt-eyebrow, .mkt-chip) {
+  border-radius: 0;
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, startTransition } from "react";
 import Script from "next/script";
-import { PLANS, Plan } from "@/config/plans";
+import { PLANS, Plan, chargeablePaise, seatRate, monthlyTotal, type BillingPeriod } from "@/config/plans";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { Check, AlertTriangle, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +25,9 @@ export function BillingPanel() {
   const [usage, setUsage] = useState<WorkspaceUsage | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  // Seats are the unit of pricing. Defaults to the workspace's current
+  // member count so the common case needs no thought.
+  const [seatCount, setSeatCount] = useState<number>(1);
   const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
 
   const fetchUsage = async () => {
@@ -64,9 +67,15 @@ export function BillingPanel() {
       return;
     }
 
-    const isAnnual = billingCycle === "annual";
-    const price = isAnnual ? plan.priceYearly : plan.priceMonthly;
-    const amountPaise = price * 100;
+    const period: BillingPeriod = billingCycle === "annual" ? "annual" : "monthly";
+    // Bill for the seats the workspace actually has. The server recomputes
+    // this from the same helper and rejects any mismatch.
+    const seats = Math.max(seatCount, plan.minSeats);
+    const amountPaise = chargeablePaise(plan, seats, period);
+    if (amountPaise === null) {
+      toast.error("That plan can't be purchased online — please contact us.");
+      return;
+    }
 
     try {
       setIsUpgrading(plan.id);
@@ -94,7 +103,7 @@ export function BillingPanel() {
         amount: orderResult.amount,
         currency: orderResult.currency,
         name: "Daily CRM",
-        description: `Upgrade to ${plan.name} Plan (${isAnnual ? "Annual" : "Monthly"})`,
+        description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
         order_id: orderResult.order_id,
         handler: async function (response: any) {
           try {
@@ -108,6 +117,8 @@ export function BillingPanel() {
                 razorpay_signature: response.razorpay_signature,
                 workspace_id: activeWorkspace.id,
                 plan_id: plan.id,
+                seats,
+                period,
               }),
             });
 
@@ -201,7 +212,7 @@ export function BillingPanel() {
           <div className="text-left sm:text-right">
             <span className="text-xs text-muted-foreground block">Pricing Plan Cost</span>
             <span className="text-2xl font-black text-foreground">
-              {currentPlan.priceMonthly === 0 ? "₹0" : currentPlan.priceMonthly === -1 ? "Custom" : `₹${currentPlan.priceMonthly.toLocaleString()}/mo`}
+              {currentPlan.pricePerSeatMonthly === 0 ? "₹0" : currentPlan.pricePerSeatMonthly === -1 ? "Custom" : `₹${currentPlan.pricePerSeatMonthly.toLocaleString()}/user/mo`}
             </span>
             <span className="text-[10px] text-muted-foreground block">excl. GST</span>
           </div>
@@ -332,12 +343,9 @@ export function BillingPanel() {
             const isCurrent = usage?.planId === plan.id;
             const isCustom = plan.id === "custom";
             const isAnnual = billingCycle === "annual";
-            const price = isCustom
-              ? "Custom"
-              : isAnnual
-              ? `₹${plan.priceYearly.toLocaleString()}`
-              : `₹${plan.priceMonthly.toLocaleString()}`;
-            const periodLabel = isCustom ? "" : isAnnual ? "/yr" : "/mo";
+            const rate = seatRate(plan, isAnnual ? "annual" : "monthly");
+            const price = isCustom ? "Custom" : `₹${rate.toLocaleString()}`;
+            const periodLabel = isCustom ? "" : "/user/mo";
 
             return (
               <div
@@ -362,9 +370,9 @@ export function BillingPanel() {
                   </div>
                   {!isCustom && (
                     <span className="text-[9px] text-muted-foreground block">
-                      {isAnnual
-                        ? `Equivalent to ₹${Math.round(plan.priceYearly / 12).toLocaleString()}/mo`
-                        : `Equivalent to ₹${(plan.priceMonthly * 12).toLocaleString()}/yr`}
+                      {plan.pricePerSeatMonthly > 0
+                        ? `₹${monthlyTotal(plan, seatCount, isAnnual ? "annual" : "monthly").toLocaleString()}/mo for ${seatCount} seat${seatCount === 1 ? "" : "s"}`
+                        : "Free while you trial"}
                       {" (excl. GST)"}
                     </span>
                   )}

@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { PLANS } from "@/config/plans";
+import { PLANS, seatRate, monthlyTotal, annualSavingPercent, INCLUDED_MODULES } from "@/config/plans";
+import { Reveal } from "@/components/marketing/reveal";
 import {
   ArrowRight, MessageSquare, Zap, BarChart3, Users,
   Bot, Globe, Shield, CheckCircle2, ChevronRight, Sparkles,
@@ -331,6 +332,10 @@ export default function LandingPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalPlan, setModalPlan] = useState<"growth" | "custom">("growth");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  // Seats drive the price, so the pricing section lets you set them and
+  // sends the answer through to signup — a buyer should not have to do the
+  // multiplication in their head.
+  const [seats, setSeats] = useState(5);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -397,7 +402,7 @@ export default function LandingPage() {
       </header>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative flex flex-col items-center justify-center px-6 pt-20 pb-24 sm:pt-24 sm:pb-28 text-center overflow-hidden">
+      <section className="mkt-aurora relative flex flex-col items-center justify-center px-6 pt-20 pb-24 sm:pt-24 sm:pb-28 text-center overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full bg-primary/12 blur-[130px]" />
           <div className="absolute top-40 left-1/4 h-[400px] w-[400px] rounded-full bg-violet-600/10 blur-[110px]" />
@@ -414,12 +419,16 @@ export default function LandingPage() {
         </div>
 
         <div className="relative z-10 w-full max-w-[1152px] mx-auto">
-          <div className="mkt-eyebrow mb-8 border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent-text)]">
+          <div data-enter className="mkt-eyebrow mb-8 border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent-text)]">
             <Sparkles className="h-3.5 w-3.5" />
             Omni-Channel CRM — WhatsApp · Instagram · Email · Messenger
           </div>
 
-          <h1 className="text-[2.5rem] sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.06] mb-6 text-[var(--mkt-fg)]">
+          <h1
+            data-enter
+            style={{ "--enter-delay": "80ms" } as React.CSSProperties}
+            className="text-[2.5rem] sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.06] mb-6 text-[var(--mkt-fg)]"
+          >
             The CRM that{" "}
             <span className="relative inline-block">
               <span className="relative z-10 bg-gradient-to-r from-primary via-[#44c8ff] to-[#a78bfa] bg-clip-text text-transparent">
@@ -790,6 +799,38 @@ export default function LandingPage() {
       </section>
 
       {/* ── PRICING ───────────────────────────────────────────────────────── */}
+      {/* ── EVERYTHING INCLUDED ──────────────────────────────────────────── */}
+      <section className="mkt-section">
+        <div className="mkt-container">
+          <Reveal className="text-center mb-12">
+            <div className="mkt-eyebrow mb-4">
+              <CheckCircle2 className="h-3 w-3" /> No tiers, no add-ons
+            </div>
+            <h2 className="mkt-h2 mb-3">Every seat gets the whole product</h2>
+            <p className="mkt-lead">
+              Most suites make you buy CRM, then HR, then accounting, then
+              discover reporting is on the enterprise plan. Here there is one
+              list, and everyone on your team has all of it.
+            </p>
+          </Reveal>
+
+          <div className="grid grid-cols-1 gap-px border border-[var(--mkt-line)] bg-[var(--mkt-line)] sm:grid-cols-2 lg:grid-cols-3">
+            {INCLUDED_MODULES.map((item, i) => (
+              <Reveal
+                key={item}
+                delay={Math.min(i * 45, 360)}
+                className="mkt-lift flex items-start gap-3 border border-transparent bg-[var(--mkt-surface)] p-5"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                <span className="text-sm text-[var(--mkt-fg-muted)]">{item}</span>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="mkt-container"><div className="mkt-rule" /></div>
+
       <section id="pricing" className="mkt-section mkt-band-surface">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-primary/6 blur-[150px]" />
@@ -798,13 +839,17 @@ export default function LandingPage() {
         <div className="mkt-container">
           <div className="text-center mb-14">
             <div className="mkt-eyebrow mb-4 border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent-text)]">
-              <Lock className="h-3 w-3" /> Flat-Fee CRM Plans
+              <Lock className="h-3 w-3" /> One price per person
             </div>
-            <h2 className="mkt-h2 mb-3">Simple, transparent pricing</h2>
-            <p className="mkt-lead">Flat rate per team. No seat pricing. Prices exclude GST.</p>
+            <h2 className="mkt-h2 mb-3">Every module. One price per person.</h2>
+            <p className="mkt-lead">
+              CRM, HR, Accounting, Retail and Projects are all included in every
+              seat — there is no higher tier to unlock them. Pay for the people
+              you add, nothing else. Prices exclude GST.
+            </p>
 
             {/* Monthly/Annual Toggle */}
-            <div className="mt-8 inline-flex items-center gap-1 rounded-full border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-1">
+            <div className="mt-8 inline-flex items-center gap-1 border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-1">
               <button
                 type="button"
                 onClick={() => setBillingCycle('monthly')}
@@ -826,31 +871,51 @@ export default function LandingPage() {
                 }`}
               >
                 Annual
-                <span className="absolute -top-3.5 -right-5 px-1.5 py-0.5 bg-emerald-500 text-[#06131f] text-[9px] font-bold rounded-full uppercase tracking-wider">
-                  2 Months Free
+                <span className="absolute -top-3.5 -right-5 px-1.5 py-0.5 bg-emerald-500 text-[#06131f] text-[9px] font-bold uppercase tracking-wider">
+                  Save {annualSavingPercent(PLANS.find((p) => p.id === "business")!)}%
                 </span>
               </button>
+            </div>
+
+            {/* Seat picker — makes the per-seat total concrete. */}
+            <div className="mx-auto mt-8 max-w-md border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-5">
+              <div className="flex items-baseline justify-between gap-4">
+                <label htmlFor="seat-count" className="text-xs font-semibold uppercase tracking-wide text-[var(--mkt-fg-subtle)]">
+                  How many people?
+                </label>
+                <span className="text-sm font-bold text-[var(--mkt-fg)]">
+                  {seats} {seats === 1 ? "person" : "people"}
+                </span>
+              </div>
+              <input
+                id="seat-count"
+                type="range"
+                min={1}
+                max={50}
+                value={seats}
+                onChange={(e) => setSeats(Number(e.target.value))}
+                className="mt-3 w-full accent-[var(--primary)]"
+              />
+              <p className="mt-3 text-center text-sm text-[var(--mkt-fg-muted)]">
+                <span className="text-2xl font-extrabold text-[var(--mkt-fg)]">
+                  ₹{monthlyTotal(
+                    PLANS.find((p) => p.id === "business")!,
+                    seats,
+                    billingCycle === "annual" ? "annual" : "monthly",
+                  ).toLocaleString()}
+                </span>
+                <span className="text-xs"> /month, all modules, excl. GST</span>
+              </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-5 mx-auto justify-center">
             {PLANS.map((plan) => {
-              const isFree = plan.priceMonthly === 0;
-              const isCustom = plan.priceMonthly === -1;
-              const displayPrice = isFree
-                ? "₹0"
-                : isCustom
-                ? "Custom"
-                : billingCycle === "annual"
-                ? `₹${plan.priceYearly.toLocaleString()}`
-                : `₹${plan.priceMonthly.toLocaleString()}`;
-              const periodLabel = isFree
-                ? "/14 days"
-                : isCustom
-                ? ""
-                : billingCycle === "annual"
-                ? "/year"
-                : "/month";
+              const isFree = plan.pricePerSeatMonthly === 0;
+              const isCustom = plan.pricePerSeatMonthly === -1;
+              const rate = seatRate(plan, billingCycle === "annual" ? "annual" : "monthly");
+              const displayPrice = isFree ? "₹0" : isCustom ? "Custom" : `₹${rate.toLocaleString()}`;
+              const periodLabel = isFree ? "/14 days" : isCustom ? "" : "/user/month";
 
               const handleAction = () => {
                 if (isLoggedIn) {
@@ -865,7 +930,7 @@ export default function LandingPage() {
                   } else if (plan.ctaType === 'contact') {
                     openModal('custom');
                   } else {
-                    window.location.href = `/signup?plan=${plan.id}&cycle=${billingCycle}`;
+                    window.location.href = `/signup?plan=${plan.id}&cycle=${billingCycle}&seats=${seats}`;
                   }
                 }
               };
@@ -880,7 +945,7 @@ export default function LandingPage() {
                   }`}
                 >
                   {plan.isRecommended && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-primary text-primary-foreground text-[11px] font-bold tracking-wide rounded-full whitespace-nowrap">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-primary text-primary-foreground text-[11px] font-bold tracking-wide whitespace-nowrap">
                       RECOMMENDED
                     </div>
                   )}
@@ -894,8 +959,8 @@ export default function LandingPage() {
                     {!isFree && !isCustom && (
                       <p className="text-[11px] text-[var(--mkt-fg-subtle)]">
                         {billingCycle === "annual"
-                          ? `Equivalent to ₹${Math.round(plan.priceYearly / 12).toLocaleString()}/mo`
-                          : `Equivalent to ₹${(plan.priceMonthly * 12).toLocaleString()}/yr`}
+                          ? `Billed annually · ₹${monthlyTotal(plan, seats, "annual").toLocaleString()}/mo for ${seats} ${seats === 1 ? "person" : "people"}`
+                          : `₹${plan.pricePerSeatAnnual.toLocaleString()}/user/mo if you pay annually`}
                         {" (excl. GST)"}
                       </p>
                     )}
@@ -929,7 +994,7 @@ export default function LandingPage() {
 
           <div className="mx-auto max-w-2xl text-center text-[var(--mkt-fg-subtle)] text-xs leading-relaxed mt-12 space-y-2">
             <p>
-              * WhatsApp message allowance covers outbound system messages. Meta Cloud API per-message templates charges are billed separately.
+              * Conversation allowances are pooled across your whole workspace, not per person. Meta Cloud API conversation charges are billed separately at cost.
             </p>
             <p>
               All plans include an onboarding setup call. Questions?{" "}

@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { PLANS } from '@/config/plans';
+import { PLANS, chargeablePaise, type BillingPeriod } from '@/config/plans';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,6 +27,8 @@ export async function POST(request: NextRequest) {
       razorpay_signature,
       workspace_id,
       plan_id,
+      seats,
+      period,
     } = body;
 
     // Validation
@@ -86,12 +88,25 @@ export async function POST(request: NextRequest) {
     if (!planConfig) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
     }
-    if (planConfig.priceMonthly <= 0) {
+    if (planConfig.pricePerSeatMonthly <= 0) {
       return NextResponse.json(
         { error: 'This plan cannot be purchased through checkout.' },
         { status: 400 }
       );
     }
+
+    // Seats are part of the price now, so they are part of what gets
+    // verified. A caller who sends seats: 1 and pays for one seat must not
+    // end up on a 50-seat workspace, so the seat count is written to
+    // plan_limits below and enforced there.
+    const seatCount = Number(seats);
+    if (!Number.isInteger(seatCount) || seatCount < 1 || seatCount > 10_000) {
+      return NextResponse.json(
+        { error: 'seats must be a whole number between 1 and 10,000' },
+        { status: 400 }
+      );
+    }
+    const billingPeriod: BillingPeriod = period === 'annual' ? 'annual' : 'monthly';
 
     const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
     let order: { amount: string | number; currency: string };
@@ -106,17 +121,21 @@ export async function POST(request: NextRequest) {
     }
 
     const paidPaise = Number(order.amount);
-    const monthlyPaise = planConfig.priceMonthly * 100;
-    const yearlyPaise = planConfig.priceYearly * 100;
-    if (
-      order.currency !== 'INR' ||
-      (paidPaise !== monthlyPaise && paidPaise !== yearlyPaise)
-    ) {
+    const expectedPaise = chargeablePaise(planConfig, seatCount, billingPeriod);
+    if (expectedPaise === null) {
+      return NextResponse.json(
+        { error: 'This plan cannot be purchased through checkout.' },
+        { status: 400 }
+      );
+    }
+    // The signature only proves this order was paid — not that it was paid
+    // ENOUGH, and now not that it was paid for the right number of seats.
+    if (order.currency !== 'INR' || paidPaise !== expectedPaise) {
       console.error(
-        `[verify-payment] Amount mismatch for plan ${plan_id}: paid ${paidPaise}, expected ${monthlyPaise} or ${yearlyPaise}`
+        `[verify-payment] Amount mismatch for ${plan_id} x${seatCount} ${billingPeriod}: paid ${paidPaise}, expected ${expectedPaise}`
       );
       return NextResponse.json(
-        { error: 'Paid amount does not match the selected plan.' },
+        { error: 'Paid amount does not match the selected plan and seat count.' },
         { status: 400 }
       );
     }
@@ -137,13 +156,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Map limits structure
+    // Seats bought is the member ceiling. Without this a customer could
+    // pay for three seats and invite thirty — the plan itself no longer
+    // caps headcount, so the purchase has to.
     const limits = {
-      max_members: planConfig.maxUsers === 999999 ? null : planConfig.maxUsers,
-      max_workspaces: planConfig.maxWorkspaces === 999999 ? null : planConfig.maxWorkspaces,
-      max_storage_gb: planConfig.id === 'business' ? 20 : planConfig.id === 'growth' ? 10 : 5,
+      max_members: planConfig.maxUsers === null ? seatCount : Math.min(planConfig.maxUsers, seatCount),
+      max_workspaces: planConfig.maxWorkspaces,
+      max_storage_gb: planConfig.id === 'business' ? 20 : 5,
       channels: ['whatsapp', 'instagram', 'messenger', 'email'],
       max_automations: planConfig.id === 'free' ? 3 : null,
-      max_messages: planConfig.monthlyMessageAllowance === 999999 ? null : planConfig.monthlyMessageAllowance,
+      max_messages: planConfig.monthlyMessageAllowance,
+      seats: seatCount,
+      billing_period: billingPeriod,
       last_order_id: razorpay_order_id,
     };
 

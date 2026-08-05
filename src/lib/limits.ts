@@ -5,11 +5,13 @@ export interface WorkspaceUsageInfo {
   planId: string;
   planName: string;
   memberCount: number;
-  maxUsers: number;
+  /** null = unlimited. Callers must handle it — see checkMessageLimit. */
+  maxUsers: number | null;
   workspaceCount: number;
-  maxWorkspaces: number;
+  maxWorkspaces: number | null;
   messageCount: number;
-  monthlyMessageAllowance: number;
+  /** Pooled conversations per month; null = unlimited / custom terms. */
+  monthlyMessageAllowance: number | null;
   isTrial: boolean;
   createdAt: Date;
 }
@@ -73,7 +75,10 @@ export async function getWorkspaceUsageAndLimits(workspaceId: string): Promise<W
     .gte('created_at', startDateTime.toISOString());
 
   // Find the plan config
-  const planConfig = PLANS.find((p) => p.id === planId) || PLANS.find((p) => p.id === 'growth')!;
+  // 'growth' no longer exists; fall back to the paid plan, not a
+  // missing id — `!` on an undefined find would crash at runtime.
+  const planConfig =
+    PLANS.find((p) => p.id === planId) ?? PLANS.find((p) => p.id === 'business')!;
 
   return {
     planId,
@@ -93,7 +98,7 @@ export async function checkMessageLimit(workspaceId: string): Promise<{
   allowed: boolean;
   warn: boolean;
   messageCount: number;
-  limit: number;
+  limit: number | null;
   error?: string;
 }> {
   try {
@@ -116,7 +121,8 @@ export async function checkMessageLimit(workspaceId: string): Promise<{
       }
     }
 
-    if (count >= limit) {
+    // null allowance = unlimited, so nothing to enforce.
+    if (limit !== null && count >= limit) {
       return {
         allowed: false,
         warn: false,
@@ -126,10 +132,10 @@ export async function checkMessageLimit(workspaceId: string): Promise<{
       };
     }
 
-    const warnThreshold = limit * 0.8;
+    // Unlimited plans never warn — there is no threshold to approach.
     return {
       allowed: true,
-      warn: count >= warnThreshold,
+      warn: limit !== null && count >= limit * 0.8,
       messageCount: count,
       limit,
     };

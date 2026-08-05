@@ -7,7 +7,7 @@ import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
-import { PLANS } from "@/config/plans";
+import { PLANS, chargeablePaise, seatRate, type BillingPeriod } from "@/config/plans";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -213,9 +213,16 @@ function OnboardingInner() {
       // 4. Handle subscription upgrade if paid tier was chosen
       const plan = PLANS.find((p) => p.id === selectedPlan);
       if (plan && plan.id !== "free" && plan.id !== "custom") {
-        const isAnnual = billingCycle === "annual";
-        const price = isAnnual ? plan.priceYearly : plan.priceMonthly;
-        const amountPaise = price * 100;
+        const period: BillingPeriod = billingCycle === "annual" ? "annual" : "monthly";
+        // A brand-new workspace has exactly one member — the founder — so
+        // onboarding buys one seat. More are added from Billing later.
+        const seats = Math.max(1, plan.minSeats);
+        const amountPaise = chargeablePaise(plan, seats, period);
+        if (amountPaise === null) {
+          toast.error("That plan can't be purchased online — please contact us.");
+          setLoading(false);
+          return;
+        }
 
         toast.loading("Preparing payment window...");
 
@@ -241,7 +248,7 @@ function OnboardingInner() {
           amount: orderResult.amount,
           currency: orderResult.currency,
           name: "Daily CRM",
-          description: `${plan.name} Tier Upgrade (${isAnnual ? "Annual" : "Monthly"})`,
+          description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
           order_id: orderResult.order_id,
           handler: async function (response: any) {
             try {
@@ -423,16 +430,15 @@ function OnboardingInner() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {PLANS.map((plan) => {
                   const isSelected = selectedPlan === plan.id;
-                  const isFree = plan.priceMonthly === 0;
-                  const isCustom = plan.priceMonthly === -1;
+                  const isFree = plan.pricePerSeatMonthly === 0;
+                  const isCustom = plan.pricePerSeatMonthly === -1;
+                  const rate = seatRate(plan, billingCycle === "annual" ? "annual" : "monthly");
                   const displayPrice = isFree
                     ? "₹0"
                     : isCustom
                     ? "Custom"
-                    : billingCycle === "annual"
-                    ? `₹${plan.priceYearly.toLocaleString()}`
-                    : `₹${plan.priceMonthly.toLocaleString()}`;
-                  const periodLabel = isFree ? "/14 days" : isCustom ? "" : billingCycle === "annual" ? "/yr" : "/mo";
+                    : `₹${rate.toLocaleString()}`;
+                  const periodLabel = isFree ? "/14 days" : isCustom ? "" : "/user/mo";
 
                   return (
                     <div
@@ -459,8 +465,8 @@ function OnboardingInner() {
                         {!isFree && !isCustom && (
                           <span className="text-[9px] text-muted-foreground block leading-tight">
                             {billingCycle === "annual"
-                              ? `Equivalent to ₹${Math.round(plan.priceYearly / 12).toLocaleString()}/mo`
-                              : `Equivalent to ₹${(plan.priceMonthly * 12).toLocaleString()}/yr`}
+                              ? "billed annually"
+                              : `₹${plan.pricePerSeatAnnual.toLocaleString()}/user/mo billed annually`}
                           </span>
                         )}
                       </div>
@@ -584,9 +590,9 @@ function OnboardingInner() {
                   <Sparkles className="h-3.5 w-3.5" /> Selected plan benefits ({activePlanConfig.name})
                 </span>
                 <ul className="space-y-1 text-foreground">
-                  <li>• Member Seats: <strong>{activePlanConfig.maxUsers === 999999 ? "Unlimited" : activePlanConfig.maxUsers}</strong> users</li>
-                  <li>• Workspaces Allowance: <strong>{activePlanConfig.maxWorkspaces === 999999 ? "Unlimited" : activePlanConfig.maxWorkspaces}</strong></li>
-                  <li>• Monthly Messages: <strong>{activePlanConfig.monthlyMessageAllowance === 999999 ? "Unlimited" : activePlanConfig.monthlyMessageAllowance.toLocaleString()}</strong></li>
+                  <li>• Member Seats: <strong>{activePlanConfig.maxUsers === null ? "Unlimited — pay per seat" : activePlanConfig.maxUsers}</strong></li>
+                  <li>• Workspaces Allowance: <strong>{activePlanConfig.maxWorkspaces === null ? "Unlimited" : activePlanConfig.maxWorkspaces}</strong></li>
+                  <li>• Pooled Conversations: <strong>{activePlanConfig.monthlyMessageAllowance === null ? "Custom" : activePlanConfig.monthlyMessageAllowance.toLocaleString()}</strong>/month</li>
                 </ul>
               </div>
 
