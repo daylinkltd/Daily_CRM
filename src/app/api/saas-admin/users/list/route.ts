@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
   let query = admin
     .from('profiles')
-    .select('id, user_id, full_name, email, status, system_role, created_at', { count: 'exact' })
+    .select('id, user_id, full_name, email, status, system_role, single_workspace_only, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 

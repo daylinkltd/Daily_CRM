@@ -73,6 +73,7 @@ import {
 } from '@/components/presence/presence-dot';
 import { createClient } from '@/lib/supabase/client';
 import { InviteMemberDialog } from './invite-member-dialog';
+import { useWorkspace } from '@/hooks/use-workspace';
 import { SettingsPanelHead } from './settings-panel-head';
 import { ROLE_META } from './role-meta';
 import {
@@ -137,6 +138,7 @@ function fmtExpiresIn(iso: string): string {
 export function MembersTab() {
   const { user, accountId, canManageMembers } = useAuth();
   const { getPresence, getRow, now } = usePresence();
+  const { activeWorkspace } = useWorkspace();
   const supabase = createClient();
 
   const [members, setMembers] = useState<Member[]>([]);
@@ -343,6 +345,54 @@ export function MembersTab() {
           </RequireRole>
         }
       />
+
+      {/* Seats. Members ARE the billing unit, so the roster page says so
+          plainly: how many seats exist, how many are filled, and where to
+          buy more when they are gone. Buried in a dialog, the seat wall
+          reads as a bug; stated here, it reads as the plan working. */}
+      {(() => {
+        const limits = (activeWorkspace?.plan_limits ?? {}) as {
+          max_members?: number | null;
+        };
+        const seatMax = Number(limits.max_members) || null;
+        if (!seatMax || seatMax >= 999999) return null;
+        const used = members.length;
+        const full = used >= seatMax;
+        return (
+          <div
+            className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${
+              full ? 'border-amber-500/40 bg-amber-500/5' : 'border-border bg-background/40'
+            }`}
+          >
+            <div className="min-w-0">
+              <span className="block text-sm font-bold text-foreground">
+                {used} of {seatMax} seats in use
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                {full
+                  ? 'Every paid seat is taken. Add seats to invite more people.'
+                  : `${seatMax - used} seat${seatMax - used === 1 ? '' : 's'} free.`}
+              </span>
+              <div className="mt-2 h-1.5 w-48 max-w-full rounded-full bg-card">
+                <div
+                  className={`h-1.5 rounded-full ${full ? 'bg-amber-500' : 'bg-primary'}`}
+                  style={{ width: `${Math.min(100, Math.round((used / seatMax) * 100))}%` }}
+                />
+              </div>
+            </div>
+            {full && canManageMembers && (
+              <Button
+                onClick={() => {
+                  window.location.href = '/settings?tab=billing';
+                }}
+                className="bg-primary font-semibold text-primary-foreground hover:bg-primary-hover"
+              >
+                Add seats
+              </Button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Live presence summary across the roster. Updates without a
           full refresh as heartbeats and the local re-derive tick land. */}

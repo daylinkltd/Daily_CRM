@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, MonitorSmartphone, ShieldOff, Shield, KeyRound, LogOut } from "lucide-react";
+import { Users, MonitorSmartphone, ShieldOff, Shield, KeyRound, LogOut, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -19,6 +19,7 @@ interface UserRow {
   email: string;
   status: string | null;
   system_role: string | null;
+  single_workspace_only?: boolean;
   created_at: string;
   workspaces: { id: string; name: string; role: string }[];
   activeSession: { last_seen_at: string; user_agent: string | null } | null;
@@ -109,6 +110,7 @@ export default function UsersPage() {
                           <span className="font-semibold text-foreground flex items-center gap-1.5">
                             {u.full_name ?? "—"}
                             {isAdmin && <Badge tone="info">admin</Badge>}
+                            {u.single_workspace_only && <Badge tone="warn">1 workspace</Badge>}
                           </span>
                           <span className="block text-[11px] text-muted-foreground">{u.email}</span>
                         </td>
@@ -153,6 +155,28 @@ export default function UsersPage() {
                                 <LogOut className="h-3.5 w-3.5" />
                               </IconButton>
                             )}
+                            <IconButton
+                              title={u.single_workspace_only
+                                ? "Allow joining multiple workspaces"
+                                : "Restrict to one workspace"}
+                              disabled={busy === u.user_id}
+                              onClick={() =>
+                                act(
+                                  u.user_id,
+                                  {
+                                    action: "set_single_workspace",
+                                    single_workspace_only: !u.single_workspace_only,
+                                  },
+                                  u.single_workspace_only
+                                    ? `Allow ${u.email} to join multiple workspaces again?`
+                                    : `Restrict ${u.email} to a single workspace? Existing memberships are kept; new joins are blocked.`,
+                                )
+                              }
+                            >
+                              {u.single_workspace_only
+                                ? <Lock className="h-3.5 w-3.5 text-amber-400" />
+                                : <Unlock className="h-3.5 w-3.5" />}
+                            </IconButton>
                             <IconButton
                               title="Send password reset"
                               disabled={busy === u.user_id}

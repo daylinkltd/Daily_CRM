@@ -8,7 +8,7 @@ import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { WorkspaceProvider, useWorkspace } from "@/hooks/use-workspace";
-import { PLANS, chargeablePaise, seatRate, type BillingPeriod } from "@/config/plans";
+import { PLANS, billBreakdown, seatRate, type BillingPeriod } from "@/config/plans";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,10 @@ function OnboardingInner() {
   const [fullName, setFullName] = useState("");
   const [selectedPlan, setSelectedPlan] = useState<string>("free");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  // Seats to buy. Seeded from the pricing-page calculator when the visitor
+  // came through it, adjustable here because the team size decision is
+  // real at onboarding time — this is when they know who is joining.
+  const [seatCount, setSeatCount] = useState(1);
   const [orgName, setOrgName] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -65,6 +69,10 @@ function OnboardingInner() {
       }
       if (savedCycle === "monthly" || savedCycle === "annual") {
         setBillingCycle(savedCycle);
+      }
+      const savedSeats = Number(localStorage.getItem("crm_onboarding_seats"));
+      if (Number.isInteger(savedSeats) && savedSeats >= 1 && savedSeats <= 500) {
+        setSeatCount(savedSeats);
       }
     }
   }, []);
@@ -210,14 +218,17 @@ function OnboardingInner() {
       // Clean up localStorage keys
       localStorage.removeItem("crm_onboarding_plan");
       localStorage.removeItem("crm_onboarding_cycle");
+      localStorage.removeItem("crm_onboarding_seats");
 
       // 4. Handle subscription upgrade if paid tier was chosen
       const plan = PLANS.find((p) => p.id === selectedPlan);
       if (plan && plan.id !== "free" && plan.id !== "custom") {
         const period: BillingPeriod = billingCycle === "annual" ? "annual" : "monthly";
-        // A brand-new workspace has exactly one member — the founder — so
-        // onboarding buys one seat. More are added from Billing later.
-        const seats = Math.max(1, plan.minSeats);
+        // The seat count chosen in the wizard (or carried from the pricing
+        // calculator). It used to be hardcoded to 1 here, which meant a
+        // buyer who picked 12 seats on the pricing page paid for one and
+        // hit the seat wall at their second invite.
+        const seats = Math.min(500, Math.max(seatCount, plan.minSeats));
 
         // Checkout is hosted on daylink.in, the only domain registered with
         // Razorpay. The buyer is returned to /billing/callback afterwards,
@@ -327,7 +338,7 @@ function OnboardingInner() {
                   <CreditCard className="h-6 w-6" />
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight">Select your plan tier</h1>
-                <p className="text-muted-foreground text-xs mt-1">All plans exclude GST. Annual plans enjoy 2 months free.</p>
+                <p className="text-muted-foreground text-xs mt-1">Per-seat prices exclude GST; 18% GST is added at checkout. Annual plans enjoy 2 months free.</p>
 
                 {/* Billing cycle toggle */}
                 <div className="flex items-center justify-center gap-3 mt-4">
@@ -355,6 +366,37 @@ function OnboardingInner() {
                     <span className="absolute -top-3 -right-6 px-1.5 py-0.5 bg-emerald-500 text-white text-[8px] font-bold rounded-full uppercase tracking-wider scale-90">
                       2 Months Free
                     </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Seat picker — the price is per seat, so the seat count is
+                  part of choosing a plan, not an afterthought in settings. */}
+              <div className="mx-auto mb-6 flex max-w-md items-center justify-between gap-4 rounded-xl border border-border bg-muted/40 px-5 py-4">
+                <div>
+                  <span className="block text-xs font-bold text-white">How many people?</span>
+                  <span className="block text-[10px] text-muted-foreground">
+                    One seat per person who signs in. Add more anytime.
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSeatCount((n) => Math.max(1, n - 1))}
+                    disabled={seatCount <= 1}
+                    aria-label="Remove a seat"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-white hover:border-primary disabled:opacity-40"
+                  >
+                    −
+                  </button>
+                  <span className="w-10 text-center text-sm font-black text-white">{seatCount}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSeatCount((n) => Math.min(500, n + 1))}
+                    aria-label="Add a seat"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-white hover:border-primary"
+                  >
+                    +
                   </button>
                 </div>
               </div>
@@ -521,6 +563,20 @@ function OnboardingInner() {
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2 text-xs">
                 <span className="font-bold text-primary flex items-center gap-1">
                   <Sparkles className="h-3.5 w-3.5" /> Selected plan benefits ({activePlanConfig.name})
+                  {activePlanConfig.pricePerSeatMonthly > 0 && (
+                    <span className="ml-auto text-[11px] font-bold text-white">
+                      {(() => {
+                        const bill = billBreakdown(
+                          activePlanConfig,
+                          seatCount,
+                          billingCycle === "annual" ? "annual" : "monthly",
+                        );
+                        return bill
+                          ? `₹${(bill.totalPaise / 100).toLocaleString("en-IN")} ${billingCycle === "annual" ? "/year" : "/month"} for ${seatCount} seat${seatCount === 1 ? "" : "s"}, incl. GST`
+                          : null;
+                      })()}
+                    </span>
+                  )}
                 </span>
                 <ul className="space-y-1 text-foreground">
                   <li>• Member Seats: <strong>{activePlanConfig.maxUsers === null ? "Unlimited — pay per seat" : activePlanConfig.maxUsers}</strong></li>

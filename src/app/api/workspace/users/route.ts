@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { ACTIVITY, logActivity } from '@/lib/saas-admin/activity';
 import { defaultSystemRoleName, type WorkspaceDbRole } from '@/lib/auth/roles';
 
 /** Helper: verify caller is workspace owner or admin */
@@ -75,8 +76,23 @@ export async function POST(request: NextRequest) {
         .eq('workspace_id', workspace_id);
         
       if (count !== null && count >= maxMembers) {
+        // `code` lets the members UI show an "Add seats" button instead of
+        // a dead-end error string. Logged because a tenant repeatedly
+        // hitting the wall is an expansion signal the admin should see.
+        await logActivity({
+          event: ACTIVITY.SEAT_LIMIT_HIT,
+          severity: 'warning',
+          workspaceId: workspace_id,
+          details: { members: count, seats: maxMembers },
+          request,
+        });
         return NextResponse.json(
-          { error: `Member limit reached for this workspace. (Max: ${maxMembers})` },
+          {
+            error: `All ${maxMembers} seats are in use. Add seats from Billing to invite more people.`,
+            code: 'seat_limit',
+            seats: maxMembers,
+            members: count,
+          },
           { status: 403 }
         );
       }

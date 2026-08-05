@@ -37,6 +37,29 @@ function getClientIp(request: Request): string {
 }
 
 function rpcErrorToResponse(err: PostgrestError): NextResponse {
+  // Raised by the enforce_membership_rules trigger (migration 102), which
+  // backstops every path into workspace_members. The prefixes are part of
+  // its contract, so matching on them is safe.
+  if (err.message?.startsWith("seat_limit:")) {
+    return NextResponse.json(
+      {
+        error:
+          "This workspace has no free seats. Ask the workspace owner to add seats from Settings → Billing, then try the invite again.",
+        code: "seat_limit",
+      },
+      { status: 403 },
+    );
+  }
+  if (err.message?.startsWith("single_workspace:")) {
+    return NextResponse.json(
+      {
+        error:
+          "Your account is limited to one workspace, so this invitation cannot be accepted while you belong to another.",
+        code: "single_workspace",
+      },
+      { status: 403 },
+    );
+  }
   if (err.code === "42501") {
     return NextResponse.json({ error: err.message }, { status: 401 });
   }

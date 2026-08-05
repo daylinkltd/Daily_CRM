@@ -9,9 +9,10 @@ export const dynamic = 'force-dynamic';
  *
  * Privileged operations on one user. Body: `{ action, ...args }`.
  *
- *   revoke_sessions   — sign them out of every device
- *   set_status        — 'active' | 'blocked'
- *   set_system_role   — 'user' | 'super_admin'
+ *   revoke_sessions        — sign them out of every device
+ *   set_status             — 'active' | 'blocked'
+ *   set_system_role        — 'user' | 'super_admin'
+ *   set_single_workspace   — restrict to one workspace, or lift it
  *   send_password_reset
  *
  * One route with an `action` discriminator rather than four routes,
@@ -109,6 +110,42 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         details: { email: target.email, before: target.system_role, after: role },
       });
       return NextResponse.json({ ok: true, system_role: role });
+    }
+
+    case 'set_single_workspace': {
+      const restricted = body.single_workspace_only === true;
+
+      // The flag only blocks FUTURE joins (migration 102's trigger runs on
+      // INSERT). Existing extra memberships are left alone deliberately:
+      // silently ripping a user out of workspaces they are mid-work in is
+      // a support fire, and which membership survives is a human call.
+      // The response says so, so the admin is not surprised.
+      const { error } = await admin
+        .from('profiles')
+        .update({ single_workspace_only: restricted })
+        .eq('user_id', targetUserId);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+      const { count } = await admin
+        .from('workspace_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', targetUserId);
+
+      await audit({
+        action: 'user.single_workspace_changed',
+        targetType: 'user',
+        targetId: targetUserId,
+        details: { email: target.email, restricted, current_memberships: count ?? 0 },
+      });
+
+      return NextResponse.json({
+        ok: true,
+        single_workspace_only: restricted,
+        note:
+          restricted && (count ?? 0) > 1
+            ? `This user is currently in ${count} workspaces. Existing memberships are kept; only new joins are blocked. Remove them from workspaces manually if needed.`
+            : undefined,
+      });
     }
 
     case 'send_password_reset': {

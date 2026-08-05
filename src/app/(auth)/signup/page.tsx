@@ -100,6 +100,9 @@ function SignupPageInner() {
 
   const plan = searchParams.get("plan");
   const cycle = searchParams.get("cycle");
+  // Seats chosen on the pricing calculator. Dropped silently before, so a
+  // buyer who dialled in 12 seats arrived at checkout buying 1.
+  const seatsParam = searchParams.get("seats");
 
   useEffect(() => {
     if (plan) {
@@ -108,10 +111,13 @@ function SignupPageInner() {
     if (cycle) {
       localStorage.setItem("crm_onboarding_cycle", cycle);
     }
+    if (seatsParam && Number.isInteger(Number(seatsParam)) && Number(seatsParam) > 0) {
+      localStorage.setItem("crm_onboarding_seats", seatsParam);
+    }
     if (inviteToken) {
       sessionStorage.setItem("pending_invite_token", inviteToken);
     }
-  }, [plan, cycle, inviteToken]);
+  }, [plan, cycle, seatsParam, inviteToken]);
 
   return (
     <div className="marketing min-h-screen flex flex-col items-center justify-center px-4 text-center relative overflow-hidden bg-[var(--mkt-canvas)]">
