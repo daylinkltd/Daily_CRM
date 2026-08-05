@@ -27,6 +27,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { IconAction } from "@/components/ui/icon-action";
+import { CandidateBoard, type CandidateApplication } from '@/components/recruitment/candidate-board';
+import { CandidateList } from '@/components/recruitment/candidate-list';
+import { ViewToggle, type BoardView } from '@/components/ui/view-toggle';
 
 const STAGES = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'HIRED', 'REJECTED'];
 
@@ -38,6 +41,8 @@ export default function RecruitmentPage() {
   const [, setCandidates] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // Board to move people along, list to see everyone at once.
+  const [view, setView] = useState<BoardView>('kanban');
 
   const [jobModalOpen, setJobModalOpen] = useState(false);
   const [candModalOpen, setCandModalOpen] = useState(false);
@@ -148,6 +153,13 @@ export default function RecruitmentPage() {
   };
 
   const handleMoveStage = async (appId: string, newStage: string) => {
+    // Optimistic: refetching on every drop makes the card visibly snap back
+    // to its old column before settling in the new one.
+    const snapshot = applications;
+    setApplications((prev) =>
+      prev.map((a) => (a.id === appId ? { ...a, stage: newStage } : a)),
+    );
+
     try {
       const res = await fetch('/api/hr/recruitment', {
         method: 'POST',
@@ -161,11 +173,40 @@ export default function RecruitmentPage() {
       });
       const json = await res.json();
       if (json.error) throw new Error(json.error);
-
-      toast.success(`Application moved to ${newStage}`);
-      fetchRecruitment();
     } catch (err: any) {
+      setApplications(snapshot);
       toast.error(err.message || 'Failed to update stage');
+    }
+  };
+
+  const handleDeleteApplication = async (application: CandidateApplication) => {
+    const name = application.candidate?.full_name || 'this candidate';
+    if (!window.confirm(`Remove ${name} from the pipeline? The candidate record itself is kept.`)) {
+      return;
+    }
+
+    // Optimistic, restored if the server disagrees.
+    const snapshot = applications;
+    setApplications((prev) => prev.filter((a) => a.id !== application.id));
+
+    try {
+      const res = await fetch('/api/hr/recruitment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'DELETE_APPLICATION',
+          workspaceId: activeWorkspace?.id,
+          applicationId: application.id,
+        }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      toast.success('Application removed');
+    } catch (err) {
+      setApplications(snapshot);
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to remove application',
+      );
     }
   };
 
@@ -186,57 +227,39 @@ export default function RecruitmentPage() {
 
       <Tabs defaultValue="pipeline" className="space-y-6">
         <TabsList className="bg-muted/50 border border-border">
-          <TabsTrigger value="pipeline">Candidate Pipeline (Kanban)</TabsTrigger>
+          <TabsTrigger value="pipeline">Candidate Pipeline</TabsTrigger>
           <TabsTrigger value="jobs">Job Openings ({jobs.length})</TabsTrigger>
         </TabsList>
 
-        {/* Candidate Pipeline Kanban */}
+        {/* Candidate Pipeline — board or list */}
         <TabsContent value="pipeline" className="space-y-4">
           {loading ? (
             <div className="flex justify-center py-16">
               <Loader2 className="size-8 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 overflow-x-auto">
-              {STAGES.map(stage => {
-                const stageApps = applications.filter(a => a.stage === stage);
-
-                return (
-                  <div key={stage} className="bg-muted/30 border border-border rounded-lg p-3 min-w-[200px] flex flex-col gap-3">
-                    <div className="flex items-center justify-between font-semibold text-xs text-foreground uppercase tracking-wider">
-                      <span>{stage}</span>
-                      <Badge variant="secondary" className="text-[10px]">{stageApps.length}</Badge>
-                    </div>
-
-                    <div className="space-y-2 min-h-[300px]">
-                      {stageApps.map(a => (
-                        <Card key={a.id} className="border-border bg-card shadow-xs p-3 space-y-2 text-xs">
-                          <div className="font-semibold text-foreground">{a.candidate?.full_name || 'Candidate'}</div>
-                          <div className="text-[11px] text-muted-foreground truncate">{a.candidate?.email}</div>
-                          <Badge variant="outline" className="text-[9px] bg-secondary/40">
-                            {a.job?.title || 'Job Opening'}
-                          </Badge>
-
-                          <div className="pt-2 flex items-center justify-between border-t border-border/40 text-[10px]">
-                            {stage !== 'HIRED' && stage !== 'REJECTED' && (
-                              <button
-                                onClick={() => {
-                                  const nextIdx = STAGES.indexOf(stage) + 1;
-                                  if (nextIdx < STAGES.length) handleMoveStage(a.id, STAGES[nextIdx]);
-                                }}
-                                className="text-primary hover:underline flex items-center gap-0.5"
-                              >
-                                Advance <ChevronRight className="size-3" />
-                              </button>
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <>
+              <div className="flex justify-end">
+                <ViewToggle value={view} onChange={setView} label="Candidate pipeline view" />
+              </div>
+              {view === 'kanban' ? (
+                <CandidateBoard
+                  stages={STAGES}
+                  applications={applications as CandidateApplication[]}
+                  canManage={canManage}
+                  onMove={handleMoveStage}
+                  onDelete={handleDeleteApplication}
+                />
+              ) : (
+                <CandidateList
+                  stages={STAGES}
+                  applications={applications as CandidateApplication[]}
+                  canManage={canManage}
+                  onMove={handleMoveStage}
+                  onDelete={handleDeleteApplication}
+                />
+              )}
+            </>
           )}
         </TabsContent>
 

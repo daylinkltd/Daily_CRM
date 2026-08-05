@@ -95,18 +95,51 @@ export async function POST(request: Request) {
 
     if (action === 'MOVE_STAGE') {
       const { applicationId, newStage } = body;
-      const { data: app, error } = await supabase
+      // Scoped by workspace as well as id. RLS already prevents reaching
+      // another tenant's row, but relying on that alone means a mistyped id
+      // is indistinguishable from a permission failure.
+      const { data: rows, error } = await supabase
         .from('hr_job_applications')
         .update({
           stage: newStage,
           stage_changed_at: new Date().toISOString()
         })
         .eq('id', applicationId)
-        .select()
-        .single();
+        .eq('workspace_id', workspaceId)
+        .select();
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-      return NextResponse.json({ application: app });
+      // Supabase reports success on a zero-row update, so an application
+      // that no longer exists would otherwise look like a successful move.
+      if (!rows || rows.length === 0) {
+        return NextResponse.json(
+          { error: 'That application no longer exists' },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({ application: rows[0] });
+    }
+
+    if (action === 'DELETE_APPLICATION') {
+      const { applicationId } = body;
+      const { data: rows, error } = await supabase
+        .from('hr_job_applications')
+        .delete()
+        .eq('id', applicationId)
+        .eq('workspace_id', workspaceId)
+        .select();
+
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (!rows || rows.length === 0) {
+        return NextResponse.json(
+          { error: 'That application no longer exists' },
+          { status: 404 }
+        );
+      }
+      // The candidate row is intentionally left alone: a person can apply
+      // to more than one opening, so removing an application must not
+      // delete the human from the ATS.
+      return NextResponse.json({ deleted: applicationId });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

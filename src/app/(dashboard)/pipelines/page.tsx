@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Pipeline, PipelineStage, Deal } from "@/types";
 import { PipelineBoard } from "@/components/pipelines/pipeline-board";
+import { PipelineList } from "@/components/pipelines/pipeline-list";
+import { ViewToggle, type BoardView } from "@/components/ui/view-toggle";
 import { PipelineSettings } from "@/components/pipelines/pipeline-settings";
 import { DealForm } from "@/components/pipelines/deal-form";
 import { PipelineAnalytics } from "@/components/pipelines/pipeline-analytics";
@@ -46,6 +48,8 @@ export default function PipelinesPage() {
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>("");
   const [stages, setStages] = useState<PipelineStage[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
+  // Board for moving deals along, list for scanning and sorting them.
+  const [view, setView] = useState<BoardView>("kanban");
   const [loading, setLoading] = useState(true);
 
   // Dialog / sheet state
@@ -388,13 +392,20 @@ export default function PipelinesPage() {
       ) : (
         <>
           <PipelineAnalytics stages={stages} deals={deals} />
-          <PipelineBoard
-            stages={stages}
-            deals={deals}
-            onDealMoved={handleDealMoved}
-            onAddDeal={handleAddDeal}
-            onEditDeal={handleEditDeal}
-          />
+          <div className="flex justify-end">
+            <ViewToggle value={view} onChange={setView} label="Pipeline view" />
+          </div>
+          {view === "kanban" ? (
+            <PipelineBoard
+              stages={stages}
+              deals={deals}
+              onDealMoved={handleDealMoved}
+              onAddDeal={handleAddDeal}
+              onEditDeal={handleEditDeal}
+            />
+          ) : (
+            <PipelineList stages={stages} deals={deals} onEditDeal={handleEditDeal} />
+          )}
         </>
       )}
 
