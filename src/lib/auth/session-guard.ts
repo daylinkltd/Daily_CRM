@@ -8,26 +8,38 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  * 100) decides that atomically; this module's job is to find the session
  * id, call it, and not call it more often than necessary.
  *
- * WHY THE THROTTLE EXISTS. Without it this is a database round trip on
- * every navigation and every API call, on the hot path, before anything
- * renders. With it, a verified session is trusted for a short window
- * recorded in a cookie.
+ * THE WINDOW IS ZERO, DELIBERATELY.
  *
- * THE COST OF THE THROTTLE, STATED PLAINLY: a displaced device keeps
- * working for up to `TRUST_WINDOW_SECONDS` after it was signed out
- * elsewhere. That is the deliberate trade — this feature exists to stop
- * casual account sharing, not to contain an attacker who already has a
- * valid token, and against that threat a 30-second tail is irrelevant. If
- * the requirement ever becomes "revoke instantly", drop the window to 0
- * and accept the round trip.
+ * There is a throttle mechanism here — a cookie that can vouch for a
+ * session for a few seconds and skip the database round trip — and it is
+ * switched off. It was set to 30 seconds on the first pass, on the
+ * reasoning that this feature only deters casual account sharing.
+ *
+ * That reasoning was wrong for this product. Seats are the unit we charge
+ * by, so "how many people can use this login at once" is not a nicety, it
+ * is the price. A 30-second grace period is 30 seconds of two people
+ * working on one seat, every time, on every request — which over a
+ * working day is not a tail, it is a shared login that mostly works.
+ *
+ * So every authenticated request is checked. The cost is one indexed
+ * primary-key lookup against a table with one row per session, which is
+ * the cheapest query shape Postgres has, and it happens in parallel with
+ * the auth check that was already there.
+ *
+ * The constant stays because the trade may look different at a hundred
+ * times the traffic. Raising it is a pricing decision, not a performance
+ * one, and should be made by someone who knows that.
  *
  * The cookie is not a security boundary and does not need signing: it can
  * only ever shorten a check for a session whose token Supabase already
  * verified. Forging it buys nothing that holding the token does not.
  */
 
-/** How long a verified session is trusted before re-checking. */
-export const TRUST_WINDOW_SECONDS = 30;
+/**
+ * How long a verified session is trusted before re-checking.
+ * ZERO = check every request. See the note above before changing this.
+ */
+export const TRUST_WINDOW_SECONDS = 0;
 
 export const SESSION_COOKIE = 'dbz_sess_ok';
 
@@ -64,6 +76,9 @@ export function isWithinTrustWindow(
   cookieValue: string | undefined,
   sessionId: string,
 ): boolean {
+  // Short-circuit at zero so the strict setting cannot be defeated by a
+  // cookie minted while the window was still open.
+  if (TRUST_WINDOW_SECONDS <= 0) return false;
   if (!cookieValue) return false;
 
   // rsplit on the last dot: session ids do not contain dots today, but

@@ -3,9 +3,19 @@
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Shield, LayoutDashboard, LogOut, Menu } from "lucide-react";
+import { Shield, LayoutDashboard, LogOut, Menu, Building2, Users, Megaphone, ScrollText, Settings2, Inbox } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+
+const NAV = [
+  { href: "/saas-admin/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/saas-admin/tenants", label: "Tenants", icon: Building2 },
+  { href: "/saas-admin/users", label: "Users", icon: Users },
+  { href: "/saas-admin/prospects", label: "Prospects", icon: Inbox },
+  { href: "/saas-admin/announcements", label: "Announcements", icon: Megaphone },
+  { href: "/saas-admin/logs", label: "Logs", icon: ScrollText },
+  { href: "/saas-admin/system", label: "System", icon: Settings2 },
+];
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const { user, profile, loading, signOut } = useAuth();
@@ -63,13 +73,25 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
         {/* Links */}
         <nav className="flex-1 space-y-1 px-4 py-4 overflow-y-auto">
-          <Link
-            href="/saas-admin/dashboard"
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-foreground hover:text-white hover:bg-muted/60 transition-colors"
-          >
-            <LayoutDashboard className="h-4 w-4 text-primary" />
-            Dashboard
-          </Link>
+          {NAV.map((item) => {
+            const active =
+              pathname === item.href || pathname?.startsWith(item.href + "/");
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:text-white hover:bg-muted/60"
+                }`}
+              >
+                <item.icon className={`h-4 w-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Bottom Panel */}

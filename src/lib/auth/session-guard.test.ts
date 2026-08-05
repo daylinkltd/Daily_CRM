@@ -47,43 +47,27 @@ describe('sessionIdFromToken', () => {
 });
 
 describe('trust window', () => {
-  it('trusts a freshly written cookie for its own session', () => {
-    expect(isWithinTrustWindow(trustCookieValue('sess-1'), 'sess-1')).toBe(true);
+  it('is switched off, so every request is checked', () => {
+    // The product charges by the seat, so two people sharing a login for
+    // even a few seconds per request is revenue, not a rounding error.
+    // If this ever goes non-zero it should be a deliberate pricing call —
+    // this assertion is the tripwire.
+    expect(TRUST_WINDOW_SECONDS).toBe(0);
+    expect(isWithinTrustWindow(trustCookieValue('sess-1'), 'sess-1')).toBe(false);
   });
 
   it('never trusts a cookie written for a different session', () => {
-    // The case that matters: signing in as someone else on the same
-    // browser must not inherit the previous user's verified window.
+    // Belt and braces: true regardless of the window, because signing in
+    // as someone else in the same browser must not inherit the previous
+    // user's verified state.
     expect(isWithinTrustWindow(trustCookieValue('sess-1'), 'sess-2')).toBe(false);
   });
 
-  it('expires', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-08-06T00:00:00Z'));
-    const cookie = trustCookieValue('sess-1');
-
-    vi.advanceTimersByTime((TRUST_WINDOW_SECONDS - 1) * 1000);
-    expect(isWithinTrustWindow(cookie, 'sess-1')).toBe(true);
-
-    vi.advanceTimersByTime(2000);
-    expect(isWithinTrustWindow(cookie, 'sess-1')).toBe(false);
-  });
-
   it('rejects malformed cookies instead of trusting them', () => {
-    // A parse failure must fall through to a real database check. Reading
-    // "cannot tell" as "fine" would disable the whole feature the moment
-    // the cookie format changed.
     expect(isWithinTrustWindow(undefined, 'sess-1')).toBe(false);
     expect(isWithinTrustWindow('', 'sess-1')).toBe(false);
     expect(isWithinTrustWindow('sess-1', 'sess-1')).toBe(false);
     expect(isWithinTrustWindow('sess-1.not-a-number', 'sess-1')).toBe(false);
     expect(isWithinTrustWindow('.123', 'sess-1')).toBe(false);
-  });
-
-  it('handles a session id containing dots', () => {
-    // Supabase ids do not today, but splitting on the first dot would
-    // silently mis-parse if that ever changed.
-    const id = 'sess.with.dots';
-    expect(isWithinTrustWindow(trustCookieValue(id), id)).toBe(true);
   });
 });
