@@ -1,6 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+import {
+  SESSION_COOKIE,
+  TRUST_WINDOW_SECONDS,
+  isWithinTrustWindow,
+  sessionIdFromToken,
+  trustCookieValue,
+  verifySession,
+} from '@/lib/auth/session-guard'
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -34,6 +43,58 @@ export async function proxy(request: NextRequest) {
       response.cookies.set(cookie)
     })
     return response
+  }
+
+  // ------------------------------------------------------------------
+  // One active session per user.
+  //
+  // Runs before the routing rules below so a displaced device is signed
+  // out wherever it lands, not only on protected pages — otherwise the
+  // "already logged in, go to /dashboard" redirect above would bounce a
+  // revoked session straight back into the app.
+  // ------------------------------------------------------------------
+  if (user) {
+    const { data: { session } } = await supabase.auth.getSession()
+    const sessionId = sessionIdFromToken(session?.access_token)
+
+    if (sessionId && !isWithinTrustWindow(request.cookies.get(SESSION_COOKIE)?.value, sessionId)) {
+      const verdict = await verifySession(
+        supabase,
+        sessionId,
+        request.headers.get('user-agent'),
+        // Behind Coolify/Cloudflare the socket address is the proxy, so
+        // the forwarded header is the only real client address available.
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
+      )
+
+      if (verdict === 'revoked') {
+        await supabase.auth.signOut()
+
+        const url = request.nextUrl.clone()
+        url.pathname = '/login'
+        url.search = '?reason=signed-in-elsewhere'
+
+        const response = NextResponse.redirect(url)
+        // signOut() clears the auth cookies on `supabaseResponse`; copy
+        // those onto the redirect or the browser keeps the dead session
+        // and loops between /login and /dashboard.
+        withRefreshedCookies(response)
+        response.cookies.delete(SESSION_COOKIE)
+        return response
+      }
+
+      if (verdict === 'active') {
+        supabaseResponse.cookies.set(SESSION_COOKIE, trustCookieValue(sessionId), {
+          maxAge: TRUST_WINDOW_SECONDS,
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+        })
+      }
+      // 'unknown' writes no cookie, so the next request retries rather
+      // than trusting a check that never completed.
+    }
   }
 
   // Auth pages — redirect to dashboard if already logged in.

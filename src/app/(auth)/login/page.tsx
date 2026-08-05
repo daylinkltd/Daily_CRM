@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, MonitorSmartphone } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -33,6 +33,14 @@ function LoginPageInner() {
   const supabase = createClient();
 
   const inviteToken = searchParams.get("invite");
+
+  // Why the proxy sent them here. Without this the single-session rule
+  // reads as a random logout, which generates support tickets and makes
+  // the product look unreliable rather than careful.
+  const signedOutReason =
+    searchParams.get("reason") === "signed-in-elsewhere"
+      ? "You were signed out because your account was used to sign in on another device. Only one device can be signed in at a time."
+      : null;
 
   useEffect(() => {
     if (inviteToken) {
@@ -93,6 +101,13 @@ function LoginPageInner() {
           </div>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            {signedOutReason && !error && (
+              <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-300 flex items-start gap-2.5">
+                <MonitorSmartphone className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{signedOutReason}</span>
+              </div>
+            )}
+
             {error && (
               <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-300 flex items-center gap-2.5">
                 <AlertCircle className="h-4 w-4 shrink-0" />
