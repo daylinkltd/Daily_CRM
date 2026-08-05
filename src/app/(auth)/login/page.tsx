@@ -73,7 +73,7 @@ function LoginPageInner() {
         <div className="flex justify-center mb-8">
           <Image
             src="/logolight.png"
-            alt="Daily CRM by Daylink"
+            alt="Dailybuz"
             width={160}
             height={40}
             className="h-9 w-auto object-contain"
@@ -88,7 +88,7 @@ function LoginPageInner() {
               Welcome back
             </h1>
             <p className="text-sm mt-1 text-[var(--mkt-fg-muted)]">
-              Sign in to your Daily CRM workspace
+              Sign in to your Dailybuz workspace
             </p>
           </div>
 

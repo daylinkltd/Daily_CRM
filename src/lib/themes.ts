@@ -107,7 +107,7 @@ export interface ThemeMeta {
 export const THEMES: ReadonlyArray<ThemeMeta> = [
   {
     id: "dailycrm",
-    name: "Daily CRM",
+    name: "Dailybuz",
     tagline: "The default brand theme — professional sky-blue.",
     swatch: "#0284C7",
   },

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { BRAND, pageTitle } from "@/config/brand";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -21,14 +22,24 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  // Absolute URLs are resolved against this — canonical tags, OG images and
+  // the sitemap are all wrong without it.
+  metadataBase: new URL(BRAND.url),
   title: {
-    default: "Daily CRM by Daylink",
-    template: "%s | Daily CRM",
+    default: pageTitle(),
+    template: `%s | ${BRAND.name}`,
   },
-  description: "Daily CRM — Modern, multi-workspace CRM powered by Daylink. Manage contacts, conversations, pipelines and automations.",
+  description: BRAND.description,
+  applicationName: BRAND.name,
+  // Indexable by default. This previously said index:false at the ROOT,
+  // which would have kept the entire marketing site out of every search
+  // index no matter what the pages said. The signed-in app opts back OUT
+  // in src/app/(dashboard)/layout.tsx — the app is what should be hidden,
+  // not the marketing site.
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
   icons: {
     icon: [

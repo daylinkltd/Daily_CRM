@@ -247,7 +247,7 @@ function OnboardingInner() {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TEus8m7ilDoAio",
           amount: orderResult.amount,
           currency: orderResult.currency,
-          name: "Daily CRM",
+          name: "Dailybuz",
           description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
           order_id: orderResult.order_id,
           handler: async function (response: any) {
@@ -329,7 +329,7 @@ function OnboardingInner() {
       <div className="w-full max-w-4xl flex flex-col items-center relative z-10">
         {/* Header Logo */}
         <div className="flex items-center gap-2 mb-8">
-          <Image src="/logolight.png" alt="Daily CRM" width={160} height={40} className="h-9 w-auto object-contain" />
+          <Image src="/logolight.png" alt="Dailybuz" width={160} height={40} className="h-9 w-auto object-contain" />
         </div>
 
         {/* Wizard Progress Steps Bar */}

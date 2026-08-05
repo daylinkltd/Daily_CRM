@@ -102,7 +102,7 @@ export function BillingPanel() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TEus8m7ilDoAio",
         amount: orderResult.amount,
         currency: orderResult.currency,
-        name: "Daily CRM",
+        name: "Dailybuz",
         description: `${plan.name} — ${seats} seat${seats === 1 ? "" : "s"} (${period === "annual" ? "Annual" : "Monthly"})`,
         order_id: orderResult.order_id,
         handler: async function (response: any) {

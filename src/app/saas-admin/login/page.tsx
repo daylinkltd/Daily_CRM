@@ -102,7 +102,7 @@ export default function AdminLoginPage() {
         <div className="flex justify-center mb-8">
           <Image
             src="/logolight.png"
-            alt="Daily CRM by Daylink"
+            alt="Dailybuz"
             width={160}
             height={40}
             className="h-9 w-auto object-contain"

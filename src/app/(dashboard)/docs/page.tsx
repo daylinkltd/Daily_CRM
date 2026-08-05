@@ -88,7 +88,7 @@ export default function DocsPage() {
         <Snippet>{`curl ${BASE_URL}/api/v1/me \\
   -H "Authorization: Bearer ${API_KEY_PREFIX}your_key_here"`}</Snippet>
         <p className="text-sm text-muted-foreground">
-          Keys issued before the Daily CRM rename (prefix{' '}
+          Keys issued before the Dailybuz rename (prefix{' '}
           <Code>wacrm_live_</Code>) keep working — you don&apos;t need to rotate
           them, though newly created keys use <Code>{API_KEY_PREFIX}</Code>.
         </p>

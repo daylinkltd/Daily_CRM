@@ -244,7 +244,7 @@ export const TEMPLATE_LIBRARY: LibraryTemplate[] = [
     ],
   },
 
-  // ── Templates tied to Daily CRM features ─────────────────────────
+  // ── Templates tied to Dailybuz features ─────────────────────────
   // Quotations module
   {
     id: 'quotation_sent',
@@ -315,7 +315,7 @@ export const TEMPLATE_LIBRARY: LibraryTemplate[] = [
       'review your submission and get back to you within {{3}}. ' +
       'You can reply here with anything you would like to add.',
     body_samples: ['Priya', 'Project Inquiry', '24 hours'],
-    footer: 'Daily CRM by Daylink',
+    footer: 'Dailybuz',
   },
   // Broadcasts / catalog
   {

@@ -488,3 +488,70 @@ html[data-mode] .marketing {
 .marketing :is(.mkt-btn, .mkt-eyebrow, .mkt-chip) {
   border-radius: 0;
 }
+
+/* ===========================================================================
+ * LIGHT MODE
+ *
+ * The block at the top of this file pins a dark ramp for `.marketing`
+ * because the landing page used to commit to dark. It no longer does —
+ * the marketing site follows html[data-mode] like the rest of the app.
+ *
+ * This block re-lights the SAME token names, so every `.mkt-*` component
+ * and every `var(--mkt-…)` reference works unchanged in both modes.
+ * Specificity is identical to the dark block (0,2,1), so this wins purely
+ * by coming later in the file — do not reorder.
+ *
+ * Neutrals are near-neutral graphite rather than the blue-tinted slate
+ * used before: at low chroma a blue cast reads as "unfinished template",
+ * and this product sits beside ledgers and payslips.
+ * =========================================================================== */
+html[data-mode="light"] .marketing {
+  color-scheme: light;
+
+  --slate-50: oklch(0.145 0.004 270);
+  --slate-100: oklch(0.21 0.004 270);
+  --slate-200: oklch(0.28 0.004 270);
+  --slate-300: oklch(0.37 0.004 270);
+  --slate-400: oklch(0.48 0.004 270);
+  --slate-500: oklch(0.58 0.004 270);
+  --slate-600: oklch(0.68 0.004 270);
+  --slate-700: oklch(0.82 0.004 270);
+  --slate-800: oklch(0.9 0.003 270);
+  --slate-900: oklch(0.955 0.002 270);
+  --slate-950: oklch(0.985 0.001 270);
+
+  --mkt-canvas: oklch(1 0 0);
+  --mkt-band: oklch(0.975 0.002 270);
+  --mkt-surface: oklch(0.99 0.001 270);
+  --mkt-surface-2: oklch(0.96 0.003 270);
+  --mkt-line: oklch(0.9 0.004 270);
+  --mkt-line-soft: oklch(0.94 0.003 270);
+
+  /* Ink, not pure black — pure black on white is harsh at display sizes. */
+  --mkt-fg: oklch(0.185 0.006 270);
+  --mkt-fg-muted: oklch(0.42 0.006 270);
+  --mkt-fg-subtle: oklch(0.52 0.006 270);
+
+  /* Mirror of the dark treatment: --primary is tuned for a dark canvas and
+     is too light on white, so darken it for text rather than letting the
+     eyebrow copy fail contrast. */
+  --mkt-accent-text: color-mix(in oklab, var(--primary) 72%, oklch(0.18 0.02 270));
+  --mkt-accent-soft: color-mix(in oklab, var(--primary) 8%, var(--mkt-canvas));
+  --mkt-accent-line: color-mix(in oklab, var(--primary) 32%, var(--mkt-line));
+
+  /* Far softer than the dark shadow: a heavy drop shadow on white is the
+     single most dated thing a light UI can do. */
+  --mkt-shadow: 0 18px 40px -20px oklch(0.2 0.02 270 / 0.18);
+}
+
+/* The hero aurora is tuned for a dark canvas; at full strength on white it
+   turns into a wash. */
+html[data-mode="light"] .marketing .mkt-aurora::before {
+  opacity: 0.5;
+}
+
+/* Decorative blur orbs in the page markup use bg-primary/N, which is far
+   too strong against white. */
+html[data-mode="light"] .marketing [class*="blur-["] {
+  opacity: 0.35;
+}

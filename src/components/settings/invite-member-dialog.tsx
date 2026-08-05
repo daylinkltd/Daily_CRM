@@ -261,7 +261,7 @@ export function InviteMemberDialog({
         // string if `account` hasn't loaded yet (shouldn't happen
         // — the dialog requires admin+ which requires a loaded
         // profile — but stay safe).
-        accountName: account?.name ?? 'our Daily CRM workspace',
+        accountName: account?.name ?? 'our Dailybuz workspace',
       });
       onCreated();
     } catch (err) {
@@ -288,10 +288,10 @@ export function InviteMemberDialog({
   function whatsappShareUrl(url: string): string {
     // Include the account name so the recipient knows which team
     // they're being invited to before clicking through. This matters
-    // for users in multi-team contexts where "our Daily CRM workspace"
+    // for users in multi-team contexts where "our Dailybuz workspace"
     // wouldn't be enough to disambiguate.
-    const accountName = result?.accountName ?? 'our Daily CRM workspace';
-    const message = `Join ${accountName} on Daily CRM using this link (valid for ${result?.expiresInDays} days): ${url}`;
+    const accountName = result?.accountName ?? 'our Dailybuz workspace';
+    const message = `Join ${accountName} on Dailybuz using this link (valid for ${result?.expiresInDays} days): ${url}`;
     return `https://wa.me/?text=${encodeURIComponent(message)}`;
   }
 
@@ -382,7 +382,7 @@ export function InviteMemberDialog({
               </div>
 
               {/* Anchor styled with `buttonVariants` rather than wrapping
-                  in <Button asChild>. The Daily CRM Button is the Base UI
+                  in <Button asChild>. The Dailybuz Button is the Base UI
                   ButtonPrimitive — it has no Radix-style asChild slot.
                   Direct anchor preserves right-click "Open in new tab"
                   behaviour too. */}

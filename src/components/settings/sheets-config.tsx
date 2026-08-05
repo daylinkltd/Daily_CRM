@@ -67,7 +67,7 @@ export function SheetsConfig() {
           <Card className="bg-card border-border ring-0 ring-transparent">
             <CardHeader>
               <CardTitle className="text-foreground">Sync Configuration</CardTitle>
-              <CardDescription className="text-muted-foreground">Map your Daily CRM data to a specific spreadsheet.</CardDescription>
+              <CardDescription className="text-muted-foreground">Map your Dailybuz data to a specific spreadsheet.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
