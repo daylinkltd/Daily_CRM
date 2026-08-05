@@ -52,7 +52,11 @@ export const BRAND = {
   },
 
   address: {
-    city: 'Bengaluru',
+    // Belagavi (Belgaum), not Bengaluru. Worth being exact about: this
+    // string feeds the Organization JSON-LD and llms.txt, so a wrong city
+    // is a wrong answer in local search and in anything an AI assistant
+    // says about where the company is.
+    city: 'Belagavi',
     region: 'Karnataka',
     country: 'IN',
   },

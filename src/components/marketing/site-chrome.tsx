@@ -187,7 +187,20 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col gap-2 border-t border-[var(--mkt-line)] pt-6 text-xs text-[var(--mkt-fg-subtle)] sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {BRAND.foundingYear}–2026 {BRAND.legalName}. All rights reserved.
+            © {BRAND.foundingYear}–2026{" "}
+            {/* The legal entity links out to its own site. A customer
+                checking who is charging them — the card statement reads
+                "Daylink", not "Dailybuz" — should not have to search for
+                the company. rel="noopener" because it opens a new tab. */}
+            <a
+              href={BRAND.payments.merchantUrl}
+              target="_blank"
+              rel="noopener"
+              className="underline decoration-[var(--mkt-line)] underline-offset-2 transition-colors hover:text-[var(--mkt-fg)] hover:decoration-current"
+            >
+              {BRAND.legalName}
+            </a>
+            . All rights reserved.
           </p>
           <p>Prices exclude GST. {BRAND.address.city}, {BRAND.address.region}, India.</p>
         </div>

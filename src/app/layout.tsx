@@ -41,14 +41,10 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
-  icons: {
-    icon: [
-      { url: "/logolight.png", type: "image/png" },
-    ],
-    apple: [
-      { url: "/logolight.png", type: "image/png" },
-    ],
-  },
+  // No `icons` block: src/app/icon.png and src/app/apple-icon.png are
+  // picked up automatically and are correctly sized. Pointing at a
+  // full-resolution /logolight.png meant browsers downloaded a 100KB
+  // image to render a 16px favicon.
   formatDetection: {
     email: false,
     address: false,
