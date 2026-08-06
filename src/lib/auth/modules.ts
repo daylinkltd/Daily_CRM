@@ -125,3 +125,53 @@ export function deriveModuleAccess(
     projects: permissions[MODULE_PERMISSION_KEY.projects] === true,
   };
 }
+
+// ────────────────────────────────────────────────────────────
+// Platform feature flags — the SaaS console's kill switch layer.
+// ────────────────────────────────────────────────────────────
+
+/** The relevant columns of `saas_workspace_feature_flags`. */
+export interface PlatformModuleFlags {
+  enable_crm?: boolean | null;
+  enable_hr?: boolean | null;
+  enable_retail?: boolean | null;
+  enable_projects?: boolean | null;
+}
+
+/**
+ * Intersect role-derived access with the platform's per-tenant flags.
+ *
+ * Two DIFFERENT authorities compose here, and the order matters to
+ * nobody but the result must honour both:
+ *
+ *   - the workspace OWNER decides who on their team sees which module
+ *     (roles → deriveModuleAccess above);
+ *   - the PLATFORM decides which modules the tenant has at all
+ *     (saas_workspace_feature_flags, set from the admin console).
+ *
+ * A module is visible only when both say yes — which is why this is an
+ * AND, and why the owner/admin bypass in deriveModuleAccess deliberately
+ * does NOT bypass this: a module the platform switched off for a tenant
+ * is off for that tenant's owner too. Before this function existed, the
+ * console's toggles wrote to a table nothing read.
+ *
+ * A missing flags row (or null column) means "not configured" and fails
+ * OPEN: flags are a kill switch for exceptions, not a provisioning step
+ * every tenant must pass.
+ *
+ * Accounting has no platform flag column today, so it stays governed by
+ * roles alone.
+ */
+export function applyPlatformFlags(
+  access: ModuleAccess,
+  flags: PlatformModuleFlags | null | undefined,
+): ModuleAccess {
+  if (!flags) return access;
+  return {
+    crm: access.crm && flags.enable_crm !== false,
+    accounting: access.accounting,
+    hr: access.hr && flags.enable_hr !== false,
+    retail: access.retail && flags.enable_retail !== false,
+    projects: access.projects && flags.enable_projects !== false,
+  };
+}

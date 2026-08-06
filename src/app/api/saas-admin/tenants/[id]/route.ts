@@ -24,6 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
 
   const [workspace, members, flags, usage] = await Promise.all([
+    // '*' already includes the subscription columns from migration 103.
     admin.from('workspaces').select('*').eq('id', id).maybeSingle(),
     admin
       .from('workspace_members')
@@ -103,6 +104,56 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         before: { plan: before.plan, plan_limits: before.plan_limits },
         after: patch,
       },
+    });
+  }
+
+  // Subscription overrides — the platform's escape hatches. Each writes
+  // an audit entry with the before value, because these are exactly the
+  // fields a billing dispute will ask about later.
+  const subPatch: Record<string, unknown> = {};
+
+  if (typeof body.extend_trial_days === 'number' && body.extend_trial_days > 0) {
+    const days = Math.min(90, Math.round(body.extend_trial_days));
+    // Extend from whichever is later, now or the current end — extending
+    // an expired trial by 7 days should give 7 usable days, not 7 days
+    // ago.
+    const { data: current } = await admin
+      .from('workspaces')
+      .select('trial_ends_at')
+      .eq('id', id)
+      .maybeSingle();
+    const base = Math.max(
+      Date.now(),
+      current?.trial_ends_at ? new Date(current.trial_ends_at).getTime() : 0,
+    );
+    subPatch.trial_ends_at = new Date(base + days * 86_400_000).toISOString();
+    subPatch.subscription_status = 'trialing';
+  }
+
+  if (['trialing', 'active', 'cancelled'].includes(body.subscription_status)) {
+    subPatch.subscription_status = body.subscription_status;
+  }
+
+  if (body.current_period_end !== undefined) {
+    const t = body.current_period_end ? Date.parse(body.current_period_end) : NaN;
+    if (Number.isFinite(t)) subPatch.current_period_end = new Date(t).toISOString();
+  }
+
+  if (Object.keys(subPatch).length > 0) {
+    const { data: beforeSub } = await admin
+      .from('workspaces')
+      .select('subscription_status, trial_ends_at, current_period_end')
+      .eq('id', id)
+      .maybeSingle();
+
+    const { error } = await admin.from('workspaces').update(subPatch).eq('id', id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await audit({
+      action: 'tenant.subscription_overridden',
+      targetType: 'workspace',
+      targetId: id,
+      details: { name: before.name, before: beforeSub, after: subPatch },
     });
   }
 

@@ -13,6 +13,7 @@ import {
   StatCard,
   useConsoleData,
 } from "@/components/saas-admin/console-ui";
+import { SubscriptionControls } from "@/components/saas-admin/subscription-controls";
 
 interface TenantDetail {
   workspace: {
@@ -24,6 +25,9 @@ interface TenantDetail {
     company_email: string | null;
     gstin: string | null;
     state_code: string | null;
+    subscription_status: string | null;
+    trial_ends_at: string | null;
+    current_period_end: string | null;
   };
   members: {
     id: string;
@@ -175,6 +179,16 @@ export default function TenantDetailPage() {
               </span>
             </label>
           </div>
+        </ConsoleCard>
+
+        <ConsoleCard title="Subscription">
+          <SubscriptionControls
+            workspaceId={id}
+            status={w.subscription_status}
+            trialEndsAt={w.trial_ends_at}
+            currentPeriodEnd={w.current_period_end}
+            onChanged={reload}
+          />
         </ConsoleCard>
 
         <ConsoleCard title="Module access">

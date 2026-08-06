@@ -61,10 +61,14 @@ export function BillingPanel() {
       if (res.ok) {
         const data = await res.json();
         setUsage(data);
-        // Seats default to the people already in the workspace. Buying
-        // fewer than that is not a thing anyone means to do, and starting
-        // at 1 made the panel quote a price nobody could actually use.
-        setSeatCount(Math.max(1, Number(data.memberCount) || 1));
+        // Seats default to what the workspace already committed to: the
+        // count chosen at trial start (or last purchase), floored by the
+        // people who can already log in. Someone who trialled 10 seats is
+        // here to pay for 10 seats — quoting them 1 because only one
+        // person has logged in yet re-asks a question they answered.
+        const committed =
+          Number(data.maxUsers) && Number(data.maxUsers) < 999999 ? Number(data.maxUsers) : 0;
+        setSeatCount(Math.max(1, Number(data.memberCount) || 1, committed));
       }
     } catch (err) {
       console.error("Failed to fetch billing usage:", err);
@@ -213,7 +217,7 @@ export function BillingPanel() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
       {/* Current Plan Overview Banner */}
-      <div className="relative rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-slate-950/60 to-muted p-6 shadow-xl">
+      <div className="relative rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-muted p-6 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">

@@ -13,8 +13,10 @@ import { createClient } from "@/lib/supabase/client";
 import { withDerivedLegacyPermissions } from "@/lib/auth/legacy-permissions";
 import { DEFAULT_CURRENCY } from "@/lib/currency";
 import {
+  applyPlatformFlags,
   deriveModuleAccess,
   type ModuleAccess,
+  type PlatformModuleFlags,
 } from "@/lib/auth/modules";
 import { useAuth } from "./use-auth";
 
@@ -186,6 +188,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // `permissions` because module access is derived from the raw booleans —
   // see `moduleAccess` below.
   const [rolePermissions, setRolePermissions] = useState<Record<string, unknown> | null>(null);
+  // Platform-level module flags for the active workspace, set from the
+  // SaaS admin console. null = no row / not yet loaded, which fails open.
+  const [platformFlags, setPlatformFlags] = useState<PlatformModuleFlags | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchWorkspaces = useCallback(async () => {
@@ -334,6 +339,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     role: "owner" | "admin" | "member" | "viewer" | null,
     roleId: string | null
   ) => {
+    // Platform flags load for EVERY role — including owner — because the
+    // console's kill switch outranks the owner/admin bypass below. A
+    // missing row (or a select blocked by RLS pre-migration-104) leaves
+    // null, and null fails open.
+    supabase
+      .from("saas_workspace_feature_flags")
+      .select("enable_crm, enable_hr, enable_retail, enable_projects")
+      .eq("workspace_id", workspaceId)
+      .maybeSingle()
+      .then(({ data }) => setPlatformFlags((data as PlatformModuleFlags) ?? null));
+
     // Owners & Admins always get all permissions — no DB call needed.
     // Their module access is derived from the enum role alone, so the raw
     // role JSONB can stay null (the owner/admin bypass ignores it).
@@ -449,8 +465,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   // Derive per-module access from the enum role + raw custom-role JSONB.
   // Owner/admin ⇒ all modules; role-less members ⇒ DEFAULT_MODULE_ACCESS.
   const moduleAccess = useMemo(
-    () => deriveModuleAccess(activeRole, rolePermissions),
-    [activeRole, rolePermissions]
+    () => applyPlatformFlags(deriveModuleAccess(activeRole, rolePermissions), platformFlags),
+    [activeRole, rolePermissions, platformFlags]
   );
 
   return (

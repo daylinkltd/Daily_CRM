@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { INDUSTRY_TEMPLATES } from "@/app/(dashboard)/settings/retail/page";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 function OnboardingInner() {
   const { user, profile, signOut } = useAuth();
@@ -220,15 +221,38 @@ function OnboardingInner() {
       localStorage.removeItem("crm_onboarding_cycle");
       localStorage.removeItem("crm_onboarding_seats");
 
-      // 4. Start the 14-day Business trial with the chosen seats.
+      // 4. Two honest paths from the plan step, both carrying the chosen
+      // seat count:
       //
-      // Onboarding used to jump straight to checkout when a paid tier was
-      // selected — a card wall before the person had used the product,
-      // and a lost signup whenever the redirect failed. The model now is
-      // trial-first: EVERY workspace starts a full-featured trial with
-      // the seat count chosen here, and payment happens from Billing (or
-      // the pay-now banner) once they are convinced. "No card required"
-      // on the marketing site is now literally the flow.
+      //   Business  → the payment gateway now. Someone who clicked the
+      //               paid card said "charge me"; not charging them was
+      //               reported as a bug, because it is one.
+      //   Free Trial → 14 days of the full product for those seats, no
+      //               card. When it ends, the pay-now banner asks for
+      //               payment for the SAME seat count they trialled.
+      if (selectedPlan === "business") {
+        const period: BillingPeriod = billingCycle === "annual" ? "annual" : "monthly";
+        const res = await fetch("/api/billing/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            workspace_id: workspaceId,
+            plan_id: "business",
+            seats: seatCount,
+            period,
+          }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.redirect_url) {
+          throw new Error(json.error || "Could not start checkout.");
+        }
+        // Checkout is hosted on daylink.in (the only Razorpay-registered
+        // domain); the buyer returns to /billing/callback, which verifies
+        // and activates. The workspace we just created is safe either way.
+        window.location.href = json.redirect_url;
+        return;
+      }
+
       const trialRes = await fetch("/api/billing/start-trial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -296,7 +320,7 @@ function OnboardingInner() {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4 text-primary">
                   <User className="h-6 w-6" />
                 </div>
-                <h1 className="text-xl font-bold text-white tracking-tight">Set up your profile name</h1>
+                <h1 className="text-xl font-bold text-foreground tracking-tight">Set up your profile name</h1>
                 <p className="text-muted-foreground text-xs mt-1">Let your team members know who you are.</p>
               </div>
 
@@ -305,7 +329,7 @@ function OnboardingInner() {
                 <Input
                   id="fullName"
                   type="text"
-                  placeholder="e.g. Sarah Chen"
+                  placeholder={user?.user_metadata?.full_name || profile?.full_name || "Your full name"}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="bg-muted border-border text-foreground h-10 rounded-xl focus:border-primary"
@@ -331,7 +355,7 @@ function OnboardingInner() {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4 text-primary">
                   <CreditCard className="h-6 w-6" />
                 </div>
-                <h1 className="text-xl font-bold text-white tracking-tight">Choose your team size</h1>
+                <h1 className="text-xl font-bold text-foreground tracking-tight">Choose your team size</h1>
                 <p className="text-muted-foreground text-xs mt-1">Every workspace starts with a 14-day free trial of the full product — no card required. Pay only when you decide to stay; 18% GST is added at checkout.</p>
 
                 {/* Billing cycle toggle */}
@@ -368,7 +392,7 @@ function OnboardingInner() {
                   part of choosing a plan, not an afterthought in settings. */}
               <div className="mx-auto mb-6 flex max-w-md items-center justify-between gap-4 rounded-xl border border-border bg-muted/40 px-5 py-4">
                 <div>
-                  <span className="block text-xs font-bold text-white">How many people?</span>
+                  <span className="block text-xs font-bold text-foreground">How many people?</span>
                   <span className="block text-[10px] text-muted-foreground">
                     One seat per person who signs in. Add more anytime.
                   </span>
@@ -379,16 +403,16 @@ function OnboardingInner() {
                     onClick={() => setSeatCount((n) => Math.max(1, n - 1))}
                     disabled={seatCount <= 1}
                     aria-label="Remove a seat"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-white hover:border-primary disabled:opacity-40"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-foreground hover:border-primary disabled:opacity-40"
                   >
                     −
                   </button>
-                  <span className="w-10 text-center text-sm font-black text-white">{seatCount}</span>
+                  <span className="w-10 text-center text-sm font-black text-foreground">{seatCount}</span>
                   <button
                     type="button"
                     onClick={() => setSeatCount((n) => Math.min(500, n + 1))}
                     aria-label="Add a seat"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-white hover:border-primary"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-foreground hover:border-primary"
                   >
                     +
                   </button>
@@ -426,9 +450,9 @@ function OnboardingInner() {
                       )}
 
                       <div className="mb-4">
-                        <span className="text-xs font-extrabold text-white block">{plan.name}</span>
+                        <span className="text-xs font-extrabold text-foreground block">{plan.name}</span>
                         <div className="flex items-baseline gap-0.5 mt-1">
-                          <span className="text-lg font-black text-white">{displayPrice}</span>
+                          <span className="text-lg font-black text-foreground">{displayPrice}</span>
                           <span className="text-muted-foreground text-[10px]">{periodLabel}</span>
                         </div>
                         {!isFree && !isCustom && (
@@ -451,7 +475,7 @@ function OnboardingInner() {
 
                       <div className="flex justify-center mt-2">
                         <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-primary bg-primary" : "border-border"}`}>
-                          {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                          {isSelected && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
                         </div>
                       </div>
                     </div>
@@ -485,7 +509,7 @@ function OnboardingInner() {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4 text-primary">
                   <Building2 className="h-6 w-6" />
                 </div>
-                <h1 className="text-xl font-bold text-white tracking-tight">Create your workspace</h1>
+                <h1 className="text-xl font-bold text-foreground tracking-tight">Create your workspace</h1>
                 <p className="text-muted-foreground text-xs mt-1">Configure company name and brand identity.</p>
               </div>
 
@@ -535,18 +559,22 @@ function OnboardingInner() {
 
                 <div className="space-y-2">
                   <Label htmlFor="industryTemplate" className="text-foreground text-xs font-semibold">Business Industry Preset</Label>
-                  <select
-                    id="industryTemplate"
+                  {/* The system's searchable dropdown, same as everywhere
+                      else a list is longer than a glance. One-value-in,
+                      one-value-out, so it replaced the native select
+                      without touching the surrounding state. */}
+                  <SearchableSelect
+                    ariaLabel="Business industry preset"
+                    options={INDUSTRY_TEMPLATES.map((tmpl) => ({
+                      value: tmpl.id,
+                      label: tmpl.label,
+                      hint: tmpl.desc,
+                    }))}
                     value={selectedIndustryTemplate}
-                    onChange={(e) => setSelectedIndustryTemplate(e.target.value)}
-                    className="w-full bg-muted border border-border text-white rounded-xl h-10 text-xs px-3 focus:border-[#00aef0] focus:ring-1 focus:ring-[#00aef0] outline-none transition-all cursor-pointer"
-                  >
-                    {INDUSTRY_TEMPLATES.map((tmpl) => (
-                      <option key={tmpl.id} value={tmpl.id}>
-                        {tmpl.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(v) => setSelectedIndustryTemplate(v ?? "GENERAL_RETAIL")}
+                    placeholder="Pick your industry"
+                    searchPlaceholder="Type to search industries…"
+                  />
                   <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed bg-muted/50 p-2.5 rounded-xl border border-border/60">
                     <strong>Preset Features:</strong> {INDUSTRY_TEMPLATES.find(t => t.id === selectedIndustryTemplate)?.desc}
                   </p>
@@ -558,7 +586,7 @@ function OnboardingInner() {
                 <span className="font-bold text-primary flex items-center gap-1">
                   <Sparkles className="h-3.5 w-3.5" /> Selected plan benefits ({activePlanConfig.name})
                   {activePlanConfig.pricePerSeatMonthly > 0 && (
-                    <span className="ml-auto text-[11px] font-bold text-white">
+                    <span className="ml-auto text-[11px] font-bold text-foreground">
                       {(() => {
                         const bill = billBreakdown(
                           activePlanConfig,
@@ -597,10 +625,10 @@ function OnboardingInner() {
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-1" /> Initializing...
                     </>
-                  ) : selectedPlan === "free" ? (
-                    "Start 14-day free trial"
+                  ) : selectedPlan === "business" ? (
+                    "Continue to payment"
                   ) : (
-                    "Proceed to Payment"
+                    "Start 14-day free trial"
                   )}
                 </Button>
               </div>
