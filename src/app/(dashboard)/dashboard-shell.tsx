@@ -13,6 +13,7 @@ import { AlertTriangle, Check, Loader2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SetupBanner } from "@/components/layout/setup-banner";
+import { SubscriptionBanner } from "@/components/layout/subscription-banner";
 
 // Auth-gated dashboard shell. Extracted from the layout so the layout
 // itself can stay a server component and export metadata (noindex) —
@@ -251,6 +252,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
         <Header onOpenSidebar={() => setSidebarOpen(true)} />
         {/* Directly under the header so it is unmissable but never covers
             content. Renders nothing for members who cannot act on it. */}
+        <SubscriptionBanner />
         <SetupBanner />
         {/* Thinner horizontal padding on mobile so cards have room to breathe. */}
         <main className={`flex-1 overflow-y-auto ${pathname.startsWith('/inbox') ? '' : 'p-[var(--page-padding-mobile)] sm:p-[var(--page-padding-tablet)] lg:p-[var(--page-padding-desktop)]'}`}>

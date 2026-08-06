@@ -14,6 +14,109 @@ export interface WorkspaceUsageInfo {
   monthlyMessageAllowance: number | null;
   isTrial: boolean;
   createdAt: Date;
+  subscription: SubscriptionInfo;
+}
+
+/**
+ * The lifecycle state a workspace's subscription is in.
+ *
+ * Derived, never stored raw: the stored status says what the workspace
+ * bought or chose, and TIME decides what that means today. A 'trialing'
+ * row whose trial_ends_at has passed IS expired regardless of what the
+ * column says, because nothing runs at midnight to flip statuses — the
+ * read path is the state machine.
+ */
+export interface SubscriptionInfo {
+  state: 'trialing' | 'active' | 'grace' | 'expired' | 'cancelled';
+  /** Days remaining in trial or paid period. 0 when expired. */
+  daysLeft: number;
+  trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  /** True when the pay-now marquee should show. */
+  paymentDue: boolean;
+}
+
+/** Days from now, floored at 0. */
+function daysUntil(iso: string | null): number {
+  if (!iso) return 0;
+  return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000));
+}
+
+export function resolveSubscription(input: {
+  planId: string;
+  createdAt: Date;
+  status: string | null;
+  trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+}): SubscriptionInfo {
+  // Workspaces created before migration 103 have no explicit trial end;
+  // their trial has always been created_at + 14 days, so keep that rule.
+  const trialEndsAt =
+    input.trialEndsAt ??
+    (input.planId === 'free'
+      ? new Date(input.createdAt.getTime() + 14 * 86_400_000).toISOString()
+      : null);
+
+  const status = input.status ?? (input.planId === 'free' ? 'trialing' : 'active');
+
+  if (status === 'cancelled') {
+    // Cancelled keeps access until the paid period runs out — that is
+    // what "cancel anytime" has to mean when the money was taken up
+    // front. After that it is expired like anything else.
+    const left = daysUntil(input.currentPeriodEnd);
+    return {
+      state: left > 0 ? 'cancelled' : 'expired',
+      daysLeft: left,
+      trialEndsAt,
+      currentPeriodEnd: input.currentPeriodEnd,
+      cancelAtPeriodEnd: true,
+      paymentDue: false,
+    };
+  }
+
+  if (status === 'trialing') {
+    const left = daysUntil(trialEndsAt);
+    return {
+      state: left > 0 ? 'trialing' : 'expired',
+      daysLeft: left,
+      trialEndsAt,
+      currentPeriodEnd: input.currentPeriodEnd,
+      cancelAtPeriodEnd: input.cancelAtPeriodEnd,
+      paymentDue: left <= 0,
+    };
+  }
+
+  // Paid. A null period end means a legacy activation from before 103 —
+  // treat as active rather than expiring everyone retroactively.
+  const left = input.currentPeriodEnd ? daysUntil(input.currentPeriodEnd) : null;
+  if (left === null || left > 0) {
+    return {
+      state: 'active',
+      daysLeft: left ?? 9999,
+      trialEndsAt,
+      currentPeriodEnd: input.currentPeriodEnd,
+      cancelAtPeriodEnd: input.cancelAtPeriodEnd,
+      paymentDue: false,
+    };
+  }
+
+  // Period lapsed. Three days of grace before the marquee turns into a
+  // wall, because "card expired over the weekend" should not brick a
+  // business on Monday morning.
+  const graceDays = 3;
+  const lapsedDays = Math.ceil(
+    (Date.now() - new Date(input.currentPeriodEnd!).getTime()) / 86_400_000,
+  );
+  return {
+    state: lapsedDays <= graceDays ? 'grace' : 'expired',
+    daysLeft: 0,
+    trialEndsAt,
+    currentPeriodEnd: input.currentPeriodEnd,
+    cancelAtPeriodEnd: input.cancelAtPeriodEnd,
+    paymentDue: true,
+  };
 }
 
 export async function getWorkspaceUsageAndLimits(workspaceId: string): Promise<WorkspaceUsageInfo> {
@@ -22,7 +125,7 @@ export async function getWorkspaceUsageAndLimits(workspaceId: string): Promise<W
   // 1. Get the workspace plan and limits
   const { data: ws, error: wsError } = await admin
     .from('workspaces')
-    .select('plan, plan_limits, created_at')
+    .select('plan, plan_limits, created_at, subscription_status, trial_ends_at, current_period_end, cancel_at_period_end')
     .eq('id', workspaceId)
     .single();
 
@@ -80,17 +183,41 @@ export async function getWorkspaceUsageAndLimits(workspaceId: string): Promise<W
   const planConfig =
     PLANS.find((p) => p.id === planId) ?? PLANS.find((p) => p.id === 'business')!;
 
+  // PURCHASED limits first, static plan config as the fallback.
+  //
+  // verify-payment writes the bought seat count into
+  // plan_limits.max_members; this function used to ignore that entirely
+  // and return the static plan ceiling, so a customer who paid for five
+  // seats was shown (and gated by) the plan default. The purchase is the
+  // authority whenever it exists.
+  const bought = (ws.plan_limits ?? {}) as {
+    max_members?: number | null;
+    max_workspaces?: number | null;
+    max_messages?: number | null;
+  };
+
+  const subscription = resolveSubscription({
+    planId,
+    createdAt,
+    status: ws.subscription_status ?? null,
+    trialEndsAt: ws.trial_ends_at ?? null,
+    currentPeriodEnd: ws.current_period_end ?? null,
+    cancelAtPeriodEnd: Boolean(ws.cancel_at_period_end),
+  });
+
   return {
     planId,
     planName: planConfig.name,
     memberCount: memberCount || 0,
-    maxUsers: planConfig.maxUsers,
+    maxUsers: Number(bought.max_members) || planConfig.maxUsers,
     workspaceCount,
-    maxWorkspaces: planConfig.maxWorkspaces,
+    maxWorkspaces: Number(bought.max_workspaces) || planConfig.maxWorkspaces,
     messageCount: messageCount || 0,
-    monthlyMessageAllowance: planConfig.monthlyMessageAllowance,
-    isTrial: planId === 'free',
+    monthlyMessageAllowance:
+      Number(bought.max_messages) || planConfig.monthlyMessageAllowance,
+    isTrial: subscription.state === 'trialing',
     createdAt,
+    subscription,
   };
 }
 

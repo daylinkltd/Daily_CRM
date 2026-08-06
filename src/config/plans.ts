@@ -90,18 +90,22 @@ export const PLANS: Plan[] = [
   {
     id: 'free',
     name: 'Free Trial',
-    tagline: '14 days, no card required.',
+    tagline: '14 days of everything, no card required.',
     pricePerSeatMonthly: 0,
     pricePerSeatAnnual: 0,
     minSeats: 1,
+    // Fallback ceiling only: the trial's real seat count is whatever the
+    // founder chose at onboarding, written to plan_limits.max_members by
+    // /api/billing/start-trial. This static value applies to legacy
+    // workspaces that never went through that route.
     maxUsers: 5,
     maxWorkspaces: 1,
     monthlyMessageAllowance: 500,
     features: [
       'Every module, unrestricted',
-      'Up to 5 users',
+      'The team size you choose',
       '500 WhatsApp conversations',
-      'No card required',
+      'No card required — cancel anytime',
       'Keep your data when you upgrade',
     ],
     isRecommended: false,

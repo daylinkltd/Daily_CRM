@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { PLANS, chargeablePaise, type BillingPeriod } from '@/config/plans';
+import { PLANS, type BillingPeriod } from '@/config/plans';
+import { checkCoupon, discountedBill } from '@/lib/billing/coupons';
+import { ACTIVITY, logActivity } from '@/lib/saas-admin/activity';
 import { verifyHubPayment } from '@/lib/payments/hub-client';
 
 export async function POST(request: NextRequest) {
@@ -28,6 +30,7 @@ export async function POST(request: NextRequest) {
       plan_id,
       seats,
       period,
+      coupon_code,
     } = body;
 
     // Validation
@@ -128,13 +131,48 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const expectedPaise = chargeablePaise(planConfig, seatCount, billingPeriod);
-    if (expectedPaise === null) {
+    // The coupon (if one was used) rides back from checkout in the
+    // handoff reference. It is RE-VALIDATED here rather than trusted:
+    // the code string reaches us via the buyer's browser, and the only
+    // thing that keeps a made-up "MEGA99" from pricing the order is that
+    // this lookup fails. A coupon that expired between checkout and
+    // payment is still honoured — expiry gates issuing new orders, and
+    // the buyer already paid the discounted amount in good faith — which
+    // works because the amount check below uses the coupon's actual
+    // percent, not its current validity.
+    let percentOff = 0;
+    let couponRow: { code: string } | null = null;
+    if (coupon_code) {
+      const adminForCoupon = createAdminClient();
+      const check = await checkCoupon(adminForCoupon, coupon_code, plan_id);
+      if (check.ok) {
+        percentOff = check.coupon.percent_off;
+        couponRow = check.coupon;
+      } else {
+        const { data: lapsed } = await adminForCoupon
+          .from('coupons')
+          .select('code, percent_off')
+          .eq('code', String(coupon_code).toUpperCase())
+          .maybeSingle();
+        if (!lapsed) {
+          return NextResponse.json(
+            { error: 'The coupon on this order does not exist.' },
+            { status: 400 }
+          );
+        }
+        percentOff = lapsed.percent_off;
+        couponRow = lapsed;
+      }
+    }
+
+    const bill = discountedBill(planConfig, seatCount, billingPeriod, percentOff);
+    if (!bill) {
       return NextResponse.json(
         { error: 'This plan cannot be purchased through checkout.' },
         { status: 400 }
       );
     }
+    const expectedPaise = bill.totalPaise;
     // The signature only proves this order was paid — not that it was paid
     // ENOUGH, and now not that it was paid for the right number of seats.
     if (verification.data.currency !== 'INR' || paidPaise !== expectedPaise) {
@@ -178,11 +216,24 @@ export async function POST(request: NextRequest) {
       last_order_id: razorpay_order_id,
     };
 
+    // The paid period starts NOW, not at trial end. Someone who converts
+    // on day 3 of a trial paid for a month from today; stacking the
+    // remaining trial days on top is a nicety no invoice can explain.
+    const periodEnd = new Date();
+    if (billingPeriod === 'annual') {
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    } else {
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+    }
+
     const { error: updateError } = await admin
       .from('workspaces')
       .update({
         plan: planConfig.id,
         plan_limits: limits,
+        subscription_status: 'active',
+        current_period_end: periodEnd.toISOString(),
+        cancel_at_period_end: false,
       })
       .eq('id', workspace_id);
 
@@ -194,10 +245,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Redemption is recorded AFTER activation and through the idempotent
+    // RPC — a retried verification (double-click, flaky network) must not
+    // count twice against max_redemptions.
+    if (couponRow) {
+      const { error: redeemErr } = await admin.rpc('redeem_coupon', {
+        p_code: couponRow.code,
+        p_workspace_id: workspace_id,
+        p_user_id: user.id,
+        p_order_id: razorpay_order_id,
+        p_discount_paise: bill.discountPaise,
+      });
+      if (redeemErr) console.error('[verify-payment] coupon redemption failed:', redeemErr.message);
+    }
+
+    await logActivity({
+      event: ACTIVITY.PAYMENT_VERIFIED,
+      userId: user.id,
+      userEmail: user.email,
+      workspaceId: workspace_id,
+      details: {
+        plan: planConfig.id,
+        seats: seatCount,
+        period: billingPeriod,
+        paid_paise: paidPaise,
+        coupon: couponRow?.code ?? null,
+        order_id: razorpay_order_id,
+        period_end: periodEnd.toISOString(),
+      },
+      request,
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Payment verified and plan updated successfully',
       plan: planConfig.id,
+      period_end: periodEnd.toISOString(),
     });
   } catch (error: any) {
     console.error('[verify-payment] Unexpected error:', error);

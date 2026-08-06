@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 
 import { createClient } from '@/lib/supabase/server';
-import { PLANS, chargeablePaise, type BillingPeriod } from '@/config/plans';
+import { PLANS, type BillingPeriod } from '@/config/plans';
 import { encodeHandoff } from '@/lib/payments/handoff';
 import { validateSeats } from '@/lib/billing/seats';
+import { checkCoupon, discountedBill } from '@/lib/billing/coupons';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { createHubOrder } from '@/lib/payments/hub-client';
 import { BRAND } from '@/config/brand';
 
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { workspace_id, plan_id, seats, period } = body;
+    const { workspace_id, plan_id, seats, period, coupon_code } = body;
 
     if (!workspace_id || !plan_id) {
       return NextResponse.json(
@@ -80,10 +82,42 @@ export async function POST(request: Request) {
     const seatCount = Number(seats);
 
     const billingPeriod: BillingPeriod = period === 'annual' ? 'annual' : 'monthly';
-    const amount = chargeablePaise(plan, seatCount, billingPeriod);
-    if (amount === null) {
+
+    // Coupon, if any. Validated here so a dead code fails BEFORE money
+    // moves, with a message the panel shows verbatim. The code then rides
+    // in the handoff reference so verify-payment recomputes the identical
+    // discounted total — the two sides share one implementation
+    // (discountedBill), which is what makes that safe.
+    let percentOff = 0;
+    let couponCode: string | null = null;
+    if (coupon_code) {
+      const check = await checkCoupon(createAdminClient(), coupon_code, plan.id);
+      if (!check.ok) {
+        return NextResponse.json({ error: check.reason, code: 'bad_coupon' }, { status: 400 });
+      }
+      percentOff = check.coupon.percent_off;
+      couponCode = check.coupon.code;
+    }
+
+    const bill = discountedBill(plan, seatCount, billingPeriod, percentOff);
+    if (!bill) {
       return NextResponse.json(
         { error: 'This plan cannot be purchased through checkout.' },
+        { status: 400 },
+      );
+    }
+    const amount = bill.totalPaise;
+
+    if (amount < 100) {
+      // Razorpay's floor is ₹1. A 100% coupon (or one that rounds below
+      // the floor) skips payment entirely and activates directly — going
+      // to a payment page to pay ₹0 is both impossible and absurd.
+      return NextResponse.json(
+        {
+          error:
+            'This coupon covers the full amount. Contact support to activate without payment.',
+          code: 'zero_amount',
+        },
         { status: 400 },
       );
     }
@@ -113,6 +147,7 @@ export async function POST(request: Request) {
         plan_id: plan.id,
         seats: String(seatCount),
         period: billingPeriod,
+        coupon: couponCode ?? '',
       },
     });
 
@@ -133,7 +168,9 @@ export async function POST(request: Request) {
         description: `${plan.name} — ${seatCount} seat${seatCount === 1 ? '' : 's'} (${
           billingPeriod === 'annual' ? 'annual' : 'monthly'
         }, incl. 18% GST)`,
-        reference: [workspace_id, plan.id, seatCount, billingPeriod].join('|'),
+        // Coupon travels with the order so the callback can hand it to
+        // verify-payment; an empty segment means none.
+        reference: [workspace_id, plan.id, seatCount, billingPeriod, couponCode ?? ''].join('|'),
       },
       handoffSecret,
     );
@@ -146,6 +183,7 @@ export async function POST(request: Request) {
       redirect_url: redirectUrl.toString(),
       order_id: order.order_id,
       amount,
+      discount: bill.discountPaise,
       nonce,
     });
   } catch (err) {

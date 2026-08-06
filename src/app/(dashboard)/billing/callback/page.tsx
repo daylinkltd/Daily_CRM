@@ -78,7 +78,8 @@ export default async function BillingCallbackPage({
   }
 
   // status === 'paid' — claimed, not proven. Verify server-side.
-  const [workspaceId, planId, seatsRaw, period] = (outcome.reference ?? "").split("|");
+  // Fifth segment is the coupon code, empty when none was used.
+  const [workspaceId, planId, seatsRaw, period, couponCode] = (outcome.reference ?? "").split("|");
   const plan = PLANS.find((p) => p.id === planId);
   const seats = Number(seatsRaw);
 
@@ -98,6 +99,7 @@ export default async function BillingCallbackPage({
       planId={plan.id}
       planName={plan.name}
       seats={seats}
+      couponCode={couponCode || null}
       period={period === "annual" ? "annual" : "monthly"}
       razorpayOrderId={outcome.razorpayOrderId ?? ""}
       razorpayPaymentId={outcome.razorpayPaymentId ?? ""}

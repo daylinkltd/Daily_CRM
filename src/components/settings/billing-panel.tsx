@@ -28,6 +28,14 @@ interface WorkspaceUsage {
   monthlyMessageAllowance: number;
   isTrial: boolean;
   createdAt: string;
+  subscription?: {
+    state: "trialing" | "active" | "grace" | "expired" | "cancelled";
+    daysLeft: number;
+    trialEndsAt: string | null;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    paymentDue: boolean;
+  };
 }
 
 export function BillingPanel() {
@@ -39,6 +47,11 @@ export function BillingPanel() {
   // member count so the common case needs no thought.
   const [seatCount, setSeatCount] = useState<number>(1);
   const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
+  // Coupon code, applied server-side at checkout. Kept as raw input here;
+  // the server is the only judge of validity, so there is no client-side
+  // "valid!" state to get out of sync.
+  const [couponCode, setCouponCode] = useState("");
+  const [cancelBusy, setCancelBusy] = useState(false);
 
   const fetchUsage = async () => {
     if (!activeWorkspace?.id) return;
@@ -73,6 +86,30 @@ export function BillingPanel() {
 
   const setSeats = (next: number) => {
     setSeatCount(clampSeats(BUSINESS_PLAN, memberFloor, next));
+  };
+
+  const changeSubscription = async (action: "cancel" | "resume") => {
+    if (!activeWorkspace?.id) return;
+    setCancelBusy(true);
+    try {
+      const res = await fetch("/api/billing/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspace_id: activeWorkspace.id, action }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Could not update the subscription.");
+      toast.success(
+        action === "cancel"
+          ? "Cancelled. Access continues until the end of the paid period."
+          : "Welcome back — your subscription is live again.",
+      );
+      fetchUsage();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not update the subscription.");
+    } finally {
+      setCancelBusy(false);
+    }
   };
 
   const handleUpgrade = async (plan: Plan) => {
@@ -114,6 +151,7 @@ export function BillingPanel() {
           plan_id: plan.id,
           seats: buyingSeats,
           period,
+          coupon_code: couponCode.trim() || undefined,
         }),
       });
       const json = await res.json();
@@ -150,8 +188,13 @@ export function BillingPanel() {
   const msgPercent = Math.min(Math.round((totalMessages / maxMessages) * 100), 100);
 
   const totalMembers = usage?.memberCount || 1;
-  const maxMembers = usage?.maxUsers || 2;
-  const membersPercent = Math.min(Math.round((totalMembers / maxMembers) * 100), 100);
+  // null = unlimited (enterprise). The old `|| 2` here fabricated a
+  // two-seat ceiling for exactly those workspaces and hid every purchased
+  // seat count behind it.
+  const maxMembers = usage?.maxUsers ?? null;
+  const membersPercent = maxMembers
+    ? Math.min(Math.round((totalMembers / maxMembers) * 100), 100)
+    : 0;
 
   // What the buyer will actually be charged, from the same helper the
   // server verifies against — so the number on screen and the number in
@@ -234,10 +277,10 @@ export function BillingPanel() {
             <div>
               <span className="text-xs text-muted-foreground font-semibold block">Team Members</span>
               <span className="text-lg font-black text-foreground">
-                {totalMembers} / {maxMembers === 999999 ? "Unlimited" : maxMembers}
+                {totalMembers} / {maxMembers === null || maxMembers === 999999 ? "Unlimited" : maxMembers}
               </span>
             </div>
-            {membersPercent >= 100 && maxMembers !== 999999 && (
+            {membersPercent >= 100 && maxMembers !== null && maxMembers !== 999999 && (
               <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-amber-500/15 text-amber-500">
                 Max Users
               </span>
@@ -246,7 +289,7 @@ export function BillingPanel() {
           <div className="w-full bg-card rounded-full h-2">
             <div
               className="h-2 rounded-full bg-primary transition-all duration-500"
-              style={{ width: `${maxMembers === 999999 ? 100 : membersPercent}%` }}
+              style={{ width: `${maxMembers === null || maxMembers === 999999 ? 100 : membersPercent}%` }}
             />
           </div>
           <span className="text-[10px] text-muted-foreground block mt-2">
@@ -317,6 +360,69 @@ export function BillingPanel() {
           </div>
         </div>
 
+        {/* Subscription lifecycle — what you're on, until when, and the
+            one lever: cancel (or resume). Cancel is a promise, not a
+            refund: access runs to the end of what was paid, and nothing
+            renews because nothing auto-charges. */}
+        {usage?.subscription && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-background/40 p-5">
+            <div>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Subscription
+              </span>
+              <span className="mt-1 block text-sm font-bold text-foreground">
+                {usage.subscription.state === "trialing" &&
+                  `Free trial — ${usage.subscription.daysLeft} day${usage.subscription.daysLeft === 1 ? "" : "s"} left`}
+                {usage.subscription.state === "active" &&
+                  (usage.subscription.currentPeriodEnd
+                    ? `Active until ${new Date(usage.subscription.currentPeriodEnd).toLocaleDateString()}`
+                    : "Active")}
+                {usage.subscription.state === "grace" && "Payment due — in grace period"}
+                {usage.subscription.state === "expired" && "Expired — pay to continue"}
+                {usage.subscription.state === "cancelled" &&
+                  `Cancelled — access until ${usage.subscription.currentPeriodEnd ? new Date(usage.subscription.currentPeriodEnd).toLocaleDateString() : "period end"}`}
+              </span>
+              {usage.subscription.state === "cancelled" && (
+                <span className="block text-[11px] text-muted-foreground">
+                  No further charges will be requested.
+                </span>
+              )}
+            </div>
+            {activeRole === "owner" &&
+              (usage.subscription.state === "cancelled" ? (
+                <button
+                  type="button"
+                  disabled={cancelBusy}
+                  onClick={() => changeSubscription("resume")}
+                  className="rounded-lg border border-border px-4 py-2 text-xs font-bold text-foreground hover:border-primary hover:text-primary disabled:opacity-50"
+                >
+                  {cancelBusy ? "Working…" : "Resume subscription"}
+                </button>
+              ) : (
+                (usage.subscription.state === "active" || usage.subscription.state === "trialing") && (
+                  <button
+                    type="button"
+                    disabled={cancelBusy}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          usage.subscription?.state === "trialing"
+                            ? "Cancel your trial? You keep access until it ends and are never charged."
+                            : "Cancel your subscription? Access continues until the end of the period you paid for, and nothing further is charged.",
+                        )
+                      ) {
+                        changeSubscription("cancel");
+                      }
+                    }}
+                    className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-muted-foreground hover:border-rose-500 hover:text-rose-400 disabled:opacity-50"
+                  >
+                    {cancelBusy ? "Working…" : "Cancel subscription"}
+                  </button>
+                )
+              ))}
+          </div>
+        )}
+
         {/* Seat picker.
 
             The panel had a seatCount state with no way to change it, so
@@ -376,6 +482,24 @@ export function BillingPanel() {
             aria-label="Seat slider"
             className="mt-4 w-full accent-primary"
           />
+
+          {/* Coupon. Validity is judged only by the server at checkout, so
+              a bad code costs one click, not a stale client-side "applied!"
+              badge that checkout then contradicts. */}
+          <div className="mt-4 flex items-center gap-2">
+            <input
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder="Coupon code (optional)"
+              maxLength={32}
+              className="h-9 w-52 rounded-lg border border-border bg-card px-3 text-xs font-semibold uppercase tracking-wide text-foreground placeholder:normal-case placeholder:font-normal placeholder:tracking-normal focus:border-primary focus:outline-none"
+            />
+            {couponCode && (
+              <span className="text-[11px] text-muted-foreground">
+                Applied at checkout — the payment page shows the discounted amount.
+              </span>
+            )}
+          </div>
 
           <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-border/60 pt-4">
             <div>

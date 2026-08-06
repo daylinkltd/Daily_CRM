@@ -25,6 +25,7 @@ export function ActivateOnLoad({
   planName,
   seats,
   period,
+  couponCode,
   razorpayOrderId,
   razorpayPaymentId,
   razorpaySignature,
@@ -34,6 +35,7 @@ export function ActivateOnLoad({
   planName: string;
   seats: number;
   period: "monthly" | "annual";
+  couponCode?: string | null;
   razorpayOrderId: string;
   razorpayPaymentId: string;
   razorpaySignature: string;
@@ -61,6 +63,7 @@ export function ActivateOnLoad({
             plan_id: planId,
             seats,
             period,
+            coupon_code: couponCode ?? undefined,
           }),
         });
         const json = await res.json();
@@ -83,6 +86,7 @@ export function ActivateOnLoad({
     planId,
     seats,
     period,
+    couponCode,
     razorpayOrderId,
     razorpayPaymentId,
     razorpaySignature,

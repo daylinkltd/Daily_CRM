@@ -220,38 +220,32 @@ function OnboardingInner() {
       localStorage.removeItem("crm_onboarding_cycle");
       localStorage.removeItem("crm_onboarding_seats");
 
-      // 4. Handle subscription upgrade if paid tier was chosen
-      const plan = PLANS.find((p) => p.id === selectedPlan);
-      if (plan && plan.id !== "free" && plan.id !== "custom") {
-        const period: BillingPeriod = billingCycle === "annual" ? "annual" : "monthly";
-        // The seat count chosen in the wizard (or carried from the pricing
-        // calculator). It used to be hardcoded to 1 here, which meant a
-        // buyer who picked 12 seats on the pricing page paid for one and
-        // hit the seat wall at their second invite.
-        const seats = Math.min(500, Math.max(seatCount, plan.minSeats));
-
-        // Checkout is hosted on daylink.in, the only domain registered with
-        // Razorpay. The buyer is returned to /billing/callback afterwards,
-        // which verifies the payment and activates the plan — so leaving
-        // onboarding here does not lose the workspace we just created.
-        const res = await fetch("/api/billing/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            workspace_id: workspaceId,
-            plan_id: plan.id,
-            seats,
-            period,
-          }),
-        });
-        const json = await res.json();
-
-        if (!res.ok || !json.redirect_url) {
-          throw new Error(json.error || "Could not start checkout.");
-        }
-        window.location.href = json.redirect_url;
-        return;
+      // 4. Start the 14-day Business trial with the chosen seats.
+      //
+      // Onboarding used to jump straight to checkout when a paid tier was
+      // selected — a card wall before the person had used the product,
+      // and a lost signup whenever the redirect failed. The model now is
+      // trial-first: EVERY workspace starts a full-featured trial with
+      // the seat count chosen here, and payment happens from Billing (or
+      // the pay-now banner) once they are convinced. "No card required"
+      // on the marketing site is now literally the flow.
+      const trialRes = await fetch("/api/billing/start-trial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspace_id: workspaceId, seats: seatCount }),
+      });
+      if (!trialRes.ok) {
+        const payload = await trialRes.json().catch(() => ({}));
+        // Not fatal: the workspace exists and falls back to the legacy
+        // created_at + 14-day trial window. Log rather than strand a
+        // brand-new user on the onboarding screen.
+        console.error("Trial setup failed:", payload.error);
       }
+      toast.success("Your 14-day trial has started — every module is unlocked.");
+      // Full navigation rather than router.push: the workspace context
+      // must remount to pick up the fresh workspace + trial state.
+      window.location.href = "/dashboard";
+      return;
     } catch (err: any) {
       toast.dismiss();
       toast.error(err.message || "Failed to complete onboarding.");
@@ -337,8 +331,8 @@ function OnboardingInner() {
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4 text-primary">
                   <CreditCard className="h-6 w-6" />
                 </div>
-                <h1 className="text-xl font-bold text-white tracking-tight">Select your plan tier</h1>
-                <p className="text-muted-foreground text-xs mt-1">Per-seat prices exclude GST; 18% GST is added at checkout. Annual plans enjoy 2 months free.</p>
+                <h1 className="text-xl font-bold text-white tracking-tight">Choose your team size</h1>
+                <p className="text-muted-foreground text-xs mt-1">Every workspace starts with a 14-day free trial of the full product — no card required. Pay only when you decide to stay; 18% GST is added at checkout.</p>
 
                 {/* Billing cycle toggle */}
                 <div className="flex items-center justify-center gap-3 mt-4">
@@ -604,7 +598,7 @@ function OnboardingInner() {
                       <Loader2 className="h-4 w-4 animate-spin mr-1" /> Initializing...
                     </>
                   ) : selectedPlan === "free" ? (
-                    "Launch Workspace"
+                    "Start 14-day free trial"
                   ) : (
                     "Proceed to Payment"
                   )}
