@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 
 import { BRAND } from '@/config/brand';
 import { sendTextMessage, sendTemplateMessage } from '@/lib/whatsapp/meta-api';
+import type { MessagingConfig } from './messaging-config';
 
 /**
  * Platform outbound channels — Dailybuz-the-company messaging its
@@ -9,11 +10,13 @@ import { sendTextMessage, sendTemplateMessage } from '@/lib/whatsapp/meta-api';
  *
  * SEPARATE FROM TENANT MESSAGING BY CONSTRUCTION. Tenants message their
  * customers with their own connected numbers and mailboxes; the platform
- * messages tenants with ITS OWN credentials, all environment variables:
+ * messages tenants with ITS OWN credentials, loaded from
+ * platform_settings (edited in the console, secrets encrypted at rest)
+ * with env vars as the fallback — see messaging-config.ts.
  *
- *   Email     PLATFORM_SMTP_HOST / PORT / USER / PASS / FROM
- *   WhatsApp  PLATFORM_WA_PHONE_ID / PLATFORM_WA_TOKEN
- *   SMS       PLATFORM_MSG91_AUTHKEY / PLATFORM_MSG91_SENDER  (MSG91)
+ * Every function here takes the resolved config as an argument rather
+ * than reading the environment, so the console's settings actually
+ * govern sends and tests can inject configs freely.
  *
  * Each sender returns a uniform result and never throws: a campaign to
  * 200 tenants must not die at recipient 37 — the failure is recorded on
@@ -31,16 +34,16 @@ export interface ChannelStatus {
   identity: string | null;
 }
 
-export function channelStatuses(): ChannelStatus[] {
-  const smtpVars = ['PLATFORM_SMTP_HOST', 'PLATFORM_SMTP_USER', 'PLATFORM_SMTP_PASS'];
-  const waVars = ['PLATFORM_WA_PHONE_ID', 'PLATFORM_WA_TOKEN'];
-  const smsVars = ['PLATFORM_MSG91_AUTHKEY', 'PLATFORM_MSG91_SENDER'];
+export function channelStatuses(config: MessagingConfig): ChannelStatus[] {
+  const smtpKeys = ['smtp_host', 'smtp_user', 'smtp_pass'];
+  const waKeys = ['wa_phone_id', 'wa_token'];
+  const smsKeys = ['sms_authkey', 'sms_sender'];
 
-  const missing = (vars: string[]) => vars.filter((v) => !process.env[v]?.trim());
+  const missing = (keys: string[]) => keys.filter((k) => !config[k]?.trim());
 
-  const smtpMissing = missing(smtpVars);
-  const waMissing = missing(waVars);
-  const smsMissing = missing(smsVars);
+  const smtpMissing = missing(smtpKeys);
+  const waMissing = missing(waKeys);
+  const smsMissing = missing(smsKeys);
 
   return [
     {
@@ -48,21 +51,19 @@ export function channelStatuses(): ChannelStatus[] {
       configured: smtpMissing.length === 0,
       missing: smtpMissing,
       identity:
-        smtpMissing.length === 0
-          ? process.env.PLATFORM_SMTP_FROM || process.env.PLATFORM_SMTP_USER || null
-          : null,
+        smtpMissing.length === 0 ? config.smtp_from || config.smtp_user || null : null,
     },
     {
       channel: 'whatsapp',
       configured: waMissing.length === 0,
       missing: waMissing,
-      identity: waMissing.length === 0 ? `phone id ${process.env.PLATFORM_WA_PHONE_ID}` : null,
+      identity: waMissing.length === 0 ? `phone id ${config.wa_phone_id}` : null,
     },
     {
       channel: 'sms',
       configured: smsMissing.length === 0,
       missing: smsMissing,
-      identity: smsMissing.length === 0 ? process.env.PLATFORM_MSG91_SENDER! : null,
+      identity: smsMissing.length === 0 ? config.sms_sender : null,
     },
   ];
 }
@@ -82,18 +83,21 @@ export interface SendResult {
   error?: string;
 }
 
-export async function sendPlatformEmail(input: {
-  to: string;
-  subject: string;
-  body: string;
-}): Promise<SendResult> {
+export async function sendPlatformEmail(
+  config: MessagingConfig,
+  input: {
+    to: string;
+    subject: string;
+    body: string;
+  },
+): Promise<SendResult> {
   try {
-    const host = process.env.PLATFORM_SMTP_HOST;
-    const user = process.env.PLATFORM_SMTP_USER;
-    const pass = process.env.PLATFORM_SMTP_PASS;
+    const host = config.smtp_host;
+    const user = config.smtp_user;
+    const pass = config.smtp_pass;
     if (!host || !user || !pass) return { ok: false, error: 'SMTP is not configured' };
 
-    const port = Number(process.env.PLATFORM_SMTP_PORT) || 465;
+    const port = Number(config.smtp_port) || 465;
     const transporter = nodemailer.createTransport({
       host,
       port,
@@ -102,7 +106,7 @@ export async function sendPlatformEmail(input: {
     });
 
     const info = await transporter.sendMail({
-      from: process.env.PLATFORM_SMTP_FROM || `"${BRAND.name}" <${user}>`,
+      from: config.smtp_from || `"${BRAND.name}" <${user}>`,
       to: input.to,
       subject: input.subject,
       text: input.body,
@@ -113,16 +117,19 @@ export async function sendPlatformEmail(input: {
   }
 }
 
-export async function sendPlatformWhatsApp(input: {
-  to: string;
-  body: string;
-  metaTemplateName?: string | null;
-  metaTemplateLanguage?: string | null;
-  templateParams?: string[];
-}): Promise<SendResult> {
+export async function sendPlatformWhatsApp(
+  config: MessagingConfig,
+  input: {
+    to: string;
+    body: string;
+    metaTemplateName?: string | null;
+    metaTemplateLanguage?: string | null;
+    templateParams?: string[];
+  },
+): Promise<SendResult> {
   try {
-    const phoneNumberId = process.env.PLATFORM_WA_PHONE_ID;
-    const accessToken = process.env.PLATFORM_WA_TOKEN;
+    const phoneNumberId = config.wa_phone_id;
+    const accessToken = config.wa_token;
     if (!phoneNumberId || !accessToken) {
       return { ok: false, error: 'Platform WhatsApp is not configured' };
     }
@@ -156,10 +163,13 @@ export async function sendPlatformWhatsApp(input: {
   }
 }
 
-export async function sendPlatformSms(input: { to: string; body: string }): Promise<SendResult> {
+export async function sendPlatformSms(
+  config: MessagingConfig,
+  input: { to: string; body: string },
+): Promise<SendResult> {
   try {
-    const authkey = process.env.PLATFORM_MSG91_AUTHKEY;
-    const sender = process.env.PLATFORM_MSG91_SENDER;
+    const authkey = config.sms_authkey;
+    const sender = config.sms_sender;
     if (!authkey || !sender) return { ok: false, error: 'SMS is not configured' };
 
     // MSG91 v5 flow-less transactional send. Indian DLT rules mean the

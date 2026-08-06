@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquareText, Mail, MessageCircle, Smartphone, Plus, Trash2, Send } from "lucide-react";
+import { MessageSquareText, Mail, MessageCircle, Smartphone, Plus, Trash2, Send, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -10,6 +10,8 @@ import {
   LoadingRow,
   useConsoleData,
 } from "@/components/saas-admin/console-ui";
+import { ChannelSettings } from "@/components/saas-admin/channel-settings";
+import { extractVariables, smsSegments } from "@/lib/templates/catalog";
 
 interface ChannelStatus {
   channel: "email" | "whatsapp" | "sms";
@@ -79,6 +81,11 @@ export default function MessagingPage() {
   const [tBody, setTBody] = useState("");
   const [tMetaName, setTMetaName] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+
+  // Library browsing, mirroring the workspace template library: search
+  // across name/subject/body, filter by channel.
+  const [libQuery, setLibQuery] = useState("");
+  const [libChannel, setLibChannel] = useState<"all" | "email" | "whatsapp" | "sms">("all");
 
   const channelTemplates = (data?.templates ?? []).filter((t) => t.channel === channel);
   const selectedTemplate = channelTemplates.find((t) => t.id === templateId) ?? null;
@@ -169,29 +176,8 @@ export default function MessagingPage() {
         <MessageSquareText className="h-5 w-5 text-primary" /> Messaging
       </h1>
 
-      {/* Channel status */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {data.channels.map((c) => {
-          const meta = CHANNEL_META[c.channel];
-          return (
-            <div key={c.channel} className="rounded-xl border border-border bg-background/40 p-5">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-sm font-bold text-foreground">
-                  <meta.icon className="h-4 w-4 text-primary" /> {meta.label}
-                </span>
-                <Badge tone={c.configured ? "good" : "neutral"}>
-                  {c.configured ? "connected" : "not set up"}
-                </Badge>
-              </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                {c.configured
-                  ? `Sending as ${c.identity}`
-                  : `Set ${c.missing.join(", ")} in the environment (see System).`}
-              </p>
-            </div>
-          );
-        })}
-      </div>
+      {/* Channel credentials, edited here — not in the deployment env. */}
+      <ChannelSettings onChanged={reload} />
 
       {/* Composer */}
       <ConsoleCard title="Compose">
@@ -366,38 +352,124 @@ export default function MessagingPage() {
           </div>
         )}
 
-        {data.templates.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            No templates yet. WhatsApp sends require one; email and SMS can also go inline.
-          </p>
-        ) : (
-          <div className="space-y-2.5">
-            {data.templates.map((t) => {
-              const meta = CHANNEL_META[t.channel];
-              return (
-                <div key={t.id} className="flex items-start justify-between gap-3 rounded-lg border border-border/60 p-4">
-                  <div className="min-w-0">
-                    <span className="flex items-center gap-2 text-sm font-bold text-foreground">
-                      <meta.icon className="h-3.5 w-3.5 text-primary" /> {t.name}
-                      <Badge tone="neutral">{t.channel}</Badge>
-                    </span>
-                    {t.subject && <p className="mt-1 text-xs font-semibold text-foreground">{t.subject}</p>}
-                    <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-xs text-muted-foreground">{t.body}</p>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={busy === t.id}
-                    onClick={() => deleteTemplate(t)}
-                    aria-label={`Delete template ${t.name}`}
-                    className="shrink-0 rounded-lg border border-border p-2 text-muted-foreground hover:border-rose-500 hover:text-rose-400 disabled:opacity-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              );
-            })}
+        {/* The library proper, mirroring the workspace template library:
+            search, channel filter, variable chips extracted live from the
+            body, and the SMS segment count that decides what a blast
+            actually costs. */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={libQuery}
+              onChange={(e) => setLibQuery(e.target.value)}
+              placeholder="Search templates…"
+              className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none sm:w-64"
+            />
           </div>
-        )}
+          <div className="inline-flex rounded-lg border border-border p-0.5">
+            {(["all", "email", "whatsapp", "sms"] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setLibChannel(c)}
+                className={`rounded-md px-3 py-1.5 text-xs font-bold capitalize transition-colors ${
+                  libChannel === c ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {(() => {
+          const q = libQuery.trim().toLowerCase();
+          const visible = data.templates.filter((t) => {
+            if (libChannel !== "all" && t.channel !== libChannel) return false;
+            if (!q) return true;
+            return `${t.name} ${t.subject ?? ""} ${t.body}`.toLowerCase().includes(q);
+          });
+
+          if (visible.length === 0) {
+            return (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                {data.templates.length === 0
+                  ? "No templates yet — migration 107 seeds the standard SaaS lifecycle set."
+                  : "Nothing matches that search."}
+              </p>
+            );
+          }
+
+          return (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {visible.map((t) => {
+                const meta = CHANNEL_META[t.channel];
+                const vars = extractVariables(t.subject, t.body);
+                return (
+                  <div key={t.id} className="flex flex-col rounded-lg border border-border/60 p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="flex flex-wrap items-center gap-2 text-sm font-bold text-foreground">
+                        <meta.icon className="h-3.5 w-3.5 shrink-0 text-primary" /> {t.name}
+                        <Badge tone="neutral">{t.channel}</Badge>
+                        {t.channel === "sms" && (
+                          <Badge tone={smsSegments(t.body) > 1 ? "warn" : "neutral"}>
+                            {smsSegments(t.body)} segment{smsSegments(t.body) === 1 ? "" : "s"}
+                          </Badge>
+                        )}
+                        {t.channel === "whatsapp" && !t.meta_template_name && (
+                          <Badge tone="warn">no Meta template</Badge>
+                        )}
+                      </span>
+                      <div className="flex shrink-0 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setChannel(t.channel);
+                            setTemplateId(t.id);
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className="rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-bold text-foreground hover:border-primary hover:text-primary"
+                        >
+                          Use
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy === t.id}
+                          onClick={() => deleteTemplate(t)}
+                          aria-label={`Delete template ${t.name}`}
+                          className="rounded-lg border border-border p-2 text-muted-foreground hover:border-rose-500 hover:text-rose-400 disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    {t.subject && (
+                      <p className="mt-2 text-xs font-semibold text-foreground">{t.subject}</p>
+                    )}
+                    <p className="mt-1.5 line-clamp-3 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
+                      {t.body}
+                    </p>
+                    <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3">
+                      {vars.map((v) => (
+                        <code
+                          key={v}
+                          className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
+                        >
+                          {"{{" + v + "}}"}
+                        </code>
+                      ))}
+                      {t.channel === "whatsapp" && t.meta_template_name && (
+                        <span className="ml-auto text-[10px] text-muted-foreground">
+                          Meta: <code>{t.meta_template_name}</code>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </ConsoleCard>
 
       {/* History */}

@@ -1,0 +1,168 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Mail, MessageCircle, Smartphone, Save, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { Badge, ConsoleCard } from "@/components/saas-admin/console-ui";
+
+/**
+ * Channel credentials, edited in the console instead of the deployment
+ * environment — rotating an SMTP password should not need the Coolify
+ * login and a restart.
+ *
+ * SECRETS ARE WRITE-ONLY. The form never receives a secret back, masked
+ * or otherwise; it only knows "set" / "not set". Leaving a secret field
+ * blank keeps the stored value, typing replaces it, and a single "-"
+ * clears it back to the env fallback. Non-secret values round-trip
+ * normally, because editing a hostname requires seeing it.
+ */
+
+interface FieldState {
+  key: string;
+  label: string;
+  channel: "email" | "whatsapp" | "sms";
+  secret: boolean;
+  required: boolean;
+  placeholder: string;
+  set: boolean;
+  value: string | null;
+  source: "settings" | "env" | null;
+}
+
+interface ChannelInfo {
+  channel: "email" | "whatsapp" | "sms";
+  configured: boolean;
+  identity: string | null;
+}
+
+const CHANNEL_META = {
+  email: { icon: Mail, label: "Email (SMTP)" },
+  whatsapp: { icon: MessageCircle, label: "WhatsApp (Meta Cloud API)" },
+  sms: { icon: Smartphone, label: "SMS (MSG91)" },
+} as const;
+
+export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
+  const [fields, setFields] = useState<FieldState[]>([]);
+  const [channels, setChannels] = useState<ChannelInfo[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    try {
+      const res = await fetch("/api/saas-admin/messaging/settings");
+      const json = await res.json();
+      if (res.ok) {
+        setFields(json.fields);
+        setChannels(json.channels);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const save = async () => {
+    const changed = Object.fromEntries(
+      Object.entries(drafts).filter(([, v]) => v !== ""),
+    );
+    if (Object.keys(changed).length === 0) {
+      toast.info("Nothing changed.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/saas-admin/messaging/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(changed),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Save failed");
+      toast.success("Channel settings saved — they apply to the next send.");
+      setDrafts({});
+      await load();
+      onChanged?.();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return null;
+
+  return (
+    <ConsoleCard
+      title="Channel settings"
+      action={
+        <button
+          type="button"
+          disabled={saving}
+          onClick={save}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+        >
+          <Save className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
+        </button>
+      }
+    >
+      <div className="grid gap-6 lg:grid-cols-3">
+        {(["email", "whatsapp", "sms"] as const).map((ch) => {
+          const meta = CHANNEL_META[ch];
+          const info = channels.find((c) => c.channel === ch);
+          return (
+            <div key={ch} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm font-bold text-foreground">
+                  <meta.icon className="h-4 w-4 text-primary" /> {meta.label}
+                </span>
+                {info?.configured && (
+                  <Badge tone="good">
+                    <CheckCircle2 className="mr-1 h-3 w-3" /> ready
+                  </Badge>
+                )}
+              </div>
+              {fields
+                .filter((f) => f.channel === ch)
+                .map((f) => (
+                  <label key={f.key} className="block">
+                    <span className="mb-1 flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
+                      <span>
+                        {f.label}
+                        {f.required && " *"}
+                      </span>
+                      {f.secret && f.set && (
+                        <span className="text-emerald-400">set{f.source === "env" ? " (env)" : ""}</span>
+                      )}
+                      {!f.secret && f.source === "env" && (
+                        <span className="text-muted-foreground">from env</span>
+                      )}
+                    </span>
+                    <input
+                      type={f.secret ? "password" : "text"}
+                      autoComplete="off"
+                      value={drafts[f.key] ?? (f.secret ? "" : f.value ?? "")}
+                      onChange={(e) => setDrafts((d) => ({ ...d, [f.key]: e.target.value }))}
+                      placeholder={
+                        f.secret && f.set ? "•••••• (leave blank to keep)" : f.placeholder
+                      }
+                      className="h-9 w-full rounded-lg border border-border bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                    />
+                  </label>
+                ))}
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-4 text-[11px] text-muted-foreground">
+        Secrets are encrypted at rest and never shown again — leave a secret blank to keep
+        it, or enter a single <code>-</code> to clear it. Values saved here override
+        environment variables on the next send.
+      </p>
+    </ConsoleCard>
+  );
+}

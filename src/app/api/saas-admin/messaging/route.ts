@@ -9,6 +9,7 @@ import {
   sendPlatformWhatsApp,
   type PlatformChannel,
 } from '@/lib/saas-admin/messaging';
+import { loadMessagingConfig } from '@/lib/saas-admin/messaging-config';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,17 +27,18 @@ export async function GET(request: Request) {
   if (!guard.ok) return guard.response;
   const { admin } = guard.ctx;
 
-  const [templates, history] = await Promise.all([
+  const [templates, history, config] = await Promise.all([
     admin.from('platform_message_templates').select('*').order('created_at', { ascending: false }),
     admin
       .from('platform_outbound_messages')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(100),
+    loadMessagingConfig(admin),
   ]);
 
   return NextResponse.json({
-    channels: channelStatuses(),
+    channels: channelStatuses(config),
     templates: templates.data ?? [],
     history: history.data ?? [],
   });
@@ -78,7 +80,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'channel must be email, whatsapp or sms' }, { status: 400 });
   }
 
-  const status = channelStatuses().find((c) => c.channel === channel)!;
+  const config = await loadMessagingConfig(admin);
+  const status = channelStatuses(config).find((c) => c.channel === channel)!;
   if (!status.configured) {
     return NextResponse.json(
       { error: `The ${channel} channel is not configured. Missing: ${status.missing.join(', ')}` },
@@ -226,15 +229,15 @@ export async function POST(request: Request) {
 
     const result =
       channel === 'email'
-        ? await sendPlatformEmail({ to: r.to, subject: renderedSubject, body: rendered })
+        ? await sendPlatformEmail(config, { to: r.to, subject: renderedSubject, body: rendered })
         : channel === 'whatsapp'
-          ? await sendPlatformWhatsApp({
+          ? await sendPlatformWhatsApp(config, {
               to: r.to,
               body: rendered,
               metaTemplateName,
               metaTemplateLanguage,
             })
-          : await sendPlatformSms({ to: r.to, body: rendered });
+          : await sendPlatformSms(config, { to: r.to, body: rendered });
 
     if (result.ok) sent += 1;
     else failed += 1;
