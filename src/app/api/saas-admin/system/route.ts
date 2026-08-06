@@ -69,6 +69,16 @@ export async function GET(request: Request) {
       inspect('GSP_API_BASE_URL', 'GSP base URL', 'E-invoice IRN registration. Not connected yet.', false),
       inspect('GSP_API_KEY', 'GSP key', 'E-invoice IRN registration. Not connected yet.', false),
     ],
+    'Platform messaging': [
+      inspect('PLATFORM_SMTP_HOST', 'SMTP host', 'Outbound platform email (trial nudges, receipts).', false),
+      inspect('PLATFORM_SMTP_USER', 'SMTP user', 'Login for the platform mailbox.', false),
+      inspect('PLATFORM_SMTP_PASS', 'SMTP password', 'Login for the platform mailbox.', false),
+      inspect('PLATFORM_SMTP_FROM', 'From address', 'Defaults to the SMTP user when unset.', false),
+      inspect('PLATFORM_WA_PHONE_ID', 'Platform WhatsApp phone id', 'Dailybuz-to-tenant WhatsApp. Separate from tenant numbers.', false),
+      inspect('PLATFORM_WA_TOKEN', 'Platform WhatsApp token', 'Dailybuz-to-tenant WhatsApp. Separate from tenant numbers.', false),
+      inspect('PLATFORM_MSG91_AUTHKEY', 'MSG91 auth key', 'Platform SMS via MSG91.', false),
+      inspect('PLATFORM_MSG91_SENDER', 'MSG91 sender id', 'DLT-registered 6-char sender id.', false),
+    ],
     Console: [
       inspect('ADMIN_SEED_SECRET', 'Admin seed secret', 'Gates the super-admin seed endpoint. Unset = endpoint disabled, which is the safe state.', false),
     ],
