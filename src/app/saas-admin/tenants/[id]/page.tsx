@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Building2, Save } from "lucide-react";
+import { ArrowLeft, Building2, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { PLANS } from "@/config/plans";
@@ -211,6 +211,10 @@ export default function TenantDetailPage() {
         </ConsoleCard>
       </div>
 
+      <ConsoleCard title="Danger zone" className="border-rose-500/30">
+        <DangerZone workspaceId={id} workspaceName={w.name} />
+      </ConsoleCard>
+
       <ConsoleCard title={`Members (${data.members.length})`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -245,6 +249,61 @@ export default function TenantDetailPage() {
           </table>
         </div>
       </ConsoleCard>
+    </div>
+  );
+}
+
+/**
+ * Tenant deletion. Type-the-name confirmation because a copy-pasted id
+ * in the wrong tab is a plausible accident and a typed workspace name is
+ * not. The server enforces the same contract independently.
+ */
+function DangerZone({ workspaceId, workspaceName }: { workspaceId: string; workspaceName: string }) {
+  const router = useRouter();
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const purge = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/saas-admin/tenants/${workspaceId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm_name: confirmText }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Delete failed");
+      toast.success(`Tenant deleted (${json.rows_deleted.toLocaleString()} rows purged)`);
+      router.push("/saas-admin/tenants");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Deleting this tenant purges <strong className="text-foreground">every row it owns</strong> —
+        contacts, books, payroll, documents, all of it — permanently. Income records and
+        audit logs are kept. User accounts are not touched; delete those separately if needed.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={confirmText}
+          onChange={(e) => setConfirmText(e.target.value)}
+          placeholder={`Type "${workspaceName}" to confirm`}
+          className="h-10 w-72 rounded-lg border border-border bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-rose-500 focus:outline-none"
+        />
+        <button
+          type="button"
+          disabled={deleting || confirmText !== workspaceName}
+          onClick={purge}
+          className="inline-flex h-10 items-center gap-2 rounded-lg bg-rose-600 px-4 text-sm font-bold text-white hover:bg-rose-500 disabled:opacity-40"
+        >
+          <Trash2 className="h-4 w-4" /> {deleting ? "Purging…" : "Delete tenant forever"}
+        </button>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Shield, LayoutDashboard, LogOut, Menu, Building2, Users, Megaphone, ScrollText, Settings2, Inbox, TicketPercent } from "lucide-react";
+import { Shield, LayoutDashboard, LogOut, Menu, Building2, Users, Megaphone, ScrollText, Settings2, Inbox, TicketPercent, IndianRupee } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/saas-admin/users", label: "Users", icon: Users },
   { href: "/saas-admin/prospects", label: "Prospects", icon: Inbox },
   { href: "/saas-admin/coupons", label: "Coupons", icon: TicketPercent },
+  { href: "/saas-admin/revenue", label: "Revenue", icon: IndianRupee },
   { href: "/saas-admin/announcements", label: "Announcements", icon: Megaphone },
   { href: "/saas-admin/logs", label: "Logs", icon: ScrollText },
   { href: "/saas-admin/system", label: "System", icon: Settings2 },

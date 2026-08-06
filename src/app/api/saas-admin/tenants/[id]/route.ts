@@ -184,3 +184,67 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { data: after } = await admin.from('workspaces').select('*').eq('id', id).maybeSingle();
   return NextResponse.json({ workspace: after });
 }
+
+/**
+ * DELETE /api/saas-admin/tenants/[id] — purge one tenant, permanently.
+ *
+ * Runs purge_workspace() (migration 105), which sweeps every table
+ * carrying the workspace_id and refuses to half-delete. The confirmation
+ * contract with the UI: the request must carry the workspace's EXACT
+ * name in `confirm_name` — a copy-pasted id in a URL is too easy to have
+ * in the wrong tab, a typed name is not.
+ *
+ * Deliberately kept: platform_payments (income history), the audit and
+ * activity logs, and the auth USERS — people often belong to other
+ * workspaces, and deleting humans is the user-deletion endpoint's job,
+ * one decision at a time.
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const guard = await requireSuperAdmin(request);
+  if (!guard.ok) return guard.response;
+  const { admin, audit } = guard.ctx;
+  const { id } = await params;
+
+  const body = await request.json().catch(() => ({}));
+
+  const { data: ws } = await admin
+    .from('workspaces')
+    .select('id, name, plan')
+    .eq('id', id)
+    .maybeSingle();
+  if (!ws) return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
+
+  if (body.confirm_name !== ws.name) {
+    return NextResponse.json(
+      { error: `Type the workspace name exactly ("${ws.name}") to confirm deletion.` },
+      { status: 400 },
+    );
+  }
+
+  const { count: memberCount } = await admin
+    .from('workspace_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('workspace_id', id);
+
+  const { data: deletedRows, error } = await admin.rpc('purge_workspace', {
+    p_workspace_id: id,
+  });
+  if (error) {
+    return NextResponse.json(
+      { error: `Purge failed and nothing was half-deleted: ${error.message}` },
+      { status: 500 },
+    );
+  }
+
+  await audit({
+    action: 'tenant.purged',
+    targetType: 'workspace',
+    targetId: id,
+    details: { name: ws.name, plan: ws.plan, members: memberCount ?? 0, rows_deleted: deletedRows },
+  });
+
+  return NextResponse.json({ ok: true, rows_deleted: deletedRows });
+}

@@ -143,3 +143,30 @@ export function verifyHubPayment(input: {
 }) {
   return hubPost<HubVerification>('/verify', input);
 }
+
+export interface HubPayment {
+  id: string;
+  order_id: string | null;
+  amount: number;
+  amount_refunded: number;
+  currency: string;
+  status: string;
+  method: string | null;
+  email: string | null;
+  contact: string | null;
+  /** Unix seconds, as Razorpay reports it. */
+  created_at: number;
+  notes: Record<string, string>;
+}
+
+/**
+ * Recent payments from the Razorpay account, via the hub.
+ *
+ * Read-only: the hub endpoint can move no money, and this is the ground
+ * truth the console's Revenue page reconciles the local income ledger
+ * against — Razorpay knows about refunds and payments made outside this
+ * app; platform_payments knows which tenant each one belongs to.
+ */
+export function listHubPayments(input: { count?: number; from?: number; to?: number } = {}) {
+  return hubPost<{ count: number; payments: HubPayment[] }>('/payments', input);
+}

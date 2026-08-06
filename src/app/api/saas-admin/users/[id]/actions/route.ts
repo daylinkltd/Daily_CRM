@@ -14,6 +14,7 @@ export const dynamic = 'force-dynamic';
  *   set_system_role        — 'user' | 'super_admin'
  *   set_single_workspace   — restrict to one workspace, or lift it
  *   send_password_reset
+ *   delete_user            — remove the account entirely (guards below)
  *
  * One route with an `action` discriminator rather than four routes,
  * because they share the guard, the self-harm checks and the audit shape;
@@ -146,6 +147,77 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             ? `This user is currently in ${count} workspaces. Existing memberships are kept; only new joins are blocked. Remove them from workspaces manually if needed.`
             : undefined,
       });
+    }
+
+    case 'delete_user': {
+      if (isSelf) {
+        return NextResponse.json({ error: 'You cannot delete your own account.' }, { status: 400 });
+      }
+      if (target.system_role === 'super_admin') {
+        // Demote first, delete second — two deliberate acts. One request
+        // that can erase another platform admin is one compromised
+        // session away from erasing all of them.
+        return NextResponse.json(
+          { error: 'Remove the super-admin role before deleting this account.' },
+          { status: 400 },
+        );
+      }
+      if (body.confirm_email !== target.email) {
+        return NextResponse.json(
+          { error: 'Type the user’s email exactly to confirm deletion.' },
+          { status: 400 },
+        );
+      }
+
+      // Refuse while they solely own a workspace: deleting the last owner
+      // strands the tenant with nobody who can manage or pay for it.
+      // Purge the workspace first, or transfer ownership.
+      const { data: owned } = await admin
+        .from('workspace_members')
+        .select('workspace_id, workspaces(name)')
+        .eq('user_id', targetUserId)
+        .eq('role', 'owner');
+      for (const o of (owned ?? []) as { workspace_id: string; workspaces: { name: string } | { name: string }[] | null }[]) {
+        const { count: ownerCount } = await admin
+          .from('workspace_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('workspace_id', o.workspace_id)
+          .eq('role', 'owner');
+        if ((ownerCount ?? 0) <= 1) {
+          const wsName = Array.isArray(o.workspaces) ? o.workspaces[0]?.name : o.workspaces?.name;
+          return NextResponse.json(
+            {
+              error: `This user is the only owner of workspace "${wsName ?? o.workspace_id}". Delete that tenant first, or transfer ownership.`,
+            },
+            { status: 409 },
+          );
+        }
+      }
+
+      // Order matters: sessions die first so they cannot act mid-delete,
+      // then rows that reference them, then the auth account itself.
+      await admin.rpc('revoke_user_sessions', {
+        p_user_id: targetUserId,
+        p_reason: 'account deleted',
+      });
+      await admin.from('workspace_members').delete().eq('user_id', targetUserId);
+      await admin.from('profiles').delete().eq('user_id', targetUserId);
+
+      const { error: authErr } = await admin.auth.admin.deleteUser(targetUserId);
+      if (authErr) {
+        return NextResponse.json(
+          { error: `Profile removed but the auth account failed to delete: ${authErr.message}` },
+          { status: 500 },
+        );
+      }
+
+      await audit({
+        action: 'user.deleted',
+        targetType: 'user',
+        targetId: targetUserId,
+        details: { email: target.email, name: target.full_name },
+      });
+      return NextResponse.json({ ok: true });
     }
 
     case 'send_password_reset': {

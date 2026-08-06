@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, MonitorSmartphone, ShieldOff, Shield, KeyRound, LogOut, Lock, Unlock } from "lucide-react";
+import { Users, MonitorSmartphone, ShieldOff, Shield, KeyRound, LogOut, Lock, Unlock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -187,6 +187,26 @@ export default function UsersPage() {
                             >
                               <KeyRound className="h-3.5 w-3.5" />
                             </IconButton>
+                            {!isAdmin && (
+                              <IconButton
+                                title="Delete account permanently"
+                                tone="bad"
+                                disabled={busy === u.user_id}
+                                onClick={() => {
+                                  // Browser prompt as the type-to-confirm
+                                  // surface; the API re-checks the email
+                                  // match, so bypassing this UI gains
+                                  // nothing.
+                                  const typed = window.prompt(
+                                    `Delete ${u.email} permanently?\n\nTheir memberships and profile are removed and they can no longer sign in. Type the email exactly to confirm:`,
+                                  );
+                                  if (typed === null) return;
+                                  act(u.user_id, { action: "delete_user", confirm_email: typed });
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </IconButton>
+                            )}
                             <IconButton
                               title={blocked ? "Unblock" : "Block"}
                               tone={blocked ? "good" : "bad"}

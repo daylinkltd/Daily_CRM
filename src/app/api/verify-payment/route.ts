@@ -245,6 +245,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Income ledger. One row per captured payment, written by the same
+    // code that approved it — the console's Revenue page reads this for
+    // per-tenant history, with Razorpay itself as the cross-check.
+    // The UNIQUE(razorpay_order_id) makes retried verifications a no-op
+    // here just as the replay guard above makes them a no-op on the plan.
+    const { data: wsName } = await admin
+      .from('workspaces')
+      .select('name')
+      .eq('id', workspace_id)
+      .maybeSingle();
+    const { error: ledgerErr } = await admin.from('platform_payments').insert({
+      workspace_id,
+      workspace_name: wsName?.name ?? null,
+      user_id: user.id,
+      user_email: user.email ?? null,
+      plan_id: planConfig.id,
+      seats: seatCount,
+      billing_period: billingPeriod,
+      base_paise: bill.basePaise,
+      gst_paise: bill.gstPaise,
+      total_paise: bill.totalPaise,
+      coupon_code: couponRow?.code ?? null,
+      discount_paise: bill.discountPaise,
+      razorpay_order_id,
+      razorpay_payment_id,
+    });
+    if (ledgerErr && ledgerErr.code !== '23505') {
+      // Log, never fail the activation: the customer paid and Razorpay
+      // has the settlement record — a ledger hiccup must not eat that.
+      console.error('[verify-payment] income ledger write failed:', ledgerErr.message);
+    }
+
     // Redemption is recorded AFTER activation and through the idempotent
     // RPC — a retried verification (double-click, flaky network) must not
     // count twice against max_redemptions.
