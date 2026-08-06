@@ -20,6 +20,7 @@ import { RolesPanel } from '@/components/settings/roles-panel';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { CatalogSettings } from '@/components/settings/catalog-settings';
 import { BrandingSettings } from '@/components/settings/branding-settings';
+import { IdentifiersPanel } from '@/components/settings/identifiers-panel';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { HRSettingsPanel } from '@/components/settings/hr-settings-panel';
 import { TemplateLibraryPanel } from '@/components/settings/template-library-panel';
@@ -145,7 +146,19 @@ export default function SettingsPage() {
           <SettingsSubtabs
             initialTab={rawTab === 'letterhead' ? 'letterhead' : undefined}
             tabs={[
-              { id: 'branding', label: 'Company details', render: () => <BrandingSettings /> },
+              {
+                id: 'branding',
+                label: 'Company details',
+                render: () => (
+                  <div className="space-y-6">
+                    <BrandingSettings />
+                    {/* Tenant/workspace/user/member IDs in one place —
+                        the identifiers every API call and support ticket
+                        needs, without opening devtools. */}
+                    <IdentifiersPanel />
+                  </div>
+                ),
+              },
               {
                 id: 'letterhead',
                 label: 'Letterhead',
