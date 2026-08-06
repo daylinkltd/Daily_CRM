@@ -63,8 +63,7 @@ import {
   ChevronsUpDown,
   AppWindow,
   Tag,
-  Bookmark
-} from "lucide-react";
+  Bookmark, ReceiptText } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -193,6 +192,8 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/accounting/ledgers", label: "Ledgers", icon: BookOpen },
       { href: "/accounting/new-entry", label: "New Entry", icon: PenSquare },
+      { href: "/accounting/bulk-entry", label: "Bulk Entry", icon: Layers },
+      { href: "/accounting/transactions", label: "Transactions", icon: ReceiptText },
       { href: "/commerce/accounting", label: "Day Book", icon: CalendarClock },
       { href: "/accounting/trial-balance", label: "Trial Balance", icon: Scale },
       { href: "/accounting/profit-loss", label: "Profit & Loss", icon: TrendingUp },

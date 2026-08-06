@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 /**
  * Ledgers — the chart of accounts manager (daylink-style): every
  * ledger with its type, group and live balance, filterable, with
@@ -271,7 +273,14 @@ export default function LedgersPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{l.ledger_group || "—"}</TableCell>
                       <TableCell className="font-medium">
-                        {l.account_name}
+                        {/* The whole reason ledgers exist is to be opened:
+                            the name goes to the statement. */}
+                        <Link
+                          href={`/accounting/ledgers/${l.id}`}
+                          className="hover:text-primary hover:underline"
+                        >
+                          {l.account_name}
+                        </Link>
                         {l.is_system && (
                           <span className="ml-1.5 text-[10px] uppercase text-muted-foreground">system</span>
                         )}
