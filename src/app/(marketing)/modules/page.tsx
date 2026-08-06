@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
-import { BRAND, absoluteUrl, pageTitle } from "@/config/brand";
+import { BRAND, absoluteUrl, pageTitle, OG_IMAGES } from "@/config/brand";
 import { MODULES } from "@/config/modules-content";
 import { Reveal } from "@/components/marketing/reveal";
 import {
@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: absoluteUrl("/modules") },
   openGraph: {
+    images: OG_IMAGES,
     title: pageTitle("All Modules"),
     description: DESCRIPTION,
     url: absoluteUrl("/modules"),

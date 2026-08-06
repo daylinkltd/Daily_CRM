@@ -107,3 +107,21 @@ export function absoluteUrl(path = '/'): string {
 export function pageTitle(page?: string): string {
   return page ? `${page} · ${BRAND.name}` : `${BRAND.name} — ${BRAND.tagline}`;
 }
+
+/**
+ * The share card, referenced EXPLICITLY from every page's openGraph.
+ *
+ * Next's file convention (app/opengraph-image.png) was not reliably
+ * injected once pages declared their own `openGraph` objects — metadata
+ * merging replaces the parent object wholesale. Explicit beats implicit
+ * here: every openGraph block spreads this constant, so no page can ship
+ * without a share image and no framework merge rule can drop it.
+ */
+export const OG_IMAGES = [
+  {
+    url: '/opengraph-image.png',
+    width: 1200,
+    height: 630,
+    alt: `${BRAND.name} — ${BRAND.tagline}`,
+  },
+];

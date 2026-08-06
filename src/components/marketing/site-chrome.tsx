@@ -12,6 +12,7 @@ import { Logo } from "./logo";
 
 const NAV = [
   { href: "/modules", label: "Modules" },
+  { href: "/industries", label: "Industries" },
   { href: "/compare", label: "Compare" },
   { href: "/pricing", label: "Pricing" },
 ];
@@ -150,6 +151,21 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/industries" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  Industries
+                </Link>
+              </li>
+              <li>
+                <Link href="/faq" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link href="/security" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  Security
+                </Link>
+              </li>
+              <li>
                 <a
                   href={`${BRAND.appUrl}/signup`}
                   className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]"
@@ -162,23 +178,40 @@ export function SiteFooter() {
 
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mkt-fg-subtle)]">
-              Contact
+              Company
             </p>
             <ul className="mt-3 space-y-2">
+              <li>
+                <Link href="/about" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  Terms
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund-policy" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                  Refunds
+                </Link>
+              </li>
               <li>
                 <a
                   href={`mailto:${BRAND.contact.sales}`}
                   className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]"
                 >
                   {BRAND.contact.sales}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`mailto:${BRAND.contact.support}`}
-                  className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]"
-                >
-                  {BRAND.contact.support}
                 </a>
               </li>
             </ul>

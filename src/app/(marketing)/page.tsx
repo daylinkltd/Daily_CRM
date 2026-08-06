@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Layers, ShieldCheck, Zap } from "lucide-react";
 
-import { BRAND, pageTitle } from "@/config/brand";
+import { BRAND, pageTitle, OG_IMAGES } from "@/config/brand";
 import { MODULES, INCLUDED_MODULES_NOTE } from "@/config/modules-content";
 import { BUSINESS_PLAN } from "@/config/plans";
 import { Reveal } from "@/components/marketing/reveal";
@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   description: BRAND.description,
   alternates: { canonical: BRAND.url },
   openGraph: {
+    images: OG_IMAGES,
     title: pageTitle(),
     description: BRAND.description,
     url: BRAND.url,

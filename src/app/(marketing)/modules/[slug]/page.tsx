@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 
-import { BRAND, absoluteUrl, pageTitle } from "@/config/brand";
+import { BRAND, absoluteUrl, pageTitle, OG_IMAGES } from "@/config/brand";
 import { MODULES, moduleBySlug } from "@/config/modules-content";
 import { Reveal } from "@/components/marketing/reveal";
 import { jsonLdGraph, breadcrumbSchema } from "@/lib/seo/structured-data";
@@ -35,6 +35,7 @@ export async function generateMetadata({
     description: mod.summary,
     alternates: { canonical: url },
     openGraph: {
+    images: OG_IMAGES,
       title: `${mod.name} · ${BRAND.name}`,
       description: mod.summary,
       url,

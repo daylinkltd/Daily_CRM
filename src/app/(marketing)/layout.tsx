@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { SiteHeader, SiteFooter } from "@/components/marketing/site-chrome";
+import { absoluteUrl } from "@/config/brand";
 import {
   jsonLdGraph,
   organizationSchema,
@@ -36,6 +37,18 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
         // input, so there is no injection surface here.
         dangerouslySetInnerHTML={{ __html: graph }}
       />
+      {/* Share image, hoisted to <head> by React rather than declared in
+          metadata. Next's metadata merging dropped og:image on some
+          routes when pages defined their own openGraph objects, and a
+          share card that exists on most pages is indistinguishable from
+          one that exists on none when the missing page is the one that
+          gets shared. Scrapers take the first og:image; the pages where
+          metadata also emits one just repeat the same URL. */}
+      <meta property="og:image" content={absoluteUrl("/opengraph-image.png")} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:image" content={absoluteUrl("/opengraph-image.png")} />
       <SiteHeader />
       <main>{children}</main>
       <SiteFooter />

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check, Minus, X, CircleDollarSign, Hammer } from "lucide-react";
 
-import { BRAND, absoluteUrl, pageTitle } from "@/config/brand";
+import { BRAND, absoluteUrl, pageTitle, OG_IMAGES } from "@/config/brand";
 import { BUSINESS_PLAN } from "@/config/plans";
 import {
   COMPETITORS,
@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: absoluteUrl("/compare") },
   openGraph: {
+    images: OG_IMAGES,
     title: pageTitle("Compare Alternatives"),
     description: DESCRIPTION,
     url: absoluteUrl("/compare"),

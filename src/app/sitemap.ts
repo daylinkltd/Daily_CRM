@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next';
 
 import { BRAND, absoluteUrl } from '@/config/brand';
 import { MODULES } from '@/config/modules-content';
+import { COMPETITORS } from '@/config/competitors';
+import { INDUSTRIES } from '@/config/industries-content';
 
 /**
  * Generated from the same module registry the pages render, so a new
@@ -38,6 +40,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    {
+      url: absoluteUrl('/industries'),
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    { url: absoluteUrl('/faq'), lastModified, changeFrequency: 'monthly', priority: 0.8 },
+    { url: absoluteUrl('/about'), lastModified, changeFrequency: 'monthly', priority: 0.6 },
+    { url: absoluteUrl('/contact'), lastModified, changeFrequency: 'yearly', priority: 0.6 },
+    { url: absoluteUrl('/security'), lastModified, changeFrequency: 'monthly', priority: 0.6 },
+    { url: absoluteUrl('/privacy'), lastModified, changeFrequency: 'yearly', priority: 0.3 },
+    { url: absoluteUrl('/terms'), lastModified, changeFrequency: 'yearly', priority: 0.3 },
+    {
+      url: absoluteUrl('/refund-policy'),
+      lastModified,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
   ];
 
   const moduleRoutes: MetadataRoute.Sitemap = MODULES.map((m) => ({
@@ -47,5 +67,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...moduleRoutes];
+  // Per-competitor pages: "X alternative" queries have a buyer attached,
+  // and each page's title/H1/FAQ speak about exactly one rival.
+  const competitorRoutes: MetadataRoute.Sitemap = COMPETITORS.map((c) => ({
+    url: absoluteUrl(`/compare/${c.slug}`),
+    lastModified,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }));
+
+  const industryRoutes: MetadataRoute.Sitemap = INDUSTRIES.map((i) => ({
+    url: absoluteUrl(`/industries/${i.slug}`),
+    lastModified,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...moduleRoutes, ...competitorRoutes, ...industryRoutes];
 }

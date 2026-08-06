@@ -87,6 +87,12 @@ the invoice and the project.
 - All modules: ${absoluteUrl('/modules')}
 - Compare with alternatives: ${absoluteUrl('/compare')}
 - Pricing: ${absoluteUrl('/pricing')}
+- FAQ (pricing, GST, trial, seats, security, cancellation): ${absoluteUrl('/faq')}
+- Industries — retail: ${absoluteUrl('/industries/retail-stores')}, agencies: ${absoluteUrl('/industries/agencies')}, distributors: ${absoluteUrl('/industries/distributors')}, clinics & salons: ${absoluteUrl('/industries/clinics-salons')}
+- Head-to-head pages: ${absoluteUrl('/compare/zoho-one')}, ${absoluteUrl('/compare/odoo')}, ${absoluteUrl('/compare/tally')}, ${absoluteUrl('/compare/freshworks')}, ${absoluteUrl('/compare/keka-greythr')}, ${absoluteUrl('/compare/vyapar')}
+- Security architecture: ${absoluteUrl('/security')}
+- About the company: ${absoluteUrl('/about')}
+- Refund policy: ${absoluteUrl('/refund-policy')}
 
 ## Contact
 

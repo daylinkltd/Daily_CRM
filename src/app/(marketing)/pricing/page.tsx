@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { BRAND, absoluteUrl, pageTitle } from "@/config/brand";
+import { BRAND, absoluteUrl, pageTitle, OG_IMAGES } from "@/config/brand";
 import { BUSINESS_PLAN } from "@/config/plans";
 import { PricingContent } from "./pricing-content";
 import { jsonLdGraph, breadcrumbSchema, faqSchema } from "@/lib/seo/structured-data";
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: absoluteUrl("/pricing") },
   openGraph: {
+    images: OG_IMAGES,
     title: pageTitle("Pricing"),
     description: DESCRIPTION,
     url: absoluteUrl("/pricing"),
