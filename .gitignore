@@ -69,3 +69,6 @@ next-env.d.ts
 # personal data should not live in git history.
 public/uploads/*
 !public/uploads/.gitkeep
+
+# One-off import artifacts — contain employee emails and id maps
+scripts/output/
