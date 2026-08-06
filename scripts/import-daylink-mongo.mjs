@@ -260,10 +260,20 @@ async function main() {
         designationId = d.id;
       }
 
+      // Sequential employee code so the HR list's ID column is populated
+      // (imported rows previously showed '-').
+      const codeRows = await sbSelect(
+        `employee_profiles?select=employee_code&workspace_id=eq.${WORKSPACE_ID}&employee_code=not.is.null`,
+      );
+      const usedCodes = new Set(codeRows.map((r) => r.employee_code));
+      let n = 0;
+      while (usedCodes.has(`EMP-${String(n).padStart(4, '0')}`)) n++;
+
       await sbInsert('employee_profiles', [
         {
           workspace_member_id: entry.memberId,
           workspace_id: WORKSPACE_ID,
+          employee_code: `EMP-${String(n).padStart(4, '0')}`,
           department_id: departmentId,
           designation_id: designationId,
           // Live rows use 'ACTIVE' (checked constraint) and free-text
