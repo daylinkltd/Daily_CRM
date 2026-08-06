@@ -36,6 +36,16 @@ export interface SettingDef {
 }
 
 export const MESSAGING_SETTINGS: SettingDef[] = [
+  // Email — provider choice first. 'smtp' works with any mailbox;
+  // 'microsoft' sends through Microsoft Graph with an Entra app
+  // registration, which is the supported path for Outlook/M365 now that
+  // Microsoft is phasing out basic SMTP AUTH tenant by tenant.
+  { key: 'email_provider', label: 'Email provider', channel: 'email', secret: false, required: false, placeholder: 'smtp', envFallback: 'PLATFORM_EMAIL_PROVIDER' },
+  // Microsoft 365 (Graph, client-credentials — no user login involved)
+  { key: 'ms_tenant_id', label: 'Microsoft tenant ID', channel: 'email', secret: false, required: false, placeholder: 'contoso.onmicrosoft.com or GUID', envFallback: 'PLATFORM_MS_TENANT_ID' },
+  { key: 'ms_client_id', label: 'Microsoft client ID', channel: 'email', secret: false, required: false, placeholder: 'Entra app registration ID', envFallback: 'PLATFORM_MS_CLIENT_ID' },
+  { key: 'ms_client_secret', label: 'Microsoft client secret', channel: 'email', secret: true, required: false, placeholder: '••••••••', envFallback: 'PLATFORM_MS_CLIENT_SECRET' },
+  { key: 'ms_sender', label: 'Send as (mailbox)', channel: 'email', secret: false, required: false, placeholder: 'no-reply@dailybuz.com', envFallback: 'PLATFORM_MS_SENDER' },
   // Email (SMTP)
   { key: 'smtp_host', label: 'SMTP host', channel: 'email', secret: false, required: true, placeholder: 'smtp.zoho.in', envFallback: 'PLATFORM_SMTP_HOST' },
   { key: 'smtp_port', label: 'SMTP port', channel: 'email', secret: false, required: false, placeholder: '465', envFallback: 'PLATFORM_SMTP_PORT' },

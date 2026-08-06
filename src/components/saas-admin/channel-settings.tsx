@@ -37,7 +37,7 @@ interface ChannelInfo {
 }
 
 const CHANNEL_META = {
-  email: { icon: Mail, label: "Email (SMTP)" },
+  email: { icon: Mail, label: "Email" },
   whatsapp: { icon: MessageCircle, label: "WhatsApp (Meta Cloud API)" },
   sms: { icon: Smartphone, label: "SMS (MSG91)" },
 } as const;
@@ -128,7 +128,36 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
               </div>
               {fields
                 .filter((f) => f.channel === ch)
-                .map((f) => (
+                .filter((f) => {
+                  // Email shows one provider's fields at a time. The
+                  // selector row itself always shows.
+                  if (ch !== "email" || f.key === "email_provider") return true;
+                  const provider = (
+                    drafts.email_provider ??
+                    fields.find((x) => x.key === "email_provider")?.value ??
+                    "smtp"
+                  ).toLowerCase();
+                  const isMs = f.key.startsWith("ms_");
+                  return provider === "microsoft" ? isMs : !isMs;
+                })
+                .map((f) =>
+                  f.key === "email_provider" ? (
+                    <label key={f.key} className="block">
+                      <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">
+                        Provider
+                      </span>
+                      <select
+                        value={drafts.email_provider ?? f.value ?? "smtp"}
+                        onChange={(e) =>
+                          setDrafts((d) => ({ ...d, email_provider: e.target.value }))
+                        }
+                        className="h-9 w-full rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
+                      >
+                        <option value="smtp">SMTP (any mailbox)</option>
+                        <option value="microsoft">Microsoft 365 / Outlook (Graph)</option>
+                      </select>
+                    </label>
+                  ) : (
                   <label key={f.key} className="block">
                     <span className="mb-1 flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
                       <span>
@@ -153,7 +182,19 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
                       className="h-9 w-full rounded-lg border border-border bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                     />
                   </label>
-                ))}
+                  ),
+                )}
+              {ch === "email" &&
+                (drafts.email_provider ??
+                  fields.find((x) => x.key === "email_provider")?.value ??
+                  "smtp") === "microsoft" && (
+                  <p className="text-[10px] leading-relaxed text-muted-foreground">
+                    Needs an Entra app registration with the <em>application</em> permission
+                    Mail.Send and admin consent. No user signs in — the app sends as the
+                    mailbox above. Consider an ApplicationAccessPolicy to restrict the app
+                    to that one mailbox.
+                  </p>
+                )}
             </div>
           );
         })}

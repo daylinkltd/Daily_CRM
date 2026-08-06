@@ -34,24 +34,35 @@ export interface ChannelStatus {
   identity: string | null;
 }
 
+/** Which email backend the config selects. Defaults to SMTP. */
+export function emailProvider(config: MessagingConfig): 'smtp' | 'microsoft' {
+  return config.email_provider?.trim().toLowerCase() === 'microsoft' ? 'microsoft' : 'smtp';
+}
+
 export function channelStatuses(config: MessagingConfig): ChannelStatus[] {
   const smtpKeys = ['smtp_host', 'smtp_user', 'smtp_pass'];
+  const msKeys = ['ms_tenant_id', 'ms_client_id', 'ms_client_secret', 'ms_sender'];
   const waKeys = ['wa_phone_id', 'wa_token'];
   const smsKeys = ['sms_authkey', 'sms_sender'];
 
   const missing = (keys: string[]) => keys.filter((k) => !config[k]?.trim());
 
-  const smtpMissing = missing(smtpKeys);
+  const provider = emailProvider(config);
+  const emailMissing = provider === 'microsoft' ? missing(msKeys) : missing(smtpKeys);
   const waMissing = missing(waKeys);
   const smsMissing = missing(smsKeys);
 
   return [
     {
       channel: 'email',
-      configured: smtpMissing.length === 0,
-      missing: smtpMissing,
+      configured: emailMissing.length === 0,
+      missing: emailMissing,
       identity:
-        smtpMissing.length === 0 ? config.smtp_from || config.smtp_user || null : null,
+        emailMissing.length === 0
+          ? provider === 'microsoft'
+            ? `${config.ms_sender} via Microsoft 365`
+            : config.smtp_from || config.smtp_user || null
+          : null,
     },
     {
       channel: 'whatsapp',
@@ -83,6 +94,89 @@ export interface SendResult {
   error?: string;
 }
 
+/**
+ * Microsoft Graph client-credentials token, cached until near expiry.
+ *
+ * Module-level cache is safe here: the token is tenant-wide (application
+ * permission, no user context), Graph tokens live ~an hour, and a send
+ * batch of 300 recipients must not fetch 300 tokens.
+ */
+let graphTokenCache: { key: string; token: string; expiresAt: number } | null = null;
+
+async function getGraphToken(config: MessagingConfig): Promise<string> {
+  const cacheKey = `${config.ms_tenant_id}:${config.ms_client_id}`;
+  if (graphTokenCache && graphTokenCache.key === cacheKey && graphTokenCache.expiresAt > Date.now() + 60_000) {
+    return graphTokenCache.token;
+  }
+
+  const res = await fetch(
+    `https://login.microsoftonline.com/${encodeURIComponent(config.ms_tenant_id)}/oauth2/v2.0/token`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: config.ms_client_id,
+        client_secret: config.ms_client_secret,
+        scope: 'https://graph.microsoft.com/.default',
+        grant_type: 'client_credentials',
+      }),
+    },
+  );
+  const json = (await res.json()) as {
+    access_token?: string;
+    expires_in?: number;
+    error_description?: string;
+  };
+  if (!res.ok || !json.access_token) {
+    throw new Error(json.error_description || `Microsoft token request failed (${res.status})`);
+  }
+
+  graphTokenCache = {
+    key: cacheKey,
+    token: json.access_token,
+    expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000,
+  };
+  return json.access_token;
+}
+
+/**
+ * Send through Microsoft Graph as the configured mailbox.
+ *
+ * Requires an Entra app registration with the APPLICATION permission
+ * Mail.Send and admin consent — the daemon flow, no user signs in.
+ * Prefer restricting the app to the one sending mailbox with an
+ * ApplicationAccessPolicy, since Mail.Send is otherwise tenant-wide.
+ */
+async function sendViaMicrosoft(
+  config: MessagingConfig,
+  input: { to: string; subject: string; body: string },
+): Promise<SendResult> {
+  const token = await getGraphToken(config);
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(config.ms_sender)}/sendMail`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        message: {
+          subject: input.subject,
+          body: { contentType: 'Text', content: input.body },
+          toRecipients: [{ emailAddress: { address: input.to } }],
+        },
+        saveToSentItems: true,
+      }),
+    },
+  );
+
+  if (res.status === 202) {
+    // Graph's sendMail returns no message id; the request id is the
+    // traceable handle Microsoft support asks for.
+    return { ok: true, providerId: res.headers.get('request-id') ?? 'graph-accepted' };
+  }
+  const err = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
+  return { ok: false, error: err.error?.message || `Graph sendMail returned ${res.status}` };
+}
+
 export async function sendPlatformEmail(
   config: MessagingConfig,
   input: {
@@ -91,6 +185,13 @@ export async function sendPlatformEmail(
     body: string;
   },
 ): Promise<SendResult> {
+  if (emailProvider(config) === 'microsoft') {
+    try {
+      return await sendViaMicrosoft(config, input);
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : 'Microsoft send failed' };
+    }
+  }
   try {
     const host = config.smtp_host;
     const user = config.smtp_user;
