@@ -44,8 +44,8 @@ function DueLabel({ dueDate }: { dueDate?: string | null }) {
         : `Due ${dueDate.slice(0, 10)}`;
 
   return (
-    <span className={`inline-flex items-center gap-1 text-xs ${DUE_STYLES[bucket]}`}>
-      <CalendarClock className="size-3" />
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ${DUE_STYLES[bucket]}`}>
+      <CalendarClock className="size-3.5" />
       {label}
     </span>
   );
@@ -57,15 +57,17 @@ function ItemRow({ item }: { item: WorkItem }) {
       href={item.href}
       className="group flex items-start justify-between gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-muted/60"
     >
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-foreground">{item.title}</div>
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="truncate text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+          {item.title}
+        </div>
         {item.subtitle && (
-          <div className="mt-0.5 truncate text-xs text-muted-foreground">{item.subtitle}</div>
+          <div className="truncate text-xs text-muted-foreground">{item.subtitle}</div>
         )}
-        <div className="mt-1 flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 pt-0.5">
           <DueLabel dueDate={item.dueDate} />
           {item.badge && (
-            <Badge variant="outline" className="text-[10px] font-medium">
+            <Badge variant="outline" className={`uppercase text-[9px] font-semibold tracking-wider px-1.5 py-0 ${PRIORITY_STYLES[item.badge as keyof typeof PRIORITY_STYLES] ?? ""}`}>
               {item.badge}
             </Badge>
           )}
@@ -80,8 +82,8 @@ function SectionCard({ section }: { section: WorkSection }) {
   const hidden = section.total - section.items.length;
 
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+    <div className="rounded-lg border border-border bg-card overflow-hidden flex flex-col">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-foreground">{section.label}</h3>
           <Badge
@@ -95,7 +97,7 @@ function SectionCard({ section }: { section: WorkSection }) {
           {section.total}
         </span>
       </div>
-      <div className="p-1.5">
+      <div className="p-1.5 flex-1">
         {section.items.map((item) => (
           <ItemRow key={item.id} item={item} />
         ))}
@@ -109,17 +111,7 @@ function SectionCard({ section }: { section: WorkSection }) {
   );
 }
 
-/**
- * Everything the signed-in member is responsible for, gathered from every
- * module they can reach — tasks, projects, chats, deals, HR requests,
- * direct reports and pending policy sign-offs.
- *
- * Read-only by design: each row deep-links to the module that owns the
- * record, so there is one place to edit it and no second source of truth.
- */
 export default function MyWorkPage() {
-  // Memoised: createClient() returns a new object each render, which would
-  // rebuild every useCallback below it and re-fire their effects.
   const supabase = useMemo(() => createClient(), []);
   const { activeWorkspace, activeMember } = useWorkspace();
   const { user } = useAuth();
@@ -132,17 +124,12 @@ export default function MyWorkPage() {
   const memberId = activeMember?.id;
   const userId = user?.id;
 
-  // Fetch inside the effect rather than via a useCallback it depends on —
-  // that indirection trips react-hooks/set-state-in-effect. `cancelled`
-  // stops a late response from a previous workspace landing here.
   useEffect(() => {
     if (!workspaceId || !memberId) return;
     let cancelled = false;
 
     (async () => {
       try {
-        // deals.assigned_to references profiles(id), which is neither the
-        // member id nor the auth user id — so it needs its own lookup.
         let profileId: string | null = null;
         if (userId) {
           const { data } = await supabase
@@ -160,8 +147,6 @@ export default function MyWorkPage() {
           profileId,
         });
 
-        // Own to-dos that are late or due today. A missing table (migration
-        // 098 not applied) just means no strip — not a broken page.
         const { data: todoRows } = await supabase
           .from("personal_todos")
           .select("*")
@@ -185,8 +170,16 @@ export default function MyWorkPage() {
   const { active, empty } = partitionSections(sections);
   const outstanding = countOutstanding(sections);
 
+  // Split active sections into 2 balanced columns to prevent empty vertical voids
+  const col1: WorkSection[] = [];
+  const col2: WorkSection[] = [];
+  active.forEach((section, idx) => {
+    if (idx % 2 === 0) col1.push(section);
+    else col2.push(section);
+  });
+
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <PageHeader
         title="My Work"
         description={
@@ -198,21 +191,20 @@ export default function MyWorkPage() {
         }
       />
 
-      {/* Own to-dos that are late or due today, above the assigned work —
-          these are the ones nobody else is going to chase. */}
+      {/* Urgent To-dos banner */}
       {!loading && urgentTodos.length > 0 && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 shadow-sm">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
-              Your to-dos need attention
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+              ⚡ Action Required: Your To-dos
             </p>
-            <Link href="/me/todos" className="text-xs font-medium text-primary hover:underline">
-              Open list
+            <Link href="/me/todos" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+              Open list <ArrowRight className="size-3" />
             </Link>
           </div>
-          <ul className="mt-2 space-y-1">
+          <ul className="mt-2.5 space-y-1.5">
             {urgentTodos.slice(0, 5).map((todo) => (
-              <li key={todo.id} className="flex items-center gap-2 text-sm text-foreground">
+              <li key={todo.id} className="flex items-center justify-between text-sm font-medium text-foreground bg-background/60 p-2 rounded-lg border border-amber-500/20">
                 <span className="truncate">{todo.title}</span>
                 <DueLabel dueDate={todo.due_date} />
               </li>
@@ -222,35 +214,45 @@ export default function MyWorkPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="size-6 animate-spin text-primary" />
+        <div className="flex justify-center py-20">
+          <Loader2 className="size-7 animate-spin text-primary" />
         </div>
       ) : active.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card py-16 text-center">
-          <Inbox className="mx-auto size-8 text-muted-foreground" />
-          <p className="mt-3 text-sm font-medium text-foreground">Your plate is clear</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Tasks, chats, deals and requests assigned to you will appear here.
+        <div className="rounded-xl border border-border bg-card p-16 text-center shadow-sm">
+          <Inbox className="mx-auto size-10 text-muted-foreground/60" />
+          <p className="mt-4 text-base font-semibold text-foreground">Your plate is clear!</p>
+          <p className="mt-1 text-sm text-muted-foreground max-w-sm mx-auto">
+            Tasks, chats, deals, and requests assigned to you will automatically show up here.
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {active.map((section) => (
-            <SectionCard key={section.key} section={section} />
-          ))}
+        <div className="grid gap-5 lg:grid-cols-2 items-start">
+          <div className="space-y-5">
+            {col1.map((section) => (
+              <SectionCard key={section.key} section={section} />
+            ))}
+          </div>
+          <div className="space-y-5">
+            {col2.map((section) => (
+              <SectionCard key={section.key} section={section} />
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Empty sections are listed compactly rather than hidden, so it is
-          clear the check ran and found nothing — not that it was skipped. */}
+      {/* Empty section badges strip */}
       {!loading && empty.length > 0 && (
-        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Nothing waiting
+        <div className="rounded-xl border border-border/70 bg-card/50 p-4 shadow-xs">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2.5">
+            Clear Modules ({empty.length})
           </p>
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          <div className="flex flex-wrap gap-2">
             {empty.map((s) => (
-              <span key={s.key} className="text-xs text-muted-foreground">
+              <span
+                key={s.key}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-muted/60 text-muted-foreground border border-border/40"
+              >
+                <span className="size-1.5 rounded-full bg-emerald-500" />
                 {s.label}
               </span>
             ))}

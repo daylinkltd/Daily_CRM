@@ -59,17 +59,17 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-muted text-white font-sans">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground font-sans">
       {/* Admin Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-muted transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card transition-transform duration-300 lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Header */}
         <div className="flex h-16 items-center border-b border-border px-6 gap-2 shrink-0">
           <Shield className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg tracking-tight">SaaS Admin</span>
+          <span className="font-bold text-lg tracking-tight text-foreground">SaaS Admin</span>
         </div>
 
         {/* Links */}
@@ -85,7 +85,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                 className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   active
                     ? "bg-primary/10 text-primary"
-                    : "text-foreground hover:text-white hover:bg-muted/60"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
                 <item.icon className={`h-4 w-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
@@ -99,7 +99,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="border-t border-border p-4 shrink-0">
           <button
             onClick={() => signOut()}
-            className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-white hover:bg-muted/60 transition-colors"
+            className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
             <LogOut className="h-4 w-4 text-rose-500" />
             Sign Out
@@ -110,12 +110,12 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Navbar */}
-        <header className="flex h-16 items-center justify-between border-b border-border bg-muted/40 px-6 backdrop-blur-sm shrink-0">
+        <header className="flex h-16 items-center justify-between border-b border-border bg-card px-6 backdrop-blur-sm shrink-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden text-muted-foreground hover:text-white"
+            className="lg:hidden text-muted-foreground hover:text-foreground"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -124,7 +124,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             {profile && (
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-xs font-semibold text-white">{profile.full_name || "SaaS Admin"}</p>
+                  <p className="text-xs font-semibold text-foreground">{profile.full_name || "SaaS Admin"}</p>
                   <p className="text-[10px] text-muted-foreground">{profile.email}</p>
                 </div>
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">

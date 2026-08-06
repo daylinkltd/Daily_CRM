@@ -36,7 +36,29 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ products: data });
+  // Calculate live stock balance per product from inventory movements
+  const productIds = (data || []).map((p) => p.id);
+  const stockMap: Record<string, number> = {};
+
+  if (productIds.length > 0) {
+    const { data: movements } = await supabase
+      .from("commerce_inventory_movements")
+      .select("product_id, quantity, movement_type")
+      .in("product_id", productIds);
+
+    (movements || []).forEach((m) => {
+      const qty = Number(m.quantity || 0);
+      const isOutward = ["SALE", "DISPATCH", "DAMAGE", "ADJUSTMENT_OUT"].includes(m.movement_type);
+      stockMap[m.product_id] = (stockMap[m.product_id] || 0) + (isOutward ? -qty : qty);
+    });
+  }
+
+  const productsWithStock = (data || []).map((p) => ({
+    ...p,
+    current_stock: stockMap[p.id] !== undefined ? stockMap[p.id] : Number(p.initial_stock || p.reorder_level || 0),
+  }));
+
+  return NextResponse.json({ products: productsWithStock });
 }
 
 export async function POST(request: Request) {

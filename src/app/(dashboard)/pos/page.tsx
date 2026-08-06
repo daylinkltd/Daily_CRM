@@ -268,6 +268,11 @@ function POSTerminalPageContent() {
     denominations["10"] * 10 +
     denominations["coins"];
 
+  // Receipt & Print Modal State
+  const [completedOrder, setCompletedOrder] = useState<any>(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showUpiQrModal, setShowUpiQrModal] = useState(false);
+
   const handleCheckout = async () => {
     if (cart.length === 0) {
       toast.error("Cart is empty");
@@ -284,9 +289,6 @@ function POSTerminalPageContent() {
       }
       paymentBreakdown = [
         { mode: "CASH", amount: splitCashAmount },
-        // The engine expects `bank_account_id` (a commerce_bank_accounts
-        // id); it validates and falls back to the default bank ledger
-        // when this is a legacy free-text label.
         { mode: "UPI", amount: splitUpiAmount, bank_account_id: upiBankAccount },
       ];
     } else if (selectedPayment === "UPI") {
@@ -330,7 +332,27 @@ function POSTerminalPageContent() {
         throw new Error(json.error || `Checkout endpoint error (${res.status}). Please restart dev server if route was recently added.`);
       }
 
-      toast.success(`Order #${json.order?.order_number || "completed"} completed & Journal posted!`);
+      const orderData = json.order || {
+        order_number: `ORD-${Date.now().toString().slice(-6)}`,
+        created_at: new Date().toISOString(),
+        grand_total: grandTotal,
+        payment_method: selectedPayment,
+      };
+
+      toast.success(`Order #${orderData.order_number} completed!`);
+      setCompletedOrder({
+        order_number: orderData.order_number,
+        date: new Date().toLocaleString(),
+        items: [...cart],
+        subtotal,
+        taxTotal,
+        discountAmount,
+        grandTotal,
+        customerMobile,
+        payment_method: selectedPayment,
+      });
+      setShowReceiptModal(true);
+
       setCart([]);
       setDiscountAmount(0);
       setCashReceived(0);
@@ -402,47 +424,75 @@ function POSTerminalPageContent() {
 
         {/* Product Grid */}
         <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pr-1 content-start">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              onClick={() => addToCart(product)}
-              className="bg-card/60 border border-border hover:border-[#00aef0]/50 rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.02] shadow-md group"
-            >
-              <div>
-                <div className="text-xs font-bold text-foreground group-hover:text-[#00aef0] transition-colors line-clamp-2">
-                  {product.name}
+          {products.map((product) => {
+            const stockQty = Number(product.current_stock ?? product.stock_quantity ?? 0);
+            const isOutOfStock = stockQty <= 0;
+
+            return (
+              <div
+                key={product.id}
+                onClick={() => {
+                  if (isOutOfStock) {
+                    toast.error(`Cannot add ${product.name}: Item is Out of Stock!`);
+                    return;
+                  }
+                  addToCart(product);
+                }}
+                className={`bg-card/60 border rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.02] shadow-md group relative overflow-hidden ${
+                  isOutOfStock
+                    ? "border-rose-500/40 opacity-75"
+                    : "border-border hover:border-[#00aef0]/50"
+                }`}
+              >
+                <div>
+                  <div className="text-xs font-bold text-foreground group-hover:text-[#00aef0] transition-colors line-clamp-2">
+                    {product.name}
+                  </div>
+                  <div className="flex items-center justify-between gap-1 mt-1">
+                    <span className="text-[11px] font-mono text-muted-foreground">SKU: {product.sku}</span>
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                        isOutOfStock
+                          ? "bg-rose-500/20 text-rose-500 border border-rose-500/30"
+                          : stockQty <= 5
+                          ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                          : "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                      }`}
+                    >
+                      {isOutOfStock ? "Out of Stock" : `Stock: ${stockQty}`}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-[11px] font-mono text-muted-foreground mt-1">SKU: {product.sku}</div>
-              </div>
-              <div className="flex flex-col gap-1.5 mt-3 pt-2 border-t border-border/60">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    {product.mrp && Number(product.mrp) > Number(product.selling_price) && (
-                      <span className="text-[10px] text-muted-foreground line-through">
-                        ₹{Number(product.mrp).toFixed(2)}
+                <div className="flex flex-col gap-1.5 mt-3 pt-2 border-t border-border/60">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      {product.mrp && Number(product.mrp) > Number(product.selling_price) && (
+                        <span className="text-[10px] text-muted-foreground line-through">
+                          ₹{Number(product.mrp).toFixed(2)}
+                        </span>
+                      )}
+                      <span className="text-xs font-extrabold text-[#00aef0]">
+                        ₹{Number(product.selling_price).toFixed(2)}
                       </span>
-                    )}
-                    <span className="text-xs font-extrabold text-[#00aef0]">
-                      ₹{Number(product.selling_price).toFixed(2)}
+                    </div>
+                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-none font-mono">
+                      {product.base_unit || "PCS"}
                     </span>
                   </div>
-                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-none font-mono">
-                    {product.base_unit || "PCS"}
-                  </span>
+                  {product.mrp && Number(product.mrp) > Number(product.selling_price) && (
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded-lg border border-emerald-500/20">
+                        {Math.round(((Number(product.mrp) - Number(product.selling_price)) / Number(product.mrp)) * 100)}% OFF
+                      </span>
+                      <span className="text-muted-foreground">
+                        Save ₹{(Number(product.mrp) - Number(product.selling_price)).toFixed(0)}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {product.mrp && Number(product.mrp) > Number(product.selling_price) && (
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded-lg border border-emerald-500/20">
-                      {Math.round(((Number(product.mrp) - Number(product.selling_price)) / Number(product.mrp)) * 100)}% OFF
-                    </span>
-                    <span className="text-muted-foreground">
-                      Save ₹{(Number(product.mrp) - Number(product.selling_price)).toFixed(0)}
-                    </span>
-                  </div>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -548,12 +598,21 @@ function POSTerminalPageContent() {
             ))}
           </div>
 
-          {/* UPI Bank Account Selection */}
+          {/* UPI Bank Account Selection & Dynamic QR Trigger */}
           {(selectedPayment === "UPI" || selectedPayment === "SPLIT") && (
-            <div className="bg-background p-2.5 rounded-xl border border-border space-y-1">
-              <Label className="text-[11px] text-[#00aef0] font-bold flex items-center gap-1">
-                <Landmark className="h-3.5 w-3.5" /> Destination Bank Account / UPI Handle
-              </Label>
+            <div className="bg-background p-2.5 rounded-xl border border-border space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-[#00aef0] font-bold flex items-center gap-1">
+                  <Landmark className="h-3.5 w-3.5" /> Destination Bank / UPI
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => setShowUpiQrModal(true)}
+                  className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30 hover:bg-emerald-500/20"
+                >
+                  View QR Code 📱
+                </button>
+              </div>
               <select
                 value={upiBankAccount}
                 onChange={(e) => setUpiBankAccount(e.target.value)}
@@ -709,6 +768,104 @@ function POSTerminalPageContent() {
             <Button onClick={handleSaveSerial} className="w-full bg-[#00aef0] text-foreground font-bold h-10 text-xs rounded-xl">
               Save Serial Number
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic UPI QR Code Modal */}
+      {showUpiQrModal && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-sm font-bold text-foreground">Scan UPI QR Code</h2>
+              <button onClick={() => setShowUpiQrModal(false)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="bg-white p-4 rounded-2xl inline-block mx-auto border border-border shadow-inner">
+              {/* Dynamic QR SVG Representation */}
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                  `upi://pay?pa=${upiBankAccount.match(/vpa:\s*([^\)]+)/)?.[1] || "store@upi"}&pn=Store&am=${grandTotal}&cu=INR`
+                )}`}
+                alt="UPI QR Code"
+                className="w-44 h-44 mx-auto"
+              />
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="font-extrabold text-lg text-emerald-400">₹{grandTotal.toFixed(2)}</div>
+              <div className="text-muted-foreground font-mono text-[11px]">{upiBankAccount}</div>
+            </div>
+            <Button onClick={() => setShowUpiQrModal(false)} className="w-full bg-emerald-600 hover:bg-emerald-500 text-foreground font-bold h-10 text-xs rounded-xl">
+              Done / Payment Received
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Printable Thermal Receipt Modal */}
+      {showReceiptModal && completedOrder && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                <span>🧾</span> Order Receipt
+              </h2>
+              <button onClick={() => setShowReceiptModal(false)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Printable Thermal Receipt Preview Area */}
+            <div id="printable-pos-receipt" className="bg-white text-black p-4 rounded-xl font-mono text-xs space-y-2 border border-slate-300">
+              <div className="text-center font-bold text-sm border-b pb-1">
+                <div>DAILYBUZ RETAIL STORE</div>
+                <div className="text-[10px] font-normal text-slate-600">GSTIN: 29AAAAA0000A1Z5</div>
+              </div>
+              <div className="text-[10px] space-y-0.5 text-slate-700">
+                <div>Order: #{completedOrder.order_number}</div>
+                <div>Date: {completedOrder.date}</div>
+                {completedOrder.customerMobile && <div>Customer: {completedOrder.customerMobile}</div>}
+                <div>Payment: {completedOrder.payment_method}</div>
+              </div>
+              <div className="border-t border-b border-dashed border-slate-400 py-1 space-y-1">
+                {completedOrder.items.map((it: any, i: number) => (
+                  <div key={i} className="flex justify-between text-[11px]">
+                    <div className="truncate pr-1">{it.quantity}x {it.name}</div>
+                    <div className="shrink-0">₹{(it.selling_price * it.quantity).toFixed(2)}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-0.5 text-right font-bold text-[11px] pt-1">
+                <div className="flex justify-between font-normal"><span>Subtotal:</span><span>₹{completedOrder.subtotal.toFixed(2)}</span></div>
+                <div className="flex justify-between font-normal"><span>GST:</span><span>₹{completedOrder.taxTotal.toFixed(2)}</span></div>
+                {completedOrder.discountAmount > 0 && (
+                  <div className="flex justify-between font-normal text-slate-600"><span>Discount:</span><span>-₹{completedOrder.discountAmount.toFixed(2)}</span></div>
+                )}
+                <div className="flex justify-between text-sm pt-1 border-t border-slate-400"><span>Total:</span><span>₹{completedOrder.grandTotal.toFixed(2)}</span></div>
+              </div>
+              <div className="text-center text-[9px] text-slate-500 pt-2 border-t border-dashed">
+                Thank you for shopping with us!
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                onClick={() => {
+                  window.print();
+                }}
+                className="flex-1 bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold h-10 text-xs rounded-xl"
+              >
+                🖨️ Print Receipt (80mm)
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowReceiptModal(false)}
+                className="h-10 text-xs rounded-xl border-border"
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </div>
       )}

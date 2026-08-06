@@ -10,6 +10,7 @@ import { Package, Plus, Search, Barcode, Tag, RefreshCw, Printer, X, ShieldCheck
 import { toast } from "sonner";
 import { BarcodeTagModal } from "@/components/commerce/barcode-tag-modal";
 import { ProductDetailsModal } from "@/components/commerce/product-details-modal";
+import { BulkEntryDialog, type BulkColumn, type BulkRow } from "@/components/ui/bulk-entry-dialog";
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
 import Link from "next/link";
 import { IconAction } from "@/components/ui/icon-action";
@@ -28,6 +29,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"BASIC" | "UNITS_PRICING" | "TAX" | "INVENTORY" | "SETTINGS" | "CUSTOM_FIELDS">("BASIC");
   const [activeTemplate, setActiveTemplate] = useState("GARMENT");
 
@@ -617,6 +619,14 @@ export default function ProductsPage() {
               Master Template: <span className="text-[#00aef0] font-extrabold">{activeTemplate}</span>
             </Button>
           </Link>
+          <Button
+            variant="outline"
+            onClick={() => setShowBulkModal(true)}
+            className="border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/10 gap-1.5 rounded-xl h-11 font-bold"
+          >
+            <Sparkles className="h-4 w-4" />
+            Bulk Paste (1000+ Items)
+          </Button>
           <IconAction label="Add New Product" icon={<Plus className="h-4 w-4" />} onClick={() => {
               syncTemplateFromSettings();
               handleResetForm();
@@ -1876,6 +1886,56 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Entry Copy-Paste Modal (1000+ Items) */}
+      <BulkEntryDialog
+        open={showBulkModal}
+        onOpenChange={setShowBulkModal}
+        title="Bulk Paste Products (1000+ Items)"
+        description="Copy-paste multiple rows directly from Excel or Google Sheets. Columns: Name, SKU, Barcode, Selling Price, MRP, Tax Rate, Stock."
+        columns={[
+          { key: "name", label: "Product Name", required: true, width: "200px" },
+          { key: "sku", label: "SKU / Style #", required: true, width: "130px" },
+          { key: "barcode", label: "Barcode", width: "130px" },
+          { key: "selling_price", label: "Selling Price (₹)", type: "number", required: true, width: "120px" },
+          { key: "mrp", label: "MRP (₹)", type: "number", width: "100px" },
+          { key: "tax_rate", label: "GST Rate (%)", type: "number", width: "100px" },
+          { key: "initial_stock", label: "Stock Qty", type: "number", width: "90px" },
+        ]}
+        workspaceId={activeWorkspace?.id || ""}
+        scope="bulk_products_paste"
+        noun="product"
+        onSubmit={async (rows: BulkRow[]) => {
+          if (!activeWorkspace?.id) return;
+          try {
+            let successCount = 0;
+            for (const row of rows) {
+              if (!row.name || !row.sku || !row.selling_price) continue;
+              const autoBarcode = row.barcode && String(row.barcode).trim() !== "" ? String(row.barcode).trim() : `890${Date.now().toString().slice(-10)}`;
+              
+              await fetch("/api/commerce/products", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  workspace_id: activeWorkspace.id,
+                  name: row.name.trim(),
+                  sku: row.sku.trim(),
+                  barcode: autoBarcode,
+                  selling_price: Number(row.selling_price || 0),
+                  mrp: Number(row.mrp || row.selling_price || 0),
+                  tax_rate: Number(row.tax_rate || 5),
+                  initial_stock: Number(row.initial_stock || 0),
+                }),
+              });
+              successCount++;
+            }
+            toast.success(`Successfully imported ${successCount} products!`);
+            fetchProducts();
+          } catch (err: any) {
+            toast.error(err.message || "Bulk import completed with errors");
+          }
+        }}
+      />
     </div>
   );
 }

@@ -118,7 +118,6 @@ export default function QuotationsPage() {
 
       if (error) throw error;
 
-      toast.success("Draft quotation created");
       router.push(`/quotations/${quote.id}/edit`);
     } catch (err: any) {
       toast.error(err.message || "Failed to start quotation");

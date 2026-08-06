@@ -82,9 +82,9 @@ function LoginPageInner() {
           <Image
             src="/logolight.png"
             alt="Dailybuz"
-            width={160}
-            height={40}
-            className="h-9 w-auto object-contain"
+            width={240}
+            height={80}
+            className="h-16 sm:h-20 w-auto object-contain"
             priority
           />
         </div>
