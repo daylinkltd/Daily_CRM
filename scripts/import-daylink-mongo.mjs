@@ -118,7 +118,13 @@ async function main() {
 
   // ---------- source ----------
   const teams = await db.collection('teams').find({}).toArray();
-  const adminUsers = await db.collection('users').find({}).toArray();
+  // The `users` collection is WEB-APP LOGINS, not staff — it holds admin
+  // accounts for OTHER sites hosted from the same codebase (pfwci.org
+  // demo users live there). Importing it once put two strangers into the
+  // company workspace; they were removed, and staff now come exclusively
+  // from `teams`. Attendance rows with employeeModel 'User' that point
+  // at deleted web logins stay skipped as unknown.
+  const adminUsers = [];
   const mongoProjects = await db.collection('projects').find({}).toArray();
   const tickets = await db.collection('tickets').find({}).toArray();
   const attendance = await db.collection('attendancerecords').find({}).sort({ date: 1 }).toArray();
