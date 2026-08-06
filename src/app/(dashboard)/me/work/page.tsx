@@ -19,6 +19,17 @@ import {
 import { needsAttention, type PersonalTodo } from "@/lib/personal/todos";
 import { BookmarksCard } from "@/components/personal/bookmarks-card";
 
+// Priority → badge palette, matching me/todos so the same HIGH/MEDIUM/LOW
+// reads identically on both pages. Keys not in the map (non-priority
+// badges) fall back to the outline default via the `?? ""` at the use
+// site.
+const PRIORITY_STYLES: Record<string, string> = {
+  HIGH: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30",
+  MEDIUM: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
+  LOW: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/30",
+};
+
+
 const MODULE_STYLES: Record<string, string> = {
   Projects: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30",
   CRM: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/30",
