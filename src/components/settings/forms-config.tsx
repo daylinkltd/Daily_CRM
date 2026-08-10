@@ -37,7 +37,7 @@ export function FormsConfig() {
         <Card className="bg-card border-border ring-0 ring-transparent">
           <CardHeader>
             <CardTitle className="text-foreground">Universal Form Webhook</CardTitle>
-            <CardDescription className="text-muted-foreground">Send form submissions from any platform (Google Forms, Facebook Lead Ads, Webflow, Typeform) directly into Dailybuz.</CardDescription>
+            <CardDescription className="text-muted-foreground">Send form submissions from any platform (Google Forms, Facebook Lead Ads, Webflow, Typeform) directly into Dailybiz.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -90,7 +90,7 @@ export function FormsConfig() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Ensure your external form fields match these payload keys so Dailybuz can automatically parse them:
+              Ensure your external form fields match these payload keys so Dailybiz can automatically parse them:
             </p>
             <div className="bg-background p-3 rounded-md border border-border">
               <pre className="text-xs text-foreground font-mono whitespace-pre-wrap">

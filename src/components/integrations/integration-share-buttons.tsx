@@ -58,7 +58,7 @@ export function IntegrationShareButtons({
       .catch(() => {});
   }, [workspaceId]);
 
-  const defaultText = `Hi, sharing ${documentTitle} from Dailybuz: ${documentSummary} ${shareUrl ? `Link: ${shareUrl}` : ""}`.trim();
+  const defaultText = `Hi, sharing ${documentTitle} from Dailybiz: ${documentSummary} ${shareUrl ? `Link: ${shareUrl}` : ""}`.trim();
 
   const handleOpenWa = () => {
     setWaMessage(defaultText);

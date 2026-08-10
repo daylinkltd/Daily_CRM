@@ -41,7 +41,7 @@ export default function IntegrationsPage() {
       <div>
         <h1 className="text-lg font-semibold text-foreground">Integrations</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Connect your Dailybuz workspace to external communication platforms and data sources.
+          Connect your Dailybiz workspace to external communication platforms and data sources.
         </p>
       </div>
 

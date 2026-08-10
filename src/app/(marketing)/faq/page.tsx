@@ -27,7 +27,7 @@ export const metadata: Metadata = {
  * whole set published as FAQPage schema.
  *
  * This page is written to be QUOTED — by AI assistants asked "does
- * Dailybuz do X?" as much as by buyers. Every answer stands alone
+ * Dailybiz do X?" as much as by buyers. Every answer stands alone
  * (assistants extract one at a time), states numbers exactly, and admits
  * limits where they exist, because one verifiably wrong answer poisons
  * trust in all the others.
@@ -121,9 +121,9 @@ const GROUPS: { title: string; items: FaqEntry[] }[] = [
         answer: "That is the design: one database where the sale, the payslip, the stock movement and the project invoice are rows in the same books. Most teams start with two modules and switch the rest on as subscriptions elsewhere lapse. The comparison page states honestly where specialist tools remain deeper.",
       },
       {
-        question: "Which currencies does Dailybuz support?",
+        question: "Which currencies does Dailybiz support?",
         answer:
-          "Fourteen: INR, USD, EUR, GBP, AED, SGD, AUD, CAD, JPY, CNY, BRL, ZAR, NGN and MXN. Each workspace picks its operating currency in Settings and every deal, invoice, ledger and report renders in it. Two honest boundaries: a workspace runs in one currency at a time (multi-currency books with exchange differences are on the public roadmap), and the Dailybuz subscription itself is billed in INR.",
+          "Fourteen: INR, USD, EUR, GBP, AED, SGD, AUD, CAD, JPY, CNY, BRL, ZAR, NGN and MXN. Each workspace picks its operating currency in Settings and every deal, invoice, ledger and report renders in it. Two honest boundaries: a workspace runs in one currency at a time (multi-currency books with exchange differences are on the public roadmap), and the Dailybiz subscription itself is billed in INR.",
       },
       {
         question: "How do I get my existing data in?",

@@ -886,7 +886,7 @@ export default function AdminDashboard() {
 
                             {/* Action buttons */}
                             <div className="flex items-center gap-3">
-                              <a href={`mailto:${p.email}?subject=Re: Dailybuz ${p.plan_interest === "custom" ? "Custom Solution" : "Growth Plan"} Inquiry`}
+                              <a href={`mailto:${p.email}?subject=Re: Dailybiz ${p.plan_interest === "custom" ? "Custom Solution" : "Growth Plan"} Inquiry`}
                                 className="flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary px-3 py-1.5 text-xs font-semibold transition-all">
                                 <Mail className="h-3.5 w-3.5" /> Reply via Email <ArrowUpRight className="h-3 w-3 opacity-60" />
                               </a>

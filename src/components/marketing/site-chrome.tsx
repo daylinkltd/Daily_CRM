@@ -223,7 +223,7 @@ export function SiteFooter() {
             © {BRAND.foundingYear}–2026{" "}
             {/* The legal entity links out to its own site. A customer
                 checking who is charging them — the card statement reads
-                "Daylink", not "Dailybuz" — should not have to search for
+                "Daylink", not "Dailybiz" — should not have to search for
                 the company. rel="noopener" because it opens a new tab. */}
             <a
               href={BRAND.payments.merchantUrl}

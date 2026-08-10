@@ -46,7 +46,7 @@ const PRINCIPLES = [
   {
     icon: MapPin,
     title: "Built where its customers are",
-    body: "Dailybuz is built in Belagavi, Karnataka — not a metro. The businesses around us run on WhatsApp, khata books and GST deadlines, and the product is shaped by watching them work, not by copying a Silicon Valley CRM.",
+    body: "Dailybiz is built in Belagavi, Karnataka — not a metro. The businesses around us run on WhatsApp, khata books and GST deadlines, and the product is shaped by watching them work, not by copying a Silicon Valley CRM.",
   },
 ];
 

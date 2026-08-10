@@ -780,7 +780,7 @@ export default function ProductsPage() {
         isOpen={showTagModal}
         onClose={() => setShowTagModal(false)}
         product={selectedBarcodeProduct}
-        workspaceName={activeWorkspace?.name || "Dailybuz Store"}
+        workspaceName={activeWorkspace?.name || "Dailybiz Store"}
       />
 
       {/* Multi-Tab Add/Edit Product Modal */}

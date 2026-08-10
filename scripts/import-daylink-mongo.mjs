@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * One-off ETL: Daylink's internal MongoDB → the Daylink Tech Labs tenant
- * in Dailybuz (Supabase).
+ * in Dailybiz (Supabase).
  *
  * Usage:
  *   node scripts/import-daylink-mongo.mjs           # dry run — prints the plan
@@ -283,7 +283,7 @@ async function main() {
           notes: `Imported from Daylink internal system (${person.mongoIds.join(', ')})`,
           // Salary is deliberately NOT migrated here: the Mongo letters
           // carry it inconsistently and a wrong salary in payroll is worse
-          // than a blank one. HR fills these in Dailybuz.
+          // than a blank one. HR fills these in Dailybiz.
           basic_salary: 0,
           hra: 0,
           special_allowance: 0,
@@ -299,8 +299,8 @@ async function main() {
   }
 
   // ---------- 2. projects (+ catch-all tasks) ----------
-  const projectIdByMongo = {}; // mongo _id → dailybuz project id
-  const projectIdByNumber = {}; // mongo numeric projectId → dailybuz id
+  const projectIdByMongo = {}; // mongo _id → dailybiz project id
+  const projectIdByNumber = {}; // mongo numeric projectId → dailybiz id
   const catchAllTaskByProject = {};
 
   async function ensureProject(name) {

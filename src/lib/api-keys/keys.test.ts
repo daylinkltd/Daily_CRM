@@ -9,7 +9,7 @@ import {
 } from './keys'
 
 describe('API key prefix', () => {
-  it('mints Dailybuz-branded keys', () => {
+  it('mints Dailybiz-branded keys', () => {
     expect(API_KEY_PREFIX).toBe('dailycrm_live_')
     const { plaintext, prefix } = generateApiKey()
     expect(plaintext.startsWith('dailycrm_live_')).toBe(true)

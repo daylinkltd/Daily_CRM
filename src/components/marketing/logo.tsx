@@ -4,13 +4,13 @@ import { BRAND } from "@/config/brand";
 import daylinkD from "@/../public/daylink-d.png";
 
 /**
- * The Dailybuz mark — Daylink's own "D".
+ * The Dailybiz mark — Daylink's own "D".
  *
  * This was briefly a hand-drawn SVG "inspired by" the Daylink D: same
  * gradient, same offset square, a redrawn letterform. That was the wrong
  * call. A mark that resembles the parent brand without being it reads as a
  * knock-off rather than a family, and it made the checkout hand-off worse —
- * a buyer sent from dailybuz.com to daylink.in saw two similar-but-different
+ * a buyer sent from dailybiz.in to daylink.in saw two similar-but-different
  * logos, which is precisely the pattern a phishing page produces.
  *
  * So it is the real asset now, the same file daylink.in ships. One mark,

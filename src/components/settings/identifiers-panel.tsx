@@ -12,7 +12,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
  * find their own workspace id.
  *
  * Tenant ID and Workspace ID show the SAME value on purpose, labelled as
- * such: in Dailybuz a tenant IS a workspace (one row in `workspaces`),
+ * such: in Dailybiz a tenant IS a workspace (one row in `workspaces`),
  * and pretending there is a second hidden identifier would send people
  * hunting for something that does not exist. The API and every table use
  * this one UUID.

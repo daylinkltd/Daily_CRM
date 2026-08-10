@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Accounting cut-over: Daylink's Mongo books → the Daylink Tech Labs
- * tenant in Dailybuz.
+ * tenant in Dailybiz.
  *
  *   node scripts/import-daylink-accounting.mjs          # dry run
  *   node scripts/import-daylink-accounting.mjs --live   # wipe + import

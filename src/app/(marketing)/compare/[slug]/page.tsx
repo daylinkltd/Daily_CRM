@@ -18,7 +18,7 @@ import { jsonLdGraph, breadcrumbSchema, faqSchema } from "@/lib/seo/structured-d
 /**
  * One page per competitor.
  *
- * "Zoho One alternative" and "Dailybuz vs Odoo" are queries with a
+ * "Zoho One alternative" and "Dailybiz vs Odoo" are queries with a
  * buyer attached, and the umbrella /compare page cannot rank for six of
  * them at once — a page whose title, H1 and FAQ all speak about ONE rival
  * can. Everything renders from the same config as /compare, so the two

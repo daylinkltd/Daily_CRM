@@ -338,7 +338,7 @@ export default function SalesPage() {
             {/* Footer */}
             <div className="flex items-center justify-between border-t border-border pt-4">
               <span className="text-[11px] text-muted-foreground">
-                Dailybuz Enterprise POS Billing System
+                Dailybiz Enterprise POS Billing System
               </span>
               <div className="flex items-center gap-2">
                 <IconAction label="Print Receipt" icon={<Printer className="h-4 w-4" />} variant="outline"

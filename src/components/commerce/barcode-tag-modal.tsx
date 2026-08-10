@@ -30,7 +30,7 @@ export function BarcodeTagModal({
   isOpen,
   onClose,
   product,
-  workspaceName = "Dailybuz Store",
+  workspaceName = "Dailybiz Store",
 }: BarcodeTagModalProps) {
   const [printCopies] = useState(1);
   const [tagWidth, setTagWidth] = useState(50); // mm

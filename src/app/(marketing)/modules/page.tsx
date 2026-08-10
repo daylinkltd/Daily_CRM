@@ -13,7 +13,7 @@ import {
 } from "@/lib/seo/structured-data";
 
 const DESCRIPTION =
-  "Every Dailybuz module — CRM and shared WhatsApp inbox, HR and payroll, double-entry accounting, retail POS and inventory, and project management. All included in every user, at one price.";
+  "Every Dailybiz module — CRM and shared WhatsApp inbox, HR and payroll, double-entry accounting, retail POS and inventory, and project management. All included in every user, at one price.";
 
 export const metadata: Metadata = {
   title: { absolute: pageTitle("All Modules") },
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
  */
 const FAQ = [
   {
-    question: "Which modules are included in Dailybuz?",
+    question: "Which modules are included in Dailybiz?",
     answer:
       "All five are included for every user: CRM with a shared WhatsApp inbox, HR and payroll, double-entry accounting, retail POS and inventory, and project management. There is no higher tier that unlocks modules — the only variable in the price is how many people you add.",
   },
@@ -47,9 +47,9 @@ const FAQ = [
       "Yes. Each module can be switched off per role, so a salesperson need never see payroll and an accountant need never see the sales pipeline. You still pay one per-user price, because the modules share one database — a POS sale posts to the ledger, and billable project time becomes an invoice.",
   },
   {
-    question: "Does Dailybuz replace Tally or Zoho Books?",
+    question: "Does Dailybiz replace Tally or Zoho Books?",
     answer:
-      "For day-to-day bookkeeping, largely yes: Dailybuz keeps real double-entry books with a chart of accounts, trial balance, profit and loss, balance sheet and GST reports, and every sale, purchase and payroll run posts automatically. Many businesses still export to their accountant at year end.",
+      "For day-to-day bookkeeping, largely yes: Dailybiz keeps real double-entry books with a chart of accounts, trial balance, profit and loss, balance sheet and GST reports, and every sale, purchase and payroll run posts automatically. Many businesses still export to their accountant at year end.",
   },
   {
     question: "Is WhatsApp included, and are there message charges?",

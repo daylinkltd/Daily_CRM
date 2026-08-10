@@ -819,7 +819,7 @@ function POSTerminalPageContent() {
             {/* Printable Thermal Receipt Preview Area */}
             <div id="printable-pos-receipt" className="bg-white text-black p-4 rounded-xl font-mono text-xs space-y-2 border border-slate-300">
               <div className="text-center font-bold text-sm border-b pb-1">
-                <div>DAILYBUZ RETAIL STORE</div>
+                <div>DAILYBIZ RETAIL STORE</div>
                 <div className="text-[10px] font-normal text-slate-600">GSTIN: 29AAAAA0000A1Z5</div>
               </div>
               <div className="text-[10px] space-y-0.5 text-slate-700">
