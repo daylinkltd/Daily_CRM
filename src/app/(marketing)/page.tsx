@@ -5,6 +5,7 @@ import { ArrowRight, CheckCircle2, Layers, ShieldCheck, Zap } from "lucide-react
 import { BRAND, pageTitle, OG_IMAGES } from "@/config/brand";
 import { MODULES, INCLUDED_MODULES_NOTE } from "@/config/modules-content";
 import { BUSINESS_PLAN } from "@/config/plans";
+import { COMPETITORS, COVERAGE_ROWS } from "@/config/competitors";
 import { Reveal } from "@/components/marketing/reveal";
 import { jsonLdGraph, faqSchema } from "@/lib/seo/structured-data";
 
@@ -211,6 +212,57 @@ export default function HomePage() {
       </section>
 
       {/* ── PRICING TEASER ─────────────────────────────────────────────── */}
+      {/* ── What the others leave out ─────────────────────────────────
+          The single sharpest fact on the compare page, surfaced where
+          most visitors actually are. Rendered from the same config as
+          /compare so the two can never disagree. */}
+      <section className="mkt-section">
+        <div className="mkt-container">
+          <Reveal className="mb-8 text-center">
+            <h2 className="mkt-h2">The parts the others make you buy elsewhere</h2>
+            <p className="mkt-lead mx-auto mt-3 max-w-2xl">
+              Every capability below is included in every {BRAND.name} seat.
+              Here is how many of the six tools we compare against ship each
+              one at all.
+            </p>
+          </Reveal>
+          <div className="grid gap-px border border-[var(--mkt-line)] bg-[var(--mkt-line)] sm:grid-cols-2 lg:grid-cols-3">
+            {COVERAGE_ROWS.map((row, i) => {
+              const offeredBy = COMPETITORS.filter(
+                (c) => c.coverage[row.key] === "full",
+              ).length;
+              return (
+                <Reveal
+                  key={row.key}
+                  delay={Math.min(i * 45, 250)}
+                  className="border border-transparent bg-[var(--mkt-surface)] p-6"
+                >
+                  <h3 className="text-sm font-bold text-[var(--mkt-fg)]">{row.label}</h3>
+                  <p className="mt-2 text-sm text-[var(--mkt-fg-muted)]">
+                    Included here.{" "}
+                    {offeredBy === 0
+                      ? "None of the six alternatives ship this fully."
+                      : `Only ${offeredBy} of 6 alternatives ship this fully.`}
+                  </p>
+                </Reveal>
+              );
+            })}
+            <Reveal delay={280} className="border border-transparent bg-[var(--mkt-surface)] p-6">
+              <h3 className="text-sm font-bold text-[var(--mkt-fg)]">14 currencies</h3>
+              <p className="mt-2 text-sm text-[var(--mkt-fg-muted)]">
+                Pick your workspace currency — ₹, $, €, £, AED and more — and
+                every deal, invoice and report renders in it.
+              </p>
+            </Reveal>
+          </div>
+          <Reveal className="mt-6 text-center">
+            <Link href="/compare" className="text-sm font-bold text-[var(--mkt-accent-text)] hover:underline">
+              See the full, honest comparison →
+            </Link>
+          </Reveal>
+        </div>
+      </section>
+
       <section className="mkt-section">
         <div className="mkt-container mkt-container-narrow">
           <Reveal className="border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-8 text-center sm:p-12">

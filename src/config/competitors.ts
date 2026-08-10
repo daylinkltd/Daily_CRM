@@ -263,9 +263,9 @@ export const ROADMAP: RoadmapItem[] = [
     horizon: 'next',
   },
   {
-    title: 'Multi-currency',
+    title: 'Multi-currency accounting',
     detail:
-      'Invoicing and books in more than one currency, with exchange differences posted properly. Dailybuz is INR-first today.',
+      'Several currencies inside ONE workspace, with exchange differences posted properly. Today each workspace picks its operating currency (14 supported — ₹, $, €, £, AED and more) and everything renders in it; what is not built yet is mixing currencies in the same books.',
     horizon: 'later',
   },
   {

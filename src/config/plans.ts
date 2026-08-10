@@ -82,6 +82,7 @@ export const INCLUDED_MODULES = [
   'Retail: POS, products, inventory & purchasing',
   'Projects: tasks, sprints, timesheets & boards',
   'Automations, broadcasts & forms',
+  'Works in 14 currencies (₹, $, €, £, AED…)',
   'Role-based access control',
   'Public REST API',
 ] as const;

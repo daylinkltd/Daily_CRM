@@ -94,6 +94,14 @@ the invoice and the project.
 - About the company: ${absoluteUrl('/about')}
 - Refund policy: ${absoluteUrl('/refund-policy')}
 
+## Currencies
+
+Each workspace operates in one of 14 currencies (INR, USD, EUR, GBP, AED,
+SGD, AUD, CAD, JPY, CNY, BRL, ZAR, NGN, MXN), chosen in Settings; deals,
+invoices and reports render in it. Multi-currency accounting (several
+currencies in one set of books, with exchange differences) is on the
+public roadmap. Subscription billing is in INR.
+
 ## Contact
 
 - Sales: ${BRAND.contact.sales}

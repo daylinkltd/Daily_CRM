@@ -121,6 +121,11 @@ const GROUPS: { title: string; items: FaqEntry[] }[] = [
         answer: "That is the design: one database where the sale, the payslip, the stock movement and the project invoice are rows in the same books. Most teams start with two modules and switch the rest on as subscriptions elsewhere lapse. The comparison page states honestly where specialist tools remain deeper.",
       },
       {
+        question: "Which currencies does Dailybuz support?",
+        answer:
+          "Fourteen: INR, USD, EUR, GBP, AED, SGD, AUD, CAD, JPY, CNY, BRL, ZAR, NGN and MXN. Each workspace picks its operating currency in Settings and every deal, invoice, ledger and report renders in it. Two honest boundaries: a workspace runs in one currency at a time (multi-currency books with exchange differences are on the public roadmap), and the Dailybuz subscription itself is billed in INR.",
+      },
+      {
         question: "How do I get my existing data in?",
         answer: "Contacts, products and opening balances import from CSV. The 14-day trial is long enough to run both systems side by side before committing, and your accountant can keep receiving exports at year end.",
       },
