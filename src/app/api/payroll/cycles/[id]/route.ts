@@ -17,6 +17,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { postPayrollPaid, postPayrollProcessed } from "@/lib/accounting/posting";
+import { pushPayrollToBanking, totalsFromPayslips } from "@/lib/integrations/banking";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -178,7 +179,25 @@ export async function POST(
       .select()
       .single();
 
-    return NextResponse.json({ success: true, cycle: updated, payslip_count: payslips.length });
+    // Mirror the accrual into the customer's statutory books, if they have a
+    // banking system connected. Deliberately after the cycle is committed and
+    // deliberately not awaited into the failure path: payroll has run, and an
+    // unreachable ledger must not undo it. The attempt is recorded and
+    // retryable from Settings → Integrations.
+    const bankingPush = await pushPayrollToBanking(supabase, {
+      workspaceId: cycle.workspace_id,
+      cycleId: cycle.id,
+      periodLabel,
+      stage: "processed",
+      totals: totalsFromPayslips(payslips),
+    });
+
+    return NextResponse.json({
+      success: true,
+      cycle: updated,
+      payslip_count: payslips.length,
+      banking: bankingPush,
+    });
   }
 
   // ── pay ─────────────────────────────────────────────────
@@ -211,5 +230,15 @@ export async function POST(
     .select()
     .single();
 
-  return NextResponse.json({ success: true, cycle: updated });
+  // Clear the liability in the customer's statutory books. Same reasoning as
+  // the accrual: recorded and retryable, never able to fail the payout.
+  const bankingPush = await pushPayrollToBanking(supabase, {
+    workspaceId: cycle.workspace_id,
+    cycleId: cycle.id,
+    periodLabel,
+    stage: "paid",
+    amount: Number(cycle.total_payout),
+  });
+
+  return NextResponse.json({ success: true, cycle: updated, banking: bankingPush });
 }

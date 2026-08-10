@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { MessageSquare, ArrowLeft, Mail, Smartphone, FileSpreadsheet, FormInput } from 'lucide-react';
+import { MessageSquare, ArrowLeft, Mail, Smartphone, FileSpreadsheet, FormInput, Landmark } from 'lucide-react';
 import { WhatsAppConfig } from '@/components/settings/whatsapp-config';
 import { InstagramConfig } from '@/components/settings/instagram-config';
 import { MessengerConfig } from '@/components/settings/messenger-config';
@@ -9,6 +9,7 @@ import { EmailConfig } from '@/components/settings/email-config';
 import { SmsConfig } from '@/components/settings/sms-config';
 import { SheetsConfig } from '@/components/settings/sheets-config';
 import { FormsConfig } from '@/components/settings/forms-config';
+import { BankingConfig } from '@/components/settings/banking-config';
 import { Button } from '@/components/ui/button';
 
 import { useState } from 'react';
@@ -34,7 +35,7 @@ export default function IntegrationsPage() {
     }
   };
 
-  const isConfigView = ['whatsapp', 'instagram', 'messenger', 'email', 'sms', 'google', 'zoho', 'sheets', 'forms'].includes(tab ?? '');
+  const isConfigView = ['whatsapp', 'instagram', 'messenger', 'email', 'sms', 'google', 'zoho', 'sheets', 'forms', 'banking'].includes(tab ?? '');
 
   return (
     <div className="space-y-6">
@@ -56,6 +57,7 @@ export default function IntegrationsPage() {
             { id: 'sms', name: 'SMS Gateway', desc: 'Connect Twilio', icon: Smartphone },
             { id: 'sheets', name: 'Google Sheets', desc: '2-way Sync with Sheets', icon: FileSpreadsheet },
             { id: 'forms', name: 'Lead Forms', desc: 'Google Forms, FB Forms, Webhooks', icon: FormInput },
+            { id: 'banking', name: 'Core Banking / Accounting', desc: 'Post payroll to statutory books', icon: Landmark },
           ].map(integration => (
             <div key={integration.id} onClick={() => integration.customClick ? integration.customClick() : onChange(integration.id)} className="cursor-pointer group flex flex-col items-center p-6 rounded-2xl bg-card border border-border text-center hover:border-primary/50 hover:bg-muted/50 transition-all">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4 group-hover:scale-110 transition-transform">
@@ -80,6 +82,7 @@ export default function IntegrationsPage() {
           {tab === 'sms' && <SmsConfig />}
           {tab === 'sheets' && <SheetsConfig />}
           {tab === 'forms' && <FormsConfig />}
+          {tab === 'banking' && <BankingConfig />}
           
           {/* Placeholders for remaining requested integrations */}
           {['google', 'zoho'].includes(tab || '') && (
