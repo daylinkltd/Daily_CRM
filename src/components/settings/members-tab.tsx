@@ -25,6 +25,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
+  Check,
+  Copy,
+  KeyRound,
   Loader2,
   Mail,
   MailX,
@@ -47,6 +50,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -136,7 +140,7 @@ function fmtExpiresIn(iso: string): string {
 }
 
 export function MembersTab() {
-  const { user, accountId, canManageMembers } = useAuth();
+  const { user, accountId, accountRole, canManageMembers } = useAuth();
   const { getPresence, getRow, now } = usePresence();
   const { activeWorkspace } = useWorkspace();
   const supabase = createClient();
@@ -148,6 +152,14 @@ export function MembersTab() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [removingMember, setRemovingMember] = useState<Member | null>(null);
+  // Password dialog. `pwGenerated` holds a server-minted credential for
+  // the one render it is ever visible in — it is never persisted.
+  const [passwordMember, setPasswordMember] = useState<Member | null>(null);
+  const [pwValue, setPwValue] = useState('');
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwGenerated, setPwGenerated] = useState<string | null>(null);
+  const [pwCopied, setPwCopied] = useState(false);
   const [pendingMemberAction, setPendingMemberAction] = useState<string | null>(
     null,
   );
@@ -323,6 +335,61 @@ export function MembersTab() {
     } catch (err) {
       console.error('[MembersTab] revoke error:', err);
       toast.error('Could not reach the server');
+    }
+  }
+
+  function openPasswordDialog(member: Member) {
+    setPwValue('');
+    setPwError(null);
+    setPwGenerated(null);
+    setPwCopied(false);
+    setPasswordMember(member);
+  }
+
+  /** set | generate | email_reset — all through one server route that
+   *  re-checks rank, so this UI gating is convenience, not security. */
+  async function handlePassword(mode: 'set' | 'generate' | 'email_reset') {
+    if (!passwordMember || !accountId) return;
+    if (mode === 'set' && pwValue.length < 8) {
+      setPwError('Password must be at least 8 characters.');
+      return;
+    }
+    setPwBusy(true);
+    setPwError(null);
+    try {
+      const res = await fetch('/api/workspace/users/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspace_id: accountId,
+          user_id: passwordMember.user_id,
+          mode,
+          ...(mode === 'set' ? { password: pwValue } : {}),
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPwError(payload.error || 'Failed to update password');
+        return;
+      }
+      if (mode === 'email_reset') {
+        toast.success(`Reset link emailed to ${passwordMember.email}`);
+        setPasswordMember(null);
+      } else if (mode === 'generate') {
+        // Stay open: this is the only moment the credential exists
+        // outside the hash. The admin copies it here or never.
+        setPwGenerated(payload.password as string);
+      } else {
+        toast.success(
+          `Password updated for ${passwordMember.full_name || 'member'} — their devices were signed out`,
+        );
+        setPasswordMember(null);
+      }
+    } catch (err) {
+      console.error('[MembersTab] password error:', err);
+      setPwError('Could not reach the server');
+    } finally {
+      setPwBusy(false);
     }
   }
 
@@ -570,6 +637,22 @@ export function MembersTab() {
                         user moused over. Now red is the default
                         state with a darker shade on hover so the
                         affordance reads at-a-glance. */}
+                    {/* Password control. Rank-gated like the server:
+                        the owner reaches everyone below them, an admin
+                        only members/viewers. The route re-checks. */}
+                    {canManageMembers &&
+                      !isOwnerRow &&
+                      !isSelf &&
+                      (accountRole === 'owner' || member.role !== 'admin') && (
+                        <IconAction
+                          label="Password"
+                          icon={<KeyRound className="size-4" />}
+                          variant="outline"
+                          onClick={() => openPasswordDialog(member)}
+                          disabled={isBusy}
+                        />
+                      )}
+
                     {canManageMembers && !isOwnerRow && !isSelf && (
                       <IconAction
                         label="Delete"
@@ -671,6 +754,123 @@ export function MembersTab() {
           )}
         </div>
       </RequireRole>
+
+      {/* Password dialog — set a chosen password, mint a random one, or
+          fall back to the email flow. A generated credential is shown
+          exactly once. */}
+      <Dialog
+        open={passwordMember !== null}
+        onOpenChange={(open) => {
+          if (!open) setPasswordMember(null);
+        }}
+      >
+        <DialogContent className="bg-popover border-border sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-popover-foreground">
+              <KeyRound className="size-4 text-primary" />
+              Change password
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {passwordMember?.full_name || passwordMember?.email || 'This member'} will be
+              signed out of all devices when the password changes.
+            </DialogDescription>
+          </DialogHeader>
+
+          {pwGenerated ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                New password set. Copy it now — it is shown{' '}
+                <span className="font-semibold text-foreground">only once</span> and never
+                stored in plain text.
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 rounded-lg border border-border bg-muted px-3 py-2.5 font-mono text-sm text-foreground select-all">
+                  {pwGenerated}
+                </code>
+                <IconAction
+                  label={pwCopied ? 'Copied' : 'Copy'}
+                  icon={
+                    pwCopied ? (
+                      <Check className="size-4 text-emerald-500" />
+                    ) : (
+                      <Copy className="size-4" />
+                    )
+                  }
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(pwGenerated);
+                      setPwCopied(true);
+                    } catch {
+                      // Clipboard can be blocked; the value stays
+                      // visible and select-all-able above.
+                    }
+                  }}
+                />
+              </div>
+              <DialogFooter className="bg-popover border-border">
+                <Button
+                  onClick={() => setPasswordMember(null)}
+                  className="bg-primary text-primary-foreground hover:bg-primary-hover"
+                >
+                  Done
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {pwError && (
+                <div className="flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+                  <AlertTriangle className="size-4 shrink-0" />
+                  {pwError}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="New password (min 8 characters)"
+                  value={pwValue}
+                  onChange={(e) => setPwValue(e.target.value)}
+                  className="bg-muted border-border font-mono text-foreground"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Type a password and set it, or let us generate a strong one for you.
+                </p>
+              </div>
+
+              <DialogFooter className="bg-popover border-border flex-col gap-2 sm:flex-row">
+                <Button
+                  variant="outline"
+                  disabled={pwBusy || !passwordMember?.email}
+                  onClick={() => handlePassword('email_reset')}
+                  className="border-border text-foreground"
+                >
+                  <Mail className="mr-1.5 size-3.5" /> Email reset link
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={pwBusy}
+                  onClick={() => handlePassword('generate')}
+                  className="border-border text-foreground"
+                >
+                  Generate random
+                </Button>
+                <Button
+                  disabled={pwBusy || pwValue.length < 8}
+                  onClick={() => handlePassword('set')}
+                  className="bg-primary text-primary-foreground hover:bg-primary-hover"
+                >
+                  {pwBusy ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
+                  Set password
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <InviteMemberDialog
         open={inviteOpen}

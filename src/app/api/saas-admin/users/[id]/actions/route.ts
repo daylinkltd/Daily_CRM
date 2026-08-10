@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { requireSuperAdmin } from '@/lib/saas-admin/guard';
+import {
+  generatePassword,
+  recoveryRedirectUrl,
+  validateNewPassword,
+} from '@/lib/auth/passwords';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +18,8 @@ export const dynamic = 'force-dynamic';
  *   set_status             — 'active' | 'blocked'
  *   set_system_role        — 'user' | 'super_admin'
  *   set_single_workspace   — restrict to one workspace, or lift it
- *   send_password_reset
+ *   send_password_reset    — recovery email (mailbox as second factor)
+ *   set_password           — set/generate a credential directly, returned once
  *   delete_user            — remove the account entirely (guards below)
  *
  * One route with an `action` discriminator rather than four routes,
@@ -225,13 +231,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         return NextResponse.json({ error: 'This user has no email on file.' }, { status: 400 });
       }
 
-      // A reset LINK, never a password we choose. An admin who can set
-      // passwords can impersonate any user, and the audit trail would show
-      // a legitimate login. This way the user's mailbox is the second
-      // factor and the admin never learns the credential.
-      const { error } = await admin.auth.admin.generateLink({
-        type: 'recovery',
-        email: target.email,
+      // resetPasswordForEmail, not generateLink: generateLink only MINTS
+      // a link and returns it — for months this action reported success
+      // while no email ever left the building. resetPasswordForEmail
+      // sends through Supabase's mailer, and the explicit redirectTo
+      // keeps the link off the project's Site URL fallback (the
+      // localhost bug).
+      const { error } = await admin.auth.resetPasswordForEmail(target.email, {
+        redirectTo: recoveryRedirectUrl(request),
       });
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -242,6 +249,49 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         details: { email: target.email },
       });
       return NextResponse.json({ ok: true });
+    }
+
+    case 'set_password': {
+      // The platform operator can set a credential directly — the
+      // recovery-email path stays available above, but "the user is on
+      // the phone and locked out" needs a same-minute fix. Guard rails:
+      // never on another super-admin (console peers reset their own),
+      // sessions are revoked, and the audit row records it happened
+      // (never the credential itself).
+      if (target.system_role === 'super_admin' && !isSelf) {
+        return NextResponse.json(
+          { error: "Another super-admin's password can only be changed by themselves." },
+          { status: 403 },
+        );
+      }
+
+      let password: string;
+      if (typeof body.password === 'string' && body.password.length > 0) {
+        const check = validateNewPassword(body.password);
+        if (!check.ok) return NextResponse.json({ error: check.error }, { status: 400 });
+        password = check.password;
+      } else {
+        password = generatePassword();
+      }
+
+      const { error } = await admin.auth.admin.updateUserById(targetUserId, { password });
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+      if (!isSelf) {
+        await admin.rpc('revoke_user_sessions', {
+          p_user_id: targetUserId,
+          p_reason: 'password set by platform admin',
+        });
+      }
+
+      await audit({
+        action: 'user.password_set',
+        targetType: 'user',
+        targetId: targetUserId,
+        details: { email: target.email, generated: !(typeof body.password === 'string' && body.password.length > 0) },
+      });
+      // Returned once for the operator to hand over; never stored.
+      return NextResponse.json({ ok: true, password });
     }
 
     default:

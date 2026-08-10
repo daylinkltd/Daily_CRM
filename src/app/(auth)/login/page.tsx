@@ -40,7 +40,9 @@ function LoginPageInner() {
   const signedOutReason =
     searchParams.get("reason") === "signed-in-elsewhere"
       ? "You were signed out because your account was used to sign in on another device. Only one device can be signed in at a time."
-      : null;
+      : // /auth/callback bounces bad or expired email links here with a
+        // human-readable message.
+        searchParams.get("error");
 
   useEffect(() => {
     if (inviteToken) {

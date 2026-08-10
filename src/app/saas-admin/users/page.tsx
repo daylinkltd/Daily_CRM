@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, MonitorSmartphone, ShieldOff, Shield, KeyRound, LogOut, Lock, Unlock, Trash2 } from "lucide-react";
+import { Users, MonitorSmartphone, ShieldOff, Shield, KeyRound, KeySquare, LogOut, Lock, Unlock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -54,6 +54,38 @@ export default function UsersPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Action failed");
       toast.success("Done");
+      reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Action failed");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // Separate from act(): the response carries a one-time credential that
+  // must be surfaced, not swallowed by a generic "Done" toast. The
+  // pre-filled prompt doubles as the copy surface (matches the
+  // type-to-confirm prompt used for deletes).
+  const setRandomPassword = async (u: UserRow) => {
+    if (
+      !window.confirm(
+        `Set a NEW random password for ${u.email}? Their devices will be signed out and the old password stops working immediately.`,
+      )
+    )
+      return;
+    setBusy(u.user_id);
+    try {
+      const res = await fetch(`/api/saas-admin/users/${u.user_id}/actions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set_password" }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Action failed");
+      window.prompt(
+        `New password for ${u.email} — copy it now, it is shown only once:`,
+        json.password as string,
+      );
       reload();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Action failed");
@@ -186,6 +218,13 @@ export default function UsersPage() {
                               }
                             >
                               <KeyRound className="h-3.5 w-3.5" />
+                            </IconButton>
+                            <IconButton
+                              title="Set a new random password"
+                              disabled={busy === u.user_id}
+                              onClick={() => setRandomPassword(u)}
+                            >
+                              <KeySquare className="h-3.5 w-3.5 text-amber-400" />
                             </IconButton>
                             {!isAdmin && (
                               <IconButton
