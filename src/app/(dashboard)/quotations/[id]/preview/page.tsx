@@ -22,6 +22,7 @@ import type { Quotation, QuotationSection, Contact } from "@/types";
 import { Card } from "@/components/ui/card";
 import { IconAction } from "@/components/ui/icon-action";
 import { contactDisplayName } from "@/lib/contact-display";
+import { BrandedProposalTemplate } from "@/components/shared/BrandedProposalTemplate";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -54,7 +55,8 @@ export default function QuotationPreviewPage({ params }: PageProps) {
     company_address: string | null;
   } | null>(null);
 
-  // Dynamic Tax Controls
+  // Dynamic Layout & Tax Controls
+  const [layoutPreset, setLayoutPreset] = useState<"daylink_standard" | "milestone_itemized">("daylink_standard");
   const [taxMode, setTaxMode] = useState<"gst_split" | "igst" | "exempt">("gst_split");
   const [taxRatePercent, setTaxRatePercent] = useState<number>(18);
 
@@ -483,9 +485,20 @@ export default function QuotationPreviewPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Control panel for dynamic Tax Toggles (no-print) */}
+      {/* Control panel for dynamic Layout Presets & Tax Toggles (no-print) */}
       <div className="no-print p-4 border border-border bg-muted/30 rounded-lg flex flex-wrap items-center justify-between gap-4 text-xs">
-        <span className="font-semibold text-muted-foreground">Dynamic Tax &amp; Billing Selector:</span>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-muted-foreground">Format Layout Preset:</span>
+          <select
+            value={layoutPreset}
+            onChange={(e) => setLayoutPreset(e.target.value as any)}
+            className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary font-medium"
+          >
+            <option value="daylink_standard">Daylink Standard (Service / IT / Agency)</option>
+            <option value="milestone_itemized">Milestone Itemized (Licensing / Compliance / Supply)</option>
+          </select>
+        </div>
+
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="font-medium text-foreground">Tax Type:</span>
@@ -518,303 +531,37 @@ export default function QuotationPreviewPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Printable Commercial Proposal Document */}
-      <Card className="print-content border-border bg-card shadow-lg p-8 sm:p-12 text-foreground space-y-8 max-w-4xl mx-auto font-sans">
-        {/* Header Letterhead Branding */}
-        <div className="flex flex-col items-center justify-center text-center pb-6 border-b-2 border-[#00aef0]">
-          {workspace?.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={workspace.logo_url}
-              alt={workspace.company_name || "Daylink Tech Labs"}
-              className="h-20 sm:h-24 max-w-[400px] object-contain mb-2"
-            />
-          ) : (
-            <div className="text-center mb-2">
-              <h1 className="text-2xl font-bold tracking-wider text-[#00aef0] uppercase">
-                DAYLINK TECH LABS PRIVATE LIMITED
-              </h1>
-              <p className="text-xs text-muted-foreground tracking-widest font-semibold uppercase mt-0.5">
-                Empowering Your Digital Future
-              </p>
-            </div>
-          )}
-
-          <div className="text-xs text-muted-foreground space-y-0.5">
-            <p>{workspace?.company_address || "21/1, KHB, AUTO NAGAR, BELAGAVI - 590016"}</p>
-            <p className="flex items-center justify-center gap-3">
-              <span>{workspace?.company_phone || "9902319132 | 8050594245"}</span>
-              <span>|</span>
-              <span>{workspace?.company_email || "info@daylink.in"}</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Commercial Proposal Title */}
-        <div className="text-center space-y-1 py-2">
-          <h2 className="text-xl font-extrabold tracking-wide text-foreground uppercase">
-            COMMERCIAL PROPOSAL
-          </h2>
-          <p className="text-xs font-semibold text-[#00aef0]">
-            {quote.document_subtitle || "Licensing, Compliance, Marketplace Onboarding & Digital Services"}
-          </p>
-        </div>
-
-        {/* Proposal Header Metadata Table */}
-        <div className="border border-border/80 rounded-sm overflow-hidden text-xs">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-muted/60 border-b border-border/80 text-[11px] font-bold text-muted-foreground uppercase">
-                <th className="p-2.5 border-r border-border/80 w-1/4">Prepared for</th>
-                <th className="p-2.5 border-r border-border/80 w-1/4">Prepared by</th>
-                <th className="p-2.5 border-r border-border/80 w-1/4">Date</th>
-                <th className="p-2.5 w-1/4">Version</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="divide-x divide-border/80 font-medium">
-                <td className="p-2.5 font-bold text-foreground">
-                  {clientCompanySafe || clientNameSafe}
-                </td>
-                <td className="p-2.5 text-foreground">
-                  {workspace?.company_name || "Daylink Tech Labs Pvt. Ltd."}
-                </td>
-                <td className="p-2.5 text-foreground">
-                  {new Date(quote.date_created).toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </td>
-                <td className="p-2.5 text-foreground">
-                  {quote.version}.0 (Revised)
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Section 1: Proposal Overview */}
-        <div className="space-y-2">
-          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
-            1. PROPOSAL OVERVIEW
-          </h3>
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            Daylink Tech Labs proposes to support <strong className="text-foreground">{clientCompanySafe || clientNameSafe}</strong> in formalizing its business structure, licensing compliance, marketplace onboarding, and digital presence. This engagement covers onboarding to Amazon &amp; Blinkit, website development, ongoing marketplace management, and monthly digital marketing services.
-          </p>
-        </div>
-
-        {/* Section 2: Scope of Work Table */}
-        <div className="space-y-3">
-          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
-            2. SCOPE OF WORK
-          </h3>
-
-          <div className="border border-border/80 rounded-sm overflow-hidden text-xs">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#1e293b] text-white border-b border-border/80 text-[11px] font-bold uppercase">
-                  <th className="p-2.5 border-r border-border/60 w-1/3">Service Area</th>
-                  <th className="p-2.5 w-2/3">Scope Included</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {sections.length > 0 ? (
-                  sections.map((sec) => (
-                    <React.Fragment key={sec.id}>
-                      {sec.items.map((item) => (
-                        <tr key={item.id} className="hover:bg-muted/20">
-                          <td className="p-2.5 border-r border-border/60 font-bold text-foreground align-top">
-                            {item.name}
-                          </td>
-                          <td className="p-2.5 text-muted-foreground align-top leading-relaxed">
-                            {item.description || "Scope included as specified in engagement terms."}
-                          </td>
-                        </tr>
-                      ))}
-                    </React.Fragment>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={2} className="p-4 text-center text-muted-foreground italic">
-                      No scope items configured.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Section 3: Statutory Taxes & Financial Breakdown */}
-        <div className="space-y-3">
-          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
-            3. FINANCIAL PROPOSAL &amp; STATUTORY TAXES ({taxMode === "exempt" ? "0% EXEMPT" : `${taxRatePercent}% GST`})
-          </h3>
-
-          <div className="border border-border/80 rounded-sm overflow-hidden text-xs">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-muted/60 border-b border-border/80 text-[11px] font-bold text-muted-foreground uppercase">
-                  <th className="p-2 border-r border-border/80 w-16 text-center">Sr No.</th>
-                  <th className="p-2 border-r border-border/80">Description</th>
-                  <th className="p-2 border-r border-border/80 w-28 text-center">Tax Rate</th>
-                  <th className="p-2 w-36 text-right">Amount (INR)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/80 font-mono">
-                {taxMode === "gst_split" && (
-                  <>
-                    <tr>
-                      <td className="p-2 border-r border-border/80 text-center text-muted-foreground">1</td>
-                      <td className="p-2 border-r border-border/80 text-foreground font-sans font-medium">SGST (State Tax)</td>
-                      <td className="p-2 border-r border-border/80 text-center text-foreground">{totals.sgstRate}%</td>
-                      <td className="p-2 text-right text-foreground">
-                        {formatCurrency(totals.sgstAmount, defaultCurrency, { decimals: 0 })}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-2 border-r border-border/80 text-center text-muted-foreground">2</td>
-                      <td className="p-2 border-r border-border/80 text-foreground font-sans font-medium">CGST (Central Tax)</td>
-                      <td className="p-2 border-r border-border/80 text-center text-foreground">{totals.cgstRate}%</td>
-                      <td className="p-2 text-right text-foreground">
-                        {formatCurrency(totals.cgstAmount, defaultCurrency, { decimals: 0 })}
-                      </td>
-                    </tr>
-                  </>
-                )}
-
-                {taxMode === "igst" && (
-                  <tr>
-                    <td className="p-2 border-r border-border/80 text-center text-muted-foreground">1</td>
-                    <td className="p-2 border-r border-border/80 text-foreground font-sans font-medium">IGST (Integrated Tax)</td>
-                    <td className="p-2 border-r border-border/80 text-center text-foreground">{totals.igstRate}%</td>
-                    <td className="p-2 text-right text-foreground">
-                      {formatCurrency(totals.igstAmount, defaultCurrency, { decimals: 0 })}
-                    </td>
-                  </tr>
-                )}
-
-                {taxMode === "exempt" && (
-                  <tr>
-                    <td className="p-2 border-r border-border/80 text-center text-muted-foreground">1</td>
-                    <td className="p-2 border-r border-border/80 text-foreground font-sans font-medium">Exempt / SEZ / Export Tax</td>
-                    <td className="p-2 border-r border-border/80 text-center text-foreground">0%</td>
-                    <td className="p-2 text-right text-foreground">₹0</td>
-                  </tr>
-                )}
-
-                <tr className="bg-muted/30 font-bold font-sans">
-                  <td colSpan={3} className="p-2 border-r border-border/80 text-foreground">
-                    Total Taxable Value (One-Time Setup)
-                  </td>
-                  <td className="p-2 text-right font-mono text-foreground">
-                    {formatCurrency(totals.oneTime, defaultCurrency, { decimals: 0 })}
-                  </td>
-                </tr>
-                <tr className="bg-muted/60 font-extrabold font-sans text-sm">
-                  <td colSpan={3} className="p-2.5 border-r border-border/80 text-foreground">
-                    Grand Total (Inclusive of Taxes)
-                  </td>
-                  <td className="p-2.5 text-right font-mono text-[#00aef0]">
-                    {formatCurrency(totals.grandTotalInclusive, defaultCurrency, { decimals: 0 })}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {totals.monthly > 0 && (
-            <p className="text-[11px] text-muted-foreground italic pt-1 leading-relaxed">
-              * Note: Monthly recurring charges of <strong>{formatCurrency(totals.monthly, defaultCurrency, { decimals: 0 })}</strong> {taxMode === "exempt" ? "are exempt from tax." : `will attract GST at ${taxRatePercent}% extra (${formatCurrency(totals.monthlyTaxAmount, defaultCurrency, { decimals: 0 })}), i.e. `}<strong>{formatCurrency(totals.monthlyInclusive, defaultCurrency, { decimals: 0 })} per month</strong>, billed in advance at the start of each billing cycle.
-            </p>
-          )}
-        </div>
-
-        {/* Section 4: Project Scope & Delivery Approach */}
-        <div className="space-y-3">
-          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
-            4. PROJECT SCOPE &amp; DELIVERY APPROACH
-          </h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Our execution approach follows a practical phase-wise delivery model to ensure a smooth launch across ecommerce marketplaces and quick commerce platforms:
-          </p>
-          <ul className="space-y-2 text-xs text-muted-foreground pl-1">
-            <li className="flex items-start gap-2">
-              <span className="font-bold text-foreground shrink-0">• Phase 1: Business &amp; Platform Readiness</span>
-              <span>Collection of business details, GST/KYC documents, brand info, approvals, and platform onboarding requirements.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold text-foreground shrink-0">• Phase 2: Marketplace Setup &amp; Cataloging</span>
-              <span>Seller account setup, category mapping, product listings, SKU structure, pricing, variants, and inventory configuration.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold text-foreground shrink-0">• Phase 3: Content &amp; Website Setup</span>
-              <span>Product content preparation, SEO-friendly listing content, static website design and development, and integration of WhatsApp contact options.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold text-foreground shrink-0">• Phase 4: Launch &amp; Maintenance Support</span>
-              <span>Go-live support, listing corrections, maintenance assistance, regular marketplace updates, and monthly digital marketing content publishing.</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Section 5: Terms & Conditions */}
-        <div className="space-y-3">
-          <h3 className="font-bold text-sm uppercase text-[#00aef0] tracking-wider border-b border-border/40 pb-1">
-            5. TERMS &amp; CONDITIONS
-          </h3>
-          <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
-            <p>
-              <strong className="text-foreground">• Scope of Services:</strong> The quotation covers onboarding to Amazon &amp; Blinkit, listing setup, website development (up to 5 pages), ongoing marketplace management, and monthly digital marketing services as specifically mentioned above.
-            </p>
-            <p>
-              <strong className="text-foreground">• Client Dependencies:</strong> Timely completion depends on the client providing required documents, product details, images, approvals, GST/KYC information, and access credentials on time.
-            </p>
-            <p>
-              <strong className="text-foreground">• Payment Terms:</strong> 50% advance to initiate the project and 50% before final handover of the initial setup. Monthly maintenance and digital marketing charges are payable in advance at the start of each billing cycle.
-            </p>
-            <p>
-              <strong className="text-foreground">• Digital Marketing Deliverables:</strong> Monthly deliverables include 20–24 creatives (16–20 static posts and 4 reels) with captions, hashtags, and scheduling as per an approved content calendar.
-            </p>
-            <p>
-              <strong className="text-foreground">• Validity &amp; Jurisdiction:</strong> This quotation is valid for 15 days from the date of issue. Any disputes shall be subject to the jurisdiction of courts in Belagavi, Karnataka.
-            </p>
-          </div>
-        </div>
-
-        {/* Section 6: Acceptance & Dual Signature Block */}
-        <div className="space-y-4 pt-4 border-t border-border/60">
-          <p className="text-xs text-muted-foreground font-semibold">
-            Acceptance: By signing below or issuing a Purchase Order, the client accepts this proposal and the commercial terms mentioned above.
-          </p>
-
-          <div className="grid grid-cols-2 gap-8 text-xs pt-2">
-            <div className="border border-border/80 rounded-sm p-4 h-32 flex flex-col justify-between">
-              <span className="font-bold text-foreground">
-                For {clientCompanySafe || clientNameSafe}
-              </span>
-              <span className="text-muted-foreground text-[11px]">
-                (Signature &amp; Stamp)
-              </span>
-            </div>
-
-            <div className="border border-border/80 rounded-sm p-4 h-32 flex flex-col justify-between">
-              <span className="font-bold text-foreground">
-                For {workspace?.company_name || "Daylink Tech Labs Pvt Ltd"}
-              </span>
-              <span className="text-muted-foreground text-[11px]">
-                (Signature &amp; Stamp)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Document Footer */}
-        <div className="border-t border-border/60 pt-4 text-center text-[10px] text-muted-foreground">
-          {workspace?.company_name || "Daylink Tech Labs Pvt. Ltd."} | Commercial Proposal — {clientCompanySafe || clientNameSafe} | Confidential
-        </div>
-      </Card>
+      {/* Printable Branded Commercial Proposal Document */}
+      <div className="print-content">
+        <BrandedProposalTemplate
+          workspace={{
+            logo_url: workspace?.logo_url,
+            company_name: workspace?.company_name || "Daylink Tech Labs Pvt. Ltd.",
+            company_tagline: workspace?.company_tagline || "Empowering Your Digital Future",
+            company_address: workspace?.company_address || "21/1, KHB, AUTO NAGAR, BELAGAVI - 590016",
+            company_phone: workspace?.company_phone || "9902319132 | 8050594245",
+            company_email: workspace?.company_email || "info@daylink.in",
+          }}
+          client={{
+            name: clientNameSafe,
+            company: clientCompanySafe,
+            address: (client as any)?.address || null,
+          }}
+          proposal={{
+            quotation_id: quote.quotation_id,
+            document_title: quote.document_title,
+            document_subtitle: quote.document_subtitle,
+            date_created: quote.date_created,
+            valid_until: quote.valid_until,
+            version: quote.version,
+            notes_terms: quote.notes_terms,
+          }}
+          sections={sections}
+          layoutPreset={layoutPreset}
+          taxMode={taxMode}
+          taxRatePercent={taxRatePercent}
+        />
+      </div>
     </div>
   );
 }

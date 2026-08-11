@@ -221,7 +221,7 @@ export default function SalesPage() {
                   <Receipt className="h-3.5 w-3.5" /> Tax Invoice #{selectedOrder.order_number}
                 </span>
                 <h2 className="text-xl font-extrabold text-foreground tracking-tight mt-1">
-                  POS Sales Receipt
+                  POS Sales Receipt & Tax Invoice
                 </h2>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                   <span className="flex items-center gap-1">
@@ -234,12 +234,20 @@ export default function SalesPage() {
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => setShowInvoiceModal(false)}
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-xl hover:opacity-90 transition-opacity"
+                >
+                  <Printer className="h-3.5 w-3.5" /> Print Invoice
+                </button>
+                <button
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
             {/* Customer & Counter Banner */}
