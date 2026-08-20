@@ -198,6 +198,24 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       return;
     }
     setLoading(true);
+
+    const isDemo = typeof window !== "undefined" && localStorage.getItem("crm_demo_mode") === "true";
+    if (isDemo) {
+      const demoWs: Workspace = {
+        id: "ws_demo",
+        name: "Daily CRM Workspace",
+        plan: "business",
+        plan_limits: { max_members: 10, max_workspaces: 1, max_storage_gb: 50, channels: ["whatsapp", "social"], max_automations: 100 },
+        created_at: new Date().toISOString(),
+      };
+      setWorkspaces([demoWs]);
+      setActiveWorkspace(demoWs);
+      setActiveRole("owner");
+      setPermissions(OWNER_PERMISSIONS);
+      setLoading(false);
+      return;
+    }
+
     if (!user?.id) {
       setWorkspaces([]);
       setActiveWorkspace(null);

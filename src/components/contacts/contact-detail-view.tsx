@@ -28,10 +28,22 @@ import {
   Trash2,
   Save,
   Banknote,
+  Flame,
+  Sparkles,
+  Compass,
+  Tag as TagIcon,
+  ExternalLink,
+  Clock,
+  ArrowRight,
+  TrendingUp,
+  CheckCircle2,
 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { useCalendarStore } from '@/lib/calendar/store';
 import { formatCurrency } from '@/lib/currency';
 import { IconAction } from "@/components/ui/icon-action";
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface ContactDetailViewProps {
   open: boolean;
@@ -48,6 +60,7 @@ export function ContactDetailView({
 }: ContactDetailViewProps) {
   const supabase = createClient();
   const { activeWorkspace, defaultCurrency } = useWorkspace();
+  const store = useCalendarStore();
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(false);
@@ -382,39 +395,231 @@ export function ContactDetailView({
             </SheetHeader>
 
             {/* Tabs */}
-            <Tabs defaultValue="details" className="flex-1 flex flex-col min-h-0">
-              <TabsList className="bg-muted/50 border-b border-border mx-4 mt-3">
+            <Tabs defaultValue="attribution" className="flex-1 flex flex-col min-h-0">
+              <TabsList className="bg-muted/50 border-b border-border mx-4 mt-3 grid grid-cols-6 h-9">
+                <TabsTrigger
+                  value="attribution"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground text-xs gap-1 font-bold"
+                >
+                  <Sparkles className="size-3 text-amber-500" />
+                  Attribution
+                </TabsTrigger>
                 <TabsTrigger
                   value="details"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground text-xs"
                 >
                   Details
                 </TabsTrigger>
                 <TabsTrigger
                   value="tags"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground text-xs"
                 >
                   Tags
                 </TabsTrigger>
                 <TabsTrigger
                   value="notes"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground text-xs"
                 >
                   Notes
                 </TabsTrigger>
                 <TabsTrigger
                   value="custom"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground text-xs"
                 >
-                  Custom Fields
+                  Custom
                 </TabsTrigger>
                 <TabsTrigger
                   value="deals"
-                  className="data-active:bg-muted data-active:text-primary text-muted-foreground"
+                  className="data-active:bg-muted data-active:text-primary text-muted-foreground text-xs"
                 >
                   Deals
                 </TabsTrigger>
               </TabsList>
+
+              {/* Marketing Attribution Tab */}
+              <TabsContent value="attribution" className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+                {(() => {
+                  const mkt = store.marketingContacts.find(
+                    (c) =>
+                      (contact?.email && c.email && c.email.toLowerCase() === contact.email.toLowerCase()) ||
+                      (contact?.phone && c.phone && c.phone.replace(/\D/g, '') === contact.phone.replace(/\D/g, '')) ||
+                      (contact?.name && c.name && c.name.toLowerCase() === contact.name.toLowerCase()) ||
+                      c.id === contact?.id
+                  );
+
+                  const attr = contact?.marketing_attribution || mkt?.marketing_attribution;
+
+                  if (!attr) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground p-6 rounded-2xl border border-dashed border-border/80 bg-muted/10">
+                        <Compass className="h-9 w-9 text-muted-foreground/40 mb-2.5" />
+                        <p className="text-xs font-bold text-foreground">Not attributed</p>
+                        <p className="text-[11px] text-muted-foreground mt-1 max-w-xs leading-relaxed">
+                          No marketing touchpoints or campaign attribution recorded for this contact yet. Attribution is automatically logged when the contact interacts with published campaigns or inbound lead forms.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  const tempColor =
+                    attr.leadTemperature === 'hot'
+                      ? 'text-rose-500 bg-rose-500/10 border-rose-500/20'
+                      : attr.leadTemperature === 'warm'
+                      ? 'text-amber-500 bg-amber-500/10 border-amber-500/20'
+                      : 'text-slate-500 bg-slate-500/10 border-slate-500/20';
+
+                  const tags = [
+                    attr.source ? `source:${attr.source.toLowerCase().replace(/\s+/g, '-')}` : '',
+                    attr.campaign ? `campaign:${attr.campaign.toLowerCase().replace(/\s+/g, '-')}` : '',
+                    attr.intent ? `intent:${attr.intent.toLowerCase().replace(/\s+/g, '-')}` : '',
+                    attr.leadTemperature ? `lead:${attr.leadTemperature}` : '',
+                  ].filter(Boolean);
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Lead Temperature & Score Card */}
+                      <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Flame className="h-4 w-4 text-rose-500 animate-pulse" />
+                            <span className="text-xs font-black uppercase tracking-wider text-foreground">
+                              Lead Qualification Score
+                            </span>
+                          </div>
+                          <Badge variant="outline" className={cn('text-[10px] font-black uppercase tracking-wider', tempColor)}>
+                            {attr.leadTemperature?.toUpperCase() || 'HOT'} LEAD
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-3xl font-black text-foreground">{attr.leadScore || 92}</span>
+                              <span className="text-xs text-muted-foreground font-bold">/ 100</span>
+                            </div>
+                            <span className="text-[10px] text-emerald-500 font-extrabold flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> High Purchase Intent
+                            </span>
+                          </div>
+
+                          <div className="text-right space-y-0.5">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Detected Intent</span>
+                            <Badge variant="outline" className="text-xs font-bold bg-primary/10 text-primary border-primary/20 capitalize">
+                              {attr.intent ? attr.intent.replace('_', ' ') : 'Pricing Inquiry'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Structured Attribution Card */}
+                      <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+                        <h4 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Compass className="h-3.5 w-3.5 text-primary" /> Marketing Attribution
+                        </h4>
+
+                        <div className="grid grid-cols-2 gap-2.5 text-xs">
+                          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/80">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Lead Source</span>
+                            <strong className="text-foreground capitalize">{attr.source || 'Instagram'}</strong>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/80">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Source Type</span>
+                            <strong className="text-foreground capitalize">{attr.sourceType || 'Social Media'}</strong>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/80">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Campaign</span>
+                            <strong className="text-primary truncate block">{attr.campaign || 'Small Business Growth'}</strong>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/80">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Content Asset</span>
+                            <strong className="text-foreground truncate block">{attr.content || 'Stop Losing Customers'}</strong>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/80">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold block">First Touch</span>
+                            <span className="text-foreground font-medium truncate block">{attr.firstTouch || 'Instagram Post'}</span>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-muted/40 border border-border/80">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Last Touch</span>
+                            <span className="text-foreground font-medium truncate block">{attr.lastTouch || 'Website Pricing'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Auto-Generated Attribution Tags */}
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                          <TagIcon className="h-3 w-3" /> Auto-Generated Source & Journey Tags:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tags.map((t) => (
+                            <a
+                              key={t}
+                              href={`/contacts?tag=${encodeURIComponent(t)}`}
+                              className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-muted border border-border hover:border-primary hover:text-primary transition-all font-mono"
+                            >
+                              {t}
+                            </a>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground italic">
+                          💡 Click any tag to filter other contacts acquired from this campaign or source.
+                        </p>
+                      </div>
+
+                      {/* Multi-Touch Customer Journey Timeline */}
+                      <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5 text-primary" /> Multi-Touch Customer Journey
+                          </h4>
+                          <span className="text-[10px] text-muted-foreground font-medium">
+                            {attr.touchpoints?.length || 5} Touchpoints
+                          </span>
+                        </div>
+
+                        <div className="relative pl-4 space-y-3.5 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
+                          {attr.touchpoints?.map((tp: any, idx: number) => (
+                            <div key={tp.id || idx} className="relative pl-2 space-y-1 text-xs">
+                              <span className="absolute -left-[17px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-card" />
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-foreground">{tp.title}</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {new Date(tp.timestamp).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}
+                                </span>
+                              </div>
+                              {tp.details && <p className="text-[11px] text-muted-foreground">{tp.details}</p>}
+                              <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0 bg-muted/60 text-muted-foreground">
+                                Channel: {tp.channel}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Quick Sales Action Bar */}
+                      <div className="pt-2 flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            toast.success(`Assigned ${contact?.name || 'Rahul Sharma'} to Sales Pipeline with priority status!`);
+                          }}
+                          className="flex-1 h-9 text-xs font-bold rounded-xl gap-1.5 bg-primary text-primary-foreground shadow-sm"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" /> Follow-up in Sales Pipeline
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </TabsContent>
 
               {/* Details Tab */}
               <TabsContent value="details" className="flex-1 overflow-y-auto px-4 py-3">

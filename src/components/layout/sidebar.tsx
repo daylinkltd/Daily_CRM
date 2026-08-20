@@ -1,9 +1,9 @@
 "use client";
 
+import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace, type WorkspacePermissions } from "@/hooks/use-workspace";
@@ -63,7 +63,21 @@ import {
   ChevronsUpDown,
   AppWindow,
   Tag,
-  Bookmark, ReceiptText } from "lucide-react";
+  Bookmark,
+  ReceiptText,
+  Share2,
+  LayoutGrid,
+  PenLine,
+  ClipboardCheck,
+  History,
+  Globe,
+  Users2,
+  Plus,
+  Send,
+  Bell,
+  Sparkles,
+} from "lucide-react";
+import { useCalendarStore } from "@/lib/calendar/store";
 import {
   Avatar,
   AvatarFallback,
@@ -84,6 +98,8 @@ type NavItem = {
   icon: React.ElementType;
   permission?: keyof WorkspacePermissions;
   badge?: boolean;
+  badgeType?: 'inbox' | 'approvals' | 'notifications';
+  section?: string;
   /**
    * Hide unless the member has an `employee_profiles` row.
    *
@@ -114,6 +130,7 @@ const NAV_GROUP_MODULE: Record<string, ModuleKey | null> = {
   // requires a permission they should not need.
   "My Workspace": null,
   CRM: "crm",
+  Marketing: "marketing",
   Accounting: "accounting",
   Retail: "retail",
   "Project Management": "projects",
@@ -168,6 +185,7 @@ const navGroups: NavGroup[] = [
     icon: MessageSquare,
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/calendar", label: "Calendar", icon: Calendar },
       { href: "/inbox", label: "Inbox", icon: MessageSquare, permission: "inbox", badge: true },
       // Ordered to follow the customer lifecycle end to end:
       // Contacts -> Pipelines -> Commercials -> Quotations -> Invoices.
@@ -266,6 +284,27 @@ const navGroups: NavGroup[] = [
     ]
   },
   {
+    label: "Marketing",
+    icon: Sparkles,
+    items: [
+      // MAIN WORKFLOW
+      { href: "/marketing",               label: "Dashboard",           icon: LayoutDashboard, section: "MAIN WORKFLOW" },
+      { href: "/marketing/calendar",      label: "Calendar",            icon: Calendar,        section: "MAIN WORKFLOW" },
+      { href: "/marketing/create",        label: "Create",              icon: Plus,            section: "MAIN WORKFLOW" },
+      { href: "/marketing/content",       label: "Content",             icon: FileText,        section: "MAIN WORKFLOW" },
+      { href: "/marketing/history",       label: "Social Post History", icon: History,         section: "MAIN WORKFLOW" },
+      { href: "/marketing/approvals",     label: "Approvals",           icon: CheckSquare,     section: "MAIN WORKFLOW", badgeType: 'approvals' },
+      { href: "/marketing/blog",          label: "Blog",                icon: BookOpen,        section: "MAIN WORKFLOW" },
+      { href: "/marketing/published",     label: "Published",           icon: Send,            section: "MAIN WORKFLOW" },
+      { href: "/marketing/analytics",     label: "Analytics",           icon: BarChart3,       section: "MAIN WORKFLOW" },
+      { href: "/marketing/team",          label: "Team",                icon: Users2,          section: "MAIN WORKFLOW" },
+
+      // PREFERENCES
+      { href: "/marketing/notifications", label: "Notifications",       icon: Bell,            section: "PREFERENCES", badgeType: 'notifications' },
+      { href: "/marketing/settings",      label: "Settings",            icon: Settings,        section: "PREFERENCES" },
+    ]
+  },
+  {
     label: "System",
     icon: Settings,
     items: [
@@ -290,6 +329,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const totalUnread = useTotalUnread();
   const { mode } = useTheme();
   const isDark = mode === "dark";
+  const marketingStore = useCalendarStore();
 
   // Sidebar Layout & Active Module state
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -566,48 +606,77 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
         {/* Dynamic Sidebar Links (Only show selected module links) */}
         <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {visibleItems.map((item) => {
+          {visibleItems.map((item, idx) => {
             const isActive =
               pathname === item.href ||
-              (item.href !== "/dashboard" && pathname.startsWith(item.href));
+              (item.href !== "/dashboard" && item.href !== "/marketing" && pathname.startsWith(item.href));
             const showUnreadDot = item.href === "/inbox" && totalUnread > 0 && !isActive;
             const ItemIcon = item.icon;
 
+            const prevItem = visibleItems[idx - 1];
+            const isNewSection = item.section && (!prevItem || prevItem.section !== item.section);
+
+            const approvalCount = item.badgeType === 'approvals' ? marketingStore.pendingApprovalPosts.length : 0;
+            const notifCount = item.badgeType === 'notifications' ? marketingStore.unreadNotificationsCount : 0;
+
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                // Collapsed hides the label span, leaving the link with no
-                // accessible name at all — an icon is not a name.
-                aria-label={isCollapsed ? item.label : undefined}
-                title={undefined}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-bold transition-all relative group",
-                  linkClass(isActive),
-                  isCollapsed ? "justify-center px-0 py-2.5 h-10 w-10 mx-auto rounded-xl" : ""
-                )}
-              >
-                <ItemIcon className="h-5 w-5 shrink-0" />
-                {!isCollapsed && <span className="flex-1 truncate">{item.label}</span>}
-                
-                {/* Collapsed Tooltip */}
-                {isCollapsed && (
-                  <span
-                    role="tooltip"
-                    className="pointer-events-none absolute left-14 z-50 origin-left scale-0 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md transition-transform group-hover:scale-100 group-focus-visible:scale-100"
-                  >
-                    {item.label}
-                  </span>
+              <React.Fragment key={item.href}>
+                {isNewSection && (
+                  <div className={cn("pt-2 pb-1", idx > 0 && "mt-2 pt-3 border-t border-border/40")}>
+                    {!isCollapsed && (
+                      <p className="px-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">
+                        {item.section}
+                      </p>
+                    )}
+                  </div>
                 )}
 
-                {showUnreadDot && (
-                  <span className="relative flex h-1.5 w-1.5 shrink-0">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-                  </span>
-                )}
-              </Link>
+                <Link
+                  href={item.href}
+                  onClick={onClose}
+                  aria-label={isCollapsed ? item.label : undefined}
+                  title={undefined}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-bold transition-all relative group",
+                    linkClass(isActive),
+                    isCollapsed ? "justify-center px-0 py-2.5 h-10 w-10 mx-auto rounded-xl" : ""
+                  )}
+                >
+                  <ItemIcon className="h-5 w-5 shrink-0" />
+                  {!isCollapsed && <span className="flex-1 truncate">{item.label}</span>}
+
+                  {/* Badge Pills */}
+                  {!isCollapsed && approvalCount > 0 && (
+                    <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2 py-0.5 text-[10px] font-black">
+                      {approvalCount}
+                    </span>
+                  )}
+                  {!isCollapsed && notifCount > 0 && (
+                    <span className="rounded-full bg-primary/15 text-primary border border-primary/20 px-2 py-0.5 text-[10px] font-black">
+                      {notifCount}
+                    </span>
+                  )}
+
+                  {/* Collapsed Tooltip */}
+                  {isCollapsed && (
+                    <span
+                      role="tooltip"
+                      className="pointer-events-none absolute left-14 z-50 origin-left scale-0 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md transition-transform group-hover:scale-100 group-focus-visible:scale-100"
+                    >
+                      {item.label}
+                      {approvalCount > 0 && ` (${approvalCount})`}
+                      {notifCount > 0 && ` (${notifCount})`}
+                    </span>
+                  )}
+
+                  {showUnreadDot && (
+                    <span className="relative flex h-1.5 w-1.5 shrink-0">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+                    </span>
+                  )}
+                </Link>
+              </React.Fragment>
             );
           })}
         </nav>

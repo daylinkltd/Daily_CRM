@@ -98,6 +98,7 @@ export interface Contact {
   email?: string;
   company?: string;
   avatar_url?: string;
+  marketing_attribution?: import('./calendar').MarketingAttribution;
   created_at: string;
   updated_at: string;
 }

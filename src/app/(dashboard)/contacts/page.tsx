@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import type { Contact, Tag, ContactTag } from '@/types';
@@ -53,6 +54,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { SearchInput } from '@/components/ui/search-input';
 import { DataToolbar } from '@/components/ui/data-toolbar';
 import { IconAction } from "@/components/ui/icon-action";
+import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 25;
 
@@ -66,10 +68,19 @@ export default function ContactsPage() {
   const canEdit = can('contacts');
   const canEditSettings = can('settings_workspace');
 
+  const searchParams = useSearchParams();
+  const urlTag = searchParams.get('tag');
+
   const [contacts, setContacts] = useState<ContactWithTags[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(urlTag || '');
   const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    if (urlTag) {
+      setSearch(urlTag);
+    }
+  }, [urlTag]);
   const [totalCount, setTotalCount] = useState(0);
   // Tag filter — contacts shown must have ANY of these tags (OR).
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -411,9 +422,21 @@ export default function ContactsPage() {
     },
     {
       key: "tags",
-      header: "Tags",
+      header: "Tags & Marketing Source",
       cell: (contact) => (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 items-center">
+          {contact.marketing_attribution && (
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold border",
+                contact.marketing_attribution.leadTemperature === 'hot'
+                  ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                  : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+              )}
+            >
+              🔥 {contact.marketing_attribution.source}
+            </span>
+          )}
           {contact.tags && contact.tags.length > 0 ? (
             contact.tags.slice(0, 3).map((tag) => (
               <span
@@ -428,7 +451,7 @@ export default function ContactsPage() {
               </span>
             ))
           ) : (
-            <span className="text-muted-foreground text-xs">-</span>
+            !contact.marketing_attribution && <span className="text-muted-foreground text-xs">-</span>
           )}
           {contact.tags && contact.tags.length > 3 && (
             <span className="text-[10px] text-muted-foreground">

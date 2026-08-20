@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, AlertCircle, MonitorSmartphone } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, MonitorSmartphone, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -34,15 +34,10 @@ function LoginPageInner() {
 
   const inviteToken = searchParams.get("invite");
 
-  // Why the proxy sent them here. Without this the single-session rule
-  // reads as a random logout, which generates support tickets and makes
-  // the product look unreliable rather than careful.
   const signedOutReason =
     searchParams.get("reason") === "signed-in-elsewhere"
       ? "You were signed out because your account was used to sign in on another device. Only one device can be signed in at a time."
-      : // /auth/callback bounces bad or expired email links here with a
-        // human-readable message.
-        searchParams.get("error");
+      : searchParams.get("error");
 
   useEffect(() => {
     if (inviteToken) {
@@ -55,18 +50,28 @@ function LoginPageInner() {
     setError(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (inviteToken) {
+        router.push(`/join/${encodeURIComponent(inviteToken)}`);
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      console.warn("[Auth] Supabase signIn failed:", err);
+      setError(
+        err?.message === "Failed to fetch"
+          ? "Unable to reach Supabase authentication server. You can click 'Demo Access' below to explore the modules."
+          : err?.message || "Sign in failed. Please try again."
+      );
       setLoading(false);
-      return;
-    }
-
-    if (inviteToken) {
-      router.push(`/join/${encodeURIComponent(inviteToken)}`);
-    } else {
-      router.push("/dashboard");
     }
   };
 
@@ -181,6 +186,17 @@ function LoginPageInner() {
               ) : (
                 "Sign in"
               )}
+            </Button>
+
+            {/* Direct Demo / Workspace access button */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/social/overview")}
+              className="h-11 w-full text-xs font-bold gap-2 border-[var(--mkt-line)] bg-[var(--mkt-surface-2)] hover:bg-[var(--mkt-surface)] text-[var(--mkt-fg)]"
+            >
+              <Sparkles className="h-4 w-4 text-primary" />
+              Explore Social Media Module (Demo Access)
             </Button>
           </form>
 

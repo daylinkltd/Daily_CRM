@@ -19,11 +19,12 @@
 import type { WorkspaceDbRole } from "./roles";
 
 /** The app modules the sidebar switches between. */
-export type ModuleKey = "crm" | "accounting" | "hr" | "retail" | "projects";
+export type ModuleKey = "crm" | "marketing" | "accounting" | "hr" | "retail" | "projects";
 
 /** Ordered list of every module key (mirrors sidebar nav order). */
 export const MODULE_KEYS: readonly ModuleKey[] = [
   "crm",
+  "marketing",
   "accounting",
   "hr",
   "retail",
@@ -33,6 +34,7 @@ export const MODULE_KEYS: readonly ModuleKey[] = [
 /** Resolved per-module access for the current member. */
 export interface ModuleAccess {
   crm: boolean;
+  marketing: boolean;
   accounting: boolean;
   hr: boolean;
   retail: boolean;
@@ -42,6 +44,7 @@ export interface ModuleAccess {
 /** Module key → the JSONB permission key that stores it. */
 export const MODULE_PERMISSION_KEY: Record<ModuleKey, string> = {
   crm: "module_crm",
+  marketing: "module_marketing",
   accounting: "module_accounting",
   hr: "module_hr",
   retail: "module_retail",
@@ -51,6 +54,7 @@ export const MODULE_PERMISSION_KEY: Record<ModuleKey, string> = {
 /** Module key → human label (used in guards/toasts and the role editor). */
 export const MODULE_LABELS: Record<ModuleKey, string> = {
   crm: "CRM",
+  marketing: "Marketing",
   accounting: "Accounting",
   hr: "HR",
   retail: "Retail",
@@ -67,6 +71,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
 // ────────────────────────────────────────────────────────────
 export const DEFAULT_MODULE_ACCESS: ModuleAccess = {
   crm: true,
+  marketing: true,
   accounting: false,
   hr: false,
   retail: false,
@@ -76,6 +81,7 @@ export const DEFAULT_MODULE_ACCESS: ModuleAccess = {
 /** Everything on — the owner/admin bypass result. */
 const ALL_MODULES: ModuleAccess = {
   crm: true,
+  marketing: true,
   accounting: true,
   hr: true,
   retail: true,
@@ -119,6 +125,7 @@ export function deriveModuleAccess(
 
   return {
     crm: permissions[MODULE_PERMISSION_KEY.crm] === true,
+    marketing: permissions[MODULE_PERMISSION_KEY.marketing] !== false,
     accounting: permissions[MODULE_PERMISSION_KEY.accounting] === true,
     hr: permissions[MODULE_PERMISSION_KEY.hr] === true,
     retail: permissions[MODULE_PERMISSION_KEY.retail] === true,
@@ -169,6 +176,7 @@ export function applyPlatformFlags(
   if (!flags) return access;
   return {
     crm: access.crm && flags.enable_crm !== false,
+    marketing: access.marketing,
     accounting: access.accounting,
     hr: access.hr && flags.enable_hr !== false,
     retail: access.retail && flags.enable_retail !== false,
