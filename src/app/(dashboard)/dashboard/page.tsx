@@ -35,6 +35,9 @@ import { PipelineDonut } from '@/components/dashboard/pipeline-donut'
 import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { PageHeader } from '@/components/ui/page-header'
+import { SocialMediaWidget } from '@/components/dashboard/social-media-widget'
+import { UpcomingActivitiesWidget } from '@/components/dashboard/upcoming-activities-widget'
+import { INITIAL_CRM_ACTIVITIES, INITIAL_SOCIAL_POSTS } from '@/lib/calendar/mock-data'
 
 type RangeDays = 7 | 30 | 90
 
@@ -225,6 +228,12 @@ export default function DashboardPage() {
         <div className="h-full lg:col-span-2">
           <PipelineDonut data={pipeline} loading={pipelineLoading} currency={defaultCurrency} />
         </div>
+      </div>
+
+      {/* Social Media & Upcoming Activities Row */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <SocialMediaWidget />
+        <UpcomingActivitiesWidget events={[...INITIAL_SOCIAL_POSTS, ...INITIAL_CRM_ACTIVITIES]} />
       </div>
 
       {/* Response time */}

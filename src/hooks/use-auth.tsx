@@ -234,6 +234,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const init = async () => {
       try {
+        const isDemo = typeof window !== "undefined" && localStorage.getItem("crm_demo_mode") === "true";
+        if (isDemo) {
+          const demoUser = {
+            id: "usr_admin",
+            email: "admin@dailycrm.co",
+            app_metadata: {},
+            user_metadata: { full_name: "Admin User" },
+            aud: "authenticated",
+            created_at: new Date().toISOString(),
+          } as any;
+          setUser(demoUser);
+          setProfile({
+            id: "usr_admin",
+            full_name: "Admin User",
+            email: "admin@dailycrm.co",
+            avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
+            role: "owner",
+            system_role: "admin",
+            beta_features: [],
+            account_id: "ws_demo",
+            account_role: "owner",
+          });
+          setAccount({
+            id: "ws_demo",
+            name: "Daily CRM Workspace",
+            default_currency: "USD",
+          });
+          setProfileLoading(false);
+          setLoading(false);
+          return;
+        }
+
         const {
           data: { session },
           error,
@@ -246,15 +278,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(currentUser);
 
         if (currentUser) {
-          // Don't block session loading on profile fetch — chrome
-          // (header, sidebar) can render from the user object alone,
-          // profile enriches async. Callers that need to branch on
-          // profile data gate on `profileLoading` instead.
           fetchProfile(currentUser.id);
         } else {
-          // No user → no profile to load. Flip profileLoading off so
-          // pages that gate on it don't wait forever on the logged-out
-          // path (the route guard or redirect should fire instead).
           setProfileLoading(false);
         }
       } catch (err) {

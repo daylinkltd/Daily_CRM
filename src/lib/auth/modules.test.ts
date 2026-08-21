@@ -108,7 +108,7 @@ describe("deriveModuleAccess", () => {
 });
 
 describe("applyPlatformFlags", () => {
-  const all = { crm: true, accounting: true, hr: true, retail: true, projects: true };
+  const all = { crm: true, marketing: true, accounting: true, hr: true, retail: true, projects: true };
 
   it("fails open when no flags row exists", () => {
     // Flags are a kill switch for exceptions, not a provisioning step —
@@ -129,7 +129,7 @@ describe("applyPlatformFlags", () => {
   it("never grants what the role did not", () => {
     // AND, not OR: a platform flag switched on cannot open a module the
     // owner's role configuration keeps closed.
-    const roleLimited = { crm: true, accounting: false, hr: false, retail: false, projects: false };
+    const roleLimited = { crm: true, marketing: false, accounting: false, hr: false, retail: false, projects: false };
     const out = applyPlatformFlags(roleLimited, {
       enable_hr: true,
       enable_retail: true,
@@ -141,6 +141,7 @@ describe("applyPlatformFlags", () => {
   it("treats null columns as not-configured, not as off", () => {
     const out = applyPlatformFlags(all, { enable_crm: null, enable_hr: false });
     expect(out.crm).toBe(true);
+    expect(out.marketing).toBe(true);
     expect(out.hr).toBe(false);
   });
 });
