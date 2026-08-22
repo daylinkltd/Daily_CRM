@@ -84,18 +84,32 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.hr_sync_pushes
 -- rather than piling up one row per keystroke-adjacent save.
 -- ----------------------------------------------------------------------------
 
+-- employee_profiles itself has no name/email - those live on profiles,
+-- joined through workspace_members - so the raw to_jsonb(NEW) alone is
+-- missing the one field NDH's hr_employees actually requires (full_name
+-- NOT NULL). Joined in here rather than left for the receiver to fetch
+-- separately, since the receiver has no other path back to this
+-- workspace's profiles table.
 CREATE OR REPLACE FUNCTION public.enqueue_employee_profile_sync() RETURNS TRIGGER AS $$
+DECLARE
+  v_full_name TEXT;
+  v_email TEXT;
 BEGIN
   IF NEW.synced_from_ndh THEN
     RETURN NEW;
   END IF;
+  SELECT p.full_name, p.email INTO v_full_name, v_email
+  FROM public.workspace_members wm
+  JOIN public.profiles p ON p.user_id = wm.user_id
+  WHERE wm.id = NEW.workspace_member_id;
+
   INSERT INTO public.hr_sync_pushes (workspace_id, event_type, entity_table, entity_id, payload)
   VALUES (
     NEW.workspace_id,
     CASE WHEN TG_OP = 'INSERT' THEN 'employee.created' ELSE 'employee.updated' END,
     'employee_profiles',
     NEW.workspace_member_id,
-    to_jsonb(NEW)
+    to_jsonb(NEW) || jsonb_build_object('full_name', v_full_name, 'email', v_email)
   )
   ON CONFLICT (event_type, entity_id) DO UPDATE
     SET payload = EXCLUDED.payload, status = 'pending', updated_at = NOW();
