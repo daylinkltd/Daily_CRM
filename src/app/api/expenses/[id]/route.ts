@@ -16,11 +16,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { postExpensePaid } from "@/lib/accounting/posting";
+import { pushHrEventToNdh, type HrSyncEventType } from "@/lib/integrations/hrSync";
 
 const TRANSITIONS: Record<string, { from: string[]; to: string }> = {
   approve: { from: ["pending"], to: "approved" },
   reject: { from: ["pending"], to: "rejected" },
   reimburse: { from: ["approved"], to: "reimbursed" },
+};
+
+const SYNC_EVENT: Record<string, HrSyncEventType> = {
+  approve: "expense.approved",
+  reject: "expense.rejected",
+  reimburse: "expense.reimbursed",
 };
 
 export async function POST(
@@ -98,5 +105,17 @@ export async function POST(
     return NextResponse.json({ error: upErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, claim: updated });
+  // Mirror the decision into NDH, if this workspace has it connected.
+  // Deliberately after the decision is committed, same reasoning as
+  // pushPayrollToBanking: the claim's state has already changed, and
+  // an unreachable NDH must not undo or block that.
+  const sync = await pushHrEventToNdh(supabase, {
+    workspaceId: claim.workspace_id,
+    eventType: SYNC_EVENT[action],
+    entityTable: "expense_claims",
+    entityId: claim.id,
+    payload: updated,
+  });
+
+  return NextResponse.json({ success: true, claim: updated, sync });
 }

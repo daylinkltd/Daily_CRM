@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { pushHrEventToNdh } from '@/lib/integrations/hrSync';
 
 async function computeSHA256(text: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -92,10 +93,31 @@ export async function POST(
       await supabase.from('hr_policy_notifications').insert(notifRows);
     }
 
+    // Mirror the publish into NDH, if this workspace has it connected —
+    // same after-commit placement as the other decision-point pushes.
+    const sync = await pushHrEventToNdh(supabase, {
+      workspaceId: policy.workspace_id,
+      eventType: 'policy.published',
+      entityTable: 'hr_policies',
+      entityId: id,
+      payload: {
+        policy_id: id,
+        title: policy.title,
+        category: policy.category,
+        mandatory: latestVersion.mandatory,
+        version_number: latestVersion.version_number,
+        content: latestVersion.content,
+        content_hash: contentHash,
+        effective_at: latestVersion.effective_at || nowStr,
+        published_at: nowStr,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       publishedVersion: latestVersion.version_number,
-      contentHash
+      contentHash,
+      sync
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
