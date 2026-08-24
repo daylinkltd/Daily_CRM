@@ -48,6 +48,7 @@ import {
   Receipt,
   ShoppingCart,
   Package,
+  Wine,
   Layers,
   Truck,
   Building2,
@@ -133,6 +134,7 @@ const NAV_GROUP_MODULE: Record<string, ModuleKey | null> = {
   Marketing: "marketing",
   Accounting: "accounting",
   Retail: "retail",
+  "Bar Management": "bar",
   "Project Management": "projects",
   "HR Management": "hr",
   System: null,
@@ -238,6 +240,22 @@ const navGroups: NavGroup[] = [
       { href: "/commerce/suppliers", label: "Suppliers", icon: Building2 },
       { href: "/commerce/returns", label: "Returns", icon: RefreshCw },
       { href: "/settings?tab=retail", label: "Retail Settings", icon: Settings },
+    ]
+  },
+  {
+    label: "Bar Management",
+    icon: Wine,
+    items: [
+      { href: "/bar-management", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/bar-management/catalog/products", label: "Liquor Catalog", icon: Package },
+      { href: "/bar-management/pos", label: "Touch POS", icon: ShoppingCart },
+      { href: "/bar-management/tables", label: "Tables & Layout", icon: CalendarClock },
+      { href: "/bar-management/kitchen", label: "KDS Queue", icon: Clock },
+      { href: "/bar-management/inventory", label: "Stock & KSBCL", icon: Package },
+      { href: "/bar-management/inventory/inward", label: "Inward Permit GRN", icon: Truck },
+      { href: "/bar-management/inventory/damage", label: "Damage & Spillage", icon: RefreshCw },
+      { href: "/bar-management/shifts", label: "Shifts & Z-Reports", icon: Clock },
+      { href: "/bar-management/reports/ksbcl", label: "KSBCL Register", icon: FileText },
     ]
   },
   {

@@ -19,7 +19,7 @@
 import type { WorkspaceDbRole } from "./roles";
 
 /** The app modules the sidebar switches between. */
-export type ModuleKey = "crm" | "marketing" | "accounting" | "hr" | "retail" | "projects";
+export type ModuleKey = "crm" | "marketing" | "accounting" | "hr" | "retail" | "bar" | "projects";
 
 /** Ordered list of every module key (mirrors sidebar nav order). */
 export const MODULE_KEYS: readonly ModuleKey[] = [
@@ -28,6 +28,7 @@ export const MODULE_KEYS: readonly ModuleKey[] = [
   "accounting",
   "hr",
   "retail",
+  "bar",
   "projects",
 ] as const;
 
@@ -38,6 +39,7 @@ export interface ModuleAccess {
   accounting: boolean;
   hr: boolean;
   retail: boolean;
+  bar: boolean;
   projects: boolean;
 }
 
@@ -48,6 +50,7 @@ export const MODULE_PERMISSION_KEY: Record<ModuleKey, string> = {
   accounting: "module_accounting",
   hr: "module_hr",
   retail: "module_retail",
+  bar: "module_bar",
   projects: "module_projects",
 };
 
@@ -58,6 +61,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   accounting: "Accounting",
   hr: "HR",
   retail: "Retail",
+  bar: "Bar Management",
   projects: "Projects",
 };
 
@@ -67,7 +71,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
 // for legacy custom roles created before the module migration.
 //
 // >>> CHANGE THIS ONE CONSTANT to alter the baseline module access
-// >>> a role-less member gets. Today: CRM only.
+// >>> a role-less member gets. Today: CRM & Bar only.
 // ────────────────────────────────────────────────────────────
 export const DEFAULT_MODULE_ACCESS: ModuleAccess = {
   crm: true,
@@ -75,6 +79,7 @@ export const DEFAULT_MODULE_ACCESS: ModuleAccess = {
   accounting: false,
   hr: false,
   retail: false,
+  bar: true,
   projects: false,
 };
 
@@ -85,6 +90,7 @@ const ALL_MODULES: ModuleAccess = {
   accounting: true,
   hr: true,
   retail: true,
+  bar: true,
   projects: true,
 };
 
@@ -129,6 +135,7 @@ export function deriveModuleAccess(
     accounting: permissions[MODULE_PERMISSION_KEY.accounting] === true,
     hr: permissions[MODULE_PERMISSION_KEY.hr] === true,
     retail: permissions[MODULE_PERMISSION_KEY.retail] === true,
+    bar: permissions[MODULE_PERMISSION_KEY.bar] !== false,
     projects: permissions[MODULE_PERMISSION_KEY.projects] === true,
   };
 }
@@ -180,6 +187,7 @@ export function applyPlatformFlags(
     accounting: access.accounting,
     hr: access.hr && flags.enable_hr !== false,
     retail: access.retail && flags.enable_retail !== false,
+    bar: access.bar,
     projects: access.projects && flags.enable_projects !== false,
   };
 }
