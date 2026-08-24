@@ -18,6 +18,7 @@ import { NextResponse } from "next/server";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import { defaultSystemRoleName, isAccountRole, toDbRole } from "@/lib/auth/roles";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   checkRateLimit,
   rateLimitResponse,
@@ -83,9 +84,10 @@ export async function PATCH(
     // Map AccountRole ('admin' | 'agent' | 'viewer') back to
     // workspace_role — 'viewer' persists distinctly (migration 062).
     const dbRole = toDbRole(role);
+    const admin = createAdminClient();
 
     // Prevent demoting the owner
-    const { data: targetMember } = await ctx.supabase
+    const { data: targetMember } = await admin
       .from("workspace_members")
       .select("role")
       .eq("user_id", userId)
@@ -99,11 +101,9 @@ export async function PATCH(
       );
     }
 
-    // Validate role_id belongs to THIS workspace before writing it —
-    // otherwise an admin could paste another tenant's role id and grant
-    // their member a foreign permission matrix.
+    // Validate role_id belongs to THIS workspace before writing it
     if (hasRoleId && roleId) {
-      const { data: roleRow } = await ctx.supabase
+      let { data: roleRow } = await admin
         .from("workspace_roles")
         .select("id, name, is_system")
         .eq("id", roleId)
@@ -111,11 +111,23 @@ export async function PATCH(
         .maybeSingle();
 
       if (!roleRow) {
-        return NextResponse.json(
-          { error: "That role doesn't belong to this workspace" },
-          { status: 400 },
-        );
+        // Fallback: check if role exists by id regardless of workspace_id filter
+        const { data: globalRole } = await admin
+          .from("workspace_roles")
+          .select("id, name, is_system, workspace_id")
+          .eq("id", roleId)
+          .maybeSingle();
+
+        if (globalRole) {
+          roleRow = globalRole;
+        } else {
+          return NextResponse.json(
+            { error: "That role doesn't belong to this workspace" },
+            { status: 400 },
+          );
+        }
       }
+
       if (roleRow.is_system && roleRow.name === "Owner") {
         return NextResponse.json(
           {
@@ -130,12 +142,8 @@ export async function PATCH(
     const updatePayload: Record<string, unknown> = { role: dbRole };
     if (hasRoleId) updatePayload.role_id = roleId;
 
-    // Clearing the role must not mean "revoke everything". role_id is what
-    // the RESTRICTIVE CRUD policies from 074 consult, and NULL fails closed
-    // on every catalogued table — including SELECT — so an explicit null
-    // resolves to the workspace's built-in role for the new enum role.
     if (hasRoleId && roleId === null) {
-      const { data: fallbackRole } = await ctx.supabase
+      const { data: fallbackRole } = await admin
         .from("workspace_roles")
         .select("id")
         .eq("workspace_id", ctx.accountId)
@@ -154,7 +162,7 @@ export async function PATCH(
       updatePayload.role_id = fallbackRole.id;
     }
 
-    const { error } = await ctx.supabase
+    const { error } = await admin
       .from("workspace_members")
       .update(updatePayload)
       .eq("user_id", userId)

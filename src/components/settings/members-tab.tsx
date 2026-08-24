@@ -267,7 +267,11 @@ export function MembersTab() {
       ),
     );
     try {
-      const res = await fetch(`/api/account/members/${member.user_id}`, {
+      const targetWorkspaceId = activeWorkspace?.id || accountId;
+      const patchUrl = targetWorkspaceId
+        ? `/api/account/members/${member.user_id}?workspace_id=${targetWorkspaceId}`
+        : `/api/account/members/${member.user_id}`;
+      const res = await fetch(patchUrl, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: nextRole, role_id: target.id }),
@@ -306,10 +310,11 @@ export function MembersTab() {
     if (!removingMember) return;
     setPendingMemberAction(removingMember.user_id);
     try {
-      const res = await fetch(
-        `/api/account/members/${removingMember.user_id}`,
-        { method: 'DELETE' },
-      );
+      const targetWorkspaceId = activeWorkspace?.id || accountId;
+      const deleteUrl = targetWorkspaceId
+        ? `/api/account/members/${removingMember.user_id}?workspace_id=${targetWorkspaceId}`
+        : `/api/account/members/${removingMember.user_id}`;
+      const res = await fetch(deleteUrl, { method: 'DELETE' });
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
         toast.error(payload.error || 'Failed to remove member');
