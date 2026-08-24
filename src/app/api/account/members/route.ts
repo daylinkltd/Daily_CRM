@@ -29,8 +29,10 @@ export async function GET(request: NextRequest) {
     const workspaceId = searchParams.get("workspace_id") || undefined;
     const ctx = await getCurrentAccount(workspaceId);
 
-    // 1. Get all member memberships for this workspace
-    const { data: memberRows, error: memberError } = await ctx.supabase
+    const admin = createAdminClient();
+
+    // 1. Get all member memberships for this workspace using admin client
+    const { data: memberRows, error: memberError } = await admin
       .from("workspace_members")
       .select("id, user_id, role, role_id, created_at")
       .eq("workspace_id", ctx.accountId)
@@ -48,9 +50,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ members: [] });
     }
 
-    // 2. Fetch profile details in a separate query to bypass relationship cache issues
+    // 2. Fetch profile details using admin client
     const userIds = memberRows.map((r) => r.user_id);
-    const { data: profileRows, error: profileError } = await ctx.supabase
+    const { data: profileRows, error: profileError } = await admin
       .from("profiles")
       .select("user_id, full_name, email, avatar_url")
       .in("user_id", userIds);

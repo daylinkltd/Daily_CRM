@@ -166,10 +166,18 @@ export function MembersTab() {
 
   const loadEverything = useCallback(async () => {
     try {
+      const targetWorkspaceId = activeWorkspace?.id || accountId;
+      const membersUrl = targetWorkspaceId
+        ? `/api/account/members?workspace_id=${targetWorkspaceId}`
+        : '/api/account/members';
+      const invitesUrl = targetWorkspaceId
+        ? `/api/account/invitations?workspace_id=${targetWorkspaceId}`
+        : '/api/account/invitations';
+
       const [mres, ires, rolesRes] = await Promise.all([
-        fetch('/api/account/members', { cache: 'no-store' }),
+        fetch(membersUrl, { cache: 'no-store' }),
         canManageMembers
-          ? fetch('/api/account/invitations', { cache: 'no-store' })
+          ? fetch(invitesUrl, { cache: 'no-store' })
           : Promise.resolve(null),
         // Roles for the ACTIVE workspace only — RLS scopes the table and
         // the filter makes it explicit, so another tenant's roles can
