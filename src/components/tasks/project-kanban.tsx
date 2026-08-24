@@ -175,21 +175,16 @@ export function ProjectKanban({ projectId, canManage }: ProjectKanbanProps) {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status_id: targetStatusId } : t));
 
     try {
-      // Try updating both status_id and status string to satisfy any legacy triggers
-      const { error: err1 } = await supabase
+      const isDone = targetStatusObj?.category === 'DONE';
+      const { error } = await supabase
         .from('tasks')
-        .update({ status_id: targetStatusId, status: legacyStatusText })
+        .update({
+          status_id: targetStatusId,
+          completed_at: isDone ? new Date().toISOString() : null,
+        })
         .eq('id', taskId);
 
-      if (err1) {
-        // Fallback to status_id update only
-        const { error: err2 } = await supabase
-          .from('tasks')
-          .update({ status_id: targetStatusId })
-          .eq('id', taskId);
-
-        if (err2) throw err2;
-      }
+      if (error) throw error;
     } catch (err: any) {
       console.error('Drag end error:', err);
       toast.error('Failed to move task');

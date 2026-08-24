@@ -166,11 +166,12 @@ export function EpicDetailsModal({
   const handleUpdateStatus = async (taskId: string, statusId: string) => {
     try {
       const selectedStatusObj = statuses.find((s) => s.id === statusId);
+      const isDone = selectedStatusObj?.category === 'DONE';
       const { error } = await supabase
         .from('tasks')
         .update({
           status_id: statusId,
-          status: selectedStatusObj?.category?.toLowerCase() || 'in_progress',
+          completed_at: isDone ? new Date().toISOString() : null,
         })
         .eq('id', taskId);
 

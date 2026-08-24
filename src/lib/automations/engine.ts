@@ -489,7 +489,6 @@ async function runStep(step: AutomationStep, args: ExecuteArgs): Promise<string>
         assigned_workspace_member_id: cfg.assignee_id || null,
         task_type: cfg.project_id ? 'PROJECT' : 'GENERAL',
         created_by_workspace_member_id: creatorMember?.id ?? null,
-        status: 'todo',
       })
       if (error) throw new Error(`create_task failed: ${error.message}`)
       return 'task created'

@@ -194,19 +194,12 @@ export function PlanningView({ projectId, canManage }: PlanningViewProps) {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, sprint_id: targetSprintId } : t));
 
     try {
-      const { error: err1 } = await supabase
+      const { error } = await supabase
         .from('tasks')
-        .update({ sprint_id: targetSprintId, status: task.status || 'todo' })
+        .update({ sprint_id: targetSprintId })
         .eq('id', taskId);
 
-      if (err1) {
-        const { error: err2 } = await supabase
-          .from('tasks')
-          .update({ sprint_id: targetSprintId })
-          .eq('id', taskId);
-
-        if (err2) throw err2;
-      }
+      if (error) throw error;
     } catch (err: any) {
       console.error('Drag end error:', err);
       toast.error('Failed to move task');

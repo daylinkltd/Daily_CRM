@@ -295,7 +295,6 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
         description: description.trim() || null,
         priority,
         status_id: statusId === 'none' ? null : statusId,
-        status: currentStatusObj?.category?.toLowerCase() || 'todo',
         task_type: taskType || 'TASK',
         project_id: projectId === 'none' ? null : projectId,
         assigned_workspace_member_id: assigneeId === 'none' ? null : assigneeId,
