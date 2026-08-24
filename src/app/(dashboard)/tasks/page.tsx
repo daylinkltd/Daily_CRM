@@ -156,16 +156,45 @@ export default function GlobalTasksPage() {
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
-      const payload: any = { status };
-      if (status === 'completed') payload.completed_at = new Date().toISOString();
-      else payload.completed_at = null;
+      const task = tasks.find((t: any) => t.id === id);
+      const legacyStatus = status === 'completed' ? 'done' : status;
+      const payload: any = { status: legacyStatus };
+      if (status === 'completed' || status === 'done') {
+        payload.completed_at = new Date().toISOString();
+      } else {
+        payload.completed_at = null;
+      }
+
+      if (task?.project_id) {
+        const categoryMap: Record<string, string> = {
+          todo: 'TODO',
+          in_progress: 'IN_PROGRESS',
+          review: 'REVIEW',
+          completed: 'DONE',
+          done: 'DONE',
+        };
+        const targetCategory = categoryMap[status] || 'TODO';
+        const { data: matchedStatus } = await supabase
+          .from('project_statuses')
+          .select('id')
+          .eq('project_id', task.project_id)
+          .eq('category', targetCategory)
+          .order('sort_order', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (matchedStatus?.id) {
+          payload.status_id = matchedStatus.id;
+        }
+      }
 
       const { error } = await supabase.from('tasks').update(payload).eq('id', id);
       if (error) throw error;
       toast.success('Task status updated');
       fetchTasks();
-    } catch {
-      toast.error('Failed to update status');
+    } catch (err: any) {
+      console.error('Error updating status:', err);
+      toast.error(err?.message || 'Failed to update status');
     }
   };
 
@@ -175,8 +204,9 @@ export default function GlobalTasksPage() {
       if (error) throw error;
       toast.success('Priority updated');
       fetchTasks();
-    } catch {
-      toast.error('Failed to update priority');
+    } catch (err: any) {
+      console.error('Error updating priority:', err);
+      toast.error(err?.message || 'Failed to update priority');
     }
   };
 
