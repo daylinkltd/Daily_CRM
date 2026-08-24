@@ -99,6 +99,7 @@ export default function GlobalTasksPage() {
           *,
           project:projects!tasks_project_id_fkey ( id, name ),
           epic:epics!tasks_epic_id_fkey ( id, name ),
+          status_obj:project_statuses!tasks_status_id_fkey ( id, name, category, color ),
           assignee:workspace_members!tasks_assigned_workspace_member_id_fkey (
             id, user_id
           )
@@ -110,7 +111,16 @@ export default function GlobalTasksPage() {
       if (error) {
         toast.error('Failed to load tasks');
       } else {
-        const taskList = data || [];
+        const taskList = (data || []).map((t: any) => {
+          const cat = (t.status_obj?.category || '').toLowerCase();
+          const derivedStatus = (t.completed_at || cat === 'done')
+            ? 'completed'
+            : (cat === 'in_progress' ? 'in_progress' : cat === 'review' ? 'review' : 'todo');
+          return {
+            ...t,
+            status: derivedStatus,
+          };
+        });
         const assigneeUserIds = taskList.map((t: any) => t.assignee?.user_id).filter(Boolean);
         if (assigneeUserIds.length > 0) {
           const { data: profilesData } = await supabase
@@ -157,23 +167,21 @@ export default function GlobalTasksPage() {
   const handleStatusChange = async (id: string, status: string) => {
     try {
       const task = tasks.find((t: any) => t.id === id);
-      const legacyStatus = status === 'completed' ? 'done' : status;
-      const payload: any = { status: legacyStatus };
-      if (status === 'completed' || status === 'done') {
-        payload.completed_at = new Date().toISOString();
-      } else {
-        payload.completed_at = null;
-      }
+      const isDone = status === 'completed' || status === 'done';
+      const completedAt = isDone ? new Date().toISOString() : null;
 
+      let targetStatusId: string | null = null;
+      const categoryMap: Record<string, string> = {
+        todo: 'TODO',
+        in_progress: 'IN_PROGRESS',
+        review: 'REVIEW',
+        completed: 'DONE',
+        done: 'DONE',
+      };
+      const targetCategory = categoryMap[status] || 'TODO';
+
+      // 1. Try finding matching status for task's project
       if (task?.project_id) {
-        const categoryMap: Record<string, string> = {
-          todo: 'TODO',
-          in_progress: 'IN_PROGRESS',
-          review: 'REVIEW',
-          completed: 'DONE',
-          done: 'DONE',
-        };
-        const targetCategory = categoryMap[status] || 'TODO';
         const { data: matchedStatus } = await supabase
           .from('project_statuses')
           .select('id')
@@ -184,12 +192,36 @@ export default function GlobalTasksPage() {
           .maybeSingle();
 
         if (matchedStatus?.id) {
-          payload.status_id = matchedStatus.id;
+          targetStatusId = matchedStatus.id;
         }
+      }
+
+      // 2. If no project status found, find workspace-level status
+      if (!targetStatusId) {
+        const { data: matchedStatus } = await supabase
+          .from('project_statuses')
+          .select('id')
+          .eq('category', targetCategory)
+          .order('sort_order', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (matchedStatus?.id) {
+          targetStatusId = matchedStatus.id;
+        }
+      }
+
+      // Note: We do NOT send `status` column because it does not exist on tasks table in PostgREST schema
+      const payload: any = {
+        completed_at: completedAt,
+      };
+      if (targetStatusId) {
+        payload.status_id = targetStatusId;
       }
 
       const { error } = await supabase.from('tasks').update(payload).eq('id', id);
       if (error) throw error;
+
       toast.success('Task status updated');
       fetchTasks();
     } catch (err: any) {
