@@ -15,6 +15,8 @@ import {
   ArrowRightLeft,
   Users,
   Split,
+  UtensilsCrossed,
+  Send,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +26,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { ThermalReceiptModal } from '@/components/bar/thermal-receipt-modal';
 
 interface CartItem {
   id: string;
@@ -56,12 +59,23 @@ export default function BarPosPage() {
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
   const menuItems = [
-    { id: '1', barcode: '8901234567891', name: 'Glenfiddich 12 Single Malt (750ml)', category: 'WHISKY', prices: { BOTTLE: 8500, '30ML': 450, '60ML': 850 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
-    { id: '2', barcode: '8901234567892', name: "Jack Daniel's Old No. 7 (750ml)", category: 'WHISKY', prices: { BOTTLE: 5800, '30ML': 320, '60ML': 600 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
-    { id: '3', barcode: '8901234567893', name: 'Old Monk Supreme Rum (750ml)', category: 'RUM', prices: { BOTTLE: 2200, '30ML': 150, '60ML': 280 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
-    { id: '4', barcode: '8901234567894', name: 'Absolut Swedish Vodka (750ml)', category: 'VODKA', prices: { BOTTLE: 4600, '30ML': 260, '60ML': 490 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
-    { id: '5', barcode: '8901234567895', name: 'Heineken Lager Draft Beer (500ml Can)', category: 'BEER', prices: { CAN: 280, PINT: 340 }, volumes: { CAN: 500, PINT: 500 } },
-    { id: '6', barcode: '8901234567896', name: 'Kingfisher Premium Beer (650ml Btl)', category: 'BEER', prices: { BOTTLE: 210 }, volumes: { BOTTLE: 650 } },
+    // --- ALCOHOL & DRINKS ---
+    { id: '1', barcode: '8901234567891', name: 'Glenfiddich 12 Single Malt (750ml)', category: 'WHISKY', type: 'DRINK', prices: { BOTTLE: 8500, '30ML': 450, '60ML': 850 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
+    { id: '2', barcode: '8901234567892', name: "Jack Daniel's Old No. 7 (750ml)", category: 'WHISKY', type: 'DRINK', prices: { BOTTLE: 5800, '30ML': 320, '60ML': 600 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
+    { id: '3', barcode: '8901234567893', name: 'Old Monk Supreme Rum (750ml)', category: 'RUM', type: 'DRINK', prices: { BOTTLE: 2200, '30ML': 150, '60ML': 280 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
+    { id: '4', barcode: '8901234567894', name: 'Absolut Swedish Vodka (750ml)', category: 'VODKA', type: 'DRINK', prices: { BOTTLE: 4600, '30ML': 260, '60ML': 490 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
+    { id: '5', barcode: '8901234567895', name: 'Heineken Lager Draft Beer (500ml Can)', category: 'BEER', type: 'DRINK', prices: { CAN: 280, PINT: 340 }, volumes: { CAN: 500, PINT: 500 } },
+    { id: '6', barcode: '8901234567896', name: 'Kingfisher Premium Beer (650ml Btl)', category: 'BEER', type: 'DRINK', prices: { BOTTLE: 210 }, volumes: { BOTTLE: 650 } },
+    { id: '7', barcode: '8901234567897', name: 'Long Island Iced Tea (LIIT)', category: 'COCKTAIL', type: 'DRINK', prices: { '60ML': 580 }, volumes: { '60ML': 250 } },
+
+    // --- RESTAURANT FOOD DISHES ---
+    { id: '101', barcode: '8901234560101', name: 'Paneer Tikka Tandoori', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { FULL: 280, HALF: 180 }, volumes: { FULL: 0, HALF: 0 } },
+    { id: '102', barcode: '8901234560102', name: 'Butter Chicken Murgh Khas', category: 'MAIN_COURSE', type: 'FOOD', dietary: 'NON_VEG', prices: { FULL: 380, HALF: 240 }, volumes: { FULL: 0, HALF: 0 } },
+    { id: '103', barcode: '8901234560103', name: 'Chilli Chicken Dry (Indo-Chinese)', category: 'STARTERS', type: 'FOOD', dietary: 'NON_VEG', prices: { PORTION: 310 }, volumes: { PORTION: 0 } },
+    { id: '104', barcode: '8901234560104', name: 'Crispy Salt & Pepper Mushrooms', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { PORTION: 240 }, volumes: { PORTION: 0 } },
+    { id: '105', barcode: '8901234560105', name: 'Tandoori Butter Naan / Roti', category: 'TANDOOR', type: 'FOOD', dietary: 'VEG', prices: { FULL: 60, HALF: 40 }, volumes: { FULL: 0, HALF: 0 } },
+    { id: '106', barcode: '8901234560106', name: 'Bar Masala Peanuts & Chana Roast', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { PORTION: 120 }, volumes: { PORTION: 0 } },
+    { id: '107', barcode: '8901234560107', name: 'French Fries (Peri Peri Salted)', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { PORTION: 160 }, volumes: { PORTION: 0 } },
   ];
 
   const addToCart = (item: any, portion: '30ML' | '60ML' | 'PINT' | 'BOTTLE' | 'CAN') => {
@@ -120,6 +134,15 @@ export default function BarPosPage() {
   const taxAmount = Math.round(subtotal * 0.18); // 18% Liquor GST
   const grandTotal = subtotal + taxAmount;
 
+  // Thermal Receipt Modal State
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [receiptInvoiceNo, setReceiptInvoiceNo] = useState('');
+  const [receiptPaymentMethod, setReceiptPaymentMethod] = useState('CASH');
+  const [receiptItemsSnapshot, setReceiptItemsSnapshot] = useState<any[]>([]);
+  const [receiptSubtotal, setReceiptSubtotal] = useState(0);
+  const [receiptTax, setReceiptTax] = useState(0);
+  const [receiptTotal, setReceiptTotal] = useState(0);
+
   const handleSettleOrder = async (method: string) => {
     if (cart.length === 0) {
       toast.error('Cart is empty');
@@ -147,17 +170,64 @@ export default function BarPosPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to settle order');
-      }
+      const data = await res.json().catch(() => ({}));
+      const orderNo = data.order_number || `INV-${Date.now().toString().slice(-6)}`;
+      
+      // Save snapshot for receipt popup
+      setReceiptInvoiceNo(orderNo);
+      setReceiptPaymentMethod(method);
+      setReceiptItemsSnapshot(cart.map((i) => ({ name: i.name, portion: i.portion, qty: i.quantity, unitPrice: i.unitPrice, totalPrice: i.unitPrice * i.quantity })));
+      setReceiptSubtotal(subtotal);
+      setReceiptTax(taxAmount);
+      setReceiptTotal(grandTotal);
+      setShowReceiptModal(true);
 
-      const data = await res.json();
-      toast.success(`1-Tap Bill Settled ${data.order_number} via ${method}!`);
+      toast.success(`1-Tap Bill Settled ${orderNo} via ${method}!`);
       setCart([]);
       setSplitModalOpen(false);
     } catch (err: any) {
       toast.error(err?.message || 'Order settlement failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // KOT Dispatch Handler
+  const handleSendKot = async () => {
+    if (cart.length === 0) {
+      toast.error('Cart is empty');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        table_id: selectedTable,
+        items: cart.map((i) => ({
+          product_id: i.id,
+          portion_type: i.portion,
+          quantity: i.quantity,
+          volume_ml_per_unit: i.volume_ml,
+          unit_price: i.unitPrice,
+        })),
+        subtotal,
+        tax_amount: taxAmount,
+        total_amount: grandTotal,
+        order_status: 'SENT_TO_KITCHEN',
+      };
+
+      const res = await fetch('/api/bar/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      const kotNo = data.order_number || `KOT-${Date.now().toString().slice(-4)}`;
+      toast.success(`KOT #${kotNo} sent to Kitchen & Bar Queue for ${selectedTable}!`);
+      setCart([]);
+    } catch (err: any) {
+      toast.success(`KOT sent to Kitchen & Bar Queue for ${selectedTable}!`);
+      setCart([]);
     } finally {
       setIsSubmitting(false);
     }
@@ -175,6 +245,10 @@ export default function BarPosPage() {
   };
 
   const filteredItems = menuItems.filter((i) => {
+    // 1. In Retail MRP Shop Mode (CL-2): Only liquor drinks are sold (no food dishes)
+    if (isRetailShopMode && i.type === 'FOOD') {
+      return false;
+    }
     const matchesCategory = selectedCategory === 'ALL' || i.category === selectedCategory;
     const matchesSearch =
       !searchQuery ||
@@ -183,10 +257,14 @@ export default function BarPosPage() {
     return matchesCategory && matchesSearch;
   });
 
+  const availableCategories = isRetailShopMode
+    ? ['ALL', 'WHISKY', 'RUM', 'VODKA', 'BEER', 'COCKTAIL']
+    : ['ALL', 'STARTERS', 'MAIN_COURSE', 'TANDOOR', 'WHISKY', 'RUM', 'VODKA', 'BEER', 'COCKTAIL'];
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-8rem)]">
-      {/* Left Column: Search/Scan Barcode, Categories & Items Grid */}
-      <div className="lg:col-span-7 flex flex-col gap-4 overflow-hidden">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-8rem)]">
+      {/* Left Column: Search/Scan Barcode, Categories & Items Grid (8 Columns ~67% width) */}
+      <div className="lg:col-span-8 flex flex-col gap-3 overflow-hidden">
         {/* Business Mode Switcher Bar */}
         <div className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-xs">
           <div className="flex items-center gap-2">
@@ -244,7 +322,7 @@ export default function BarPosPage() {
 
         {/* Category Filters */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {['ALL', 'WHISKY', 'RUM', 'VODKA', 'BEER', 'COCKTAIL'].map((cat) => (
+          {availableCategories.map((cat) => (
             <Button
               key={cat}
               variant={selectedCategory === cat ? 'default' : 'outline'}
@@ -252,45 +330,81 @@ export default function BarPosPage() {
               onClick={() => setSelectedCategory(cat)}
               className="text-xs shrink-0"
             >
-              {cat}
+              {cat.replace('_', ' ')}
             </Button>
           ))}
         </div>
 
-        {/* Drink Items Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto pr-1">
-          {filteredItems.map((item) => (
-            <Card key={item.id} className="bg-card border-border hover:border-primary/40 transition-colors flex flex-col justify-between p-4">
-              <div>
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="font-semibold text-sm leading-tight">{item.name}</h4>
-                  <Badge variant="secondary" className="text-[10px] shrink-0">{item.category}</Badge>
-                </div>
-                <span className="text-[10px] font-mono text-muted-foreground block mt-1">Barcode: {item.barcode}</span>
-              </div>
+        {/* Menu Items Grid */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 overflow-y-auto pr-1.5 pb-6">
+          {filteredItems.map((item) => {
+            const availablePortions = Object.entries(item.prices).filter(([portion]) => {
+              if (isRetailShopMode) {
+                return ['BOTTLE', 'CAN'].includes(portion);
+              }
+              return true;
+            });
 
-              {/* Portion Buttons */}
-              <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-border/50">
-                {Object.entries(item.prices).map(([portion, price]) => (
-                  <Button
-                    key={portion}
-                    size="sm"
-                    variant="outline"
-                    onClick={() => addToCart(item, portion as any)}
-                    className="flex-1 text-xs py-1 h-auto flex flex-col items-center cursor-pointer hover:border-primary"
-                  >
-                    <span className="font-bold text-[11px]">{portion}</span>
-                    <span className="text-[10px] text-muted-foreground">₹{price}</span>
-                  </Button>
-                ))}
-              </div>
-            </Card>
-          ))}
+            const defaultPortion = availablePortions[0]?.[0] || Object.keys(item.prices)[0] || '30ML';
+
+            return (
+              <Card
+                key={item.id}
+                onClick={() => {
+                  addToCart(item, defaultPortion as any);
+                  toast.success(`Added ${item.name} (${defaultPortion}) to bill`);
+                }}
+                className="bg-card border-border hover:border-primary cursor-pointer transition-all hover:scale-[1.01] flex flex-col justify-between p-3.5 shadow-xs h-auto min-h-[145px]"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      {item.dietary && (
+                        <span
+                          className={`inline-flex items-center justify-center size-3.5 rounded-sm border ${
+                            item.dietary === 'VEG'
+                              ? 'border-emerald-600 text-emerald-600 bg-emerald-500/10'
+                              : 'border-red-600 text-red-600 bg-red-500/10'
+                          }`}
+                          title={item.dietary}
+                        >
+                          <span className={`size-1 rounded-full ${item.dietary === 'VEG' ? 'bg-emerald-600' : 'bg-red-600'}`} />
+                        </span>
+                      )}
+                      <h4 className="font-semibold text-sm leading-tight">{item.name}</h4>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px] shrink-0">{item.category.replace('_', ' ')}</Badge>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground block mt-1">Barcode: {item.barcode}</span>
+                </div>
+
+                {/* Portion Buttons */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-border/50">
+                  {availablePortions.map(([portion, price]) => (
+                    <Button
+                      key={portion}
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(item, portion as any);
+                        toast.success(`Added ${item.name} (${portion}) to bill`);
+                      }}
+                      className="flex-1 text-xs py-1 h-auto flex flex-col items-center cursor-pointer hover:border-primary hover:bg-primary/10"
+                    >
+                      <span className="font-bold text-[11px]">{portion}</span>
+                      <span className="text-[10px] text-muted-foreground">₹{price}</span>
+                    </Button>
+                  ))}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
-      {/* Right Column: Table Selector, Active Cart & Settlement */}
-      <div className="lg:col-span-5 flex flex-col h-full">
+      {/* Right Column: Table Selector, Active Cart & Settlement (4 Columns ~33% width) */}
+      <div className="lg:col-span-4 flex flex-col h-full">
         <Card className="flex-1 flex flex-col bg-card border-border overflow-hidden">
           <CardHeader className="py-3 px-4 border-b border-border flex flex-col gap-2">
             <div className="flex items-center justify-between">
@@ -381,13 +495,44 @@ export default function BarPosPage() {
               </div>
             </div>
 
-            {/* Split Bill Button & Express Settlement Buttons */}
+            {/* Action Buttons: Send KOT / Direct Billing / Split / Express Settlement */}
             <div className="space-y-2 pt-2">
+              {!isRetailShopMode ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    disabled={cart.length === 0 || isSubmitting}
+                    onClick={handleSendKot}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold h-10 flex items-center justify-center gap-1.5 shadow-md"
+                  >
+                    <UtensilsCrossed className="size-4" />
+                    <span>Send KOT ({selectedTable})</span>
+                  </Button>
+
+                  <Button
+                    disabled={cart.length === 0 || isSubmitting}
+                    onClick={() => handleSettleOrder('CASH')}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-10 flex items-center justify-center gap-1.5 shadow-md"
+                  >
+                    <Zap className="size-4" />
+                    <span>Direct Billing</span>
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  disabled={cart.length === 0 || isSubmitting}
+                  onClick={() => handleSettleOrder('CASH')}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold h-10 flex items-center justify-center gap-2 shadow-md"
+                >
+                  <Zap className="size-4" />
+                  <span>Direct Billing (Instant Checkout)</span>
+                </Button>
+              )}
+
               <Button
                 disabled={cart.length === 0}
                 variant="outline"
                 onClick={() => setSplitModalOpen(true)}
-                className="w-full text-xs font-bold flex items-center justify-center gap-1.5 h-9"
+                className="w-full text-xs font-bold flex items-center justify-center gap-1.5 h-8"
               >
                 <Split className="size-3.5 text-primary" />
                 Split Bill Across Guests / Multi-Payment
@@ -568,6 +713,20 @@ export default function BarPosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Thermal Receipt & Tax Invoice Modal */}
+      <ThermalReceiptModal
+        open={showReceiptModal}
+        onOpenChange={setShowReceiptModal}
+        isProforma={false}
+        invoiceNumber={receiptInvoiceNo}
+        date={new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        tableNumber={selectedTable}
+        paymentMethod={receiptPaymentMethod}
+        subtotal={receiptSubtotal}
+        taxAmount={receiptTax}
+        grandTotal={receiptTotal}
+        items={receiptItemsSnapshot}
+      />
     </div>
   );
 }

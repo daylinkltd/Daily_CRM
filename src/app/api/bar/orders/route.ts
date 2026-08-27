@@ -120,9 +120,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 5. Update Table Status if table_id is specified
+    // 5. Automatic Table Status Transition Lifecycle
     if (table_id) {
-      await admin.from("bar_tables").update({ status: "VACANT" }).eq("id", table_id);
+      const isPaid = payment_method || body.payment_status === "PAID";
+      const isKotSent = body.order_status === "SENT_TO_KITCHEN";
+      const isBilling = body.order_status === "BILLING";
+
+      const targetStatus = isPaid
+        ? "VACANT"
+        : isKotSent
+        ? "OCCUPIED"
+        : isBilling
+        ? "BILLING"
+        : "OCCUPIED";
+
+      await admin.from("bar_tables").update({ status: targetStatus }).eq("id", table_id);
     }
 
     return NextResponse.json({

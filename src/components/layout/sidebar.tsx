@@ -77,6 +77,8 @@ import {
   Send,
   Bell,
   Sparkles,
+  UtensilsCrossed,
+  ChefHat,
 } from "lucide-react";
 import { useCalendarStore } from "@/lib/calendar/store";
 import {
@@ -247,13 +249,17 @@ const navGroups: NavGroup[] = [
     icon: Wine,
     items: [
       { href: "/bar-management", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/bar-management/catalog/products", label: "Liquor Catalog", icon: Package },
-      { href: "/bar-management/pos", label: "Touch POS", icon: ShoppingCart },
+      { href: "/bar-management/pos", label: "Touch POS", icon: ShoppingCart, section: "POS Operations" },
+      { href: "/bar-management/billing", label: "Table Billing", icon: ReceiptText },
       { href: "/bar-management/tables", label: "Tables & Layout", icon: CalendarClock },
       { href: "/bar-management/kitchen", label: "KDS Queue", icon: Clock },
-      { href: "/bar-management/inventory", label: "Stock & KSBCL", icon: Package },
+      { href: "/bar-management/catalog/products", label: "Liquor Catalog", icon: Package, section: "Catalogs & Menu" },
+      { href: "/bar-management/catalog/food", label: "Food Catalog", icon: UtensilsCrossed },
+      { href: "/bar-management/inventory", label: "Stock & KSBCL", icon: Package, section: "Stock & Inventory" },
+      { href: "/bar-management/inventory/kitchen", label: "Kitchen Raw Stock", icon: ChefHat },
       { href: "/bar-management/inventory/inward", label: "Inward Permit GRN", icon: Truck },
       { href: "/bar-management/inventory/damage", label: "Damage & Spillage", icon: RefreshCw },
+      { href: "/bar-management/reports/sales", label: "Dish Sales Report", icon: BarChart3, section: "Reports & Analytics" },
       { href: "/bar-management/shifts", label: "Shifts & Z-Reports", icon: Clock },
       { href: "/bar-management/reports/ksbcl", label: "KSBCL Register", icon: FileText },
     ]
