@@ -16,7 +16,7 @@
 // shape for each.
 // ============================================================
 
-export const MODULE_KEYS = ["crm", "accounting", "hr", "retail", "projects"] as const;
+export const MODULE_KEYS = ["crm", "accounting", "hr", "retail", "projects", "bar"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 export const MODULE_LABELS: Record<ModuleKey, string> = {
@@ -25,6 +25,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   hr: "HR",
   retail: "Retail",
   projects: "Projects",
+  bar: "Bar & Restaurant Management",
 };
 
 /** The four CRUD actions, in matrix column order. */
@@ -436,6 +437,41 @@ export const RESOURCES: Resource[] = [
       ws("project_invoices"),
       via("project_invoice_items", "project_invoices", "invoice_id"),
     ],
+  },
+
+  // ── Bar & Restaurant Management ──────────────────────────────────
+  {
+    key: "bar_pos",
+    label: "POS & Billing",
+    module: "bar",
+    description: "Touch POS, Table Billing, Layouts & KDS Kitchen Queue",
+    tables: [ws("bar_orders"), ws("bar_tables"), ws("bar_kds_queue")],
+  },
+  {
+    key: "bar_catalog",
+    label: "Food & Liquor Catalog",
+    module: "bar",
+    description: "Food menu items, liquor catalog, and Recipe BOM links",
+    tables: [ws("bar_menu_items"), ws("bar_liquor_items"), ws("bar_recipe_boms")],
+  },
+  {
+    key: "bar_inventory",
+    label: "Kitchen Raw Stock & KSBCL",
+    module: "bar",
+    description: "Kitchen stock balances, KSBCL liquor inventory & wastage logs",
+    tables: [
+      ws("kitchen_raw_materials"),
+      ws("kitchen_stock_balances"),
+      ws("kitchen_stock_movements"),
+      ws("kitchen_wastage_logs"),
+    ],
+  },
+  {
+    key: "bar_masters",
+    label: "Inventory Masters",
+    module: "bar",
+    description: "Storage locations, kitchen stations, and supplier masters",
+    tables: [ws("kitchen_locations"), ws("kitchen_suppliers")],
   },
 ];
 
