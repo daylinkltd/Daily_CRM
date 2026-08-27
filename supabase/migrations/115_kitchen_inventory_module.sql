@@ -111,11 +111,22 @@ ALTER TABLE public.kitchen_wastage_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_suppliers ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Active workspace members can manage kitchen_raw_materials" ON public.kitchen_raw_materials;
 CREATE POLICY "Active workspace members can manage kitchen_raw_materials" ON public.kitchen_raw_materials FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage kitchen_stock_balances" ON public.kitchen_stock_balances;
 CREATE POLICY "Active workspace members can manage kitchen_stock_balances" ON public.kitchen_stock_balances FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage kitchen_stock_movements" ON public.kitchen_stock_movements;
 CREATE POLICY "Active workspace members can manage kitchen_stock_movements" ON public.kitchen_stock_movements FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage kitchen_wastage_logs" ON public.kitchen_wastage_logs;
 CREATE POLICY "Active workspace members can manage kitchen_wastage_logs" ON public.kitchen_wastage_logs FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage kitchen_locations" ON public.kitchen_locations;
 CREATE POLICY "Active workspace members can manage kitchen_locations" ON public.kitchen_locations FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage kitchen_suppliers" ON public.kitchen_suppliers;
 CREATE POLICY "Active workspace members can manage kitchen_suppliers" ON public.kitchen_suppliers FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
 
 COMMIT;

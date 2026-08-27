@@ -98,11 +98,22 @@ ALTER TABLE public.food_modifier_options ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.restaurant_recipe_bom ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.restaurant_branch_menu ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Active workspace members can manage restaurant_food_items" ON public.restaurant_food_items;
 CREATE POLICY "Active workspace members can manage restaurant_food_items" ON public.restaurant_food_items FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage food_variants" ON public.food_variants;
 CREATE POLICY "Active workspace members can manage food_variants" ON public.food_variants FOR ALL USING (EXISTS (SELECT 1 FROM public.restaurant_food_items f WHERE f.id = food_item_id AND public.is_active_workspace_member(f.workspace_id, auth.uid())));
+
+DROP POLICY IF EXISTS "Active workspace members can manage food_modifier_groups" ON public.food_modifier_groups;
 CREATE POLICY "Active workspace members can manage food_modifier_groups" ON public.food_modifier_groups FOR ALL USING (EXISTS (SELECT 1 FROM public.restaurant_food_items f WHERE f.id = food_item_id AND public.is_active_workspace_member(f.workspace_id, auth.uid())));
+
+DROP POLICY IF EXISTS "Active workspace members can manage food_modifier_options" ON public.food_modifier_options;
 CREATE POLICY "Active workspace members can manage food_modifier_options" ON public.food_modifier_options FOR ALL USING (EXISTS (SELECT 1 FROM public.food_modifier_groups g JOIN public.restaurant_food_items f ON f.id = g.food_item_id WHERE g.id = group_id AND public.is_active_workspace_member(f.workspace_id, auth.uid())));
+
+DROP POLICY IF EXISTS "Active workspace members can manage restaurant_recipe_bom" ON public.restaurant_recipe_bom;
 CREATE POLICY "Active workspace members can manage restaurant_recipe_bom" ON public.restaurant_recipe_bom FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage restaurant_branch_menu" ON public.restaurant_branch_menu;
 CREATE POLICY "Active workspace members can manage restaurant_branch_menu" ON public.restaurant_branch_menu FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
 
 COMMIT;

@@ -331,22 +331,55 @@ ALTER TABLE public.bar_cash_drawer_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bar_loyalty_tiers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bar_loyalty_ledger ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Active workspace members can manage bar_branches" ON public.bar_branches;
 CREATE POLICY "Active workspace members can manage bar_branches" ON public.bar_branches FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_tables" ON public.bar_tables;
 CREATE POLICY "Active workspace members can manage bar_tables" ON public.bar_tables FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_table_reservations" ON public.bar_table_reservations;
 CREATE POLICY "Active workspace members can manage bar_table_reservations" ON public.bar_table_reservations FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_packaging_templates" ON public.bar_packaging_templates;
 CREATE POLICY "Active workspace members can manage bar_packaging_templates" ON public.bar_packaging_templates FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_categories" ON public.bar_categories;
 CREATE POLICY "Active workspace members can manage bar_categories" ON public.bar_categories FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_brands" ON public.bar_brands;
 CREATE POLICY "Active workspace members can manage bar_brands" ON public.bar_brands FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_cocktail_recipes" ON public.bar_cocktail_recipes;
 CREATE POLICY "Active workspace members can manage bar_cocktail_recipes" ON public.bar_cocktail_recipes FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_inventory" ON public.bar_inventory;
 CREATE POLICY "Active workspace members can manage bar_inventory" ON public.bar_inventory FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_inward_stock" ON public.bar_inward_stock;
 CREATE POLICY "Active workspace members can manage bar_inward_stock" ON public.bar_inward_stock FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_damage_logs" ON public.bar_damage_logs;
 CREATE POLICY "Active workspace members can manage bar_damage_logs" ON public.bar_damage_logs FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_bottle_weight_audits" ON public.bar_bottle_weight_audits;
 CREATE POLICY "Active workspace members can manage bar_bottle_weight_audits" ON public.bar_bottle_weight_audits FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_keg_taps" ON public.bar_keg_taps;
 CREATE POLICY "Active workspace members can manage bar_keg_taps" ON public.bar_keg_taps FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_beer_aging" ON public.bar_beer_aging;
 CREATE POLICY "Active workspace members can manage bar_beer_aging" ON public.bar_beer_aging FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_orders" ON public.bar_orders;
 CREATE POLICY "Active workspace members can manage bar_orders" ON public.bar_orders FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_shifts" ON public.bar_shifts;
 CREATE POLICY "Active workspace members can manage bar_shifts" ON public.bar_shifts FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_loyalty_tiers" ON public.bar_loyalty_tiers;
 CREATE POLICY "Active workspace members can manage bar_loyalty_tiers" ON public.bar_loyalty_tiers FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
+
+DROP POLICY IF EXISTS "Active workspace members can manage bar_loyalty_ledger" ON public.bar_loyalty_ledger;
 CREATE POLICY "Active workspace members can manage bar_loyalty_ledger" ON public.bar_loyalty_ledger FOR ALL USING (public.is_active_workspace_member(workspace_id, auth.uid()));
 
 COMMIT;
