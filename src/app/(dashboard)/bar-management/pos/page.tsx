@@ -38,10 +38,11 @@ interface CartItem {
 }
 
 export default function BarPosPage() {
-  const [isRetailShopMode, setIsRetailShopMode] = useState(true); // Default to Retail MRP Wine Shop
+  // Retail MRP Wine Shop (CL-2) mode defaults to 'Bar Counter' as retail shops do not have dining tables
+  const [isRetailShopMode, setIsRetailShopMode] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedTable, setSelectedTable] = useState('Bar Counter');
+  const [selectedTable, setSelectedTable] = useState('Bar Counter'); // Default table for Retail MRP Wine Shop
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
