@@ -88,11 +88,19 @@ export function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="border-b border-[var(--mkt-line-soft)] py-3 text-sm font-medium text-[var(--mkt-fg-muted)] last:border-0"
+                className="border-b border-[var(--mkt-line-soft)] py-3 text-sm font-medium text-[var(--mkt-fg-muted)]"
               >
                 {item.label}
               </Link>
             ))}
+            <Link
+              href={`${BRAND.appUrl}/login`}
+              onClick={() => setOpen(false)}
+              className="py-3 text-sm font-semibold text-[var(--mkt-fg)] flex items-center justify-between border-t border-[var(--mkt-line-soft)] mt-1"
+            >
+              <span>Sign in / Login</span>
+              <ArrowRight className="size-4 text-primary" />
+            </Link>
           </div>
         </nav>
       )}
