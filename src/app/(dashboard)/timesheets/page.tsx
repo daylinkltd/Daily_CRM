@@ -40,6 +40,10 @@ export default function TimesheetsPage() {
   const [loading, setLoading] = useState(true);
   const [editingLog, setEditingLog] = useState<any | null>(null);
   const [defaultLogDate, setDefaultLogDate] = useState<string>('');
+  // Lost in the merge that swapped the card form for the entry table:
+  // the state was dropped while five call sites kept using it, so the
+  // build could not type-check. The dialog needs it back.
+  const [formOpen, setFormOpen] = useState(false);
   const { templateId: timesheetTemplateId } = useTimesheetTemplate();
 
   // Calendar / Date Filters

@@ -45,6 +45,7 @@ export function CandidateBoard({
   onMove,
   onDelete,
   onEdit,
+  onAddCandidate,
 }: {
   stages: string[];
   applications: CandidateApplication[];
@@ -52,6 +53,8 @@ export function CandidateBoard({
   onMove: (applicationId: string, stage: string) => void;
   onDelete: (application: CandidateApplication) => void;
   onEdit: (application: CandidateApplication) => void;
+  /** Offered on the first column only — see StageColumn. */
+  onAddCandidate?: () => void;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -106,6 +109,7 @@ export function CandidateBoard({
             canManage={canManage}
             onDelete={onDelete}
             onEdit={onEdit}
+            onAddCandidate={onAddCandidate}
           />
         ))}
       </div>
