@@ -49,6 +49,11 @@ export default function KitchenDisplayPage() {
     toast.success(`Order status updated to ${nextStatus}`);
   };
 
+  const handleCancelOrder = (id: string, orderNumber: string, table: string) => {
+    setOrders((prev) => prev.filter((o) => o.id !== id));
+    toast.error(`Order ${orderNumber} for ${table} CANCELLED. Ticket voided.`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -82,7 +87,7 @@ export default function KitchenDisplayPage() {
                 </CardTitle>
                 <span className="text-xs text-muted-foreground">{ticket.table}</span>
               </div>
-              <div className="flex flex-col items-end">
+              <div className="flex flex-col items-end gap-1">
                 <Badge
                   variant={
                     ticket.status === 'PENDING'
@@ -95,7 +100,7 @@ export default function KitchenDisplayPage() {
                 >
                   {ticket.status}
                 </Badge>
-                <span className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
+                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                   <Clock className="size-3" />
                   {ticket.timeAgo}
                 </span>
@@ -114,11 +119,11 @@ export default function KitchenDisplayPage() {
               ))}
             </CardContent>
 
-            <div className="p-3 border-t border-border/50 bg-background/50 flex gap-2">
+            <div className="p-3 border-t border-border/50 bg-background/50 flex items-center gap-2">
               {ticket.status === 'PENDING' && (
                 <Button
                   onClick={() => updateStatus(ticket.id, 'PREPARING')}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs h-8"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 font-bold"
                 >
                   Start Preparing
                 </Button>
@@ -126,17 +131,26 @@ export default function KitchenDisplayPage() {
               {ticket.status === 'PREPARING' && (
                 <Button
                   onClick={() => updateStatus(ticket.id, 'READY')}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 font-bold"
                 >
                   Mark as Ready
                 </Button>
               )}
               {ticket.status === 'READY' && (
-                <div className="w-full py-1 text-center font-semibold text-emerald-600 text-xs flex items-center justify-center gap-1">
+                <div className="flex-1 py-1 font-semibold text-emerald-600 text-xs flex items-center justify-center gap-1">
                   <CheckCircle2 className="size-4" />
                   Ready to Serve
                 </div>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleCancelOrder(ticket.id, ticket.orderNumber, ticket.table)}
+                className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10 border-red-500/30 font-semibold"
+                title="Cancel order ticket (Customer left)"
+              >
+                Void Ticket
+              </Button>
             </div>
           </Card>
         ))}

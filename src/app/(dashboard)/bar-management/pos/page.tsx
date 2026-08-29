@@ -41,13 +41,13 @@ export default function BarPosPage() {
   const [isRetailShopMode, setIsRetailShopMode] = useState(true); // Default to Retail MRP Wine Shop
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedTable, setSelectedTable] = useState('Counter Checkout 1');
+  const [selectedTable, setSelectedTable] = useState('Bar Counter');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Table Transfer Modal State
   const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [targetTable, setTargetTable] = useState('Counter Checkout 2');
+  const [targetTable, setTargetTable] = useState('Counter 2');
 
   // Split Bill Modal State
   const [splitModalOpen, setSplitModalOpen] = useState(false);
@@ -281,7 +281,7 @@ export default function BarPosPage() {
               size="sm"
               onClick={() => {
                 setIsRetailShopMode(true);
-                setSelectedTable('Counter Checkout 1');
+                setSelectedTable('Bar Counter');
                 toast.success('Switched to Retail MRP Wine Shop Mode (Full Sealed Bottles)');
               }}
               className="h-6 text-[10px] px-2 font-bold"
@@ -413,26 +413,46 @@ export default function BarPosPage() {
                 Active Bill ({selectedTable})
               </CardTitle>
               <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setTransferModalOpen(true)}
-                  className="h-7 text-[11px] font-semibold flex items-center gap-1"
-                >
-                  <ArrowRightLeft className="size-3" />
-                  Transfer Table
-                </Button>
-                {cart.length > 0 && (
-                  <Button variant="ghost" size="sm" onClick={() => setCart([])} className="h-7 text-xs text-red-500 hover:text-red-600">
-                    Clear
+                {!isRetailShopMode && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTransferModalOpen(true)}
+                    className="h-7 text-[11px] font-semibold flex items-center gap-1"
+                  >
+                    <ArrowRightLeft className="size-3" />
+                    Transfer Table
                   </Button>
+                )}
+                {cart.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm(`Cancel and void order for ${selectedTable}? Table will be cleared and reset.`)) {
+                          setCart([]);
+                          toast.error(`Order for ${selectedTable} cancelled. Customer left.`);
+                        }
+                      }}
+                      className="h-7 text-[11px] text-red-600 hover:bg-red-500/10 border-red-500/30 font-semibold"
+                    >
+                      Void / Cancel Order
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setCart([])} className="h-7 text-xs text-muted-foreground hover:text-foreground">
+                      Clear
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Quick Table Selector Pills */}
+            {/* Quick Table / Counter Selector Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pt-1">
-              {['Bar Counter', 'Table 1', 'Table 4', 'VIP Booth 2', 'Rooftop R1'].map((tbl) => (
+              {(isRetailShopMode
+                ? ['Bar Counter', 'Counter 2']
+                : ['Bar Counter', 'Table 1', 'Table 4', 'VIP Booth 2', 'Rooftop R1']
+              ).map((tbl) => (
                 <Badge
                   key={tbl}
                   onClick={() => setSelectedTable(tbl)}

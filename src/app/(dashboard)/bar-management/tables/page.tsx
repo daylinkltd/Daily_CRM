@@ -286,6 +286,23 @@ export default function TablesLayoutPage() {
                       <Edit2 className="size-3.5 mr-2" />
                       Edit Table Details
                     </DropdownMenuItem>
+                    {t.status !== 'VACANT' && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTables((prev) =>
+                            prev.map((item) =>
+                              item.id === t.id ? { ...item, status: 'VACANT', guestCount: 0 } : item
+                            )
+                          );
+                          toast.error(`Order for ${t.tableNumber} cancelled & table reset to VACANT (Customer Left).`);
+                        }}
+                        className="text-amber-600 font-semibold"
+                      >
+                        <AlertCircle className="size-3.5 mr-2 text-amber-600" />
+                        Cancel Order & Reset Table
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => handleDeleteTable(t.id, t.tableNumber)} className="text-red-500">
                       <Trash2 className="size-3.5 mr-2" />
                       Delete Table
