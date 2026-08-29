@@ -76,6 +76,7 @@ import {
 } from '@/components/presence/presence-dot';
 import { createClient } from '@/lib/supabase/client';
 import { InviteMemberDialog } from './invite-member-dialog';
+import { WorkspaceAccessPanel } from './workspace-access-panel';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { SettingsPanelHead } from './settings-panel-head';
 import { ROLE_META } from './role-meta';
@@ -770,6 +771,10 @@ export function MembersTab() {
           )}
         </div>
       )}
+
+      {/* Cross-workspace access. Renders nothing unless the viewer owns
+          more than one workspace. */}
+      <WorkspaceAccessPanel />
 
       {/* Password dialog — set a chosen password, mint a random one, or
           fall back to the email flow. A generated credential is shown

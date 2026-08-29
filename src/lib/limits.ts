@@ -136,13 +136,8 @@ export async function getWorkspaceUsageAndLimits(workspaceId: string): Promise<W
   const planId = ws.plan || 'growth';
   const createdAt = new Date(ws.created_at);
 
-  // 2. Count members
-  const { count: memberCount } = await admin
-    .from('workspace_members')
-    .select('*', { count: 'exact', head: true })
-    .eq('workspace_id', workspaceId);
-
-  // 3. Count workspaces owned by the owner of this workspace
+  // 2. The owner, and therefore the tenant: every workspace this person
+  //    owns shares one subscription and one pool of seats.
   const { data: ownerMember } = await admin
     .from('workspace_members')
     .select('user_id')
@@ -150,15 +145,29 @@ export async function getWorkspaceUsageAndLimits(workspaceId: string): Promise<W
     .eq('role', 'owner')
     .maybeSingle();
 
+  let tenantWorkspaceIds: string[] = [workspaceId];
   let workspaceCount = 1;
   if (ownerMember) {
-    const { count: wsCount } = await admin
+    const { data: owned } = await admin
       .from('workspace_members')
-      .select('*', { count: 'exact', head: true })
+      .select('workspace_id')
       .eq('user_id', ownerMember.user_id)
       .eq('role', 'owner');
-    workspaceCount = wsCount || 1;
+    if (owned?.length) {
+      tenantWorkspaceIds = owned.map((r) => r.workspace_id as string);
+      workspaceCount = owned.length;
+    }
   }
+
+  // 3. Seats are PEOPLE, not memberships. Someone who works in three of
+  //    the tenant's workspaces occupies one seat — counting rows instead
+  //    would bill them three times, and counting only this workspace let
+  //    a 5-seat plan carry 20 people split across four workspaces.
+  const { data: tenantMemberRows } = await admin
+    .from('workspace_members')
+    .select('user_id')
+    .in('workspace_id', tenantWorkspaceIds);
+  const memberCount = new Set((tenantMemberRows ?? []).map((r) => r.user_id)).size;
 
   // 4. Count outbound messages ('agent' or 'bot') in the current month (or total if free trial)
   let startDateTime = new Date();
@@ -208,7 +217,7 @@ export async function getWorkspaceUsageAndLimits(workspaceId: string): Promise<W
   return {
     planId,
     planName: planConfig.name,
-    memberCount: memberCount || 0,
+    memberCount,
     maxUsers: Number(bought.max_members) || planConfig.maxUsers,
     workspaceCount,
     maxWorkspaces: Number(bought.max_workspaces) || planConfig.maxWorkspaces,
