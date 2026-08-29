@@ -40,7 +40,7 @@ interface RefOption { id: string; label: string }
 export function TimesheetEntryTable({
   open,
   onOpenChange,
-  templateId,
+  templateId = null,
   onSaved,
   loggedHours,
   mandatory = false,
@@ -48,31 +48,23 @@ export function TimesheetEntryTable({
   inline = false,
   title,
   description,
+  editingLog,
+  defaultLogDate,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Null falls back to a minimal task/hours/notes shape. */
-  templateId: string | null;
+  templateId?: string | null;
   onSaved?: () => void;
   /** Hours actually clocked, shown so the total can be reconciled. */
   loggedHours?: number;
-  /**
-   * Punch-out is waiting on this timesheet. The dialog stops dismissing
-   * itself on a stray click or Escape, and says what is being held up —
-   * a required timesheet that closes on a misclick is not required.
-   */
   mandatory?: boolean;
-  /** Logging a past day, rather than the day being punched out of. */
   allowDateChange?: boolean;
-  /**
-   * Render the grid straight onto the page instead of inside a dialog.
-   * `/me/timesheets` is a place you go to DO the timesheet, so the grid
-   * is the page — a button that opens a modal over an empty page was a
-   * step that earned nothing.
-   */
   inline?: boolean;
   title?: string;
   description?: string;
+  editingLog?: any;
+  defaultLogDate?: string;
 }) {
   const supabase = createClient();
   const { activeWorkspace, activeMember } = useWorkspace();

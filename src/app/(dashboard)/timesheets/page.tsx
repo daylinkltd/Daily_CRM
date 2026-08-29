@@ -38,13 +38,9 @@ export default function TimesheetsPage() {
   const [teamTimesheets, setTeamTimesheets] = useState<any[]>([]);
   
   const [loading, setLoading] = useState(true);
-  const [formOpen, setFormOpen] = useState(false);
-<<<<<<< HEAD
   const [editingLog, setEditingLog] = useState<any | null>(null);
   const [defaultLogDate, setDefaultLogDate] = useState<string>('');
-=======
   const { templateId: timesheetTemplateId } = useTimesheetTemplate();
->>>>>>> 7a8a98585f9be95c83c6f42fccd342de3402c6ac
 
   // Calendar / Date Filters
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>(''); // YYYY-MM-DD
