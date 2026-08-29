@@ -34,12 +34,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { OnboardEmployeeForm } from '@/components/employees/onboard-employee-form';
 import { UserPlus } from 'lucide-react';
+import { useMemberDirectory } from '@/hooks/use-member-directory';
 import { IconAction } from "@/components/ui/icon-action";
 
 export default function EmployeesPage() {
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace } = useWorkspace();
+  // Names come from the server directory: a client-side `profiles`
+  // query returns only the caller's own row under RLS, which is why
+  // every colleague rendered as "Unknown User".
+  const { byUserId: directoryByUserId } = useMemberDirectory();
 
   const [employees, setEmployees] = useState<any[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -95,24 +100,7 @@ export default function EmployeesPage() {
         }
       }
 
-      // Enrich workspace_members with profile data
-      let data: any[] = rawData || [];
-      const userIds = data.map((e: any) => e.workspace_members?.user_id).filter(Boolean);
-      if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('user_id, full_name, email, avatar_url')
-          .in('user_id', userIds);
-        const profileMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p]));
-        data = data.map((e: any) => ({
-          ...e,
-          workspace_members: e.workspace_members
-            ? { ...e.workspace_members, profiles: profileMap[e.workspace_members.user_id] || null }
-            : null,
-        }));
-      }
-
-      setEmployees(data);
+      setEmployees(rawData || []);
     } catch (err: any) {
       console.error('Failed to load employees:', err);
       toast.error('Failed to load employees');
@@ -125,24 +113,34 @@ export default function EmployeesPage() {
     fetchEmployees();
   }, [fetchEmployees]);
 
+  /** Employee row + the directory identity that names it. */
+  const namedEmployees = useMemo(
+    () =>
+      employees.map((emp) => {
+        const entry = directoryByUserId.get(emp.workspace_members?.user_id);
+        return {
+          emp,
+          fullName: entry?.full_name || 'Workspace Member',
+          email: entry?.email || '',
+          avatarUrl: entry?.avatar_url || null,
+        };
+      }),
+    [employees, directoryByUserId],
+  );
+
   const filteredEmployees = useMemo(() => {
-    if (!search.trim()) return employees;
+    if (!search.trim()) return namedEmployees;
     const query = search.toLowerCase();
-    return employees.filter((emp) => {
-      const profile = Array.isArray(emp.workspace_members?.profiles)
-        ? emp.workspace_members?.profiles[0]
-        : emp.workspace_members?.profiles;
-      return (
-        emp.employee_code?.toLowerCase().includes(query) ||
-        profile?.full_name?.toLowerCase().includes(query) ||
-        profile?.email?.toLowerCase().includes(query)
-      );
-    });
-  }, [employees, search]);
+    return namedEmployees.filter(({ emp, fullName, email }) =>
+      emp.employee_code?.toLowerCase().includes(query) ||
+      fullName.toLowerCase().includes(query) ||
+      email.toLowerCase().includes(query),
+    );
+  }, [namedEmployees, search]);
 
   const selection = useRowSelection(
     filteredEmployees,
-    (e: { workspace_member_id: string }) => e.workspace_member_id
+    (row: { emp: { workspace_member_id: string } }) => row.emp.workspace_member_id
   );
 
   /** Set the status of every selected employee in one statement. */
@@ -244,14 +242,7 @@ export default function EmployeesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredEmployees.map((emp) => {
-                const profile = Array.isArray(emp.workspace_members?.profiles) 
-                  ? emp.workspace_members?.profiles[0] 
-                  : emp.workspace_members?.profiles;
-
-                const fullName = profile?.full_name || 'Unknown User';
-                const email = profile?.email || '';
-                
+              filteredEmployees.map(({ emp, fullName, email, avatarUrl }) => {
                 return (
                   <TableRow
                     key={emp.workspace_member_id}
@@ -271,7 +262,7 @@ export default function EmployeesPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="size-9 border border-border">
-                          {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
+                          {avatarUrl && <AvatarImage src={avatarUrl} />}
                           <AvatarFallback className="bg-primary/10 text-primary font-medium">
                             {fullName.charAt(0).toUpperCase()}
                           </AvatarFallback>

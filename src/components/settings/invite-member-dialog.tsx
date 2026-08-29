@@ -60,7 +60,7 @@ const ROLE_DESCRIPTIONS: Record<InviteRole, string> = {
   admin:
     'Can invite teammates, manage settings, send messages, and edit data.',
   agent:
-    'Can use the inbox, contacts, broadcasts, automations, and flows. No settings or member access.',
+    'Day-to-day work across the modules their role allows. No settings or member access unless granted.',
   viewer: 'Read-only access across every page. Cannot send or edit anything.',
 };
 
@@ -501,8 +501,9 @@ export function InviteMemberDialog({
                     />
                     <p className="text-xs text-muted-foreground">
                       Share this with them over a secure channel and ask them to change
-                      it after their first sign-in. Only the workspace owner can create
-                      accounts this way.
+                      it after their first sign-in. Creating accounts this way needs the
+                      Team &amp; Access permission, which the owner grants per role under
+                      Settings &rarr; Roles.
                     </p>
                   </div>
                 </>
@@ -518,7 +519,7 @@ export function InviteMemberDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="agent">Agent</SelectItem>
+                    <SelectItem value="agent">Team Member</SelectItem>
                     <SelectItem value="viewer">Viewer</SelectItem>
                   </SelectContent>
                 </Select>

@@ -48,7 +48,10 @@
 import { RESOURCES, type ModuleKey, type Resource } from '@/lib/auth/resources';
 
 /** Resources withheld from the public API regardless of scope grants. */
-export const V1_EXCLUDED_RESOURCES = new Set<string>(['api_keys']);
+// `team_members` is excluded because it has no tables to expose and
+// because membership changes must go through the member APIs, which
+// enforce seat limits and the rank rules — generic CRUD would not.
+export const V1_EXCLUDED_RESOURCES = new Set<string>(['api_keys', 'team_members']);
 
 export type V1Scoping =
   | { kind: 'workspace' }

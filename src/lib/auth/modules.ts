@@ -129,13 +129,20 @@ export function deriveModuleAccess(
     return { ...DEFAULT_MODULE_ACCESS };
   }
 
+  // Every module reads the same way: granted only when the key is
+  // explicitly true. `marketing` and `bar` used `!== false`, which made
+  // them opt-OUT — a role narrowed to CRM alone still returned true for
+  // both, because a key nobody had written could not be false. That
+  // contradicts rule 4 above and quietly widened every custom role.
+  // Migration 116 writes the two keys explicitly for existing roles, so
+  // nobody loses access they have today.
   return {
     crm: permissions[MODULE_PERMISSION_KEY.crm] === true,
-    marketing: permissions[MODULE_PERMISSION_KEY.marketing] !== false,
+    marketing: permissions[MODULE_PERMISSION_KEY.marketing] === true,
     accounting: permissions[MODULE_PERMISSION_KEY.accounting] === true,
     hr: permissions[MODULE_PERMISSION_KEY.hr] === true,
     retail: permissions[MODULE_PERMISSION_KEY.retail] === true,
-    bar: permissions[MODULE_PERMISSION_KEY.bar] !== false,
+    bar: permissions[MODULE_PERMISSION_KEY.bar] === true,
     projects: permissions[MODULE_PERMISSION_KEY.projects] === true,
   };
 }

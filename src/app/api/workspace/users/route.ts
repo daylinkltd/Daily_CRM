@@ -2,25 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { ACTIVITY, logActivity } from '@/lib/saas-admin/activity';
-import { defaultSystemRoleName, type WorkspaceDbRole } from '@/lib/auth/roles';
+import { systemRoleNameCandidates, type WorkspaceDbRole } from '@/lib/auth/roles';
+import {
+  checkTeamPermission,
+  teamPermissionError,
+  type TeamAction,
+} from '@/lib/auth/team-permissions';
 
-/** Helper: verify caller is workspace owner or admin */
-async function verifyWorkspaceAdmin(workspaceId: string) {
+/**
+ * Verify the caller may perform `action` on this workspace's membership.
+ *
+ * The owner/admin hardcode this used to carry now lives in
+ * `checkTeamPermission`, so a workspace can grant "add people" to a role
+ * that is not admin — and can take it away from one that is.
+ */
+async function verifyTeamAccess(workspaceId: string, action: TeamAction) {
   const supabase = await createServerClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return { user: null, role: null, error: 'Unauthorized', status: 401 };
 
-  const { data: member } = await supabase
-    .from('workspace_members')
-    .select('role')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (member?.role !== 'owner' && member?.role !== 'admin') {
-    return { user: null, role: null, error: 'Forbidden: owner or admin role required', status: 403 };
+  const verdict = await checkTeamPermission(
+    createAdminClient(),
+    workspaceId,
+    user.id,
+    action,
+  );
+  if (!verdict.allowed) {
+    return {
+      user: null,
+      role: null,
+      error: verdict.reason === 'not-a-member'
+        ? 'Not a member of this workspace'
+        : teamPermissionError(action),
+      status: 403,
+    };
   }
-  return { user, supabase, role: member.role, error: null, status: 200 };
+  return { user, supabase, role: verdict.role, error: null, status: 200 };
 }
 
 /**
@@ -49,12 +66,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'workspace_id is required' }, { status: 400 });
     }
 
-    const auth = await verifyWorkspaceAdmin(workspace_id);
+    const auth = await verifyTeamAccess(workspace_id, 'create');
     if (auth.error) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
-    const callerRole = auth.role;
-
     if (!email?.trim()) {
       return NextResponse.json({ error: 'email is required' }, { status: 400 });
     }
@@ -138,14 +153,10 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      // New user — create auth account
-      if (callerRole === 'admin') {
-        return NextResponse.json(
-          { error: 'Only the workspace owner can create new user accounts.' },
-          { status: 403 }
-        );
-      }
-
+      // New user — create auth account. Who may do this is decided by
+      // the `team_members:create` permission checked above, not by a
+      // hardcoded owner-only rule: the point of that permission is to
+      // let a workspace delegate onboarding without handing out admin.
       if (!password || password.length < 8) {
         return NextResponse.json(
           { error: 'Password (min 8 chars) is required for new users' },
@@ -195,7 +206,10 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('workspace_id', workspace_id)
         .eq('is_system', true)
-        .eq('name', defaultSystemRoleName(dbRole))
+        // Both names, because a workspace only carries "Team Member"
+        // once migration 116 has run.
+        .in('name', systemRoleNameCandidates(dbRole))
+        .limit(1)
         .maybeSingle();
 
       if (!fallbackRole) {
@@ -204,7 +218,7 @@ export async function POST(request: NextRequest) {
         // than create a member who silently cannot read anything.
         return NextResponse.json(
           {
-            error: `This workspace has no built-in "${defaultSystemRoleName(dbRole)}" role, so no permissions could be assigned. Create a role under Settings → Roles and pass its role_id.`,
+            error: `This workspace has no built-in "${systemRoleNameCandidates(dbRole)[0]}" role, so no permissions could be assigned. Create a role under Settings → Roles and pass its role_id.`,
           },
           { status: 409 }
         );
@@ -255,7 +269,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const auth = await verifyWorkspaceAdmin(workspace_id);
+    const auth = await verifyTeamAccess(workspace_id, 'update');
     if (auth.error) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -295,13 +309,14 @@ export async function PATCH(request: NextRequest) {
         .select('id')
         .eq('workspace_id', workspace_id)
         .eq('is_system', true)
-        .eq('name', defaultSystemRoleName(targetDbRole))
+        .in('name', systemRoleNameCandidates(targetDbRole))
+        .limit(1)
         .maybeSingle();
 
       if (!fallbackRole) {
         return NextResponse.json(
           {
-            error: `This workspace has no built-in "${defaultSystemRoleName(targetDbRole)}" role to fall back to. Assign a role_id explicitly.`,
+            error: `This workspace has no built-in "${systemRoleNameCandidates(targetDbRole)[0]}" role to fall back to. Assign a role_id explicitly.`,
           },
           { status: 409 }
         );
@@ -352,7 +367,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const auth = await verifyWorkspaceAdmin(workspace_id);
+    const auth = await verifyTeamAccess(workspace_id, 'delete');
     if (auth.error) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }

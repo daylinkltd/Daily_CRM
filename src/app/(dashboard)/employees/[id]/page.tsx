@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { useMemberDirectory } from '@/hooks/use-member-directory';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { EmployeeProfileOverview } from '@/components/employees/employee-profile-overview';
@@ -22,6 +23,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, can } = useWorkspace();
+  const { byUserId: directoryByUserId } = useMemberDirectory();
   const canManagePeople = can('people_manage');
 
   const [employee, setEmployee] = useState<any | null>(null);
@@ -97,18 +99,10 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
         empData.workspace_members = member || null;
       }
 
-      // Step 4: Enrich workspace_members with profiles (full_name, email, avatar_url)
-      if (empData?.workspace_members?.user_id) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('user_id, full_name, email, avatar_url')
-          .eq('user_id', empData.workspace_members.user_id)
-          .maybeSingle();
-        if (prof) {
-          empData.workspace_members.profiles = prof;
-        }
-      }
-
+      // Names come from the server directory (see use-member-directory):
+      // a client-side `profiles` read returns only the caller's own row
+      // under RLS, which is why every colleague showed as "Employee
+      // Profile" here and "Unknown User" in the roster.
       setEmployee(empData);
 
       // Step 5: Fetch reference data for departments, designations, managers
@@ -130,20 +124,13 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
             .select('id, user_id')
             .in('id', mgrMemberIds);
           
-          const mgrUserIds = (mgrMembers || []).map((m: any) => m.user_id).filter(Boolean);
-          const { data: mgrProfilesData } = await supabase
-            .from('profiles')
-            .select('user_id, full_name')
-            .in('user_id', mgrUserIds);
-          
-          const mgrProfileMap = Object.fromEntries((mgrProfilesData || []).map((p: any) => [p.user_id, p]));
           const memberMap = Object.fromEntries((mgrMembers || []).map((m: any) => [m.id, m]));
 
           setManagers(rawMgrRes.data.map((m: any) => {
             const wm = memberMap[m.workspace_member_id];
             return {
               workspace_member_id: m.workspace_member_id,
-              workspace_members: wm ? { ...wm, profiles: mgrProfileMap[wm.user_id] || null } : null
+              workspace_members: wm || null,
             };
           }));
         }
@@ -178,10 +165,8 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const profile = Array.isArray(employee.workspace_members?.profiles) 
-    ? employee.workspace_members?.profiles[0] 
-    : employee.workspace_members?.profiles;
-  const fullName = profile?.full_name?.trim() || profile?.email?.split('@')[0] || 'Employee Profile';
+  const profile = directoryByUserId.get(employee.workspace_members?.user_id) ?? null;
+  const fullName = profile?.full_name?.trim() || 'Workspace Member';
 
   return (
     <div className="space-y-6">

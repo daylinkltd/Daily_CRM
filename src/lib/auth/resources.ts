@@ -189,6 +189,20 @@ export const RESOURCES: Resource[] = [
     description: "Public API credentials",
     tables: [ws("api_keys")],
   },
+  {
+    // Who may add people to the workspace, re-role them, and remove
+    // them. Deliberately carries NO tables: `workspace_members` must
+    // not gain a RESTRICTIVE CRUD policy — every membership lookup in
+    // the app reads that table, and gating it on the matrix would lock
+    // a mis-configured role out of the product entirely. Enforcement
+    // lives in the member APIs, which can also honour the rank rules
+    // (nobody out-ranks the owner) that a row policy cannot express.
+    key: "team_members",
+    label: "Team & Access",
+    module: "crm",
+    description: "Adding, inviting, re-roling and removing members",
+    tables: [],
+  },
 
   // ── HR ─────────────────────────────────────────────────────────
   {

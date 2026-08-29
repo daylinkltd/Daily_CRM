@@ -286,3 +286,107 @@ html[data-theme="rose"] {
 html[data-mode="light"] :is(h1, h2, h3, h4, h5, h6, p, label, span, select, input, textarea).text-white:not(button *, .bg-primary *, .bg-blue-600 *, .bg-emerald-600 *, .bg-red-600 *, .bg-green-600 *, [class*="bg-blue"] *, [class*="bg-emerald"] *, [class*="bg-red"] *, [class*="bg-primary"] *) {
   color: var(--foreground) !important;
 }
+/* ============================================================
+   Printing
+   ============================================================
+   The app shell is a fixed-height, internally-scrolling frame
+   (`h-screen overflow-hidden` + `overflow-y-auto` on <main>).
+   Printed as-is, the browser captures exactly one viewport —
+   which is why an HR letter came out as a single clipped page
+   with the sidebar and header baked in.
+
+   Any page that prints marks its printable region with
+   `.print-area`. When one is present we hide every pixel that
+   is not inside it (the visibility trick, so ancestors keep
+   their layout boxes), release the shell's height and overflow
+   clamps so long documents paginate, and force a light canvas —
+   nobody wants a dark-theme letter that empties a toner
+   cartridge.
+   ============================================================ */
+@media print {
+  /* Release the fixed-height, clipped shell so content flows
+     across as many sheets as it needs. */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body :is(.h-screen, .max-h-screen) {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  body :is([class*="overflow-y-auto"], [class*="overflow-auto"], [class*="overflow-hidden"]) {
+    overflow: visible !important;
+  }
+
+  /* Chrome that must never reach paper, whether or not the page
+     opted into a print area. */
+  aside,
+  header,
+  nav,
+  [data-print-hide],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  /* Print ONLY the marked region: hide every element that is
+     neither the print area, inside it, nor one of its ancestors.
+     `display` (not `visibility`) so nothing hidden reserves blank
+     space — the visibility trick leaves the cards above a letter
+     as an empty first page. */
+  body:has(.print-area)
+    *:not(:has(.print-area)):not(.print-area):not(.print-area *) {
+    display: none !important;
+  }
+
+  /* The surviving ancestor chain must not impose the app's
+     layout on the sheet. */
+  body:has(.print-area) :has(.print-area) {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    width: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: #fff !important;
+  }
+
+  .print-area {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  /* A printed page is white paper: force the document's own
+     colours instead of inheriting the dark theme. */
+  .print-area,
+  .print-area * {
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+
+  .print-area :is(img, svg) {
+    /* Logos and signatures keep their real colours. */
+    filter: none !important;
+  }
+
+  /* Let the browser paint backgrounds the design depends on
+     (letterhead bands, table zebra striping). */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
