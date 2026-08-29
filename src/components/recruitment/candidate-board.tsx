@@ -52,6 +52,7 @@ export function CandidateBoard({
   canManage: boolean;
   onMove: (applicationId: string, stage: string) => void;
   onDelete: (application: CandidateApplication) => void;
+  onEdit?: (application: CandidateApplication) => void;
   /** Offered on the first column only — see StageColumn. */
   onAddCandidate?: () => void;
 }) {
@@ -142,7 +143,7 @@ function StageColumn({
   applications: CandidateApplication[];
   canManage: boolean;
   onDelete: (application: CandidateApplication) => void;
-  onEdit: (application: CandidateApplication) => void;
+  onEdit?: (application: CandidateApplication) => void;
   onAddCandidate?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage });
@@ -211,7 +212,7 @@ function CandidateCard({
   application: CandidateApplication;
   canManage: boolean;
   onDelete: (application: CandidateApplication) => void;
-  onEdit: (application: CandidateApplication) => void;
+  onEdit?: (application: CandidateApplication) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: application.id,
@@ -249,11 +250,13 @@ function CandidateCard({
         </div>
         {canManage && (
           <>
-            <IconAction
-              label="Edit application"
-              icon={<Pencil className="size-3.5" />}
-              onClick={() => onEdit(application)}
-            />
+            {onEdit && (
+              <IconAction
+                label="Edit application"
+                icon={<Pencil className="size-3.5" />}
+                onClick={() => onEdit(application)}
+              />
+            )}
             <IconAction
               label="Remove application"
               icon={<Trash2 className="size-3.5" />}
