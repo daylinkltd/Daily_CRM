@@ -78,4 +78,6 @@ export const ACTIVITY = {
   MEMBER_PASSWORD_SET: 'workspace.member_password_set',
   MEMBER_PASSWORD_RESET_EMAILED: 'workspace.member_password_reset_emailed',
   WORKSPACE_CONFIG_COPIED: 'workspace.config_copied',
+  TWO_FACTOR_ENABLED: 'auth.two_factor_enabled',
+  TWO_FACTOR_DISABLED: 'auth.two_factor_disabled',
 } as const;

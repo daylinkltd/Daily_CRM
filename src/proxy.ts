@@ -83,6 +83,26 @@ export async function proxy(request: NextRequest) {
         return response
       }
 
+      // Two-factor is on for this account and this session has not
+      // answered its code. Everything stays reachable EXCEPT the app
+      // itself, so the challenge page and its API can still load.
+      if (verdict === 'needs_2fa') {
+        const path = request.nextUrl.pathname
+        const allowed =
+          path.startsWith('/auth/2fa') ||
+          path.startsWith('/api/auth/') ||
+          path === '/login' ||
+          path.startsWith('/_next')
+
+        if (!allowed) {
+          const url = request.nextUrl.clone()
+          url.pathname = '/auth/2fa'
+          url.search = ''
+          return withRefreshedCookies(NextResponse.redirect(url))
+        }
+        return supabaseResponse
+      }
+
       if (verdict === 'active') {
         supabaseResponse.cookies.set(SESSION_COOKIE, trustCookieValue(sessionId), {
           maxAge: TRUST_WINDOW_SECONDS,

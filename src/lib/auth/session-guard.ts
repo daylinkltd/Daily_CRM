@@ -93,7 +93,7 @@ export function isWithinTrustWindow(
   return Number.isFinite(expiresAt) && Date.now() < expiresAt;
 }
 
-export type SessionVerdict = 'active' | 'revoked' | 'unknown';
+export type SessionVerdict = 'active' | 'revoked' | 'needs_2fa' | 'unknown';
 
 /**
  * Ask the database whether this session is still the active one.
@@ -120,7 +120,12 @@ export async function verifySession(
       console.error('[session-guard] register_session failed:', error.message);
       return 'unknown';
     }
-    return data === 'revoked' ? 'revoked' : data === 'active' ? 'active' : 'unknown';
+    if (data === 'revoked') return 'revoked';
+    // 'needs_2fa' arrives only from a database that has migration 122.
+    // An older one answers 'active', so a mid-rollout deploy fails OPEN
+    // rather than locking every user out at once.
+    if (data === 'needs_2fa') return 'needs_2fa';
+    return data === 'active' ? 'active' : 'unknown';
   } catch (err) {
     console.error(
       '[session-guard] register_session threw:',
