@@ -34,10 +34,26 @@
  */
 
 import fs from 'fs';
-import { MongoClient } from 'mongodb';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+
+// The MongoDB driver is NOT a dependency of this app — nothing in src/
+// imports it, and shipping it would put a database driver in every
+// production image for the sake of a script that runs on a laptop.
+// It is loaded on demand instead, with an instruction when it is absent.
+async function loadMongoClient() {
+  try {
+    return (await import('mongodb')).MongoClient;
+  } catch {
+    console.error(
+      'This script needs the MongoDB driver, which the app does not ship.\n' +
+      'Install it just for this run:\n\n  npm install mongodb --no-save\n'
+    );
+    process.exit(1);
+  }
+}
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CRM_DIR = path.resolve(__dirname, '..');
@@ -76,6 +92,7 @@ const bump = (k, n = 1) => (stats[k] = (stats[k] ?? 0) + n);
 
 async function main() {
   console.log(LIVE ? '=== LIVE RUN ===' : '=== DRY RUN ===');
+  const MongoClient = await loadMongoClient();
   const mongoClient = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 15000 });
   await mongoClient.connect();
   const db = mongoClient.db();
