@@ -127,7 +127,11 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
   const [isCreatingEpicQuick, setIsCreatingEpicQuick] = useState(false);
 
   const handleCreateEpicQuick = async () => {
-    if (!newEpicNameQuick.trim() || projectId === 'none') return;
+    if (!newEpicNameQuick.trim()) return;
+    if (projectId === 'none') {
+      toast.error('Please select a project first before creating an epic');
+      return;
+    }
     setIsCreatingEpicQuick(true);
     try {
       const { data, error } = await supabase
@@ -154,7 +158,11 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
   const [isCreatingComponentQuick, setIsCreatingComponentQuick] = useState(false);
 
   const handleCreateComponentQuick = async () => {
-    if (!newComponentNameQuick.trim() || projectId === 'none') return;
+    if (!newComponentNameQuick.trim()) return;
+    if (projectId === 'none') {
+      toast.error('Please select a project first before creating a component');
+      return;
+    }
     setIsCreatingComponentQuick(true);
     try {
       const { data, error } = await supabase
@@ -819,7 +827,16 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
             <Button variant="outline" onClick={() => setShowQuickEpicModal(false)} disabled={isCreatingEpicQuick}>
               Cancel
             </Button>
-            <IconAction label="Create Epic" icon={<Loader2 className="size-4 animate-spin " />} onClick={handleCreateEpicQuick} disabled={isCreatingEpicQuick || !newEpicNameQuick.trim()} />
+            <Button onClick={handleCreateEpicQuick} disabled={isCreatingEpicQuick || !newEpicNameQuick.trim()} className="font-bold">
+              {isCreatingEpicQuick ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Epic'
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -849,7 +866,16 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
             <Button variant="outline" onClick={() => setShowQuickComponentModal(false)} disabled={isCreatingComponentQuick}>
               Cancel
             </Button>
-            <IconAction label="Create Component" icon={<Loader2 className="size-4 animate-spin " />} onClick={handleCreateComponentQuick} disabled={isCreatingComponentQuick || !newComponentNameQuick.trim()} />
+            <Button onClick={handleCreateComponentQuick} disabled={isCreatingComponentQuick || !newComponentNameQuick.trim()} className="font-bold">
+              {isCreatingComponentQuick ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Component'
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
