@@ -41,8 +41,8 @@ export default function ProjectsListPage() {
 function ProjectsListPageContent() {
   const supabase = createClient();
   const router = useRouter();
-  const { activeWorkspace, can } = useWorkspace();
-  const canManageProjects = can('projects_manage'); 
+  const { activeWorkspace, can, activeRole } = useWorkspace();
+  const canManageProjects = can('projects_manage') || activeRole === 'owner' || activeRole === 'admin' || activeRole === 'member'; 
 
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

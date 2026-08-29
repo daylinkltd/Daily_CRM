@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { RequireModule } from '@/components/auth/require-module';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Briefcase, Target, Clock, CheckCircle2, TrendingUp, Users } from 'lucide-react';
+import { Briefcase, Target, Clock, CheckCircle2, TrendingUp, Users, Plus, CheckSquare } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { formatCurrency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { ProjectForm } from '@/components/projects/project-form';
+import { TaskForm } from '@/components/tasks/task-form';
 
 export default function ProjectDashboardPage() {
   return (
@@ -22,7 +24,11 @@ export default function ProjectDashboardPage() {
 function ProjectDashboardPageContent() {
   const supabase = createClient();
   const router = useRouter();
-  const { activeWorkspace, defaultCurrency } = useWorkspace();
+  const { activeWorkspace, defaultCurrency, can, activeRole } = useWorkspace();
+  const canCreate = can('projects_manage') || activeRole === 'owner' || activeRole === 'admin' || activeRole === 'member';
+
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   const [stats, setStats] = useState({
     active: 0,
@@ -62,10 +68,38 @@ function ProjectDashboardPageContent() {
         title="Projects Overview" 
         description="High-level metrics and health tracking across all workspace projects."
         action={
-          <Button onClick={() => router.push('/projects')} variant="outline" className="shadow-sm border-border">
-            View All Projects
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {canCreate && (
+              <>
+                <Button onClick={() => setProjectModalOpen(true)} size="sm" className="font-bold gap-1.5">
+                  <Plus className="size-4" />
+                  New Project
+                </Button>
+                <Button onClick={() => setTaskModalOpen(true)} variant="secondary" size="sm" className="font-bold gap-1.5">
+                  <Plus className="size-4 text-primary" />
+                  Create Ticket / Task
+                </Button>
+              </>
+            )}
+            <Button onClick={() => router.push('/projects')} variant="outline" size="sm" className="border-border">
+              View All Projects
+            </Button>
+          </div>
         }
+      />
+
+      <ProjectForm
+        open={projectModalOpen}
+        onOpenChange={setProjectModalOpen}
+        project={null}
+        onSaved={fetchStats}
+      />
+
+      <TaskForm
+        open={taskModalOpen}
+        onOpenChange={setTaskModalOpen}
+        task={null}
+        onSaved={fetchStats}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
