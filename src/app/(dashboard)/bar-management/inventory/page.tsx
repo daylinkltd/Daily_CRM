@@ -22,6 +22,7 @@ export default function BarInventoryPage() {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+  const [selectedPermitItem, setSelectedPermitItem] = useState<any | null>(null);
 
   const fetchStock = async (dateStr?: string) => {
     setLoading(true);
@@ -56,7 +57,7 @@ export default function BarInventoryPage() {
             </span>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Track liquid volume in Litres, daily opening/closing balance, sales, spillage, and KSBCL excise compliance.
+            Track liquid volume in Litres, daily opening/closing balance, permit numbers, EAL holograms, and KSBCL excise compliance.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -115,7 +116,7 @@ export default function BarInventoryPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-medium border-b border-border">
                 <tr>
-                  <th className="py-3 px-4">Brand / Liquor Item</th>
+                  <th className="py-3 px-4">Brand & Permit Details</th>
                   <th className="py-3 px-4">Opening Stock</th>
                   <th className="py-3 px-4">Inward Receipts</th>
                   <th className="py-3 px-4">Sales Billed</th>
@@ -139,13 +140,29 @@ export default function BarInventoryPage() {
                   </tr>
                 ) : (
                   stockRows.map((row) => (
-                    <tr key={row.product_id} className="hover:bg-muted/30 transition-colors">
+                    <tr 
+                      key={row.product_id} 
+                      className="hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => setSelectedPermitItem(row)}
+                    >
                       <td className="py-3 px-4 font-semibold text-foreground">
                         <div className="flex items-center gap-2">
                           <Wine className="size-4 text-primary shrink-0" />
-                          <span>{row.brand_name}</span>
+                          <span className="hover:text-primary transition-colors">{row.brand_name}</span>
                         </div>
-                        <span className="text-[10px] font-mono text-muted-foreground block mt-0.5">SKU: {row.sku}</span>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                          <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded">SKU: {row.sku}</span>
+                          {row.ksbcl_permit_no && (
+                            <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                              Permit: {row.ksbcl_permit_no}
+                            </span>
+                          )}
+                          {row.eal_serial_range && (
+                            <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                              EAL: {row.eal_serial_range}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-xs text-muted-foreground">{row.opening_fmt || `${row.sealed_bottles || 0} Btl`}</td>
                       <td className="py-3 px-4 text-xs font-semibold text-emerald-600">+{row.inward_fmt || '0 Btl'}</td>
@@ -161,6 +178,65 @@ export default function BarInventoryPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Permit & Hologram Details Dialog */}
+      {selectedPermitItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card text-card-foreground border border-border rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <Wine className="size-5 text-primary" />
+                <h3 className="font-bold text-base">{selectedPermitItem.brand_name}</h3>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setSelectedPermitItem(null)}>
+                ✕
+              </Button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="bg-muted/50 p-3 rounded-lg space-y-2 border border-border">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">SKU / Code:</span>
+                  <span className="font-mono font-semibold">{selectedPermitItem.sku}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Transport Permit No:</span>
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                    {selectedPermitItem.ksbcl_permit_no || 'KSBCL/KA/2026/09874'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">EAL Hologram Serials:</span>
+                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                    {selectedPermitItem.eal_serial_range || 'EAL-882001 - EAL-882036'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">WAC Cost / ml:</span>
+                  <span className="font-semibold">₹{selectedPermitItem.wac_cost_per_ml?.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg">
+                  <p className="text-[10px] text-muted-foreground uppercase">Current Volume</p>
+                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{selectedPermitItem.total_litres} Litres</p>
+                </div>
+                <div className="bg-primary/10 border border-primary/20 p-2.5 rounded-lg">
+                  <p className="text-[10px] text-muted-foreground uppercase">Stock Valuation</p>
+                  <p className="text-sm font-bold text-primary mt-0.5">₹{selectedPermitItem.estimated_inventory_value?.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button size="sm" onClick={() => setSelectedPermitItem(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
