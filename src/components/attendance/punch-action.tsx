@@ -266,6 +266,24 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
       todayRecord?.punch_in_time &&
       !timesheetSaved
     ) {
+      // Someone who already filled in today's timesheet on
+      // /me/timesheets has met the requirement — asking again would
+      // produce a duplicate day. Those existing entries are what the
+      // punch-out attaches to.
+      const { count } = await supabase
+        .from('time_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('workspace_id', activeWorkspace!.id)
+        .eq('workspace_member_id', activeMember!.id)
+        .eq('log_date', todayDate);
+
+      if ((count ?? 0) > 0) {
+        setTimesheetSaved(true);
+        toast.info(`Today's timesheet is already logged (${count} ${count === 1 ? 'entry' : 'entries'}).`);
+        await handlePunch('out', skipLocation);
+        return;
+      }
+
       setPendingPunchOut({ skipLocation });
       setShowTimeLogModal(true);
       return;

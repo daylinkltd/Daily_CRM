@@ -4,14 +4,13 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "sonner";
-import { Loader2, Plus, Clock, Calendar, ChevronDown, Trash2, Search, X } from "lucide-react";
+import { Loader2, Clock, Calendar, ChevronDown, Trash2, Search, X, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { TimesheetEntryTable } from "@/components/timesheets/timesheet-entry-table";
 import { useTimesheetTemplate } from "@/hooks/use-timesheet-template";
-import { IconAction } from "@/components/ui/icon-action";
 import {
   Table,
   TableBody,
@@ -42,7 +41,6 @@ export default function MyTimesheetsPage() {
 
   const [logs, setLogs] = useState<TimeLogRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formOpen, setFormOpen] = useState(false);
   const { templateId: timesheetTemplateId } = useTimesheetTemplate();
 
   // Filters
@@ -148,15 +146,25 @@ export default function MyTimesheetsPage() {
       <PageHeader
         title="My Timesheets"
         description="The time you have logged against projects and tasks."
-        actions={
-          <IconAction
-            label="Log Time"
-            icon={<Plus className="size-4" />}
-            onClick={() => setFormOpen(true)}
-            className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs"
-          />
-        }
       />
+
+      {/* The timesheet itself. This page used to be a read-only history
+          with a button that opened the grid in a modal — one click and a
+          layer of chrome in front of the only thing anyone comes here to
+          do. The grid is the page now; the history moved below it. */}
+      <TimesheetEntryTable
+        inline
+        open
+        onOpenChange={() => {}}
+        templateId={timesheetTemplateId}
+        allowDateChange
+        onSaved={fetchMine}
+      />
+
+      <div className="flex items-center gap-2 pt-2">
+        <History className="size-4 text-muted-foreground" />
+        <h2 className="text-sm font-bold text-foreground">Previously logged</h2>
+      </div>
 
       {/* Filter Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-card border border-border rounded-xl shadow-xs">
@@ -218,7 +226,7 @@ export default function MyTimesheetsPage() {
             {selectedDateFilter ? `No time logs found for ${selectedDateFilter}` : "No time logged yet"}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {selectedDateFilter ? 'Click "Show All Dates" or select another date from the calendar.' : 'Click "Log Time" above to add your time entries.'}
+            {selectedDateFilter ? 'Click "Show All Dates" or select another date from the calendar.' : "Fill in the table above and save — entries appear here."}
           </p>
           {selectedDateFilter && (
             <Button
@@ -331,14 +339,7 @@ export default function MyTimesheetsPage() {
         </div>
       )}
 
-      <TimesheetEntryTable
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        templateId={timesheetTemplateId}
-        allowDateChange
-        title="Log daily time"
-        onSaved={fetchMine}
-      />
+
     </div>
   );
 }

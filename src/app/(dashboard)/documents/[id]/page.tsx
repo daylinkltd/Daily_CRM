@@ -27,6 +27,7 @@ import {
   Pencil,
   Trash2,
   Send,
+  LockOpen,
   AlertTriangle,
 } from "lucide-react";
 import { IconAction } from "@/components/ui/icon-action";
@@ -40,6 +41,14 @@ import { IconAction } from "@/components/ui/icon-action";
  * offered it, which read as "drafts are stuck".
  */
 const EDITABLE_STATUSES = ["Draft", "Pending Approval"];
+
+/**
+ * Statuses that can be stepped back to Draft. Cancelled is absent on
+ * purpose: a withdrawn letter has usually been communicated as
+ * withdrawn, so reviving it quietly would be a different document, not
+ * a recovery.
+ */
+const UNLOCKABLE_STATUSES = ["Issued", "Approved"];
 
 export default function DocumentDetailsPage() {
   const params = useParams();
@@ -144,6 +153,32 @@ export default function DocumentDetailsPage() {
     }
   };
 
+  /**
+   * Step an issued letter back to Draft so it can be corrected.
+   *
+   * Cancelling and re-issuing would burn a document number and leave a
+   * Cancelled row that reads as "something went wrong with this
+   * person". Migration 117 permits exactly this one transition and
+   * bumps `version`, so the step back is recorded rather than silent.
+   */
+  const handleUnlock = async () => {
+    setBusy(true);
+    try {
+      const { error } = await supabase
+        .from("official_documents")
+        .update({ status: "Draft" })
+        .eq("id", id)
+        .eq("workspace_id", activeWorkspace!.id);
+      if (error) throw error;
+      toast.success("Unlocked — the letter is a draft again and can be edited.");
+      await fetchDocument();
+    } catch (err: any) {
+      toast.error(err.message || "Could not unlock the letter.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleDelete = async () => {
     setBusy(true);
     try {
@@ -236,6 +271,12 @@ export default function DocumentDetailsPage() {
                 className="text-xs h-9 gap-1.5 border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20" />
             </>
           )}
+          {!isEditable && canWrite && UNLOCKABLE_STATUSES.includes(documentItem.status) && (
+            <IconAction label="Unlock to draft" icon={busy ? <Loader2 className="size-3.5 animate-spin" /> : <LockOpen className="size-3.5" />} variant="outline"
+              onClick={handleUnlock}
+              disabled={busy}
+              className="text-xs h-9 gap-1.5 border-border" />
+          )}
           <IconAction label="Print / Save as PDF" icon={<Printer className="size-3.5 text-primary" />} variant="outline"
             onClick={handlePrint}
             className="text-xs h-9 gap-1.5 border-border" />
@@ -244,8 +285,10 @@ export default function DocumentDetailsPage() {
 
       {!isEditable && (
         <p data-print-hide className="text-xs text-muted-foreground">
-          This letter is {documentItem.status.toLowerCase()} and is locked against changes. To
-          correct it, cancel it and issue a replacement.
+          This letter is {documentItem.status.toLowerCase()} and is locked against changes.
+          {UNLOCKABLE_STATUSES.includes(documentItem.status)
+            ? " Unlock it to make corrections — it keeps its number, and the reopen is recorded."
+            : " Issue a replacement to supersede it."}
         </p>
       )}
 

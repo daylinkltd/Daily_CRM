@@ -323,11 +323,13 @@ html[data-mode="light"] :is(h1, h2, h3, h4, h5, h6, p, label, span, select, inpu
     overflow: visible !important;
   }
 
-  /* Chrome that must never reach paper, whether or not the page
-     opted into a print area. */
-  aside,
-  header,
-  nav,
+  /* App chrome that must never reach paper. Scoped OUTSIDE the print
+     area: a letterhead is a <header> and a document's masthead is a
+     <nav>-free but header-shaped thing, so an unscoped rule silently
+     deleted the letterhead from every printed letter. */
+  aside:not(.print-area *),
+  header:not(.print-area *),
+  nav:not(.print-area *),
   [data-print-hide],
   [data-sonner-toaster] {
     display: none !important;
@@ -365,11 +367,27 @@ html[data-mode="light"] :is(h1, h2, h3, h4, h5, h6, p, label, span, select, inpu
     background: #fff !important;
   }
 
-  /* A printed page is white paper: force the document's own
-     colours instead of inheriting the dark theme. */
-  .print-area,
+  /* A printed page is white paper. Rather than forcing every child to
+     black — which flattened the letterhead's brand colour along with
+     everything else — swap the theme tokens to their light values
+     inside the print area. Content styled with tokens goes dark on
+     white; content with its own colours (a logo, a coloured rule, the
+     company name) keeps them. */
+  .print-area {
+    color-scheme: light;
+    --background: #ffffff;
+    --card: #ffffff;
+    --popover: #ffffff;
+    --foreground: #0b1220;
+    --card-foreground: #0b1220;
+    --muted: #f1f5f9;
+    --muted-foreground: #475569;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    color: #0b1220;
+  }
+
   .print-area * {
-    color: #000 !important;
     box-shadow: none !important;
   }
 

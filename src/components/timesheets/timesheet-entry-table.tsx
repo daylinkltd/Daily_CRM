@@ -45,6 +45,7 @@ export function TimesheetEntryTable({
   loggedHours,
   mandatory = false,
   allowDateChange = false,
+  inline = false,
   title,
   description,
 }: {
@@ -63,6 +64,13 @@ export function TimesheetEntryTable({
   mandatory?: boolean;
   /** Logging a past day, rather than the day being punched out of. */
   allowDateChange?: boolean;
+  /**
+   * Render the grid straight onto the page instead of inside a dialog.
+   * `/me/timesheets` is a place you go to DO the timesheet, so the grid
+   * is the page — a button that opens a modal over an empty page was a
+   * step that earned nothing.
+   */
+  inline?: boolean;
   title?: string;
   description?: string;
 }) {
@@ -91,7 +99,7 @@ export function TimesheetEntryTable({
   const storageKey = draftKey(draftScope, activeWorkspace?.id);
 
   const load = useCallback(async () => {
-    if (!open || !activeWorkspace?.id) return;
+    if (!(open || inline) || !activeWorkspace?.id) return;
     setLoading(true);
     try {
       let parsed: TimesheetField[] = [];
@@ -141,27 +149,27 @@ export function TimesheetEntryTable({
     } finally {
       setLoading(false);
     }
-  }, [open, activeWorkspace?.id, templateId, supabase]);
+  }, [open, inline, activeWorkspace?.id, templateId, supabase]);
 
   useEffect(() => { load(); }, [load]);
 
   // Restore any draft once the field set is known.
   useEffect(() => {
-    if (!open || rowFields.length === 0) return;
+    if (!(open || inline) || rowFields.length === 0) return;
     const saved = parseDraft<EntryRow>(
       typeof window === "undefined" ? null : window.localStorage.getItem(storageKey),
       1,
       Date.now()
     );
     setRows(saved ? [...saved, { ...emptyRow }] : [{ ...emptyRow }, { ...emptyRow }]);
-  }, [open, rowFields.length, storageKey, emptyRow]);
+  }, [open, inline, rowFields.length, storageKey, emptyRow]);
 
   useEffect(() => {
-    if (!open || typeof window === "undefined") return;
+    if (!(open || inline) || typeof window === "undefined") return;
     const payload = serializeDraft(rows, 1, Date.now());
     if (payload) window.localStorage.setItem(storageKey, payload);
     else window.localStorage.removeItem(storageKey);
-  }, [rows, open, storageKey]);
+  }, [rows, open, inline, storageKey]);
 
   const setCell = (i: number, key: string, value: string) =>
     setRows((prev) => {
@@ -277,23 +285,8 @@ export function TimesheetEntryTable({
     );
   };
 
-  return (
-    <Dialog
-      open={open}
-      // A mandatory timesheet ignores backdrop clicks and Escape. It is
-      // still cancellable, but only through the button that says so.
-      onOpenChange={(next) => { if (next || !mandatory) onOpenChange(next); }}
-    >
-      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{title ?? templateName}</DialogTitle>
-          <DialogDescription>
-            {description ??
-              (mandatory
-                ? "Your punch-out is waiting on this. Fill in the day, then save to clock out."
-                : "One row per task. Rows are kept as you type, so a reload will not lose them.")}
-          </DialogDescription>
-        </DialogHeader>
+  const body = (
+    <>
 
         {loading ? (
           <div className="flex justify-center py-10">
@@ -425,20 +418,56 @@ export function TimesheetEntryTable({
           </div>
         )}
 
+    </>
+  );
+
+  const saveButton = (
+    <Button
+      onClick={save}
+      disabled={saving || problems.length > 0 || filled.length === 0}
+      className="gap-1.5"
+    >
+      {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+      {mandatory
+        ? `Save timesheet & punch out (${total}h)`
+        : `Save timesheet (${total}h)`}
+    </Button>
+  );
+
+  if (inline) {
+    return (
+      <div className="space-y-4 rounded-xl border border-border bg-card p-4">
+        {body}
+        <div className="flex justify-end border-t border-border pt-3">{saveButton}</div>
+      </div>
+    );
+  }
+
+  return (
+    <Dialog
+      open={open}
+      // A mandatory timesheet ignores backdrop clicks and Escape. It is
+      // still cancellable, but only through the button that says so.
+      onOpenChange={(next) => { if (next || !mandatory) onOpenChange(next); }}
+    >
+      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title ?? templateName}</DialogTitle>
+          <DialogDescription>
+            {description ??
+              (mandatory
+                ? "Your punch-out is waiting on this. Fill in the day, then save to clock out."
+                : "One row per task. Rows are kept as you type, so a reload will not lose them.")}
+          </DialogDescription>
+        </DialogHeader>
+
+        {body}
+
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-3">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {mandatory ? "Cancel punch out" : "Close"}
           </Button>
-          <Button
-            onClick={save}
-            disabled={saving || problems.length > 0 || filled.length === 0}
-            className="gap-1.5"
-          >
-            {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            {mandatory
-              ? `Save timesheet & punch out (${total}h)`
-              : `Save timesheet (${total}h)`}
-          </Button>
+          {saveButton}
         </div>
       </DialogContent>
     </Dialog>
