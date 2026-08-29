@@ -45,6 +45,7 @@ export function CandidateBoard({
   onMove,
   onDelete,
   onEdit,
+  onAddCandidate,
 }: {
   stages: string[];
   applications: CandidateApplication[];
@@ -52,6 +53,7 @@ export function CandidateBoard({
   onMove: (applicationId: string, stage: string) => void;
   onDelete: (application: CandidateApplication) => void;
   onEdit: (application: CandidateApplication) => void;
+  onAddCandidate?: () => void;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
 

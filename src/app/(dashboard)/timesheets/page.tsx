@@ -38,6 +38,7 @@ export default function TimesheetsPage() {
   const [teamTimesheets, setTeamTimesheets] = useState<any[]>([]);
   
   const [loading, setLoading] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
   const [editingLog, setEditingLog] = useState<any | null>(null);
   const [defaultLogDate, setDefaultLogDate] = useState<string>('');
   const { templateId: timesheetTemplateId } = useTimesheetTemplate();
