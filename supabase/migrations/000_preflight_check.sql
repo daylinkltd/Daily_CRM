@@ -16,6 +16,11 @@
 -- trips over it.
 --
 -- Run this first, whenever a migration errors or a feature seems inert.
+--
+-- ONE statement on purpose: the Supabase SQL editor shows only the last
+-- result set, so splitting this in two meant half the answer silently
+-- disappeared — which is how the first run of this file reported the
+-- column checks and hid the object table entirely.
 -- ============================================================
 
 WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
@@ -43,7 +48,7 @@ WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
     ('106', 'table',  'platform_message_templates',
        'Platform message templates.'),
     ('106', 'table',  'platform_outbound_messages',
-       'The send log — "did that reset email go out?" becomes unanswerable.'),
+       'The send log - "did that reset email go out?" becomes unanswerable.'),
     ('107', 'table',  'platform_settings',
        'Platform mailbox credentials. ALL product email stops.'),
     ('117', 'function','freeze_issued_official_documents',
@@ -54,59 +59,63 @@ WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
        'One-time codes: two-factor, email verification, step-up.'),
     ('122', 'function','mark_session_two_factor_verified',
        'Two-step sign-in cannot be satisfied.')
+),
+objects AS (
+  SELECT
+    e.migration,
+    e.object_name AS check_name,
+    CASE
+      WHEN e.kind = 'table'
+        THEN CASE WHEN to_regclass('public.' || e.object_name) IS NULL
+                  THEN '-- MISSING --' ELSE 'present' END
+      ELSE CASE WHEN EXISTS (
+             SELECT 1 FROM pg_proc p
+               JOIN pg_namespace n ON n.oid = p.pronamespace
+              WHERE n.nspname = 'public' AND p.proname = e.object_name)
+           THEN 'present' ELSE '-- MISSING --' END
+    END AS status,
+    e.what_breaks_without_it AS impact
+  FROM expected e
+),
+details AS (
+  SELECT '119' AS migration, 'co-member profile reads' AS check_name,
+         CASE WHEN EXISTS (
+           SELECT 1 FROM pg_policies
+            WHERE tablename = 'profiles'
+              AND policyname = 'Users can view profiles of their workspace members')
+         THEN 'present' ELSE '-- MISSING --' END AS status,
+         'Teammate names render as "Unknown User" / "Team Member".' AS impact
+  UNION ALL
+  SELECT '119', 'Agent renamed to Team Member',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM public.workspace_roles WHERE name = 'Agent' AND is_system)
+         THEN '-- MISSING --' ELSE 'present' END,
+         'The built-in staff role still reads "Agent".'
+  UNION ALL
+  SELECT '119', 'Team & Access permission seeded',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM public.workspace_roles WHERE permissions ? 'team_members:create')
+         THEN 'present' ELSE '-- MISSING --' END,
+         'Who may add users is not configurable per role.'
+  UNION ALL
+  SELECT '122', 'two_factor_enabled on profiles',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'profiles' AND column_name = 'two_factor_enabled')
+         THEN 'present' ELSE '-- MISSING --' END,
+         'The two-step sign-in switch has nowhere to store its state.'
+  UNION ALL
+  SELECT '122', 'two_factor_verified_at on user_sessions',
+         CASE WHEN to_regclass('public.user_sessions') IS NULL
+                THEN '-- MISSING (run 100 first) --'
+              WHEN EXISTS (
+                SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'user_sessions' AND column_name = 'two_factor_verified_at')
+                THEN 'present'
+              ELSE '-- MISSING --' END,
+         'A session can never be marked as having answered its code.'
 )
-SELECT
-  e.migration,
-  e.object_name,
-  e.kind,
-  CASE
-    WHEN e.kind = 'table'
-      THEN CASE WHEN to_regclass('public.' || e.object_name) IS NULL
-                THEN '-- MISSING --' ELSE 'present' END
-    ELSE CASE WHEN EXISTS (
-           SELECT 1 FROM pg_proc p
-             JOIN pg_namespace n ON n.oid = p.pronamespace
-            WHERE n.nspname = 'public' AND p.proname = e.object_name)
-         THEN 'present' ELSE '-- MISSING --' END
-  END AS status,
-  e.what_breaks_without_it
-FROM expected e
-ORDER BY status DESC, e.migration, e.object_name;
-
--- ------------------------------------------------------------
--- Column-level checks: a migration can be half-applied when an earlier
--- statement in it failed.
--- ------------------------------------------------------------
-SELECT '119: co-member profile reads' AS check,
-       CASE WHEN EXISTS (
-         SELECT 1 FROM pg_policies
-          WHERE tablename = 'profiles'
-            AND policyname = 'Users can view profiles of their workspace members')
-       THEN 'present'
-       ELSE '-- MISSING -- names show as "Unknown User" / "Team Member"' END AS status
-UNION ALL
-SELECT '119: Agent renamed to Team Member',
-       CASE WHEN EXISTS (
-         SELECT 1 FROM public.workspace_roles WHERE name = 'Agent' AND is_system)
-       THEN '-- NOT RUN -- still called Agent'
-       ELSE 'present' END
-UNION ALL
-SELECT '119: Team & Access permission seeded',
-       CASE WHEN EXISTS (
-         SELECT 1 FROM public.workspace_roles WHERE permissions ? 'team_members:create')
-       THEN 'present' ELSE '-- MISSING --' END
-UNION ALL
-SELECT '122: two_factor_enabled on profiles',
-       CASE WHEN EXISTS (
-         SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'profiles' AND column_name = 'two_factor_enabled')
-       THEN 'present' ELSE '-- MISSING --' END
-UNION ALL
-SELECT '122: two_factor_verified_at on user_sessions',
-       CASE WHEN to_regclass('public.user_sessions') IS NULL
-              THEN '-- user_sessions itself is missing (run 100 first) --'
-            WHEN EXISTS (
-              SELECT 1 FROM information_schema.columns
-               WHERE table_name = 'user_sessions' AND column_name = 'two_factor_verified_at')
-              THEN 'present'
-            ELSE '-- MISSING --' END;
+SELECT status, migration, check_name, impact
+  FROM (SELECT * FROM objects UNION ALL SELECT * FROM details) all_checks
+ -- Missing things first: that is the list you act on.
+ ORDER BY (status = 'present'), migration, check_name;
