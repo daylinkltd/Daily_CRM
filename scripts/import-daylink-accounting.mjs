@@ -33,25 +33,34 @@
  * enum value that genuinely matches.
  */
 
-import { createRequire } from 'module';
 import fs from 'fs';
+import { MongoClient } from 'mongodb';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CRM_DIR = path.resolve(__dirname, '..');
-const DAYLINK_DIR = '/Volumes/projects/daylink';
-const daylinkRequire = createRequire(path.join(DAYLINK_DIR, 'package.json'));
-const mongoose = daylinkRequire('mongoose');
+// Config comes from the environment; the sibling daylink checkout this
+// originally read from no longer exists.
+//   MONGO_URL=mongodb://…  node scripts/import-daylink-accounting.mjs --live
 
 const LIVE = process.argv.includes('--live');
 const W = 'ab6095d0-aa86-4328-934b-d56f26d8d7d8'; // Daylink Tech Labs Private Limited
 
-const mongoUri = fs.readFileSync(path.join(DAYLINK_DIR, '.env'), 'utf8').match(/MONGODB_URI=(.*)/)[1].trim();
-const crmEnv = fs.readFileSync(path.join(CRM_DIR, '.env.local'), 'utf8');
-const SUPA = crmEnv.match(/NEXT_PUBLIC_SUPABASE_URL=(.*)/)[1].trim();
-const KEY = crmEnv.match(/SUPABASE_SERVICE_ROLE_KEY=(.*)/)[1].trim();
+const mongoUri = process.env.MONGO_URL;
+if (!mongoUri) { console.error('Set MONGO_URL.'); process.exit(1); }
+const crmEnv = fs.existsSync(path.join(CRM_DIR, '.env.local'))
+  ? fs.readFileSync(path.join(CRM_DIR, '.env.local'), 'utf8')
+  : '';
+const SUPA = process.env.NEXT_PUBLIC_SUPABASE_URL
+  || crmEnv.match(/NEXT_PUBLIC_SUPABASE_URL=(.*)/)?.[1]?.trim();
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+  || crmEnv.match(/SUPABASE_SERVICE_ROLE_KEY=(.*)/)?.[1]?.trim();
+if (!SUPA || !KEY || SUPA.includes('placeholder')) {
+  console.error('Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (env or .env.local).');
+  process.exit(1);
+}
 const H = { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' };
 
 async function sb(pathAndQuery, init = {}) {
@@ -67,8 +76,9 @@ const bump = (k, n = 1) => (stats[k] = (stats[k] ?? 0) + n);
 
 async function main() {
   console.log(LIVE ? '=== LIVE RUN ===' : '=== DRY RUN ===');
-  await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 });
-  const db = mongoose.connection.db;
+  const mongoClient = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 15000 });
+  await mongoClient.connect();
+  const db = mongoClient.db();
 
   const groups = await db.collection('ledgergroups').find({}).toArray();
   const ledgers = await db.collection('ledgers').find({}).toArray();
@@ -204,7 +214,7 @@ async function main() {
     bump('lines_created', lines.length);
   }
 
-  await mongoose.disconnect();
+  await mongoClient.close();
 
   // ---------- 5. verify ----------
   if (LIVE) {

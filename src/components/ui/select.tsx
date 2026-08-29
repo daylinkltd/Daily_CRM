@@ -32,6 +32,34 @@ function Select({ children, onOpenChange, ...props }: SelectPrimitive.Root.Props
   const [labelsMap, setLabelsMap] = React.useState<Map<string, string>>(() => new Map());
   const [query, setQuery] = React.useState("");
 
+  // Labels read straight off the JSX, before anything mounts.
+  //
+  // SelectItem registers its label from an effect, but the items live
+  // inside the popup and Base UI only mounts those when it opens. So on
+  // first paint `labelsMap` was empty, and a trigger holding a UUID had
+  // nothing to resolve it with — it fell through to the placeholder and
+  // a saved Department/Manager/Designation read as "Select …" until you
+  // opened the dropdown, at which point the items mounted, registered,
+  // and the real label appeared. The value was never wrong; only its
+  // rendering was.
+  //
+  // Walking the element tree gives every option's label synchronously
+  // on the very first render, with no mounting involved.
+  const staticLabels = React.useMemo(() => {
+    const out = new Map<string, string>();
+    collectItemLabels(children, out);
+    return out;
+  }, [children]);
+
+  // Registered labels win: an item that mounted knows its own rendered
+  // text better than a static read of the tree can.
+  const mergedLabels = React.useMemo(() => {
+    if (labelsMap.size === 0) return staticLabels;
+    const out = new Map(staticLabels);
+    for (const [k, v] of labelsMap) out.set(k, v);
+    return out;
+  }, [staticLabels, labelsMap]);
+
   const registerLabel = React.useCallback((value: string, label: string) => {
     setLabelsMap((prev) => {
       if (prev.get(value) === label) return prev;
@@ -52,7 +80,7 @@ function Select({ children, onOpenChange, ...props }: SelectPrimitive.Root.Props
   );
 
   return (
-    <SelectContext.Provider value={{ labelsMap, registerLabel, query, setQuery }}>
+    <SelectContext.Provider value={{ labelsMap: mergedLabels, registerLabel, query, setQuery }}>
       <SelectPrimitive.Root onOpenChange={handleOpenChange} {...props}>
         {children}
       </SelectPrimitive.Root>
@@ -275,6 +303,38 @@ function getLabelFromChildren(children: React.ReactNode): string | undefined {
     return nested === undefined ? undefined : getLabelFromChildren(nested);
   }
   return undefined;
+}
+
+/**
+ * Walk a Select's children and collect every `value -> label` pair it
+ * can see, without rendering anything. Elements that carry a `value`
+ * prop and resolvable text are treated as options; everything else is
+ * recursed into so items nested in fragments, groups or `.map()` output
+ * are all found.
+ *
+ * Options produced by a component that renders SelectItem internally
+ * are invisible here — those still resolve on first open, exactly as
+ * before.
+ */
+export function collectItemLabels(
+  node: React.ReactNode,
+  out: Map<string, string>,
+): void {
+  React.Children.forEach(node, (child) => {
+    if (!React.isValidElement(child)) return;
+    const props = child.props as {
+      value?: unknown;
+      label?: string;
+      children?: React.ReactNode;
+    };
+
+    if (props.value !== undefined && props.value !== null) {
+      const label = props.label ?? getLabelFromChildren(props.children);
+      if (label) out.set(String(props.value), label);
+    }
+
+    if (props.children) collectItemLabels(props.children, out);
+  });
 }
 
 function SelectItem({
