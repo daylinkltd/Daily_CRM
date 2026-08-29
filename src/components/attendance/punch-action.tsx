@@ -80,6 +80,13 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
   const [attendanceEnabled, setAttendanceEnabled] = useState<boolean | null>(null);
   const [breakType, setBreakType] = useState<'LUNCH' | 'TEA' | 'PERSONAL' | 'MEETING'>('LUNCH');
   const [showTimeLogModal, setShowTimeLogModal] = useState(false);
+  // Set while the mandatory timesheet is open; carries the punch-out that
+  // is waiting on it so the location decision made before the modal is
+  // not asked for a second time.
+  const [pendingPunchOut, setPendingPunchOut] = useState<{ skipLocation: boolean } | null>(null);
+  // The day's timesheet is in. Survives a failed punch-out so a retry
+  // does not ask for it again — and log it twice.
+  const [timesheetSaved, setTimesheetSaved] = useState(false);
   const [lastLoggedHours, setLastLoggedHours] = useState<number | undefined>(undefined);
   
   const todayDate = new Date().toISOString().split('T')[0];
@@ -223,6 +230,67 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
    * storing an honest "no fix, flagged for review" — they still have to
    * be paid for the day.
    */
+  /**
+   * Punch out, but only once the timesheet exists.
+   *
+   * When HR marks the timesheet mandatory, the old order was: write the
+   * punch-out, then pop the timesheet modal — which the employee could
+   * simply close. "Required" was a suggestion, and the day's hours were
+   * already banked. Now the modal opens FIRST and the punch-out is held
+   * until it saves, so the requirement is real.
+   */
+  /**
+   * Hours clocked so far. The mandatory timesheet opens BEFORE the
+   * punch-out is written, so `working_hours` is still null — without
+   * this the reconciliation badge would read "Clocked 0h" and the
+   * mismatch warning would fire on every honest entry.
+   */
+  const liveHoursSoFar = todayRecord?.punch_in_time
+    ? Math.max(
+        0,
+        Number(
+          (
+            (Date.now() - new Date(todayRecord.punch_in_time).getTime()) / 3_600_000
+            - Number(todayRecord.break_hours || 0)
+          ).toFixed(2),
+        ),
+      )
+    : undefined;
+
+  const requestPunchOut = async (skipLocation = false) => {
+    // Ask for the timesheet only when there is a day to account for, and
+    // only once: a punch-out that fails on geofence would otherwise
+    // demand a second timesheet on retry and log the day twice.
+    if (
+      policy.require_timesheet_on_punch_out &&
+      todayRecord?.punch_in_time &&
+      !timesheetSaved
+    ) {
+      // Someone who already filled in today's timesheet on
+      // /me/timesheets has met the requirement — asking again would
+      // produce a duplicate day. Those existing entries are what the
+      // punch-out attaches to.
+      const { count } = await supabase
+        .from('time_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('workspace_id', activeWorkspace!.id)
+        .eq('workspace_member_id', activeMember!.id)
+        .eq('log_date', todayDate);
+
+      if ((count ?? 0) > 0) {
+        setTimesheetSaved(true);
+        toast.info(`Today's timesheet is already logged (${count} ${count === 1 ? 'entry' : 'entries'}).`);
+        await handlePunch('out', skipLocation);
+        return;
+      }
+
+      setPendingPunchOut({ skipLocation });
+      setShowTimeLogModal(true);
+      return;
+    }
+    await handlePunch('out', skipLocation);
+  };
+
   const handlePunch = async (type: 'in' | 'out', skipLocation = false) => {
     if (!activeWorkspace?.id || !activeMember?.id) return;
     setLoading(true);
@@ -295,7 +363,7 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
               duration: 12_000,
               action: {
                 label: 'Punch out anyway',
-                onClick: () => handlePunch('out', true),
+                onClick: () => requestPunchOut(true),
               },
             });
           } else {
@@ -430,10 +498,6 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
         toast.success(`Punched out! Logged ${workingHours} hrs (${netProductive} hrs net productive).`);
 
         setLastLoggedHours(netProductive);
-        // HR decides per employee whether punching out requires a timesheet.
-        if (policy.require_timesheet_on_punch_out) {
-          setShowTimeLogModal(true);
-        }
       }
 
       await fetchTodayStatus();
@@ -708,7 +772,7 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             <IconAction
               label="Punch out"
               icon={loading ? <Loader2 className="size-3.5 animate-spin" /> : <Fingerprint className="size-3.5" />}
-              onClick={() => handlePunch('out')}
+              onClick={() => requestPunchOut()}
               disabled={loading}
               className="h-9 shrink-0 rounded-lg bg-rose-600 px-3 text-white shadow-xs hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500"
             />
@@ -723,11 +787,26 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
 
       <TimesheetEntryTable
         open={showTimeLogModal}
-        onOpenChange={setShowTimeLogModal}
+        onOpenChange={(next) => {
+          // Dismissing a mandatory timesheet abandons the punch-out
+          // rather than completing it silently — the employee is still
+          // clocked in and can try again once the day is filled in.
+          if (!next && pendingPunchOut) {
+            setPendingPunchOut(null);
+            toast.info('Punch out cancelled — your timesheet is needed first.');
+          }
+          setShowTimeLogModal(next);
+        }}
         templateId={policy.timesheet_template_id}
-        loggedHours={lastLoggedHours}
-        onSaved={() => {
+        loggedHours={lastLoggedHours ?? liveHoursSoFar}
+        mandatory={Boolean(pendingPunchOut)}
+        onSaved={async () => {
           setShowTimeLogModal(false);
+          setTimesheetSaved(true);
+          const pending = pendingPunchOut;
+          setPendingPunchOut(null);
+          // The timesheet is in; now the punch-out may complete.
+          if (pending) await handlePunch('out', pending.skipLocation);
           fetchTodayStatus();
         }}
       />

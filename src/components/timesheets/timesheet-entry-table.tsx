@@ -43,6 +43,11 @@ export function TimesheetEntryTable({
   templateId,
   onSaved,
   loggedHours,
+  mandatory = false,
+  allowDateChange = false,
+  inline = false,
+  title,
+  description,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -51,6 +56,23 @@ export function TimesheetEntryTable({
   onSaved?: () => void;
   /** Hours actually clocked, shown so the total can be reconciled. */
   loggedHours?: number;
+  /**
+   * Punch-out is waiting on this timesheet. The dialog stops dismissing
+   * itself on a stray click or Escape, and says what is being held up —
+   * a required timesheet that closes on a misclick is not required.
+   */
+  mandatory?: boolean;
+  /** Logging a past day, rather than the day being punched out of. */
+  allowDateChange?: boolean;
+  /**
+   * Render the grid straight onto the page instead of inside a dialog.
+   * `/me/timesheets` is a place you go to DO the timesheet, so the grid
+   * is the page — a button that opens a modal over an empty page was a
+   * step that earned nothing.
+   */
+  inline?: boolean;
+  title?: string;
+  description?: string;
 }) {
   const supabase = createClient();
   const { activeWorkspace, activeMember } = useWorkspace();
@@ -62,6 +84,11 @@ export function TimesheetEntryTable({
   const [refOptions, setRefOptions] = useState<Record<string, RefOption[]>>({});
   const [rows, setRows] = useState<EntryRow[]>([]);
   const [dayValues, setDayValues] = useState<Record<string, string>>({});
+  const today = new Date().toISOString().split("T")[0];
+  const [logDate, setLogDate] = useState(today);
+  // Billable is a real `time_logs` column, so it is a column here rather
+  // than a template field — every row can differ.
+  const [billable, setBillable] = useState<Record<number, boolean>>({});
 
   const { rowFields, dayFields } = useMemo(() => splitFields(fields), [fields]);
   const emptyRow = useMemo(
@@ -72,7 +99,7 @@ export function TimesheetEntryTable({
   const storageKey = draftKey(draftScope, activeWorkspace?.id);
 
   const load = useCallback(async () => {
-    if (!open || !activeWorkspace?.id) return;
+    if (!(open || inline) || !activeWorkspace?.id) return;
     setLoading(true);
     try {
       let parsed: TimesheetField[] = [];
@@ -122,27 +149,27 @@ export function TimesheetEntryTable({
     } finally {
       setLoading(false);
     }
-  }, [open, activeWorkspace?.id, templateId, supabase]);
+  }, [open, inline, activeWorkspace?.id, templateId, supabase]);
 
   useEffect(() => { load(); }, [load]);
 
   // Restore any draft once the field set is known.
   useEffect(() => {
-    if (!open || rowFields.length === 0) return;
+    if (!(open || inline) || rowFields.length === 0) return;
     const saved = parseDraft<EntryRow>(
       typeof window === "undefined" ? null : window.localStorage.getItem(storageKey),
       1,
       Date.now()
     );
     setRows(saved ? [...saved, { ...emptyRow }] : [{ ...emptyRow }, { ...emptyRow }]);
-  }, [open, rowFields.length, storageKey, emptyRow]);
+  }, [open, inline, rowFields.length, storageKey, emptyRow]);
 
   useEffect(() => {
-    if (!open || typeof window === "undefined") return;
+    if (!(open || inline) || typeof window === "undefined") return;
     const payload = serializeDraft(rows, 1, Date.now());
     if (payload) window.localStorage.setItem(storageKey, payload);
     else window.localStorage.removeItem(storageKey);
-  }, [rows, open, storageKey]);
+  }, [rows, open, inline, storageKey]);
 
   const setCell = (i: number, key: string, value: string) =>
     setRows((prev) => {
@@ -185,7 +212,7 @@ export function TimesheetEntryTable({
         workspace_id: activeWorkspace.id,
         workspace_member_id: activeMember.id,
         task_id: r[taskKey],
-        log_date: new Date().toISOString().split("T")[0],
+        log_date: logDate,
         duration: Number(r[hoursKey]) || 0,
         description: [
           noteKey ? r[noteKey] : "",
@@ -199,7 +226,9 @@ export function TimesheetEntryTable({
             .map((f) => (dayValues[f.key] ? `${f.label}: ${dayValues[f.key]}` : ""))
             .filter(Boolean),
         ].filter(Boolean).join(" · "),
-        billable: true,
+        // Keyed by position in `rows`, not in `filled` — the latter drops
+        // blank rows, which would shift every flag onto the wrong entry.
+        billable: billable[rows.indexOf(r)] ?? true,
       }));
 
       const { error } = await supabase.from("time_logs").insert(payload);
@@ -256,15 +285,8 @@ export function TimesheetEntryTable({
     );
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{templateName}</DialogTitle>
-          <DialogDescription>
-            One row per ticket. Rows are kept as you type, so a reload will not lose them.
-          </DialogDescription>
-        </DialogHeader>
+  const body = (
+    <>
 
         {loading ? (
           <div className="flex justify-center py-10">
@@ -272,6 +294,21 @@ export function TimesheetEntryTable({
           </div>
         ) : (
           <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2">
+              <Label htmlFor="ts-log-date" className="text-xs font-semibold">
+                Log date
+              </Label>
+              <Input
+                id="ts-log-date"
+                type="date"
+                value={logDate}
+                max={today}
+                disabled={!allowDateChange}
+                onChange={(e) => setLogDate(e.target.value)}
+                className="h-8 w-44 text-xs"
+              />
+            </div>
+
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-xs">
                 <thead className="bg-muted/50">
@@ -283,6 +320,9 @@ export function TimesheetEntryTable({
                         {f.required && <span className="ml-0.5 text-destructive">*</span>}
                       </th>
                     ))}
+                    <th className="w-20 px-2 py-2 text-left text-[11px] font-semibold text-muted-foreground">
+                      Billable
+                    </th>
                     <th className="w-10" />
                   </tr>
                 </thead>
@@ -293,6 +333,17 @@ export function TimesheetEntryTable({
                       {rowFields.map((f) => (
                         <td key={f.key} className="px-1 py-1">{renderCell(f, row, i)}</td>
                       ))}
+                      <td className="px-2 py-1">
+                        <input
+                          type="checkbox"
+                          aria-label={`Row ${i + 1} billable`}
+                          checked={billable[i] ?? true}
+                          onChange={(e) =>
+                            setBillable((p) => ({ ...p, [i]: e.target.checked }))
+                          }
+                          className="size-3.5 accent-primary"
+                        />
+                      </td>
                       <td className="px-1 py-1">
                         {rows.length > 1 && (
                           <IconAction
@@ -367,12 +418,56 @@ export function TimesheetEntryTable({
           </div>
         )}
 
-        <div className="flex justify-end gap-2 border-t border-border pt-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
-          <Button onClick={save} disabled={saving || problems.length > 0} className="gap-1.5">
-            {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            Save timesheet
+    </>
+  );
+
+  const saveButton = (
+    <Button
+      onClick={save}
+      disabled={saving || problems.length > 0 || filled.length === 0}
+      className="gap-1.5"
+    >
+      {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+      {mandatory
+        ? `Save timesheet & punch out (${total}h)`
+        : `Save timesheet (${total}h)`}
+    </Button>
+  );
+
+  if (inline) {
+    return (
+      <div className="space-y-4 rounded-xl border border-border bg-card p-4">
+        {body}
+        <div className="flex justify-end border-t border-border pt-3">{saveButton}</div>
+      </div>
+    );
+  }
+
+  return (
+    <Dialog
+      open={open}
+      // A mandatory timesheet ignores backdrop clicks and Escape. It is
+      // still cancellable, but only through the button that says so.
+      onOpenChange={(next) => { if (next || !mandatory) onOpenChange(next); }}
+    >
+      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title ?? templateName}</DialogTitle>
+          <DialogDescription>
+            {description ??
+              (mandatory
+                ? "Your punch-out is waiting on this. Fill in the day, then save to clock out."
+                : "One row per task. Rows are kept as you type, so a reload will not lose them.")}
+          </DialogDescription>
+        </DialogHeader>
+
+        {body}
+
+        <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-3">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {mandatory ? "Cancel punch out" : "Close"}
           </Button>
+          {saveButton}
         </div>
       </DialogContent>
     </Dialog>

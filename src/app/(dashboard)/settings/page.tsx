@@ -20,6 +20,7 @@ import { RolesPanel } from '@/components/settings/roles-panel';
 import { ApiKeysSettings } from '@/components/settings/api-keys-settings';
 import { CatalogSettings } from '@/components/settings/catalog-settings';
 import { BrandingSettings } from '@/components/settings/branding-settings';
+import { CopyFromWorkspacePanel } from '@/components/settings/copy-from-workspace-panel';
 import { IdentifiersPanel } from '@/components/settings/identifiers-panel';
 import { BillingPanel } from '@/components/settings/billing-panel';
 import { HRSettingsPanel } from '@/components/settings/hr-settings-panel';
@@ -152,6 +153,9 @@ export default function SettingsPage() {
                 render: () => (
                   <div className="space-y-6">
                     <BrandingSettings />
+                    {/* Renders nothing unless there is another workspace
+                        this person manages to copy from. */}
+                    <CopyFromWorkspacePanel />
                     {/* Tenant/workspace/user/member IDs in one place —
                         the identifiers every API call and support ticket
                         needs, without opening devtools. */}

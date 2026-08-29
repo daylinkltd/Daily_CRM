@@ -4,6 +4,7 @@
  * in Dailybiz (Supabase).
  *
  * Usage:
+ *   npm install mongodb --no-save                   # one-time, not shipped
  *   node scripts/import-daylink-mongo.mjs           # dry run — prints the plan
  *   node scripts/import-daylink-mongo.mjs --live    # writes
  *
@@ -32,32 +33,54 @@
  * for every entity, so anything imported can be targeted later.
  */
 
-import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
+// The MongoDB driver is NOT a dependency of this app — nothing in src/
+// imports it, and shipping it would put a database driver in every
+// production image for the sake of a script that runs on a laptop.
+// It is loaded on demand instead, with an instruction when it is absent.
+async function loadMongoClient() {
+  try {
+    return (await import('mongodb')).MongoClient;
+  } catch {
+    console.error(
+      'This script needs the MongoDB driver, which the app does not ship.\n' +
+      'Install it just for this run:\n\n  npm install mongodb --no-save\n'
+    );
+    process.exit(1);
+  }
+}
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CRM_DIR = path.resolve(__dirname, '..');
-const DAYLINK_DIR = '/Volumes/projects/daylink';
-
-// Mongoose comes from the daylink project's node_modules — this repo does
-// not depend on MongoDB and should not start to for a one-off import.
-const daylinkRequire = createRequire(path.join(DAYLINK_DIR, 'package.json'));
-const mongoose = daylinkRequire('mongoose');
 
 const LIVE = process.argv.includes('--live');
 const WORKSPACE_ID = 'ab6095d0-aa86-4328-934b-d56f26d8d7d8'; // Daylink Tech Labs Private Limited
 
 // ---- env -------------------------------------------------------------
-const mongoUri = fs
-  .readFileSync(path.join(DAYLINK_DIR, '.env'), 'utf8')
-  .match(/MONGODB_URI=(.*)/)[1]
-  .trim();
-const crmEnv = fs.readFileSync(path.join(CRM_DIR, '.env.local'), 'utf8');
-const SUPA_URL = crmEnv.match(/NEXT_PUBLIC_SUPABASE_URL=(.*)/)[1].trim();
-const SUPA_KEY = crmEnv.match(/SUPABASE_SERVICE_ROLE_KEY=(.*)/)[1].trim();
+// Originally read from a sibling checkout of the daylink project; that
+// drive is gone, so both connections now come from the environment.
+//   MONGO_URL=mongodb://…  node scripts/import-daylink-mongo.mjs --live
+const mongoUri = process.env.MONGO_URL;
+if (!mongoUri) {
+  console.error('Set MONGO_URL to the daylink MongoDB connection string.');
+  process.exit(1);
+}
+const crmEnv = fs.existsSync(path.join(CRM_DIR, '.env.local'))
+  ? fs.readFileSync(path.join(CRM_DIR, '.env.local'), 'utf8')
+  : '';
+const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+  || crmEnv.match(/NEXT_PUBLIC_SUPABASE_URL=(.*)/)?.[1]?.trim();
+const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+  || crmEnv.match(/SUPABASE_SERVICE_ROLE_KEY=(.*)/)?.[1]?.trim();
+if (!SUPA_URL || !SUPA_KEY || SUPA_URL.includes('placeholder')) {
+  console.error('Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (env or .env.local).');
+  process.exit(1);
+}
 
 const HEADERS = {
   apikey: SUPA_KEY,
@@ -113,8 +136,10 @@ const map = { workspaceId: WORKSPACE_ID, users: {}, projects: {}, tickets: {}, g
 // ---- main -------------------------------------------------------------
 async function main() {
   console.log(LIVE ? '=== LIVE RUN ===' : '=== DRY RUN (pass --live to write) ===');
-  await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 });
-  const db = mongoose.connection.db;
+  const MongoClient = await loadMongoClient();
+  const mongoClient = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 15000 });
+  await mongoClient.connect();
+  const db = mongoClient.db();
 
   // ---------- source ----------
   const teams = await db.collection('teams').find({}).toArray();
@@ -465,7 +490,7 @@ async function main() {
     }
   }
 
-  await mongoose.disconnect();
+  await mongoClient.close();
 
   // ---------- output ----------
   const outDir = path.join(__dirname, 'output');

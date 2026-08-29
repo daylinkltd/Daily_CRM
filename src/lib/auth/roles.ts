@@ -114,8 +114,42 @@ export function fromDbRole(dbRole: string | null | undefined): AccountRole {
  * new members land where existing ones already are. Kept in one place
  * because the trigger in migration 097 encodes it too.
  */
-export function defaultSystemRoleName(dbRole: WorkspaceDbRole): "Admin" | "Agent" {
-  return dbRole === "owner" || dbRole === "admin" ? "Admin" : "Agent";
+export function defaultSystemRoleName(dbRole: WorkspaceDbRole): string {
+  return dbRole === "owner" || dbRole === "admin"
+    ? ADMIN_ROLE_NAME
+    : TEAM_MEMBER_ROLE_NAME;
+}
+
+/**
+ * The built-in role for ordinary staff, renamed from "Agent" to
+ * "Team Member" — "agent" described a support-desk seat, which is not
+ * what most of these people do.
+ *
+ * Only the DISPLAY name changed. The `workspace_members.role` enum value
+ * stays `'agent'`: it is written into a CHECK constraint, a trigger and
+ * every existing row, and renaming it would be a data migration with no
+ * user-visible benefit.
+ *
+ * Both names are accepted when looking a role up by name, because a
+ * workspace only carries the new name once migration 116 has run — code
+ * that assumed one or the other would break on exactly one side of that
+ * deploy.
+ */
+export const TEAM_MEMBER_ROLE_NAME = "Team Member";
+export const LEGACY_TEAM_MEMBER_ROLE_NAME = "Agent";
+export const ADMIN_ROLE_NAME = "Admin";
+
+/** Every name a workspace's built-in staff role may be stored under. */
+export const TEAM_MEMBER_ROLE_NAMES: readonly string[] = [
+  TEAM_MEMBER_ROLE_NAME,
+  LEGACY_TEAM_MEMBER_ROLE_NAME,
+];
+
+/** Names to match when resolving the fallback role for a db enum value. */
+export function systemRoleNameCandidates(dbRole: WorkspaceDbRole): string[] {
+  return dbRole === "owner" || dbRole === "admin"
+    ? [ADMIN_ROLE_NAME]
+    : [...TEAM_MEMBER_ROLE_NAMES];
 }
 
 // ============================================================

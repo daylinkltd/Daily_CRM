@@ -36,7 +36,8 @@ export const ROLE_META: Record<
   },
   agent: {
     icon: UserCog,
-    label: 'Agent',
+    // Displayed name only — the enum value stays 'agent'.
+    label: 'Team Member',
     variant: 'muted',
     className: 'border-border bg-muted text-muted-foreground',
   },

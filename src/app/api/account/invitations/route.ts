@@ -6,6 +6,11 @@
 import { NextResponse } from "next/server";
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  checkTeamPermission,
+  teamPermissionError,
+} from "@/lib/auth/team-permissions";
 import {
   clampExpiryDays,
   generateInviteToken,
@@ -153,7 +158,20 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const ctx = await requireRole("admin");
+    // requireRole stays as the floor (a viewer never reaches here); the
+    // matrix decides above it, so a workspace can widen or narrow who
+    // may invite without changing anyone's account role.
+    const ctx = await requireRole("agent");
+
+    const verdict = await checkTeamPermission(
+      createAdminClient(),
+      ctx.accountId,
+      ctx.userId,
+      "create",
+    );
+    if (!verdict.allowed) {
+      return NextResponse.json({ error: teamPermissionError("create") }, { status: 403 });
+    }
 
     // 30/min per user. The Members tab is a clicks-only UI so any
     // legitimate admin is far below this; the cap exists to keep

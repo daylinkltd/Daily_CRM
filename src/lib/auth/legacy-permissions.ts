@@ -28,6 +28,11 @@ export const LEGACY_PERMISSION_SOURCES: Record<string, string[]> = {
   attendance_manage: ["attendance:update", "attendance:delete"],
   // Approving leave is an update on the request.
   leave_approve: ["leave:update"],
+  // Adding, re-roling or removing people. Lets a workspace delegate
+  // team management to a role that is not admin — the settings UI
+  // gates on `manage_users`, and the member APIs enforce the same
+  // `team_members:*` keys server-side.
+  manage_users: ["team_members:create", "team_members:update", "team_members:delete"],
 };
 
 /**

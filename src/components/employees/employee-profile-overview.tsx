@@ -14,6 +14,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Loader2, Save } from 'lucide-react';
+import { useMemberDirectory } from '@/hooks/use-member-directory';
 
 interface EmployeeProfileOverviewProps {
   employee: any;
@@ -33,6 +34,7 @@ export function EmployeeProfileOverview({
   onSaved 
 }: EmployeeProfileOverviewProps) {
   const supabase = createClient();
+  const directory = useMemberDirectory();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     employee_code: employee.employee_code || '',
@@ -145,14 +147,13 @@ export function EmployeeProfileOverview({
                   <SelectTrigger><SelectValue placeholder="Select Manager" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">-- None --</SelectItem>
-                    {managers.filter(m => m.workspace_member_id !== employee.workspace_member_id).map(m => {
-                      const profile = Array.isArray(m.workspace_members?.profiles) ? m.workspace_members.profiles[0] : m.workspace_members?.profiles;
-                      return (
-                        <SelectItem key={m.workspace_member_id} value={m.workspace_member_id}>
-                          {profile?.full_name || 'Unknown User'}
-                        </SelectItem>
-                      );
-                    })}
+                    {managers.filter(m => m.workspace_member_id !== employee.workspace_member_id).map(m => (
+                      <SelectItem key={m.workspace_member_id} value={m.workspace_member_id}>
+                        {directory.nameFor(
+                          m.workspace_members?.user_id ?? m.workspace_member_id,
+                        )}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

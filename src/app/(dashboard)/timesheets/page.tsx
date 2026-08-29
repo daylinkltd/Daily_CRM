@@ -24,7 +24,8 @@ import { useWorkspace } from '@/hooks/use-workspace';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { TimeLogForm } from '@/components/timesheets/time-log-form';
+import { TimesheetEntryTable } from '@/components/timesheets/timesheet-entry-table';
+import { useTimesheetTemplate } from '@/hooks/use-timesheet-template';
 import { formatMemberName } from '@/components/tasks/task-form';
 import { IconAction } from "@/components/ui/icon-action";
 
@@ -38,8 +39,12 @@ export default function TimesheetsPage() {
   
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+<<<<<<< HEAD
   const [editingLog, setEditingLog] = useState<any | null>(null);
   const [defaultLogDate, setDefaultLogDate] = useState<string>('');
+=======
+  const { templateId: timesheetTemplateId } = useTimesheetTemplate();
+>>>>>>> 7a8a98585f9be95c83c6f42fccd342de3402c6ac
 
   // Calendar / Date Filters
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>(''); // YYYY-MM-DD
@@ -514,7 +519,7 @@ export default function TimesheetsPage() {
         </div>
       </Tabs>
 
-      <TimeLogForm
+      <TimesheetEntryTable
         open={formOpen}
         onOpenChange={(o) => {
           setFormOpen(o);
@@ -525,6 +530,8 @@ export default function TimesheetsPage() {
         }}
         editingLog={editingLog}
         defaultLogDate={defaultLogDate}
+        allowDateChange
+        title="Log daily time"
         onSaved={loadAll}
       />
     </div>

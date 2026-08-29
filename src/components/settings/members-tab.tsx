@@ -14,11 +14,11 @@
 //                 rather than pretending we can resurface it.
 //
 // Role-gating
-//   The tab itself is reachable by any member, but mutation buttons
-//   are wrapped in `<RequireRole min="admin">` / `useCan` so an
-//   agent or viewer sees the roster read-only. The server-side
-//   RPCs (set_member_role, remove_account_member) double-check
-//   the role anyway.
+//   The tab itself is reachable by any member; the mutation controls
+//   need `canManageMembers` — owner/admin by role, or any role the
+//   owner has granted Team & Access (`team_members:*`) in the matrix.
+//   Everyone else sees the roster read-only. The member APIs check the
+//   same permission, so this only decides what is on screen.
 // ============================================================
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -66,7 +66,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RequireRole } from '@/components/auth/require-role';
 import { useAuth } from '@/hooks/use-auth';
 import { usePresence } from '@/hooks/use-presence';
 import type { AccountRole } from '@/lib/auth/roles';
@@ -77,6 +76,7 @@ import {
 } from '@/components/presence/presence-dot';
 import { createClient } from '@/lib/supabase/client';
 import { InviteMemberDialog } from './invite-member-dialog';
+import { WorkspaceAccessPanel } from './workspace-access-panel';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { SettingsPanelHead } from './settings-panel-head';
 import { ROLE_META } from './role-meta';
@@ -140,9 +140,13 @@ function fmtExpiresIn(iso: string): string {
 }
 
 export function MembersTab() {
-  const { user, accountId, accountRole, canManageMembers } = useAuth();
+  const { user, accountId, accountRole, canManageMembers: canManageByRole } = useAuth();
   const { getPresence, getRow, now } = usePresence();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, can } = useWorkspace();
+  // Owner/admin by role, OR any role granted Team & Access in the
+  // matrix — that is the point of the permission. The member APIs
+  // check the same thing, so this only decides what is on screen.
+  const canManageMembers = canManageByRole || can('manage_users');
   const supabase = createClient();
 
   const [members, setMembers] = useState<Member[]>([]);
@@ -420,9 +424,9 @@ export function MembersTab() {
         title="Team members"
         description="People with access to this account. Roles control what each teammate can do."
         action={
-          <RequireRole min="admin">
+          canManageMembers ? (
             <IconAction label="Invite member" icon={<Plus className="size-4" />} onClick={() => setInviteOpen(true)} />
-          </RequireRole>
+          ) : null
         }
       />
 
@@ -685,7 +689,7 @@ export function MembersTab() {
       </Card>
 
       {/* Pending invitations — admin+ only */}
-      <RequireRole min="admin">
+      {canManageMembers && (
         <div>
           <div className="mb-2 flex items-center gap-2">
             <UsersRound className="size-4 text-muted-foreground" />
@@ -766,7 +770,11 @@ export function MembersTab() {
             </Card>
           )}
         </div>
-      </RequireRole>
+      )}
+
+      {/* Cross-workspace access. Renders nothing unless the viewer owns
+          more than one workspace. */}
+      <WorkspaceAccessPanel />
 
       {/* Password dialog — set a chosen password, mint a random one, or
           fall back to the email flow. A generated credential is shown

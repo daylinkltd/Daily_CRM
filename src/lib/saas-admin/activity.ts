@@ -77,4 +77,5 @@ export const ACTIVITY = {
   SEAT_LIMIT_HIT: 'workspace.seat_limit_hit',
   MEMBER_PASSWORD_SET: 'workspace.member_password_set',
   MEMBER_PASSWORD_RESET_EMAILED: 'workspace.member_password_reset_emailed',
+  WORKSPACE_CONFIG_COPIED: 'workspace.config_copied',
 } as const;

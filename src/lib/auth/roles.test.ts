@@ -20,9 +20,9 @@ describe("defaultSystemRoleName", () => {
     expect(defaultSystemRoleName("admin")).toBe("Admin");
   });
 
-  it("maps everyone else to Agent, matching migration 073", () => {
-    expect(defaultSystemRoleName("member")).toBe("Agent");
-    expect(defaultSystemRoleName("viewer")).toBe("Agent");
+  it("maps everyone else to the staff role", () => {
+    expect(defaultSystemRoleName("member")).toBe("Team Member");
+    expect(defaultSystemRoleName("viewer")).toBe("Team Member");
   });
 
   it("never returns Viewer, which would expose payroll to plain members", () => {
