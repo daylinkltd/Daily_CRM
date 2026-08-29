@@ -133,12 +133,14 @@ function StageColumn({
   canManage,
   onDelete,
   onEdit,
+  onAddCandidate,
 }: {
   stage: string;
   applications: CandidateApplication[];
   canManage: boolean;
   onDelete: (application: CandidateApplication) => void;
   onEdit: (application: CandidateApplication) => void;
+  onAddCandidate?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage });
 
@@ -151,9 +153,21 @@ function StageColumn({
     >
       <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-foreground">
         <span>{stage}</span>
-        <Badge variant="secondary" className="text-[10px]">
-          {applications.length}
-        </Badge>
+        <div className="flex items-center gap-1.5">
+          {stage === 'APPLIED' && canManage && onAddCandidate && (
+            <button
+              type="button"
+              onClick={onAddCandidate}
+              className="text-[10px] bg-primary/10 text-primary hover:bg-primary/20 px-1.5 py-0.5 rounded font-bold transition-colors"
+              title="Add Candidate to this pipeline"
+            >
+              + Add
+            </button>
+          )}
+          <Badge variant="secondary" className="text-[10px]">
+            {applications.length}
+          </Badge>
+        </div>
       </div>
 
       <div className="min-h-[300px] space-y-2">
@@ -167,9 +181,18 @@ function StageColumn({
           />
         ))}
         {applications.length === 0 && (
-          <p className="px-1 py-6 text-center text-[11px] text-muted-foreground">
-            Drop a candidate here
-          </p>
+          <div className="px-1 py-8 text-center text-[11px] text-muted-foreground flex flex-col items-center justify-center gap-2">
+            <span>Drop a candidate here</span>
+            {stage === 'APPLIED' && canManage && onAddCandidate && (
+              <button
+                type="button"
+                onClick={onAddCandidate}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                + Add Candidate
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

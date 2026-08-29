@@ -43,10 +43,12 @@ interface TimeLogFormProps {
   onOpenChange: (open: boolean) => void;
   defaultTaskId?: string;
   defaultHours?: string | number;
+  defaultLogDate?: string;
+  editingLog?: any | null;
   onSaved: () => void;
 }
 
-export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, onSaved }: TimeLogFormProps) {
+export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, defaultLogDate, editingLog, onSaved }: TimeLogFormProps) {
   const supabase = createClient();
   const { activeWorkspace, activeMember } = useWorkspace();
   
@@ -59,13 +61,6 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
 
   useEffect(() => {
     if (open && activeWorkspace?.id && activeMember?.id) {
-      // Fetch open tasks assigned to the user
-      // `tasks` has no `status` column — completion is
-      // project_statuses.category via status_id. The old .neq('status','DONE')
-      // errored, so `data` was null and the task dropdown was always empty.
-      // Filtered client-side rather than with .not('status_id','in',…) because
-      // a task with no status set has status_id NULL, and NULL NOT IN (…)
-      // yields NULL — which would silently drop unstatused tasks.
       supabase.from('tasks')
         .select('id, title, project_id, project:projects!tasks_project_id_fkey(name), status:project_statuses(category)')
         .eq('workspace_id', activeWorkspace.id)
@@ -78,22 +73,35 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
           )
         );
 
-      setLogDate(new Date().toISOString().split('T')[0]);
-      
-      // Initialize with default or single entry
-      setEntries([
-        {
-          id: Math.random().toString(36).substring(2, 9),
-          taskId: defaultTaskId || 'none',
-          hours: defaultHours ? String(defaultHours) : '',
-          description: '',
-          isBillable: false,
-          showQuickTask: false,
-          quickTaskTitle: '',
-        },
-      ]);
+      if (editingLog) {
+        setLogDate(editingLog.log_date || new Date().toISOString().split('T')[0]);
+        setEntries([
+          {
+            id: editingLog.id,
+            taskId: editingLog.task_id || editingLog.task?.id || 'none',
+            hours: editingLog.duration ? String(editingLog.duration) : '',
+            description: editingLog.description || '',
+            isBillable: !!editingLog.billable,
+            showQuickTask: false,
+            quickTaskTitle: '',
+          },
+        ]);
+      } else {
+        setLogDate(defaultLogDate || new Date().toISOString().split('T')[0]);
+        setEntries([
+          {
+            id: Math.random().toString(36).substring(2, 9),
+            taskId: defaultTaskId || 'none',
+            hours: defaultHours ? String(defaultHours) : '',
+            description: '',
+            isBillable: false,
+            showQuickTask: false,
+            quickTaskTitle: '',
+          },
+        ]);
+      }
     }
-  }, [open, activeWorkspace?.id, activeMember?.id, defaultTaskId, defaultHours, supabase]);
+  }, [open, activeWorkspace?.id, activeMember?.id, defaultTaskId, defaultHours, defaultLogDate, editingLog, supabase]);
 
   const addEntry = () => {
     setEntries((prev) => [
@@ -199,21 +207,38 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
 
     setSaving(true);
     try {
-      const timeLogPayloads = entries.map((entry) => ({
-        workspace_id: activeWorkspace.id,
-        workspace_member_id: activeMember.id,
-        task_id: entry.taskId,
-        log_date: logDate,
-        duration: parseFloat(entry.hours),
-        description: entry.description.trim() || null,
-        billable: entry.isBillable,
-      }));
+      if (editingLog) {
+        const entry = entries[0];
+        const { error } = await supabase
+          .from('time_logs')
+          .update({
+            task_id: entry.taskId,
+            log_date: logDate,
+            duration: parseFloat(entry.hours),
+            description: entry.description.trim() || null,
+            billable: entry.isBillable,
+          })
+          .eq('id', editingLog.id);
 
-      const { error } = await supabase.from('time_logs').insert(timeLogPayloads);
-      if (error) throw error;
+        if (error) throw error;
+        toast.success('Time log entry updated successfully!');
+      } else {
+        const timeLogPayloads = entries.map((entry) => ({
+          workspace_id: activeWorkspace.id,
+          workspace_member_id: activeMember.id,
+          task_id: entry.taskId,
+          log_date: logDate,
+          duration: parseFloat(entry.hours),
+          description: entry.description.trim() || null,
+          billable: entry.isBillable,
+        }));
 
-      const totalHours = entries.reduce((sum, e) => sum + parseFloat(e.hours || '0'), 0);
-      toast.success(`Successfully logged ${entries.length} time ${entries.length === 1 ? 'entry' : 'entries'} (${totalHours.toFixed(1)} hrs total)!`);
+        const { error } = await supabase.from('time_logs').insert(timeLogPayloads);
+        if (error) throw error;
+
+        const totalHours = entries.reduce((sum, e) => sum + parseFloat(e.hours || '0'), 0);
+        toast.success(`Successfully logged ${entries.length} time ${entries.length === 1 ? 'entry' : 'entries'} (${totalHours.toFixed(1)} hrs total)!`);
+      }
 
       onSaved();
       onOpenChange(false);
@@ -239,10 +264,10 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Clock className="size-5 text-primary" /> Log Daily Time
+                <Clock className="size-5 text-primary" /> {editingLog ? 'Edit Time Log Entry' : 'Log Daily Time'}
               </DialogTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Add multiple task entries for the day in a single submission.
+                {editingLog ? 'Update task assignment, duration, or description for this entry.' : 'Add task entries for the day in a single submission.'}
               </p>
             </div>
             {totalHours > 0 && (
@@ -390,8 +415,8 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
                       <Label className="text-xs font-medium text-foreground">Hours Logged <span className="text-red-500">*</span></Label>
                       <Input
                         type="number"
-                        step="0.25"
-                        min="0.1"
+                        step="any"
+                        min="0.01"
                         max="24"
                         value={entry.hours}
                         onChange={(e) => updateEntry(entry.id, { hours: e.target.value })}
@@ -426,15 +451,17 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
               ))}
             </div>
 
-            {/* Add Another Entry Button */}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addEntry}
-              className="w-full py-2.5 text-xs font-bold border-dashed border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 gap-2 rounded-xl"
-            >
-              <Plus className="size-4" /> Add Another Task Entry
-            </Button>
+            {/* Add Another Entry Button (Only in bulk create mode) */}
+            {!editingLog && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addEntry}
+                className="w-full py-2.5 text-xs font-bold border-dashed border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 gap-2 rounded-xl"
+              >
+                <Plus className="size-4" /> Add Another Task Entry
+              </Button>
+            )}
           </div>
 
           {/* Footer Actions */}
@@ -443,22 +470,22 @@ export function TimeLogForm({ open, onOpenChange, defaultTaskId, defaultHours, o
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-border text-muted-foreground hover:bg-muted"
+              className="text-xs font-semibold border-border text-muted-foreground hover:bg-muted"
               disabled={saving}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-5"
               disabled={saving}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs px-5 h-9 rounded-xl"
             >
               {saving && <Loader2 className="size-4 animate-spin mr-2" />}
               {saving
-                ? 'Saving Entries...'
-                : entries.length > 1
-                ? `Save All ${entries.length} Entries (${totalHours.toFixed(1)} hrs)`
-                : 'Save Entry'}
+                ? 'Saving Entry...'
+                : editingLog
+                ? 'Save Entry Changes'
+                : `Save ${entries.length === 1 ? 'Entry' : `All ${entries.length} Entries`} (${totalHours.toFixed(1)} hrs)`}
             </Button>
           </DialogFooter>
         </form>

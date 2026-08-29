@@ -18,7 +18,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Loader2, Clock, Plus, AlertCircle, BarChart3, ChevronDown, Calendar, Trash2, Search, X } from 'lucide-react';
+import { Loader2, Clock, Plus, AlertCircle, BarChart3, ChevronDown, Calendar, Trash2, Search, X, Pencil } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,8 @@ export default function TimesheetsPage() {
   
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+  const [editingLog, setEditingLog] = useState<any | null>(null);
+  const [defaultLogDate, setDefaultLogDate] = useState<string>('');
 
   // Calendar / Date Filters
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>(''); // YYYY-MM-DD
@@ -48,6 +50,18 @@ export default function TimesheetsPage() {
 
   // Track collapsed date groups
   const [collapsedDates, setCollapsedDates] = useState<Record<string, boolean>>({});
+
+  const handleEditLog = (log: any) => {
+    setEditingLog(log);
+    setDefaultLogDate('');
+    setFormOpen(true);
+  };
+
+  const handleAddLogForDate = (dateKey: string) => {
+    setEditingLog(null);
+    setDefaultLogDate(dateKey);
+    setFormOpen(true);
+  };
 
   const fetchMyLogs = useCallback(async () => {
     if (!activeWorkspace?.id || !activeMember?.id) return;
@@ -329,6 +343,18 @@ export default function TimesheetsPage() {
                           <Badge className="bg-primary/10 text-primary hover:bg-primary/15 border-primary/20 font-mono font-bold px-2.5 py-0.5 text-xs">
                             {group.totalHours.toFixed(1)} hrs logged
                           </Badge>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddLogForDate(group.dateKey);
+                            }}
+                            className="h-7 px-2.5 text-xs font-semibold bg-background hover:bg-muted border-border gap-1 text-foreground"
+                          >
+                            <Plus className="size-3 text-primary" /> Add Entry
+                          </Button>
                         </div>
                       </div>
 
@@ -341,7 +367,7 @@ export default function TimesheetsPage() {
                               <TableHead className="text-xs text-muted-foreground">Description</TableHead>
                               <TableHead className="text-xs text-muted-foreground w-28">Hours</TableHead>
                               <TableHead className="text-xs text-muted-foreground w-24">Billable</TableHead>
-                              <TableHead className="text-xs text-muted-foreground w-12 text-right pr-6"></TableHead>
+                              <TableHead className="text-xs text-muted-foreground w-20 text-right pr-6">Actions</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -371,19 +397,34 @@ export default function TimesheetsPage() {
                                   )}
                                 </TableCell>
                                 <TableCell className="text-right pr-6 py-3">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteLog(log.id);
-                                    }}
-                                    className="size-7 text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 rounded-lg"
-                                    title="Delete entry"
-                                  >
-                                    <Trash2 className="size-3.5" />
-                                  </Button>
+                                  <div className="flex items-center justify-end gap-1">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditLog(log);
+                                      }}
+                                      className="size-7 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+                                      title="Edit entry"
+                                    >
+                                      <Pencil className="size-3.5 text-primary" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteLog(log.id);
+                                      }}
+                                      className="size-7 text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 rounded-lg"
+                                      title="Delete entry"
+                                    >
+                                      <Trash2 className="size-3.5" />
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -398,65 +439,60 @@ export default function TimesheetsPage() {
           </TabsContent>
 
           {canManageTimesheets && (
-            <TabsContent value="team" className="m-0 focus-visible:outline-none">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Input 
+            <TabsContent value="team" className="m-0 focus-visible:outline-none focus-visible:ring-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 p-3 bg-card border border-border rounded-xl shadow-xs">
+                <div className="flex items-center gap-2">
+                  <Calendar className="size-4 text-primary shrink-0" />
+                  <span className="text-xs font-semibold text-foreground">Date:</span>
+                  <Input
                     type="date"
                     value={reportDate}
                     onChange={(e) => setReportDate(e.target.value)}
-                    className="w-auto bg-card border-border"
+                    className="h-7 w-auto bg-background text-xs border-border px-2 py-0 cursor-pointer"
                   />
-                  <Button variant="outline" size="sm" onClick={fetchTeamTimesheets}>Run Report</Button>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border overflow-hidden bg-card">
+              <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-muted/40">
                     <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="text-muted-foreground">Employee</TableHead>
-                      <TableHead className="text-muted-foreground">Attendance Status</TableHead>
-                      <TableHead className="text-muted-foreground">Clocked Hours (GPS)</TableHead>
-                      <TableHead className="text-muted-foreground">Task Hours Logged</TableHead>
-                      <TableHead className="text-muted-foreground">Variance</TableHead>
+                      <TableHead className="text-xs text-muted-foreground pl-6">Team Member</TableHead>
+                      <TableHead className="text-xs text-muted-foreground">Clocked (Attendance)</TableHead>
+                      <TableHead className="text-xs text-muted-foreground">Logged (Tasks)</TableHead>
+                      <TableHead className="text-xs text-muted-foreground">Status / Gap</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {loading ? (
-                      <TableRow className="border-border">
-                        <TableCell colSpan={5} className="text-center py-12">
-                          <Loader2 className="size-6 animate-spin text-primary mx-auto" />
-                        </TableCell>
-                      </TableRow>
-                    ) : teamTimesheets.length === 0 ? (
-                      <TableRow className="border-border">
-                        <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                          No attendance data found for {new Date(reportDate).toLocaleDateString()}. Employees must punch in first.
+                    {teamTimesheets.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-8 text-xs text-muted-foreground">
+                          No team members found for {reportDate}
                         </TableCell>
                       </TableRow>
                     ) : (
                       teamTimesheets.map((row) => (
-                        <TableRow key={row.member_id} className="border-border hover:bg-muted/50">
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Avatar className="size-7 border border-border">
-                                {row.avatar && <AvatarImage src={row.avatar} />}
-                                <AvatarFallback className="bg-primary/10 text-primary text-xs">{row.name.charAt(0)}</AvatarFallback>
+                        <TableRow key={row.member_id} className="border-border/60">
+                          <TableCell className="pl-6 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <Avatar className="size-7">
+                                {row.avatar ? <AvatarImage src={row.avatar} /> : null}
+                                <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
+                                  {(row.name || 'M').charAt(0).toUpperCase()}
+                                </AvatarFallback>
                               </Avatar>
-                              <span className="font-medium text-foreground text-sm">{row.name}</span>
+                              <span className="font-semibold text-sm text-foreground">{row.name}</span>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={row.status === 'Absent' ? 'bg-red-500/15 text-red-700' : 'bg-blue-500/15 text-blue-700'}>
-                              {row.status}
-                            </Badge>
+                          <TableCell className="font-mono text-xs text-foreground font-semibold">
+                            {row.attendanceHours}h
                           </TableCell>
-                          <TableCell className="font-mono text-sm">{row.attendanceHours}h</TableCell>
-                          <TableCell className="font-mono text-sm font-medium">{row.loggedTime}h</TableCell>
-                          <TableCell>
+                          <TableCell className="font-mono text-xs text-primary font-bold">
+                            {row.loggedTime}h
+                          </TableCell>
+                          <TableCell className="py-3">
                             {row.discrepancy > 0 ? (
-                              <span className="flex items-center gap-1 text-orange-600 text-sm font-medium" title="Unlogged time">
+                              <span className="text-amber-500 text-xs font-semibold flex items-center gap-1">
                                 <AlertCircle className="size-3.5" /> -{row.discrepancy}h
                               </span>
                             ) : row.discrepancy < 0 ? (
@@ -464,7 +500,7 @@ export default function TimesheetsPage() {
                                 +{Math.abs(row.discrepancy)}h
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-sm">Match</span>
+                              <span className="text-muted-foreground text-xs">Match</span>
                             )}
                           </TableCell>
                         </TableRow>
@@ -480,7 +516,15 @@ export default function TimesheetsPage() {
 
       <TimeLogForm
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(o) => {
+          setFormOpen(o);
+          if (!o) {
+            setEditingLog(null);
+            setDefaultLogDate('');
+          }
+        }}
+        editingLog={editingLog}
+        defaultLogDate={defaultLogDate}
         onSaved={loadAll}
       />
     </div>

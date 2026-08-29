@@ -305,16 +305,20 @@ export default function AttendancePage() {
         <div className="flex flex-wrap items-center gap-3">
           <PunchAction onPunch={fetchAttendanceData} />
           {canManageAttendance && (
-            <IconAction
-              label="Log Attendance"
-              icon={<Plus className="h-4 w-4" />}
+            <Button
               onClick={() => { setEditRecord(null); setEditOpen(true); }}
               className="bg-primary text-primary-foreground font-bold rounded-xl h-10 gap-1.5 text-xs"
-            />
+            >
+              <Plus className="h-4 w-4" /> Log Attendance
+            </Button>
           )}
-          <IconAction label="Regularization Request" icon={<Plus className="h-4 w-4 text-[#00aef0]" />} onClick={() => setShowRequestModal(true)}
+          <Button
+            onClick={() => setShowRequestModal(true)}
             variant="outline"
-            className="border-border bg-background text-foreground hover:text-foreground font-bold rounded-xl h-10 gap-1.5 text-xs" />
+            className="border-border bg-background text-foreground hover:text-foreground font-bold rounded-xl h-10 gap-1.5 text-xs"
+          >
+            <Plus className="h-4 w-4 text-[#00aef0]" /> Request Regularization
+          </Button>
         </div>
       </div>
 

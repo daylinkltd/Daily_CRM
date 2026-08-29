@@ -11,16 +11,35 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'workspaceId is required' }, { status: 400 });
     }
 
-    const [jobsRes, candidatesRes, appsRes] = await Promise.all([
-      supabase.from('hr_recruitment_jobs').select('*, department:departments(name)').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
+    const [jobsRes, candidatesRes, appsRes, deptsRes] = await Promise.all([
+      supabase.from('hr_recruitment_jobs').select('*, department:departments(id, name)').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
       supabase.from('hr_candidates').select('*').eq('workspace_id', workspaceId),
-      supabase.from('hr_job_applications').select('*, job:hr_recruitment_jobs(*), candidate:hr_candidates(*)').eq('workspace_id', workspaceId)
+      supabase.from('hr_job_applications').select('*, job:hr_recruitment_jobs(*), candidate:hr_candidates(*)').eq('workspace_id', workspaceId),
+      supabase.from('departments').select('id, name').eq('workspace_id', workspaceId)
     ]);
 
+    const jobs = jobsRes.data || [];
+    const applications = appsRes.data || [];
+
+    // Calculate recruitment budget metrics
+    const totalApprovedBudget = jobs.reduce((acc: number, j: any) => acc + (Number(j.approved_budget_amount) || 0), 0);
+    const totalVacancies = jobs.reduce((acc: number, j: any) => acc + (Number(j.vacancies_count) || 1), 0);
+    const hiredApps = applications.filter((a: any) => a.stage === 'HIRED');
+    const committedBudget = hiredApps.reduce((acc: number, a: any) => acc + (Number(a.offered_salary) || 0), 0);
+
     return NextResponse.json({
-      jobs: jobsRes.data || [],
+      jobs,
       candidates: candidatesRes.data || [],
-      applications: appsRes.data || []
+      applications,
+      departments: deptsRes.data || [],
+      budgetMetrics: {
+        totalApprovedBudget,
+        committedBudget,
+        remainingBudget: Math.max(0, totalApprovedBudget - committedBudget),
+        totalVacancies,
+        hiredCount: hiredApps.length,
+        openVacancies: Math.max(0, totalVacancies - hiredApps.length)
+      }
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
@@ -38,7 +57,32 @@ export async function POST(request: Request) {
     }
 
     if (action === 'CREATE_JOB') {
-      const { title, departmentId, location, employmentType, experienceLevel, jobDescription } = body;
+      const {
+        title,
+        departmentId,
+        location,
+        employmentType,
+        experienceLevel,
+        jobDescription,
+        costCenter,
+        budgetType,
+        approvedBudgetAmount,
+        budgetApprovalStatus,
+        vacanciesCount,
+        hiringManager,
+        expectedDoj,
+        hiringReason,
+        designationGrade,
+        rolesResponsibilities,
+        requiredSkills,
+        minExperienceYears,
+        maxExperienceYears,
+        educationalCriteria,
+        minSalary,
+        maxSalary,
+        salaryCurrency
+      } = body;
+
       const { data: job, error } = await supabase
         .from('hr_recruitment_jobs')
         .insert({
@@ -49,6 +93,23 @@ export async function POST(request: Request) {
           employment_type: employmentType || 'FULL_TIME',
           experience_level: experienceLevel || 'Mid-Senior',
           job_description: jobDescription || '',
+          cost_center: costCenter || null,
+          budget_type: budgetType || 'ANNUAL_BUDGET',
+          approved_budget_amount: approvedBudgetAmount ? Number(approvedBudgetAmount) : 0,
+          budget_approval_status: budgetApprovalStatus || 'APPROVED',
+          vacancies_count: vacanciesCount ? Number(vacanciesCount) : 1,
+          hiring_manager: hiringManager || null,
+          expected_doj: expectedDoj || null,
+          hiring_reason: hiringReason || null,
+          designation_grade: designationGrade || null,
+          roles_responsibilities: rolesResponsibilities || null,
+          required_skills: requiredSkills || null,
+          min_experience_years: minExperienceYears ? Number(minExperienceYears) : null,
+          max_experience_years: maxExperienceYears ? Number(maxExperienceYears) : null,
+          educational_criteria: educationalCriteria || null,
+          min_salary: minSalary ? Number(minSalary) : null,
+          max_salary: maxSalary ? Number(maxSalary) : null,
+          salary_currency: salaryCurrency || 'USD',
           status: 'OPEN'
         })
         .select()
@@ -56,6 +117,52 @@ export async function POST(request: Request) {
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ job });
+    }
+
+    if (action === 'CONVERT_TO_EMPLOYEE') {
+      const { applicationId } = body;
+      // Fetch application with candidate & job
+      const { data: appRow } = await supabase
+        .from('hr_job_applications')
+        .select('*, candidate:hr_candidates(*), job:hr_recruitment_jobs(*)')
+        .eq('id', applicationId)
+        .eq('workspace_id', workspaceId)
+        .maybeSingle();
+
+      if (!appRow || !appRow.candidate) {
+        return NextResponse.json({ error: 'Candidate application not found' }, { status: 404 });
+      }
+
+      const cand = appRow.candidate;
+      const job = appRow.job;
+
+      // Generate next Employee Code (e.g. EMP-1042)
+      const empCode = `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const { data: emp, error: empErr } = await supabase
+        .from('hr_employees')
+        .insert({
+          workspace_id: workspaceId,
+          employee_code: empCode,
+          department_id: job?.department_id || null,
+          joining_date: appRow.offered_doj || job?.expected_doj || new Date().toISOString().split('T')[0],
+          employment_status: 'PROBATION',
+          probation_decision: 'PENDING'
+        })
+        .select()
+        .single();
+
+      if (empErr) {
+        return NextResponse.json({ error: empErr.message }, { status: 500 });
+      }
+
+      // Update application stage to HIRED
+      await supabase
+        .from('hr_job_applications')
+        .update({ stage: 'HIRED', stage_changed_at: new Date().toISOString() })
+        .eq('id', applicationId);
+
+      return NextResponse.json({ employee: emp, message: `Candidate onboarded successfully as ${empCode}` });
     }
 
     if (action === 'ADD_CANDIDATE') {
@@ -95,9 +202,6 @@ export async function POST(request: Request) {
 
     if (action === 'MOVE_STAGE') {
       const { applicationId, newStage } = body;
-      // Scoped by workspace as well as id. RLS already prevents reaching
-      // another tenant's row, but relying on that alone means a mistyped id
-      // is indistinguishable from a permission failure.
       const { data: rows, error } = await supabase
         .from('hr_job_applications')
         .update({
@@ -109,8 +213,6 @@ export async function POST(request: Request) {
         .select();
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-      // Supabase reports success on a zero-row update, so distinguish
-      // "gone" from "RLS refused" the same way DELETE does below.
       if (!rows || rows.length === 0) {
         const { data: stillThere } = await supabase
           .from('hr_job_applications')
@@ -146,10 +248,6 @@ export async function POST(request: Request) {
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       if (!rows || rows.length === 0) {
-        // Zero rows has two very different causes and Supabase reports both
-        // as success: the row is gone, or RLS filtered the DELETE away. Read
-        // it back to tell them apart — "no longer exists" on a row the user
-        // can plainly still see is the least useful message possible.
         const { data: stillThere } = await supabase
           .from('hr_job_applications')
           .select('id')
@@ -170,19 +268,12 @@ export async function POST(request: Request) {
               { status: 404 }
             );
       }
-      // The candidate row is intentionally left alone: a person can apply
-      // to more than one opening, so removing an application must not
-      // delete the human from the ATS.
       return NextResponse.json({ deleted: applicationId });
     }
 
     if (action === 'UPDATE_APPLICATION') {
-      const { applicationId, candidateId, fullName, email, phone, jobId, stage } = body;
+      const { applicationId, candidateId, fullName, email, phone, jobId, stage, decision, bgvStatus, offeredSalary, offeredDoj } = body;
 
-      // The candidate's details live on hr_candidates; the opening and
-      // stage live on the application. An edit usually touches both, so
-      // this action updates each side rather than making the UI do two
-      // round trips that can half-fail.
       if (candidateId && (fullName || email || phone)) {
         const candidatePatch: Record<string, unknown> = {};
         if (fullName !== undefined) candidatePatch.full_name = fullName;
@@ -212,6 +303,10 @@ export async function POST(request: Request) {
         appPatch.stage = stage;
         appPatch.stage_changed_at = new Date().toISOString();
       }
+      if (decision !== undefined) appPatch.decision = decision;
+      if (bgvStatus !== undefined) appPatch.bgv_status = bgvStatus;
+      if (offeredSalary !== undefined) appPatch.offered_salary = offeredSalary ? Number(offeredSalary) : null;
+      if (offeredDoj !== undefined) appPatch.offered_doj = offeredDoj || null;
 
       if (Object.keys(appPatch).length > 0) {
         const { data: appRows, error: appErr } = await supabase
