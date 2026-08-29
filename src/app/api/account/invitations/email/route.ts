@@ -18,6 +18,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendOutlookEmail, type OutlookConfig } from "@/lib/integrations/outlook";
 import { decrypt } from "@/lib/whatsapp/encryption";
+import { sendPlatformMail } from "@/lib/platform/mailer";
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -85,22 +86,25 @@ export async function POST(request: Request) {
     .eq("status", "active")
     .maybeSingle();
 
-  if (!configRow?.settings?.encrypted_client_secret) {
-    return NextResponse.json(
-      { error: "Connect Outlook in Integrations to email invitations from your own mailbox" },
-      { status: 400 },
-    );
-  }
+  // The workspace's own mailbox is PREFERRED — an invitation from
+  // "acme.com" reads better than one from us — but it is no longer
+  // required. Without it we fall back to the platform mailbox, so
+  // inviting someone works out of the box rather than being gated on
+  // an integration the admin may never set up.
+  const workspaceOutlook = configRow?.settings?.encrypted_client_secret
+    ? configRow.settings
+    : null;
 
-  const settings = configRow.settings;
-  let clientSecret: string;
-  try {
-    clientSecret = decrypt(settings.encrypted_client_secret);
-  } catch {
-    return NextResponse.json(
-      { error: "Stored Outlook credentials could not be read. Reconnect the integration." },
-      { status: 400 },
-    );
+  let clientSecret: string | null = null;
+  if (workspaceOutlook) {
+    try {
+      clientSecret = decrypt(workspaceOutlook.encrypted_client_secret);
+    } catch {
+      // A mangled credential is not a dead end: log it and use the
+      // platform mailbox instead of refusing to invite anyone.
+      console.error("[invitations/email] workspace Outlook secret unreadable; using platform mailbox");
+      clientSecret = null;
+    }
   }
 
   const { data: workspace } = await supabase
@@ -112,13 +116,6 @@ export async function POST(request: Request) {
   const invitedBy = typeof inviter_name === "string" && inviter_name.trim()
     ? inviter_name.trim()
     : "A teammate";
-
-  const config: OutlookConfig = {
-    tenantId: settings.tenant_id,
-    clientId: settings.client_id,
-    clientSecret,
-    fromEmail: settings.from_email,
-  };
 
   const safeUrl = escapeHtml(inviteUrl.toString());
   const bodyHtml = `
@@ -140,20 +137,50 @@ export async function POST(request: Request) {
       </p>
     </div>`;
 
-  try {
-    await sendOutlookEmail({
-      config,
-      to: to.trim(),
-      subject: `You're invited to join ${workspaceName}`,
-      bodyHtml,
-    });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Outlook rejected the message";
-    await supabase
-      .from("workspace_integrations")
-      .update({ last_error: message.slice(0, 500), updated_at: new Date().toISOString() })
-      .eq("id", configRow.id);
-    return NextResponse.json({ error: `Could not email the invite: ${message}` }, { status: 502 });
+  const subject = `You're invited to join ${workspaceName}`;
+
+  if (workspaceOutlook && clientSecret) {
+    const config: OutlookConfig = {
+      tenantId: workspaceOutlook.tenant_id,
+      clientId: workspaceOutlook.client_id,
+      clientSecret,
+      fromEmail: workspaceOutlook.from_email,
+    };
+    try {
+      await sendOutlookEmail({ config, to: to.trim(), subject, bodyHtml });
+      return NextResponse.json({
+        success: true,
+        message: `Invitation emailed to ${to.trim()} from ${workspaceOutlook.from_email}`,
+      });
+    } catch (err) {
+      // Record why the workspace mailbox refused, then still get the
+      // invitation out through the platform one.
+      const message = err instanceof Error ? err.message : "Outlook rejected the message";
+      await supabase
+        .from("workspace_integrations")
+        .update({ last_error: message.slice(0, 500), updated_at: new Date().toISOString() })
+        .eq("id", configRow!.id);
+    }
+  }
+
+  const sent = await sendPlatformMail({
+    to: to.trim(),
+    kind: "invitation",
+    subject,
+    body: bodyHtml,
+    raw: true,
+    workspaceId: workspace_id,
+  });
+
+  if (!sent.ok) {
+    return NextResponse.json(
+      {
+        error: sent.notConfigured
+          ? "No mailbox is configured to send invitations. Connect Outlook in Integrations, or ask your administrator to set up platform email."
+          : `Could not email the invite: ${sent.error}`,
+      },
+      { status: 502 },
+    );
   }
 
   return NextResponse.json({ success: true, message: `Invitation emailed to ${to.trim()}` });

@@ -6,6 +6,8 @@ import {
   recoveryRedirectUrl,
   validateNewPassword,
 } from '@/lib/auth/passwords';
+import { sendPlatformMail } from '@/lib/platform/mailer';
+import { BRAND } from '@/config/brand';
 
 export const dynamic = 'force-dynamic';
 
@@ -231,16 +233,44 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         return NextResponse.json({ error: 'This user has no email on file.' }, { status: 400 });
       }
 
-      // resetPasswordForEmail, not generateLink: generateLink only MINTS
-      // a link and returns it — for months this action reported success
-      // while no email ever left the building. resetPasswordForEmail
-      // sends through Supabase's mailer, and the explicit redirectTo
-      // keeps the link off the project's Site URL fallback (the
-      // localhost bug).
-      const { error } = await admin.auth.resetPasswordForEmail(target.email, {
-        redirectTo: recoveryRedirectUrl(request),
+      // Minted here, delivered by the platform mailbox — the same route
+      // the self-service "forgot password" flow takes. Supabase's own
+      // mailer is deliberately not used: it composes its own message and
+      // takes the destination from the project's Site URL setting, which
+      // is how these links ended up pointing at localhost.
+      const { data: linkData, error } = await admin.auth.admin.generateLink({
+        type: 'recovery',
+        email: target.email,
+        options: { redirectTo: recoveryRedirectUrl(request) },
       });
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error || !linkData?.properties?.action_link) {
+        return NextResponse.json(
+          { error: error?.message ?? 'Could not create a reset link.' },
+          { status: 500 },
+        );
+      }
+
+      const sent = await sendPlatformMail({
+        to: target.email,
+        kind: 'password_reset',
+        subject: `Reset your ${BRAND.name} password`,
+        body: `
+          <p>An administrator started a password reset for your account.</p>
+          <p style="margin:24px 0;">
+            <a href="${linkData.properties.action_link}"
+               style="display:inline-block;padding:12px 22px;background:#0f172a;color:#ffffff;
+                      text-decoration:none;border-radius:10px;font-weight:600;">
+              Choose a new password
+            </a>
+          </p>
+          <p style="color:#64748b;font-size:13px;">The link works once and expires shortly.</p>`,
+      });
+      if (!sent.ok) {
+        return NextResponse.json(
+          { error: sent.error ?? 'Could not send the reset email.' },
+          { status: 502 },
+        );
+      }
 
       await audit({
         action: 'user.password_reset_sent',

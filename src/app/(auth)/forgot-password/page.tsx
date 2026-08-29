@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,19 +13,26 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const supabase = createClient();
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    // Through our own mailbox, not Supabase's mailer. Supabase composed
+    // the message and took the destination from the project's Site URL
+    // setting — which is exactly how these links ended up pointing at
+    // localhost. The route mints the same token and sends it from the
+    // platform mailbox instead.
+    const res = await fetch("/api/auth/reset-request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
     });
+    const payload = await res.json().catch(() => ({}));
 
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      setError(payload.error || "Could not send the reset email.");
       setLoading(false);
       return;
     }
