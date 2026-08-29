@@ -93,7 +93,7 @@ export async function GET(request: Request) {
     if (mode !== 'subscribe' || !challenge || !verifyToken) {
       // Return 200 for simple uptime pings or third-party provider test checks
       return NextResponse.json(
-        { status: 'active', message: 'Dailybiz Webhook is active' },
+        { status: 'active', message: 'Dailybuz Webhook is active' },
         { status: 200 }
       )
     }

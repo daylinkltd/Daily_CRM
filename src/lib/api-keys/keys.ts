@@ -14,7 +14,7 @@
 //
 // Why the `dailycrm_live_` prefix
 //   - Self-identifying: a leaked string is instantly recognisable as
-//     a Dailybiz key (handy for secret-scanners like GitGuardian).
+//     a Dailybuz key (handy for secret-scanners like GitGuardian).
 //   - Forward-compatible: leaves room for a `dailycrm_test_` variant
 //     if a sandbox mode is ever added, without reshaping the format.
 //
@@ -22,7 +22,7 @@
 //   The prefix was inherited from the upstream open-source project
 //   this repo started from. Keys minted before the rename are still
 //   accepted (LEGACY_API_KEY_PREFIXES) so live integrations don't
-//   break; only newly generated keys carry the Dailybiz prefix.
+//   break; only newly generated keys carry the Dailybuz prefix.
 //   Nothing about the hash or lookup changes — the prefix is just
 //   part of the plaintext.
 // ============================================================
@@ -93,7 +93,7 @@ export function hashApiKey(plaintext: string): string {
  * malformed `Authorization` headers (e.g. a stale invite token).
  *
  * Accepts the current prefix and every legacy prefix, so keys minted
- * before the Dailybiz rename still authenticate.
+ * before the Dailybuz rename still authenticate.
  */
 export function looksLikeApiKey(value: string): boolean {
   return ACCEPTED_API_KEY_PREFIXES.some(

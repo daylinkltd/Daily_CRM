@@ -20,30 +20,30 @@
 
 export const BRAND = {
   /** Product name, exactly as it should always be written. */
-  name: 'Dailybiz',
+  name: 'Dailybuz',
   /** Legal entity behind the product. */
   legalName: 'Daylink Tech Labs Private Limited',
-  domain: 'dailybiz.in',
-  url: 'https://dailybiz.in',
+  domain: 'dailybuz.com',
+  url: 'https://dailybuz.com',
 
   /** One line. Used as the meta description seed and the OG subtitle. */
   tagline: 'Run your whole business in one place',
 
   /**
    * The single sentence that should come back when someone asks an AI
-   * assistant "what is Dailybiz?". Kept concrete — categories and
+   * assistant "what is Dailybuz?". Kept concrete — categories and
    * capabilities, not adjectives, because that is what gets extracted.
    */
   description:
-    'Dailybiz is an all-in-one business platform for Indian SMBs that combines CRM, HR, accounting, retail and project management with a shared WhatsApp inbox — priced per user, with every module included.',
+    'Dailybuz is an all-in-one business platform for Indian SMBs that combines CRM, HR, accounting, retail and project management with a shared WhatsApp inbox — priced per user, with every module included.',
 
   /** Where the product runs. Distinct from the marketing domain. */
   appUrl: 'https://dailycrm.cloud',
 
   contact: {
-    email: 'hello@dailybiz.in',
-    sales: 'sales@dailybiz.in',
-    support: 'support@dailybiz.in',
+    email: 'hello@dailybuz.com',
+    sales: 'sales@dailybuz.com',
+    support: 'support@dailybuz.com',
   },
 
   /**
@@ -72,7 +72,7 @@ export const BRAND = {
   /**
    * Who actually takes the money.
    *
-   * The product is sold as Dailybiz, but the Razorpay account, the GST
+   * The product is sold as Dailybuz, but the Razorpay account, the GST
    * registration and the bank settlement all belong to Daylink Tech Labs.
    * The checkout therefore shows the LEGAL ENTITY alongside the product
    * name: the customer's card statement will read "Daylink", and a charge
@@ -101,7 +101,7 @@ export function absoluteUrl(path = '/'): string {
  * Page title in one consistent shape.
  *
  * The home page uses the bare brand plus tagline; every other page gets
- * "Page · Dailybiz" so a search result is self-describing without the
+ * "Page · Dailybuz" so a search result is self-describing without the
  * brand swallowing the useful half of the title.
  */
 export function pageTitle(page?: string): string {

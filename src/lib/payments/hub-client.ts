@@ -5,7 +5,7 @@
 //
 // The Razorpay account belongs to Daylink, and daylink.in is the only
 // domain registered against it. An earlier version of this integration had
-// Dailybiz hold RAZORPAY_KEY_SECRET so it could create orders and verify
+// Dailybuz hold RAZORPAY_KEY_SECRET so it could create orders and verify
 // payments itself. That was wrong: it copies the account's most sensitive
 // credential into every product's environment, so five SaaS products means
 // five places it can leak from and five to rotate when it does.

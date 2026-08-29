@@ -575,7 +575,7 @@ export default function CustomerLedgerPage() {
           onOpenChange={setWaModalOpen}
           customer={selectedWaCustomer}
           workspaceId={activeWorkspace.id}
-          workspaceName={activeWorkspace.name || "Dailybiz"}
+          workspaceName={activeWorkspace.name || "Dailybuz"}
         />
       )}
     </div>

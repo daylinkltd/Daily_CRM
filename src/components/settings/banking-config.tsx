@@ -24,7 +24,7 @@ interface PushRow {
 /**
  * Connects this workspace to the customer's core banking / accounting system so
  * payroll totals reach their statutory books. Only totals are sent — payslips
- * and individual salaries stay in Dailybiz.
+ * and individual salaries stay in Dailybuz.
  */
 export function BankingConfig() {
   const { activeWorkspace } = useWorkspace();
@@ -156,7 +156,7 @@ export function BankingConfig() {
           </div>
           <AlertDescription className="text-muted-foreground mt-1">
             When a payroll cycle is processed or paid, the cycle totals are posted as a voucher in
-            the banking system. Payslips and individual salaries never leave Dailybiz.
+            the banking system. Payslips and individual salaries never leave Dailybuz.
           </AlertDescription>
         </Alert>
 

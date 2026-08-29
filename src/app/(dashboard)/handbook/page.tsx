@@ -567,7 +567,7 @@ function HandbookContent() {
             open={printModalOpen}
             onOpenChange={setPrintModalOpen}
             workspaceId={workspaceId}
-            workspaceName={activeWorkspace?.name || "Dailybiz"}
+            workspaceName={activeWorkspace?.name || "Dailybuz"}
           />
           <PolicyEditorModal
             open={editorOpen}

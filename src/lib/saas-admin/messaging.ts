@@ -5,7 +5,7 @@ import { sendTextMessage, sendTemplateMessage } from '@/lib/whatsapp/meta-api';
 import type { MessagingConfig } from './messaging-config';
 
 /**
- * Platform outbound channels — Dailybiz-the-company messaging its
+ * Platform outbound channels — Dailybuz-the-company messaging its
  * tenants, from the SaaS console.
  *
  * SEPARATE FROM TENANT MESSAGING BY CONSTRUCTION. Tenants message their

@@ -250,7 +250,7 @@ async function nextAttemptCount(
 
 /** POST the voucher, mapping the remote response onto an outcome. */
 async function send(config: BankingConfig, body: unknown): Promise<PushOutcome> {
-  const url = `${config.baseUrl}/api/integrations/dailybiz/payroll`;
+  const url = `${config.baseUrl}/api/integrations/dailybuz/payroll`;
 
   try {
     const controller = new AbortController();

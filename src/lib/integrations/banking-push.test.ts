@@ -180,7 +180,7 @@ describe("pushPayrollToBanking", () => {
     await pushPayrollToBanking(client, ARGS);
 
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe("https://books.example.com/api/integrations/dailybiz/payroll");
+    expect(url).toBe("https://books.example.com/api/integrations/dailybuz/payroll");
     expect(init.headers.Authorization).toBe("Bearer test-token");
     expect(JSON.parse(init.body)).toMatchObject({
       workspaceId: "ws-1",

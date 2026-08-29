@@ -24,7 +24,7 @@ export interface IndustryContent {
   summary: string;
   /** The operating pain, told concretely. */
   problem: string;
-  /** How the day actually runs on Dailybiz. */
+  /** How the day actually runs on Dailybuz. */
   day: { title: string; body: string }[];
   /** Modules that carry this vertical, in order of importance. */
   moduleSlugs: string[];
@@ -62,7 +62,7 @@ export const INDUSTRIES: IndustryContent[] = [
     moduleSlugs: ['retail', 'crm', 'accounting', 'hr'],
     faq: [
       {
-        question: 'Can Dailybiz replace my billing software and khata app together?',
+        question: 'Can Dailybuz replace my billing software and khata app together?',
         answer:
           'Yes — that is the design. The POS raises GST invoices and takes payments, the khata ledger tracks customers who pay later, and both post into the same double-entry books, so there is no separate billing app to reconcile against.',
       },
@@ -144,14 +144,14 @@ export const INDUSTRIES: IndustryContent[] = [
     moduleSlugs: ['retail', 'accounting', 'crm'],
     faq: [
       {
-        question: 'Does Dailybiz handle credit sales and partial payments?',
+        question: 'Does Dailybuz handle credit sales and partial payments?',
         answer:
           'Yes. Invoices carry an outstanding balance, payments can be partial, and the party’s khata reflects the running position after every transaction.',
       },
       {
         question: 'Can my accountant still use Tally?',
         answer:
-          'Many customers hand their CA an export at year end and keep Tally for filing. Dailybiz keeps the operational books — sales, purchases, stock, receivables — in one live system during the year.',
+          'Many customers hand their CA an export at year end and keep Tally for filing. Dailybuz keeps the operational books — sales, purchases, stock, receivables — in one live system during the year.',
       },
     ],
   },
@@ -187,7 +187,7 @@ export const INDUSTRIES: IndustryContent[] = [
       {
         question: 'My whole business runs on WhatsApp. How does that work here?',
         answer:
-          'Dailybiz connects your WhatsApp Business number to a shared inbox, so every staff member sees and answers from one place, every conversation is attached to the customer’s record, and broadcasts go out with templates — while you keep the same number your customers already have.',
+          'Dailybuz connects your WhatsApp Business number to a shared inbox, so every staff member sees and answers from one place, every conversation is attached to the customer’s record, and broadcasts go out with templates — while you keep the same number your customers already have.',
       },
       {
         question: 'Is it overkill for a six-person salon?',

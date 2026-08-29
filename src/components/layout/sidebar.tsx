@@ -517,7 +517,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                 ) : (
                   <Image
                     src="/logolight.png"
-                    alt="Dailybiz Logo"
+                    alt="Dailybuz Logo"
                     width={36}
                     height={36}
                     className="h-9 w-9 object-contain shrink-0"

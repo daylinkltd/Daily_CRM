@@ -11,8 +11,8 @@ import { jsonLdGraph, faqSchema } from "@/lib/seo/structured-data";
 
 export const metadata: Metadata = {
   // `absolute` bypasses the parent template — without it the root's
-  // "%s | Dailybiz" appends the brand a second time and the tab reads
-  // "Dailybiz — … | Dailybiz".
+  // "%s | Dailybuz" appends the brand a second time and the tab reads
+  // "Dailybuz — … | Dailybuz".
   title: { absolute: pageTitle() },
   description: BRAND.description,
   alternates: { canonical: BRAND.url },
@@ -30,25 +30,25 @@ export const metadata: Metadata = {
  * Written as questions a buyer types, with answers that stand alone.
  *
  * These are the units an AI assistant lifts, so each answer includes its
- * own subject ("Dailybiz costs…", not "It costs…") — a quoted fragment
+ * own subject ("Dailybuz costs…", not "It costs…") — a quoted fragment
  * beginning with "It" is useless to someone who never saw the page.
  */
 const FAQ = [
   {
-    question: "What is Dailybiz?",
+    question: "What is Dailybuz?",
     answer: `${BRAND.description}`,
   },
   {
-    question: "How much does Dailybiz cost?",
-    answer: `Dailybiz costs ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually, excluding GST. Every module is included at that price — there is no higher tier. A 14-day free trial is available with no card required.`,
+    question: "How much does Dailybuz cost?",
+    answer: `Dailybuz costs ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually, excluding GST. Every module is included at that price — there is no higher tier. A 14-day free trial is available with no card required.`,
   },
   {
-    question: "Is Dailybiz suitable for a small business in India?",
+    question: "Is Dailybuz suitable for a small business in India?",
     answer:
-      "Yes. Dailybiz is built for Indian SMBs specifically: pricing is in INR, GST reporting is built into the accounting module, and the shared inbox is centred on WhatsApp, which is how most Indian businesses actually talk to customers.",
+      "Yes. Dailybuz is built for Indian SMBs specifically: pricing is in INR, GST reporting is built into the accounting module, and the shared inbox is centred on WhatsApp, which is how most Indian businesses actually talk to customers.",
   },
   {
-    question: "What does Dailybiz replace?",
+    question: "What does Dailybuz replace?",
     answer:
       "Most customers use it instead of a separate CRM, HR or payroll tool, accounting package and project tracker. Because those all share one database, a POS sale posts straight to the ledger, payroll posts as an expense, and billable project time becomes an invoice without re-keying.",
   },

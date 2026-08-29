@@ -238,7 +238,7 @@ async function testConnection(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch(`${config.baseUrl}/api/integrations/dailybiz/payroll`, {
+    const response = await fetch(`${config.baseUrl}/api/integrations/dailybuz/payroll`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

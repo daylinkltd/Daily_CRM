@@ -113,7 +113,7 @@ export default function GstReportsPage() {
             GST Filing & E-Invoicing Engine
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            GSTR-1 Sales Report, GSTR-2B Input Tax Credit (ITC) and CGST/SGST/IGST splitting. E-invoice IRNs are shown when registered with the IRP; Dailybiz does not register them for you yet.
+            GSTR-1 Sales Report, GSTR-2B Input Tax Credit (ITC) and CGST/SGST/IGST splitting. E-invoice IRNs are shown when registered with the IRP; Dailybuz does not register them for you yet.
           </p>
         </div>
         <div className="flex items-center gap-2">

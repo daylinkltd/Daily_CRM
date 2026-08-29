@@ -87,7 +87,7 @@ export function websiteSchema(): Json {
  * The product itself.
  *
  * `offers` carries the real per-seat price so an assistant asked "how
- * much is Dailybiz?" has a number to quote instead of guessing from
+ * much is Dailybuz?" has a number to quote instead of guessing from
  * scraped copy. UnitPriceSpecification with referenceQuantity is how you
  * say "per user, per month" in a way that parses.
  */
@@ -106,7 +106,7 @@ export function softwareApplicationSchema(): Json {
     // A single Offer, because there is a single price. If a second
     // purchasable tier is ever added, this must become an AggregateOffer —
     // publishing only one of two prices would have assistants answer "how
-    // much is Dailybiz?" with a number that is wrong for half of buyers.
+    // much is Dailybuz?" with a number that is wrong for half of buyers.
     offers: {
       '@type': 'Offer',
       category: 'SaaS subscription',

@@ -132,7 +132,7 @@ function SignupPageInner() {
         </div>
         
         <h2 className="text-xl font-bold text-center mb-1 text-[var(--mkt-fg)]">
-          {inviteToken ? "Create account & join" : "Create your Dailybiz account"}
+          {inviteToken ? "Create account & join" : "Create your Dailybuz account"}
         </h2>
         <p className="text-xs text-center mb-6 text-[var(--mkt-fg-muted)]">
           {inviteToken 

@@ -171,7 +171,7 @@ async function recordOutcome(
 }
 
 async function sendOne(config: BankingConfig, event: HrSyncEvent): Promise<HrSyncOutcome> {
-  const url = `${config.baseUrl}/api/integrations/dailybiz/events`;
+  const url = `${config.baseUrl}/api/integrations/dailybuz/events`;
   const body = {
     workspaceId: config.remoteWorkspaceId,
     eventType: event.eventType,

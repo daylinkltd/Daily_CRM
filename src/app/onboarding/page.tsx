@@ -291,7 +291,7 @@ function OnboardingInner() {
       <div className="w-full max-w-4xl flex flex-col items-center relative z-10">
         {/* Header Logo */}
         <div className="flex items-center gap-2 mb-8">
-          <Image src="/logolight.png" alt="Dailybiz" width={160} height={40} className="h-9 w-auto object-contain" />
+          <Image src="/logolight.png" alt="Dailybuz" width={160} height={40} className="h-9 w-auto object-contain" />
         </div>
 
         {/* Wizard Progress Steps Bar */}

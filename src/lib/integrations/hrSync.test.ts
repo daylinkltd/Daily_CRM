@@ -129,7 +129,7 @@ describe("pushHrEventToNdh", () => {
 
     expect(outcome).toMatchObject({ status: "sent", httpStatus: 200 });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe("https://books.example.com/api/integrations/dailybiz/events");
+    expect(url).toBe("https://books.example.com/api/integrations/dailybuz/events");
     expect(init.headers.Authorization).toBe("Bearer test-token");
     expect(init.headers["X-Signature-256"]).toMatch(/^sha256=[0-9a-f]{64}$/);
     expect(JSON.parse(init.body)).toMatchObject({

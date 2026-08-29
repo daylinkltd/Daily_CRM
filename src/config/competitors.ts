@@ -43,9 +43,9 @@ export interface Competitor {
   priceNote: string;
   /** The honest case for choosing them instead. */
   whereTheyWin: string;
-  /** The gap Dailybiz fills, stated without hyperbole. */
+  /** The gap Dailybuz fills, stated without hyperbole. */
   whereWeDiffer: string;
-  /** Coverage of the five things Dailybiz does, as shipped by them. */
+  /** Coverage of the five things Dailybuz does, as shipped by them. */
   coverage: {
     crm: Coverage;
     hr: Coverage;
@@ -73,9 +73,9 @@ export const COMPETITORS: Competitor[] = [
     category: 'Bundle of 40+ separate applications',
     priceNote: '≈ ₹3,700/user/month (US$45) on the all-employee plan',
     whereTheyWin:
-      'More breadth: 40+ apps including expense travel, e-signature and a BI suite that Dailybiz does not attempt.',
+      'More breadth: 40+ apps including expense travel, e-signature and a BI suite that Dailybuz does not attempt.',
     whereWeDiffer:
-      'Zoho One is forty products, not one. Each keeps its own data and they are joined by integrations you configure and then maintain — so a sale in CRM reaches Books when a sync says so, and reconciling the two is somebody\'s job. Dailybiz is a single database: the POS sale, the ledger entry and the customer record are the same rows, so there is nothing to sync and nothing to reconcile. At roughly a fifth of the per-user price.',
+      'Zoho One is forty products, not one. Each keeps its own data and they are joined by integrations you configure and then maintain — so a sale in CRM reaches Books when a sync says so, and reconciling the two is somebody\'s job. Dailybuz is a single database: the POS sale, the ledger entry and the customer record are the same rows, so there is nothing to sync and nothing to reconcile. At roughly a fifth of the per-user price.',
     coverage: {
       crm: 'full',
       hr: 'full',
@@ -93,7 +93,7 @@ export const COMPETITORS: Competitor[] = [
     whereTheyWin:
       'Deeper in manufacturing, MRP and field service, with a large module ecosystem for heavy customisation.',
     whereWeDiffer:
-      'Odoo is powerful and almost never bought alone — the list price is the start, and a partner-led implementation is typically a project in its own right before anyone logs in, plus someone technical to keep it upgraded. Dailybiz is opinionated on purpose: you sign up, your team is working the same afternoon, and the price on the page is the price. WhatsApp is the primary channel rather than a module you add.',
+      'Odoo is powerful and almost never bought alone — the list price is the start, and a partner-led implementation is typically a project in its own right before anyone logs in, plus someone technical to keep it upgraded. Dailybuz is opinionated on purpose: you sign up, your team is working the same afternoon, and the price on the page is the price. WhatsApp is the primary channel rather than a module you add.',
     coverage: {
       crm: 'full',
       hr: 'full',
@@ -111,7 +111,7 @@ export const COMPETITORS: Competitor[] = [
     whereTheyWin:
       'Decades of statutory depth, and every accountant in India already knows it.',
     whereWeDiffer:
-      'Tally does accounting and nothing else, on a desktop in your office. Customers, staff, stock and conversations live in other tools, and the joining-up is done by hand, by you, every month. Dailybiz keeps real double-entry books with the same GST outputs your CA expects — and keeps them alongside the sale that created the entry, in a browser, from anywhere. Your accountant can still have their export.',
+      'Tally does accounting and nothing else, on a desktop in your office. Customers, staff, stock and conversations live in other tools, and the joining-up is done by hand, by you, every month. Dailybuz keeps real double-entry books with the same GST outputs your CA expects — and keeps them alongside the sale that created the entry, in a browser, from anywhere. Your accountant can still have their export.',
     coverage: {
       crm: 'none',
       hr: 'partial',
@@ -129,7 +129,7 @@ export const COMPETITORS: Competitor[] = [
     whereTheyWin:
       'A more mature CRM, with stronger telephony and a full support desk.',
     whereWeDiffer:
-      'Freshworks sells and supports; it does not run a business. No ledger, no payroll, no stock, no POS — so you buy it and then buy the rest, and pay per user for each. Dailybiz covers the same pipelines and shared inbox and then keeps going into books, staff and stock, on one bill and one login.',
+      'Freshworks sells and supports; it does not run a business. No ledger, no payroll, no stock, no POS — so you buy it and then buy the rest, and pay per user for each. Dailybuz covers the same pipelines and shared inbox and then keeps going into books, staff and stock, on one bill and one login.',
     coverage: {
       crm: 'full',
       hr: 'none',
@@ -145,9 +145,9 @@ export const COMPETITORS: Competitor[] = [
     category: 'HR and payroll platforms',
     priceNote: '≈ ₹100–200/employee/month, typically with a monthly minimum',
     whereTheyWin:
-      'Deeper statutory payroll: PF and ESI challans, Form 16 and full-and-final settlement, which Dailybiz has on its roadmap rather than shipped.',
+      'Deeper statutory payroll: PF and ESI challans, Form 16 and full-and-final settlement, which Dailybuz has on its roadmap rather than shipped.',
     whereWeDiffer:
-      'Dailybiz already does the HR most SMBs actually run on every day: attendance with GPS punch-in, leave, payroll runs, payslips, documents and hiring. What it adds is everything around them — the payroll cost posts straight to the P&L instead of being re-keyed, and the same seat covers your customers and your books. An HR-only tool is a second subscription, a second login and a second export.',
+      'Dailybuz already does the HR most SMBs actually run on every day: attendance with GPS punch-in, leave, payroll runs, payslips, documents and hiring. What it adds is everything around them — the payroll cost posts straight to the P&L instead of being re-keyed, and the same seat covers your customers and your books. An HR-only tool is a second subscription, a second login and a second export.',
     coverage: {
       crm: 'none',
       hr: 'full',
@@ -165,7 +165,7 @@ export const COMPETITORS: Competitor[] = [
     whereTheyWin:
       'Cheaper, and enough if all you will ever need is a GST invoice and a list of who owes you.',
     whereWeDiffer:
-      'These are billing apps, not systems of record — no team inbox, no pipelines, no payroll, no real double-entry books, and no way for two people to work in them properly. The usual story is that they work until the fifth or sixth hire and then everything moves to spreadsheets. Dailybiz is built for the business you are about to be, and the migration you avoid is worth more than the monthly difference.',
+      'These are billing apps, not systems of record — no team inbox, no pipelines, no payroll, no real double-entry books, and no way for two people to work in them properly. The usual story is that they work until the fifth or sixth hire and then everything moves to spreadsheets. Dailybuz is built for the business you are about to be, and the migration you avoid is worth more than the monthly difference.',
     coverage: {
       crm: 'none',
       hr: 'none',
@@ -177,9 +177,9 @@ export const COMPETITORS: Competitor[] = [
   },
 ];
 
-/** Dailybiz's own row, so the table has a like-for-like first column. */
+/** Dailybuz's own row, so the table has a like-for-like first column. */
 export const OURS = {
-  name: 'Dailybiz',
+  name: 'Dailybuz',
   // Derived, never typed twice — a comparison page with a stale own-price
   // is worse than one with a stale competitor price.
   priceNote: `₹${BUSINESS_PLAN.pricePerSeatMonthly}/user/month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually`,
@@ -206,7 +206,7 @@ export const COVERAGE_ROWS = [
  * What is not built yet, stated as roadmap rather than as a reason to buy
  * a competitor.
  *
- * The page used to carry a "when Dailybiz is the wrong choice" list that
+ * The page used to carry a "when Dailybuz is the wrong choice" list that
  * ended each line by naming a rival to go and buy. That was more
  * self-defeating than honest — a prospect does not need to be handed a
  * competitor's name on our own site.
@@ -254,7 +254,7 @@ export const ROADMAP: RoadmapItem[] = [
   {
     title: 'Deeper payroll compliance',
     detail:
-      'PF and ESI challans, Form 16, and full-and-final settlement. Today Dailybiz computes and posts payroll; the statutory filing paperwork is not generated for you.',
+      'PF and ESI challans, Form 16, and full-and-final settlement. Today Dailybuz computes and posts payroll; the statutory filing paperwork is not generated for you.',
     horizon: 'next',
   },
   {
@@ -271,7 +271,7 @@ export const ROADMAP: RoadmapItem[] = [
   {
     title: 'Manufacturing and production planning',
     detail:
-      'Bills of materials, work orders and material planning. Not started — if production planning is your core need today, Dailybiz is not yet that tool.',
+      'Bills of materials, work orders and material planning. Not started — if production planning is your core need today, Dailybuz is not yet that tool.',
     horizon: 'later',
   },
 ];
