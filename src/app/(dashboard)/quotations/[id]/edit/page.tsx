@@ -53,6 +53,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -662,7 +664,7 @@ export default function EditQuotationPage({ params }: PageProps) {
 
               <div className="grid gap-2">
                 <Label htmlFor="q-client">Bill To Client</Label>
-                <select
+                <NativeSelect
                   id="q-client"
                   value={clientId}
                   onChange={(e) => setClientId(e.target.value)}
@@ -674,12 +676,12 @@ export default function EditQuotationPage({ params }: PageProps) {
                       {c.name} {c.company ? `(${c.company})` : ""}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="q-deal">Associated Deal</Label>
-                <select
+                <NativeSelect
                   id="q-deal"
                   value={dealId}
                   onChange={(e) => setDealId(e.target.value)}
@@ -691,7 +693,7 @@ export default function EditQuotationPage({ params }: PageProps) {
                       {d.name}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -719,7 +721,7 @@ export default function EditQuotationPage({ params }: PageProps) {
 
               <div className="grid gap-2">
                 <Label htmlFor="q-status">Status</Label>
-                <select
+                <NativeSelect
                   id="q-status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
@@ -731,7 +733,7 @@ export default function EditQuotationPage({ params }: PageProps) {
                   <option value="Accepted">Accepted</option>
                   <option value="Rejected">Rejected</option>
                   <option value="Expired">Expired</option>
-                </select>
+                </NativeSelect>
               </div>
             </CardContent>
           </Card>
@@ -811,7 +813,7 @@ export default function EditQuotationPage({ params }: PageProps) {
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="q-payment">Payment Milestones / Schedule</Label>
-                <Textarea plain
+                <RichTextArea plain
                   id="q-payment"
                   value={paymentTerms}
                   onChange={(e) => setPaymentTerms(e.target.value)}
@@ -823,7 +825,7 @@ export default function EditQuotationPage({ params }: PageProps) {
 
               <div className="grid gap-2">
                 <Label htmlFor="q-terms">Contract Notes & General Terms</Label>
-                <Textarea plain
+                <RichTextArea plain
                   id="q-terms"
                   value={notesTerms}
                   onChange={(e) => setNotesTerms(e.target.value)}
@@ -1066,7 +1068,7 @@ function SortableLineItemRow({
             />
           </div>
           <div className="col-span-2">
-            <select
+            <NativeSelect
               value={item.pricing_type}
               onChange={(e) => onUpdate(secId, item.id, "pricing_type", e.target.value)}
               className="h-8 w-full rounded-lg border border-border bg-muted px-1.5 text-xs outline-none focus:border-primary"
@@ -1074,7 +1076,7 @@ function SortableLineItemRow({
               <option value="one_time">One-time</option>
               <option value="monthly">Monthly</option>
               <option value="yearly">Yearly</option>
-            </select>
+            </NativeSelect>
           </div>
           <div className="col-span-1">
             <Input

@@ -12,6 +12,7 @@ import { SOCIAL_PLATFORM_ICONS } from '@/components/calendar/social-icons';
 import type { SocialPost, PostStatus, SocialPlatform } from '@/types/calendar';
 import { Search, History, LayoutGrid, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { NativeSelect } from "@/components/ui/native-select";
 
 const ALL_STATUSES: PostStatus[] = ['draft', 'pending_approval', 'changes_requested', 'approved', 'scheduled', 'published', 'rejected'];
 const ALL_PLATFORMS: SocialPlatform[] = ['instagram', 'facebook', 'linkedin', 'x', 'tiktok', 'youtube', 'threads', 'pinterest'];
@@ -73,7 +74,7 @@ export default function MarketingPostHistoryPage() {
           />
         </div>
 
-        <select
+        <NativeSelect
           value={campaignFilter}
           onChange={(e) => setCampaignFilter(e.target.value)}
           className="h-10 rounded-xl border border-border bg-card px-3 text-xs font-bold text-foreground focus:outline-none"
@@ -82,7 +83,7 @@ export default function MarketingPostHistoryPage() {
           {store.campaigns.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
-        </select>
+        </NativeSelect>
 
         <div className="flex items-center gap-1 border border-border bg-card rounded-xl p-1 shrink-0">
           <button

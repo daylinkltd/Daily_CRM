@@ -23,6 +23,7 @@ import { toast } from "sonner";
 
 import { ProductCombobox } from "@/components/commerce/product-combobox";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface POItemInput {
   id: string;
@@ -307,7 +308,7 @@ export default function PurchasesPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-foreground">Select Supplier / Vendor</Label>
-                  <select
+                  <NativeSelect
                     value={selectedSupplierId}
                     onChange={(e) => setSelectedSupplierId(e.target.value)}
                     className="w-full bg-background border border-border text-foreground rounded-xl h-10 px-3 text-xs"
@@ -318,19 +319,19 @@ export default function PurchasesPage() {
                         {s.company_name} ({s.contact_person || "Vendor"})
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 </div>
 
                 <div className="space-y-1">
                   <Label className="text-xs text-foreground">PO Status</Label>
-                  <select
+                  <NativeSelect
                     value={poStatus}
                     onChange={(e) => setPoStatus(e.target.value as any)}
                     className="w-full bg-background border border-border text-foreground rounded-xl h-10 px-3 text-xs font-bold"
                   >
                     <option value="RECEIVED">RECEIVED (Auto Inward Stock into Catalog)</option>
                     <option value="ORDERED">ORDERED (Pending Goods Receipt)</option>
-                  </select>
+                  </NativeSelect>
                 </div>
               </div>
 

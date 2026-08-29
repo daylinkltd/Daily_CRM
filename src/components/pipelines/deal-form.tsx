@@ -46,6 +46,8 @@ interface DealFormProps {
 }
 import { useRef } from "react";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 export function DealForm({
   open,
@@ -430,7 +432,7 @@ export function DealForm({
               </div>
               <div className="grid gap-2">
                 <Label className="text-foreground">Currency</Label>
-                <select
+                <NativeSelect
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
                   className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
@@ -445,7 +447,7 @@ export function DealForm({
                       {c.code}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             </div>
 
@@ -497,7 +499,7 @@ export function DealForm({
                     />
                   </div>
                 ) : (
-                  <select
+                  <NativeSelect
                     value={sourceId}
                     onChange={(e) => {
                       if (e.target.value === "ADD_NEW") setIsAddingSource(true);
@@ -510,14 +512,14 @@ export function DealForm({
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                     <option value="ADD_NEW">+ Add New Source</option>
-                  </select>
+                  </NativeSelect>
                 )}
               </div>
             </div>
 
             <div className="grid gap-2">
               <Label className="text-foreground">Stage</Label>
-              <select
+              <NativeSelect
                 value={stageId}
                 onChange={(e) => setStageId(e.target.value)}
                 className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary"
@@ -527,7 +529,7 @@ export function DealForm({
                     {s.name}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="grid gap-2">
@@ -550,7 +552,7 @@ export function DealForm({
 
             <div className="grid gap-2">
               <Label className="text-foreground">Notes</Label>
-              <Textarea plain
+              <RichTextArea plain
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add notes..."
@@ -640,7 +642,7 @@ export function DealForm({
                 {showLostReasonPrompt && (
                   <div className="mt-2 space-y-2 border border-red-500/30 bg-red-500/10 p-3 rounded-lg">
                     <Label className="text-red-300 text-xs">Reason for loss (Optional)</Label>
-                    <select
+                    <NativeSelect
                       value={lostReasonId}
                       onChange={(e) => setLostReasonId(e.target.value)}
                       className="h-9 w-full rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
@@ -649,7 +651,7 @@ export function DealForm({
                       {reasons.map((r) => (
                         <option key={r.id} value={r.id}>{r.name}</option>
                       ))}
-                    </select>
+                    </NativeSelect>
                     <div className="flex gap-2">
                       <Button
                         type="button"

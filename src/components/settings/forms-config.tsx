@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export function FormsConfig() {
   const [saving, setSaving] = useState(false);
@@ -64,11 +65,11 @@ export function FormsConfig() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label className="text-foreground">Assign to Pipeline</Label>
-              <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className="w-full h-10 rounded-md bg-muted border-border text-foreground px-3">
+              <NativeSelect value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className="w-full h-10 rounded-md bg-muted border-border text-foreground px-3">
                 <option value="Sales">Sales Pipeline</option>
                 <option value="Support">Support Tickets</option>
                 <option value="None">Don&apos;t create a deal</option>
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-2">
               <Label className="text-foreground">Auto-Apply Tag</Label>

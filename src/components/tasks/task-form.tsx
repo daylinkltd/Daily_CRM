@@ -36,6 +36,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { IconAction } from "@/components/ui/icon-action";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface TaskFormProps {
   open: boolean;
@@ -437,7 +438,7 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
 
       <div className="space-y-2">
         <Label>Description</Label>
-        <Textarea 
+        <RichTextArea 
           value={description} 
           onChange={(e) => setDescription(e.target.value)} 
           placeholder="Add extra details or links..." 

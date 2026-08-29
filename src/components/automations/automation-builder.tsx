@@ -46,6 +46,8 @@ import type {
   KeywordMatchTriggerConfig,
 } from "@/types"
 import { cn } from "@/lib/utils"
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 // ------------------------------------------------------------
 // Types (builder-local — mirror the flattened rows we POST)
@@ -371,7 +373,7 @@ function TriggerCard({
               <label className="mb-1 block text-xs font-medium text-muted-foreground">
                 Trigger type
               </label>
-              <select
+              <NativeSelect
                 value={type}
                 onChange={(e) => onTypeChange(e.target.value as AutomationTriggerType)}
                 className="w-full rounded-md border border-border bg-muted px-2 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -381,7 +383,7 @@ function TriggerCard({
                     {o.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {TRIGGER_OPTIONS.find((o) => o.value === type)?.hint}
               </p>
@@ -437,7 +439,7 @@ function KeywordMatchConfig({
   // in sync.
   const [draft, setDraft] = useState(keywords.join(", "))
 
-  // Persist the default the <select> displays. The dropdown falls back
+  // Persist the default the <NativeSelect> displays. The dropdown falls back
   // to "contains" for display, but leaving it untouched would otherwise
   // omit match_type from the saved config — and activation validation
   // then rejected it (trigger.match_type). Seed once on mount; the
@@ -476,14 +478,14 @@ function KeywordMatchConfig({
         <label className="mb-1 block text-xs font-medium text-muted-foreground">
           Match type
         </label>
-        <select
+        <NativeSelect
           value={config?.match_type ?? "contains"}
           onChange={(e) => onChange({ ...config, match_type: e.target.value as "exact" | "contains" })}
           className="w-full rounded-md border border-border bg-muted px-2 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
         >
           <option value="contains">Contains</option>
           <option value="exact">Exact</option>
-        </select>
+        </NativeSelect>
       </div>
     </div>
   )
@@ -757,7 +759,7 @@ function StepEditor({
     case "send_message":
       return (
         <FieldBlock label="Message text">
-          <Textarea plain
+          <RichTextArea plain
             value={(cfg.text as string) ?? ""}
             onChange={(e) => set({ text: e.target.value })}
             placeholder="Hi! Thanks for reaching out…"
@@ -799,14 +801,14 @@ function StepEditor({
       return (
         <>
           <FieldBlock label="Mode">
-            <select
+            <NativeSelect
               value={(cfg.mode as string) ?? "round_robin"}
               onChange={(e) => set({ mode: e.target.value })}
               className="w-full rounded-md border border-border bg-muted px-2 py-1.5 text-sm text-foreground"
             >
               <option value="round_robin">Round-robin</option>
               <option value="specific">Specific agent</option>
-            </select>
+            </NativeSelect>
           </FieldBlock>
           {cfg.mode === "specific" && (
             <FieldBlock label="Agent id">
@@ -823,7 +825,7 @@ function StepEditor({
       return (
         <>
           <FieldBlock label="Field">
-            <select
+            <NativeSelect
               value={(cfg.field as string) ?? "name"}
               onChange={(e) => set({ field: e.target.value })}
               className="w-full rounded-md border border-border bg-muted px-2 py-1.5 text-sm text-foreground"
@@ -831,7 +833,7 @@ function StepEditor({
               <option value="name">Name</option>
               <option value="email">Email</option>
               <option value="company">Company</option>
-            </select>
+            </NativeSelect>
           </FieldBlock>
           <FieldBlock label="Value">
             <Input
@@ -889,7 +891,7 @@ function StepEditor({
             />
           </FieldBlock>
           <FieldBlock label="Unit">
-            <select
+            <NativeSelect
               value={(cfg.unit as string) ?? "hours"}
               onChange={(e) => set({ unit: e.target.value })}
               className="w-full rounded-md border border-border bg-muted px-2 py-1.5 text-sm text-foreground"
@@ -897,7 +899,7 @@ function StepEditor({
               <option value="minutes">Minutes</option>
               <option value="hours">Hours</option>
               <option value="days">Days</option>
-            </select>
+            </NativeSelect>
           </FieldBlock>
         </div>
       )
@@ -905,7 +907,7 @@ function StepEditor({
       return (
         <>
           <FieldBlock label="Subject">
-            <select
+            <NativeSelect
               value={(cfg.subject as string) ?? "tag_presence"}
               onChange={(e) => set({ subject: e.target.value })}
               className="w-full rounded-md border border-border bg-muted px-2 py-1.5 text-sm text-foreground"
@@ -914,7 +916,7 @@ function StepEditor({
               <option value="contact_field">Contact field</option>
               <option value="message_content">Message content</option>
               <option value="time_of_day">Time of day</option>
-            </select>
+            </NativeSelect>
           </FieldBlock>
           <FieldBlock label="Operand">
             <Input
@@ -954,7 +956,7 @@ function StepEditor({
             />
           </FieldBlock>
           <FieldBlock label="Body template (JSON)">
-            <Textarea plain
+            <RichTextArea plain
               value={(cfg.body_template as string) ?? ""}
               onChange={(e) => set({ body_template: e.target.value })}
               className="min-h-20 bg-muted font-mono text-xs text-foreground"

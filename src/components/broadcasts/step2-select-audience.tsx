@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 type AudienceType = 'all' | 'tags' | 'custom_field' | 'csv';
 type CustomFieldOperator = 'is' | 'is_not' | 'contains';
@@ -448,7 +449,7 @@ export function Step2SelectAudience({
             </p>
           ) : (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)]">
-              <select
+              <NativeSelect
                 value={audience.customField?.fieldId ?? ''}
                 onChange={(e) => updateCustomField({ fieldId: e.target.value })}
                 className="h-9 rounded-lg border border-border bg-muted px-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-violet-500"
@@ -459,8 +460,8 @@ export function Step2SelectAudience({
                     {f.field_name}
                   </option>
                 ))}
-              </select>
-              <select
+              </NativeSelect>
+              <NativeSelect
                 value={audience.customField?.operator ?? 'is'}
                 onChange={(e) =>
                   updateCustomField({
@@ -474,7 +475,7 @@ export function Step2SelectAudience({
                     {op.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               <input
                 type="text"
                 value={audience.customField?.value ?? ''}

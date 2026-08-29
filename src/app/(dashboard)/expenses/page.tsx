@@ -35,6 +35,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { IconAction } from "@/components/ui/icon-action";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 const CATEGORIES = ["Travel", "Meals", "Office Supplies", "Client Meeting", "Other"] as const;
 
@@ -310,7 +311,7 @@ export default function ExpensesPage() {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Description</label>
-              <Textarea plain
+              <RichTextArea plain
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="What was this expense for?"

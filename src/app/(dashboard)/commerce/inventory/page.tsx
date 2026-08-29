@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Layers, Plus, ArrowUpRight, RefreshCw, Search, AlertTriangle, Barcode, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export default function InventoryPage() {
   const { activeWorkspace } = useWorkspace();
@@ -351,7 +352,7 @@ export default function InventoryPage() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-foreground">Or Select Product from List *</Label>
-                <select
+                <NativeSelect
                   required
                   value={selectedProductId}
                   onChange={(e) => handleSelectProductDropdown(e.target.value)}
@@ -363,19 +364,19 @@ export default function InventoryPage() {
                       {prod.name} ({prod.sku}) — Current: {prod.current_stock || 0} {prod.unit}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-foreground">Action Type</Label>
-                <select
+                <NativeSelect
                   value={movementType}
                   onChange={(e) => setMovementType(e.target.value as any)}
                   className="w-full bg-background border border-border text-foreground h-10 rounded-xl px-3 text-sm focus:border-[#00aef0]"
                 >
                   <option value="INWARD">Stock Inward (+ New Delivery)</option>
                   <option value="ADJUSTMENT">Stock Adjustment (+ Manual Addition)</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">

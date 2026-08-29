@@ -44,6 +44,7 @@ import { formatCurrency } from '@/lib/currency';
 import { IconAction } from "@/components/ui/icon-action";
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface ContactDetailViewProps {
   open: boolean;
@@ -710,7 +711,7 @@ export function ContactDetailView({
               {/* Notes Tab */}
               <TabsContent value="notes" className="flex-1 flex flex-col min-h-0 px-4 py-3">
                 <div className="space-y-2 mb-3">
-                  <Textarea
+                  <RichTextArea
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     placeholder="Write a note..."

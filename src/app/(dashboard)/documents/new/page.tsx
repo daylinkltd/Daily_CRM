@@ -27,6 +27,8 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface DocTemplate {
   id: string;
@@ -466,7 +468,7 @@ export default function IssueNewDocumentPage() {
                 <Label className="text-xs font-semibold">
                   <Users className="mr-1 inline size-3" /> Pick an employee
                 </Label>
-                <select
+                <NativeSelect
                   value={recipientMemberId}
                   onChange={(e) => {
                     const id = e.target.value;
@@ -486,7 +488,7 @@ export default function IssueNewDocumentPage() {
                       {r.designation ? ` — ${r.designation}` : ""}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
                 <p className="text-[10px] text-muted-foreground">
                   Choosing an employee fills their designation, department and joining date automatically.
                 </p>
@@ -519,7 +521,7 @@ export default function IssueNewDocumentPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Signed by</Label>
-                <select
+                <NativeSelect
                   value={signatoryId}
                   onChange={(e) => setSignatoryId(e.target.value)}
                   className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs"
@@ -528,7 +530,7 @@ export default function IssueNewDocumentPage() {
                   {signatories.map((s) => (
                     <option key={s.id} value={s.id}>{s.name} — {s.designation}</option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             </div>
 
@@ -561,7 +563,7 @@ export default function IssueNewDocumentPage() {
                     >
                       <Label className="text-xs font-semibold">{humanLabel(f)}</Label>
                       {kind === "long" ? (
-                        <Textarea
+                        <RichTextArea
                           plain
                           rows={3}
                           value={fieldValues[f] || ""}
@@ -606,7 +608,7 @@ export default function IssueNewDocumentPage() {
             </div>
             {/* `plain`: this is HTML source, so the rich-text editor would
                 wrap it in more HTML. */}
-            <Textarea
+            <RichTextArea
               plain
               rows={10}
               value={body}

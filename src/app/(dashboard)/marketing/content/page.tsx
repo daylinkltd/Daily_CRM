@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NativeSelect } from "@/components/ui/native-select";
 
 const STATUS_TABS: (PostStatus | 'all')[] = [
   'all',
@@ -159,7 +160,7 @@ export default function MarketingContentPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Platform Filter */}
-          <select
+          <NativeSelect
             value={platformFilter}
             onChange={(e) => setPlatformFilter(e.target.value as SocialPlatform | 'all')}
             className="h-10 rounded-xl border border-border bg-card px-3 text-xs font-bold text-foreground focus:outline-none"
@@ -168,10 +169,10 @@ export default function MarketingContentPage() {
             {ALL_PLATFORMS.map((p) => (
               <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
             ))}
-          </select>
+          </NativeSelect>
 
           {/* Campaign Filter */}
-          <select
+          <NativeSelect
             value={campaignFilter}
             onChange={(e) => setCampaignFilter(e.target.value)}
             className="h-10 rounded-xl border border-border bg-card px-3 text-xs font-bold text-foreground focus:outline-none"
@@ -180,7 +181,7 @@ export default function MarketingContentPage() {
             {store.campaigns.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
-          </select>
+          </NativeSelect>
 
           {/* Layout Toggle */}
           <div className="flex items-center gap-1 border border-border bg-card rounded-xl p-1 shrink-0">

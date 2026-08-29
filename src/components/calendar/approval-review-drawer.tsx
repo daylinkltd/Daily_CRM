@@ -23,6 +23,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface ApprovalReviewDrawerProps {
   post: SocialPost | null;
@@ -200,7 +202,7 @@ export function ApprovalReviewDrawer({
                 {currentUserRole === 'admin' && onReassign && (
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-muted-foreground">Reassign:</span>
-                    <select
+                    <NativeSelect
                       value={post.approverId || 'admin'}
                       onChange={(e) => onReassign(post.id, e.target.value)}
                       className="h-7 rounded-lg border border-border bg-background px-2 text-xs font-bold text-primary"
@@ -208,7 +210,7 @@ export function ApprovalReviewDrawer({
                       <option value="admin">Administrator</option>
                       <option value="manager">Marketing Manager</option>
                       <option value="reviewer">Reviewer</option>
-                    </select>
+                    </NativeSelect>
                   </div>
                 )}
               </div>
@@ -323,7 +325,7 @@ export function ApprovalReviewDrawer({
                 Provide clear feedback for <strong className="text-foreground">{post.creatorName}</strong>. The post status will change to <em>Changes Requested</em>.
               </p>
 
-              <Textarea
+              <RichTextArea
                 rows={4}
                 placeholder="e.g. Please change the headline and use the updated product image."
                 value={changesComment}

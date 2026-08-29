@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { extractCleanSku } from "@/lib/commerce/barcode-utils";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface CartItem {
   product_id: string;
@@ -613,7 +614,7 @@ function POSTerminalPageContent() {
                   View QR Code 📱
                 </button>
               </div>
-              <select
+              <NativeSelect
                 value={upiBankAccount}
                 onChange={(e) => setUpiBankAccount(e.target.value)}
                 className="w-full bg-card border border-border text-foreground rounded-lg text-xs h-8 px-2"
@@ -623,7 +624,7 @@ function POSTerminalPageContent() {
                     {acc.name} ({acc.vpa})
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
           )}
 

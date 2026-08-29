@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface DepartmentFormProps {
   open: boolean;
@@ -106,7 +107,7 @@ export function DepartmentForm({ open, onOpenChange, department, onSaved }: Depa
           </div>
           <div className="space-y-2">
             <Label htmlFor="description" className="text-foreground">Description (Optional)</Label>
-            <Textarea plain
+            <RichTextArea plain
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}

@@ -34,6 +34,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface LeadSimulatorModalProps {
   open: boolean;
@@ -173,7 +175,7 @@ export function LeadSimulatorModal({ open, onOpenChange }: LeadSimulatorModalPro
                 <label className="text-[10px] font-extrabold uppercase text-muted-foreground block mb-1">
                   Inbound Channel / Platform
                 </label>
-                <select
+                <NativeSelect
                   value={platform}
                   onChange={(e) => setPlatform(e.target.value)}
                   className="w-full h-9 px-3 text-xs rounded-xl bg-background border border-border font-medium text-foreground"
@@ -185,7 +187,7 @@ export function LeadSimulatorModal({ open, onOpenChange }: LeadSimulatorModalPro
                   <option value="website">Website (Form / Landing Page)</option>
                   <option value="whatsapp">WhatsApp Direct</option>
                   <option value="google">Google Organic</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div>
@@ -242,7 +244,7 @@ export function LeadSimulatorModal({ open, onOpenChange }: LeadSimulatorModalPro
               <label className="text-[10px] font-extrabold uppercase text-muted-foreground block mb-1">
                 Audience Message / Comment / Submission Text
               </label>
-              <Textarea
+              <RichTextArea
                 rows={2}
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}

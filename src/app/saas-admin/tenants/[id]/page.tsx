@@ -14,6 +14,7 @@ import {
   useConsoleData,
 } from "@/components/saas-admin/console-ui";
 import { SubscriptionControls } from "@/components/saas-admin/subscription-controls";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface TenantDetail {
   workspace: {
@@ -153,7 +154,7 @@ export default function TenantDetailPage() {
           <div className="space-y-4">
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Plan</span>
-              <select
+              <NativeSelect
                 value={plan}
                 onChange={(e) => setPlanDraft(e.target.value)}
                 className="h-10 w-full rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -161,7 +162,7 @@ export default function TenantDetailPage() {
                 {PLANS.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">

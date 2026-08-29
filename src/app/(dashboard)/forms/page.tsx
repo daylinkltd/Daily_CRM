@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import type { CustomForm } from '@/types';
 import { IconAction } from "@/components/ui/icon-action";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 export default function FormsPage() {
   const supabase = createClient();
@@ -342,7 +343,7 @@ export default function FormsPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="form-desc" className="text-foreground">Description</Label>
-              <Textarea
+              <RichTextArea
                 id="form-desc"
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}

@@ -10,6 +10,7 @@ import {
   LoadingRow,
   useConsoleData,
 } from "@/components/saas-admin/console-ui";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface Announcement {
   id: string;
@@ -133,7 +134,7 @@ export default function AnnouncementsPage() {
             <div className="flex flex-wrap items-end gap-4">
               <label className="block">
                 <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Level</span>
-                <select
+                <NativeSelect
                   value={level}
                   onChange={(e) => setLevel(e.target.value as Announcement["level"])}
                   className="h-10 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -141,7 +142,7 @@ export default function AnnouncementsPage() {
                   <option value="info">Info</option>
                   <option value="warning">Warning</option>
                   <option value="critical">Critical (not dismissible)</option>
-                </select>
+                </NativeSelect>
               </label>
               <label className="block">
                 <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">

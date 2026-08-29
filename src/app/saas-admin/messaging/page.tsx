@@ -12,6 +12,7 @@ import {
 } from "@/components/saas-admin/console-ui";
 import { ChannelSettings } from "@/components/saas-admin/channel-settings";
 import { extractVariables, smsSegments } from "@/lib/templates/catalog";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface ChannelStatus {
   channel: "email" | "whatsapp" | "sms";
@@ -201,7 +202,7 @@ export default function MessagingPage() {
               })}
             </div>
 
-            <select
+            <NativeSelect
               value={audience}
               onChange={(e) => setAudience(e.target.value)}
               className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -209,9 +210,9 @@ export default function MessagingPage() {
               {AUDIENCES.map((a) => (
                 <option key={a.value} value={a.value}>{a.label}</option>
               ))}
-            </select>
+            </NativeSelect>
 
-            <select
+            <NativeSelect
               value={templateId}
               onChange={(e) => setTemplateId(e.target.value)}
               className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -220,7 +221,7 @@ export default function MessagingPage() {
               {channelTemplates.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
 
           {audience === "manual" && (
@@ -308,7 +309,7 @@ export default function MessagingPage() {
                 placeholder="Template name"
                 className="h-9 w-56 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
               />
-              <select
+              <NativeSelect
                 value={tChannel}
                 onChange={(e) => setTChannel(e.target.value as typeof tChannel)}
                 className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -316,7 +317,7 @@ export default function MessagingPage() {
                 <option value="email">Email</option>
                 <option value="whatsapp">WhatsApp</option>
                 <option value="sms">SMS</option>
-              </select>
+              </NativeSelect>
               {tChannel === "email" && (
                 <input
                   value={tSubject}

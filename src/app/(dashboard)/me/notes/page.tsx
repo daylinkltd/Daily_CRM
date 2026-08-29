@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { IconAction } from "@/components/ui/icon-action";
 import { assertAffected } from "@/lib/supabase/affected-rows";
 import { sortNotes, notePreview, type PersonalNote } from "@/lib/personal/todos";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 /**
  * Private rich-text notes for the signed-in member.
@@ -269,7 +270,7 @@ export default function MyNotesPage() {
                 </div>
                 {/* Rich by default — Textarea renders RichTextEditor unless
                     `plain` is passed, which also brings draft recovery. */}
-                <Textarea
+                <RichTextArea
                   value={draftBody}
                   onChange={(e) => setDraftBody(e.target.value)}
                   placeholder="Start writing…"

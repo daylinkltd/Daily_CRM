@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface PushRow {
   payroll_cycle_id: string;
@@ -209,7 +210,7 @@ export function BankingConfig() {
 
             <div className="space-y-2">
               <Label htmlFor="banking-payment">Salaries are paid from</Label>
-              <select
+              <NativeSelect
                 id="banking-payment"
                 value={paymentRole}
                 onChange={(e) => setPaymentRole(e.target.value === 'CASH' ? 'CASH' : 'BANK')}
@@ -217,7 +218,7 @@ export function BankingConfig() {
               >
                 <option value="BANK">Bank</option>
                 <option value="CASH">Cash</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="flex flex-wrap gap-2 pt-2">

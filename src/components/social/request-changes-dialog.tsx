@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle } from 'lucide-react';
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface RequestChangesDialogProps {
   isOpen: boolean;
@@ -49,7 +50,7 @@ export function RequestChangesDialog({ isOpen, onClose, onSubmit, postTitle }: R
           <label className="text-xs font-semibold text-foreground">
             What needs to be changed?
           </label>
-          <Textarea
+          <RichTextArea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="e.g. Please change the headline and use the updated product image."

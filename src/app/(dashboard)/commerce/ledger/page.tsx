@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { WhatsAppReminderModal } from "@/components/finance/whatsapp-reminder-modal";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export default function CustomerLedgerPage() {
   const { activeWorkspace } = useWorkspace();
@@ -533,7 +534,7 @@ export default function CustomerLedgerPage() {
 
               <div className="space-y-1">
                 <Label className="text-xs text-foreground">Payment Collection Mode</Label>
-                <select
+                <NativeSelect
                   value={payMode}
                   onChange={(e) => setPayMode(e.target.value as any)}
                   className="w-full bg-background border border-border text-foreground rounded-xl h-10 px-3 text-xs font-bold"
@@ -541,7 +542,7 @@ export default function CustomerLedgerPage() {
                   <option value="CASH">CASH Collection</option>
                   <option value="UPI">UPI / GPay / PhonePe</option>
                   <option value="BANK">Bank Transfer / Cheque</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1">

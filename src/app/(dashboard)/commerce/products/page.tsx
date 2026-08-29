@@ -14,6 +14,7 @@ import { BulkEntryDialog, type BulkColumn, type BulkRow } from "@/components/ui/
 import { sanitizeErrorMessage } from "@/lib/commerce/barcode-utils";
 import Link from "next/link";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface CustomFieldDef {
   id: string;
@@ -1087,7 +1088,7 @@ export default function ProductsPage() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-[11px] text-foreground">Karat Purity</Label>
-                          <select
+                          <NativeSelect
                             value={karatPurity}
                             onChange={(e) => setKaratPurity(e.target.value)}
                             className="w-full bg-background border border-border text-foreground rounded-xl h-9 text-xs mt-1 px-2"
@@ -1098,7 +1099,7 @@ export default function ProductsPage() {
                             <option value="14K">14K (58.5% Gold)</option>
                             <option value="925 Silver">925 Sterling Silver</option>
                             <option value="Platinum 950">Platinum 950</option>
-                          </select>
+                          </NativeSelect>
                         </div>
                         <div>
                           <Label className="text-[11px] text-foreground">Net Weight (grams)</Label>
@@ -1334,12 +1335,12 @@ export default function ProductsPage() {
                         </div>
                         <div>
                           <Label className="text-[11px] text-foreground">Spice Level</Label>
-                          <select value={spicyLevel} onChange={(e) => setSpicyLevel(e.target.value)} className="w-full bg-background border border-border text-foreground rounded-xl h-9 text-xs mt-1 px-2">
+                          <NativeSelect value={spicyLevel} onChange={(e) => setSpicyLevel(e.target.value)} className="w-full bg-background border border-border text-foreground rounded-xl h-9 text-xs mt-1 px-2">
                             <option value="MILD">Mild 🌶</option>
                             <option value="MEDIUM">Medium 🌶🌶</option>
                             <option value="HOT">Hot 🌶🌶🌶</option>
                             <option value="EXTRA_HOT">Extra Hot 🌶🌶🌶🌶</option>
-                          </select>
+                          </NativeSelect>
                         </div>
                         <div>
                           <Label className="text-[11px] text-foreground">KOT Station</Label>
@@ -1562,7 +1563,7 @@ export default function ProductsPage() {
 
                   <div className="space-y-1.5">
                     <Label className="text-xs text-foreground font-semibold">Product Category</Label>
-                    <select
+                    <NativeSelect
                       value={categoryName}
                       onChange={(e) => setCategoryName(e.target.value)}
                       className="w-full bg-background border border-border text-foreground rounded-xl h-10 text-xs px-3 focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
@@ -1571,12 +1572,12 @@ export default function ProductsPage() {
                       {categoriesList.map((cat: any) => (
                         <option key={cat.id || cat.name} value={cat.name}>{cat.name}</option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </div>
 
                   <div className="space-y-1.5">
                     <Label className="text-xs text-foreground font-semibold">Manufacturer / Brand</Label>
-                    <select
+                    <NativeSelect
                       value={manufacturer}
                       onChange={(e) => setManufacturer(e.target.value)}
                       className="w-full bg-background border border-border text-foreground rounded-xl h-10 text-xs px-3 focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
@@ -1585,7 +1586,7 @@ export default function ProductsPage() {
                       {brandsList.map((brand: any) => (
                         <option key={brand.id || brand.name} value={brand.name}>{brand.name}</option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </div>
 
                   <div className="space-y-1.5 sm:col-span-2">
@@ -1606,7 +1607,7 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-foreground font-semibold">Base Sales Unit</Label>
-                    <select
+                    <NativeSelect
                       value={baseUnit}
                       onChange={(e) => setBaseUnit(e.target.value)}
                       className="w-full bg-background border border-border text-foreground rounded-xl h-10 text-xs px-3 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
@@ -1614,11 +1615,11 @@ export default function ProductsPage() {
                       {unitsList.map((u: any) => (
                         <option key={u.id || u.code} value={u.code}>{u.name} ({u.code})</option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-foreground font-semibold">Purchase Packaging Unit</Label>
-                    <select
+                    <NativeSelect
                       value={purchaseUnit}
                       onChange={(e) => setPurchaseUnit(e.target.value)}
                       className="w-full bg-background border border-border text-foreground rounded-xl h-10 text-xs px-3 font-mono uppercase focus:outline-none focus:ring-1 focus:ring-[#00aef0]"
@@ -1626,7 +1627,7 @@ export default function ProductsPage() {
                       {unitsList.map((u: any) => (
                         <option key={u.id || u.code} value={u.code}>{u.name} ({u.code})</option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label className="text-xs text-foreground">Conversion Factor (e.g. 1 Pack = 6 Pieces)</Label>
@@ -1812,7 +1813,7 @@ export default function ProductsPage() {
                         onChange={(e) => setNewFieldName(e.target.value)}
                         className="bg-card border-border text-foreground text-xs h-9"
                       />
-                      <select
+                      <NativeSelect
                         value={newFieldType}
                         onChange={(e) => setNewFieldType(e.target.value as any)}
                         className="bg-card border-border text-foreground text-xs rounded-xl px-2 h-9"
@@ -1821,7 +1822,7 @@ export default function ProductsPage() {
                         <option value="NUMBER">Number Field</option>
                         <option value="DROPDOWN">Dropdown List</option>
                         <option value="BOOLEAN">Yes / No Toggle</option>
-                      </select>
+                      </NativeSelect>
                       <IconAction label="Add Field" icon={<Plus className="h-3.5 w-3.5" />} type="button"
                         onClick={handleAddCustomField}
                         className="bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold text-xs h-9 rounded-xl gap-1" />

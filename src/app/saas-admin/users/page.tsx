@@ -12,6 +12,7 @@ import {
   SearchBox,
   useConsoleData,
 } from "@/components/saas-admin/console-ui";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface UserRow {
   user_id: string;
@@ -102,7 +103,7 @@ export default function UsersPage() {
         </h1>
         <div className="flex flex-wrap items-center gap-2">
           <SearchBox value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="Name or email…" />
-          <select
+          <NativeSelect
             value={status}
             onChange={(e) => { setStatus(e.target.value); setPage(0); }}
             className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -110,7 +111,7 @@ export default function UsersPage() {
             <option value="">Any status</option>
             <option value="active">Active</option>
             <option value="blocked">Blocked</option>
-          </select>
+          </NativeSelect>
         </div>
       </div>
 

@@ -13,6 +13,7 @@ import {
   SearchBox,
   useConsoleData,
 } from "@/components/saas-admin/console-ui";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface TenantRow {
   id: string;
@@ -54,7 +55,7 @@ export default function TenantsPage() {
         </h1>
         <div className="flex flex-wrap items-center gap-2">
           <SearchBox value={q} onChange={(v) => { setQ(v); setPage(0); }} placeholder="Name or email…" />
-          <select
+          <NativeSelect
             value={plan}
             onChange={(e) => { setPlan(e.target.value); setPage(0); }}
             className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -63,7 +64,7 @@ export default function TenantsPage() {
             {PLANS.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </div>
 

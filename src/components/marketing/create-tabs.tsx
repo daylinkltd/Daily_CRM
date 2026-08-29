@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NativeSelect } from "@/components/ui/native-select";
 
 const ALL_PLATFORMS: SocialPlatform[] = [
   'instagram',
@@ -291,7 +292,7 @@ export function CreateWorkspaceTabs() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground">Category</label>
-                <select
+                <NativeSelect
                   value={blogCategory}
                   onChange={(e) => setBlogCategory(e.target.value)}
                   className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
@@ -301,12 +302,12 @@ export function CreateWorkspaceTabs() {
                   <option value="Engineering">Engineering</option>
                   <option value="Case Studies">Case Studies</option>
                   <option value="Announcements">Announcements</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground">Link Campaign</label>
-                <select
+                <NativeSelect
                   value={blogCampaignId}
                   onChange={(e) => setBlogCampaignId(e.target.value)}
                   className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
@@ -315,7 +316,7 @@ export function CreateWorkspaceTabs() {
                   {store.campaigns.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">
@@ -577,7 +578,7 @@ export function CreateWorkspaceTabs() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground">Assign Campaign</label>
-                <select
+                <NativeSelect
                   value={ideaCampaignId}
                   onChange={(e) => setIdeaCampaignId(e.target.value)}
                   className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
@@ -586,7 +587,7 @@ export function CreateWorkspaceTabs() {
                   {store.campaigns.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             </div>
 

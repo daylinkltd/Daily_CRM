@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 const PLATFORMS_LIST: SocialPlatform[] = [
   'instagram',
@@ -142,7 +144,7 @@ export default function MarketingSettingsPage() {
           <div className="space-y-4 max-w-lg">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-foreground">Default Timezone</label>
-              <select
+              <NativeSelect
                 value={settings.defaultTimezone}
                 onChange={(e) => setSettings({ ...settings, defaultTimezone: e.target.value })}
                 className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
@@ -153,12 +155,12 @@ export default function MarketingSettingsPage() {
                 <option value="Europe/London">Europe/London (GMT / BST)</option>
                 <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
                 <option value="Asia/Dubai">Asia/Dubai (GST)</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-foreground">Primary Default Platform</label>
-              <select
+              <NativeSelect
                 value={settings.defaultPlatform}
                 onChange={(e) => setSettings({ ...settings, defaultPlatform: e.target.value as SocialPlatform })}
                 className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground capitalize"
@@ -166,7 +168,7 @@ export default function MarketingSettingsPage() {
                 {PLATFORMS_LIST.map((p) => (
                   <option key={p} value={p}>{p}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
           </div>
 
@@ -199,26 +201,26 @@ export default function MarketingSettingsPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-foreground">Approval Levels</label>
-              <select
+              <NativeSelect
                 value={settings.approvalLevels}
                 onChange={(e) => setSettings({ ...settings, approvalLevels: e.target.value as 'single' | 'two_tier' })}
                 className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
               >
                 <option value="single">Single-Tier (Any Manager / Approver)</option>
                 <option value="two_tier">Multi-Tier (Manager + Executive Sign-Off)</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-foreground">Rejection Behavior</label>
-              <select
+              <NativeSelect
                 value={settings.rejectionBehavior}
                 onChange={(e) => setSettings({ ...settings, rejectionBehavior: e.target.value as any })}
                 className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
               >
                 <option value="return_to_creator">Return to Creator as Draft with Feedback</option>
                 <option value="archive">Archive Rejected Post</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
 
@@ -238,7 +240,7 @@ export default function MarketingSettingsPage() {
           <div className="space-y-4 max-w-lg">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-foreground">Default Tone</label>
-              <select
+              <NativeSelect
                 value={settings.aiTone}
                 onChange={(e) => setSettings({ ...settings, aiTone: e.target.value as any })}
                 className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
@@ -247,12 +249,12 @@ export default function MarketingSettingsPage() {
                 <option value="professional">Authoritative & Professional B2B</option>
                 <option value="bold">Bold & High-Energy</option>
                 <option value="educational">Educational & Step-by-Step</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-foreground">Brand Voice Guidelines Prompt</label>
-              <Textarea
+              <RichTextArea
                 rows={3}
                 value={settings.aiBrandVoice}
                 onChange={(e) => setSettings({ ...settings, aiBrandVoice: e.target.value })}

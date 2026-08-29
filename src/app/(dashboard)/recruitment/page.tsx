@@ -33,6 +33,7 @@ import { CandidateBoard, type CandidateApplication } from '@/components/recruitm
 import { CandidateList } from '@/components/recruitment/candidate-list';
 import { ViewToggle, type BoardView } from '@/components/ui/view-toggle';
 import { ApplicationEditModal, type EditableApplication } from '@/components/recruitment/application-edit-modal';
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 const STAGES = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFER', 'HIRED', 'REJECTED'];
 
@@ -619,7 +620,7 @@ export default function RecruitmentPage() {
               <TabsContent value="description" className="space-y-3 pt-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium">Roles & Responsibilities</Label>
-                  <Textarea rows={3} placeholder="Describe core duties and expected outcomes..." value={rolesResponsibilities} onChange={e => setRolesResponsibilities(e.target.value)} className="bg-card border-border text-xs" />
+                  <RichTextArea rows={3} placeholder="Describe core duties and expected outcomes..." value={rolesResponsibilities} onChange={e => setRolesResponsibilities(e.target.value)} className="bg-card border-border text-xs" />
                 </div>
 
                 <div className="space-y-1.5">

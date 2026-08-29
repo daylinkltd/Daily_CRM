@@ -36,6 +36,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface SocialComposerFormProps {
   initialPost?: SocialPost | null;
@@ -614,7 +615,7 @@ export function SocialComposerForm({
               <label className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <UserCheck className="h-3.5 w-3.5 text-primary" /> Assigned Approver
               </label>
-              <select
+              <NativeSelect
                 value={approverId}
                 onChange={(e) => setApproverId(e.target.value)}
                 className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
@@ -622,7 +623,7 @@ export function SocialComposerForm({
                 <option value="admin">Administrator (Full Approval)</option>
                 <option value="manager">Marketing Manager</option>
                 <option value="reviewer">Content Reviewer</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="space-y-1.5">
@@ -668,50 +669,50 @@ export function SocialComposerForm({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Company</label>
-                  <select
+                  <NativeSelect
                     value={crmCompanyName}
                     onChange={(e) => setCrmCompanyName(e.target.value)}
                     className="w-full h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground"
                   >
                     <option value="">None / Unassigned</option>
                     {MOCK_CRM_COMPANIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  </NativeSelect>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Active Deal</label>
-                  <select
+                  <NativeSelect
                     value={crmDealName}
                     onChange={(e) => setCrmDealName(e.target.value)}
                     className="w-full h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground"
                   >
                     <option value="">None / Unassigned</option>
                     {MOCK_CRM_DEALS.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
+                  </NativeSelect>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Contact Person</label>
-                  <select
+                  <NativeSelect
                     value={crmContactName}
                     onChange={(e) => setCrmContactName(e.target.value)}
                     className="w-full h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground"
                   >
                     <option value="">None / Unassigned</option>
                     {MOCK_CRM_CONTACTS.map((ct) => <option key={ct} value={ct}>{ct}</option>)}
-                  </select>
+                  </NativeSelect>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Campaign / Project</label>
-                  <select
+                  <NativeSelect
                     value={crmProjectName}
                     onChange={(e) => setCrmProjectName(e.target.value)}
                     className="w-full h-8 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground"
                   >
                     <option value="">None / Unassigned</option>
                     {MOCK_CRM_PROJECTS.map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
+                  </NativeSelect>
                 </div>
               </div>
             )}

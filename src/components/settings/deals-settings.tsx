@@ -18,6 +18,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { SettingsPanelHead } from "./settings-panel-head";
+import { NativeSelect } from "@/components/ui/native-select";
 
 /**
  * Deals settings — account-wide default currency.
@@ -90,7 +91,7 @@ export function DealsSettings() {
         <CardContent className="space-y-4">
           <div className="grid gap-2 sm:max-w-xs">
             <Label className="text-muted-foreground">Currency</Label>
-            <select
+            <NativeSelect
               value={selected}
               onChange={(e) => setSelected(e.target.value)}
               disabled={!canEditSettings || profileLoading}
@@ -101,7 +102,7 @@ export function DealsSettings() {
                   {c.code} — {c.label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             {!canEditSettings && (
               <p className="text-xs text-muted-foreground">
                 Only account admins can change the default currency.

@@ -11,6 +11,7 @@ import {
   SearchBox,
   useConsoleData,
 } from "@/components/saas-admin/console-ui";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface LogRow {
   id: number;
@@ -70,7 +71,7 @@ export default function LogsPage() {
             ))}
           </div>
           {source === "activity" && (
-            <select
+            <NativeSelect
               value={severity}
               onChange={(e) => { setSeverity(e.target.value); setPage(0); }}
               className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none"
@@ -79,7 +80,7 @@ export default function LogsPage() {
               <option value="info">Info</option>
               <option value="warning">Warning</option>
               <option value="error">Error</option>
-            </select>
+            </NativeSelect>
           )}
           <SearchBox
             value={q}

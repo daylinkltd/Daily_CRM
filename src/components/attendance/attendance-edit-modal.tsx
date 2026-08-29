@@ -20,6 +20,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { assertAffected } from "@/lib/supabase/affected-rows";
 import { calculateAttendanceMetrics } from "@/lib/hr/attendance/attendance-engine";
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 export interface AttendanceEditRow {
   id?: string;
@@ -267,7 +269,7 @@ export function AttendanceEditModal({
           <div className="grid gap-2 sm:grid-cols-3">
             <div>
               <Label className="text-foreground">Status</Label>
-              <select
+              <NativeSelect
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
                 className="mt-1.5 h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
@@ -277,11 +279,11 @@ export function AttendanceEditModal({
                     {s}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <div>
               <Label className="text-foreground">Location</Label>
-              <select
+              <NativeSelect
                 value={workLocation}
                 onChange={(e) => setWorkLocation(e.target.value)}
                 className="mt-1.5 h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
@@ -291,7 +293,7 @@ export function AttendanceEditModal({
                     {w.replace(/_/g, " ")}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <div>
               <Label className="text-foreground">Break (hrs)</Label>
@@ -308,7 +310,7 @@ export function AttendanceEditModal({
 
           <div>
             <Label className="text-foreground">Remarks</Label>
-            <Textarea
+            <RichTextArea
               plain
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}

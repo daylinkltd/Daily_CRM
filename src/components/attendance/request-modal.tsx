@@ -17,6 +17,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, FileCheck2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { sanitizeErrorMessage } from '@/lib/commerce/barcode-utils';
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface AttendanceRequestModalProps {
   open: boolean;
@@ -87,7 +89,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
         <form onSubmit={handleSubmit} className="space-y-4 py-2 text-xs">
           <div>
             <Label className="text-foreground mb-1 block">Request Type</Label>
-            <select
+            <NativeSelect
               value={requestType}
               onChange={(e) => setRequestType(e.target.value as any)}
               className="w-full bg-background border border-border text-foreground rounded-xl p-2.5 text-xs font-semibold focus:border-[#00aef0]"
@@ -97,7 +99,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
               <option value="EARLY_EXIT">Early Exit Approval</option>
               <option value="WFH">Work From Home Approval</option>
               <option value="OVERTIME">Overtime Hours Claim</option>
-            </select>
+            </NativeSelect>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -133,7 +135,7 @@ export function AttendanceRequestModal({ open, onOpenChange, onSubmitted }: Atte
 
           <div>
             <Label className="text-foreground mb-1 block">Reason / Justification *</Label>
-            <Textarea plain
+            <RichTextArea plain
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide a detailed explanation for your manager..."

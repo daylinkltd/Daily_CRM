@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface OnboardEmployeeFormProps {
   open: boolean;
@@ -444,7 +445,7 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
                 {/* `plain`: stored as text and rendered as text on the
                     employee record, so the rich-text editor would wrap it
                     in HTML that then shows as markup. */}
-                <Textarea
+                <RichTextArea
                   plain
                   rows={2}
                   value={notes}

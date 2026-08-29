@@ -36,6 +36,7 @@ import { PolicyEditorModal } from "@/components/policies/policy-editor-modal";
 import { IntegrationShareButtons } from "@/components/integrations/integration-share-buttons";
 import { IconAction } from "@/components/ui/icon-action";
 import { EmployeeGuard } from "@/components/layout/employee-guard";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface SectionStatus {
   order: number;
@@ -304,7 +305,7 @@ function HandbookContent() {
           {required && <span className="ml-0.5 text-red-400">*</span>}
         </label>
         {props.textarea ? (
-          <Textarea
+          <RichTextArea
             value={form[key]}
             onChange={(e) => setForm({ ...form, [key]: e.target.value })}
             placeholder={props.placeholder}

@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { ProductCombobox } from "@/components/commerce/product-combobox";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export default function ReturnsPage() {
   const { activeWorkspace } = useWorkspace();
@@ -253,7 +254,7 @@ export default function ReturnsPage() {
             <form onSubmit={handleProcessReturn} className="space-y-3 text-xs">
               <div className="space-y-1">
                 <Label className="text-xs text-foreground">Select Ref Sales Order / Invoice</Label>
-                <select
+                <NativeSelect
                   value={selectedOrderId}
                   onChange={(e) => {
                     setSelectedOrderId(e.target.value);
@@ -268,13 +269,13 @@ export default function ReturnsPage() {
                       Invoice #{so.order_number} (₹{Number(so.grand_total).toFixed(2)})
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-foreground">Return Reason</Label>
-                  <select
+                  <NativeSelect
                     value={returnReason}
                     onChange={(e) => setReturnReason(e.target.value as any)}
                     className="w-full bg-background border border-border text-foreground rounded-xl h-10 px-2 text-xs"
@@ -284,12 +285,12 @@ export default function ReturnsPage() {
                     <option value="EXPIRED">Expired Product</option>
                     <option value="WRONG_ITEM">Wrong Item Billed</option>
                     <option value="OTHER">Other Reason</option>
-                  </select>
+                  </NativeSelect>
                 </div>
 
                 <div className="space-y-1">
                   <Label className="text-xs text-foreground">Refund Mode</Label>
-                  <select
+                  <NativeSelect
                     value={refundMode}
                     onChange={(e) => setRefundMode(e.target.value as any)}
                     className="w-full bg-background border border-border text-foreground rounded-xl h-10 px-2 text-xs font-bold"
@@ -297,7 +298,7 @@ export default function ReturnsPage() {
                     <option value="CASH">CASH (Refund from Drawer)</option>
                     <option value="BANK">BANK / UPI Refund</option>
                     <option value="KHATA_CREDIT">KHATA CREDIT (Reduce Balance)</option>
-                  </select>
+                  </NativeSelect>
                 </div>
               </div>
 

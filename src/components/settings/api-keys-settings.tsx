@@ -31,6 +31,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { SettingsPanelHead } from './settings-panel-head';
 import { API_SCOPES, SCOPE_DESCRIPTIONS, SCOPE_GROUPS, type ApiScope } from '@/lib/api-keys/scopes';
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface ApiKey {
   id: string;
@@ -374,7 +375,7 @@ export function ApiKeysSettings() {
                 <Label htmlFor="expiry" className="text-foreground text-sm font-medium">
                   Expiration
                 </Label>
-                <select
+                <NativeSelect
                   id="expiry"
                   value={expiresInDays}
                   onChange={(e) => setExpiresInDays(e.target.value)}
@@ -386,7 +387,7 @@ export function ApiKeysSettings() {
                   <option value="365">1 Year</option>
                   <option value="never">Never (Permanent)</option>
                   <option value="custom">Custom days...</option>
-                </select>
+                </NativeSelect>
               </div>
 
               {expiresInDays === 'custom' && (

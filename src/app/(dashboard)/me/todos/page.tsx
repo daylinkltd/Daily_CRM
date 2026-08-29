@@ -20,6 +20,7 @@ import {
   type PersonalTodo,
   type TodoPriority,
 } from "@/lib/personal/todos";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const PRIORITY_STYLES: Record<TodoPriority, string> = {
   HIGH: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30",
@@ -203,7 +204,7 @@ export default function MyTodosPage() {
           className="w-auto bg-background"
           aria-label="Due date"
         />
-        <select
+        <NativeSelect
           value={priority}
           onChange={(e) => setPriority(e.target.value as TodoPriority)}
           aria-label="Priority"
@@ -214,7 +215,7 @@ export default function MyTodosPage() {
               {p.charAt(0) + p.slice(1).toLowerCase()}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         <Button type="submit" disabled={saving || !title.trim()} size="sm">
           {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
           Add

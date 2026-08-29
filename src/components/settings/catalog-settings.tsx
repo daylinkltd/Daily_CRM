@@ -39,6 +39,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 export function CatalogSettings() {
   const supabase = createClient();
@@ -277,7 +279,7 @@ export function CatalogSettings() {
                   className="pl-8 bg-muted border-border"
                 />
               </div>
-              <select
+              <NativeSelect
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="h-9 rounded-lg border border-border bg-muted px-2 text-sm text-foreground outline-none focus:border-primary"
@@ -288,7 +290,7 @@ export function CatalogSettings() {
                     {c}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
 
             {/* List */}
@@ -368,7 +370,7 @@ export function CatalogSettings() {
               </div>
             ) : (
               <div className="grid gap-4">
-                <Textarea plain
+                <RichTextArea plain
                   value={terms}
                   onChange={(e) => setTerms(e.target.value)}
                   disabled={!canEditSettings}
@@ -423,7 +425,7 @@ export function CatalogSettings() {
 
             <div className="grid gap-2">
               <Label htmlFor="item-desc">Description</Label>
-              <Textarea plain
+              <RichTextArea plain
                 id="item-desc"
                 placeholder="Product description detail..."
                 value={description}
@@ -454,7 +456,7 @@ export function CatalogSettings() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="item-type">Pricing Type</Label>
-                <select
+                <NativeSelect
                   id="item-type"
                   value={pricingType}
                   onChange={(e) => setPricingType(e.target.value as any)}
@@ -463,7 +465,7 @@ export function CatalogSettings() {
                   <option value="one_time">One-time</option>
                   <option value="monthly">Monthly</option>
                   <option value="yearly">Yearly</option>
-                </select>
+                </NativeSelect>
               </div>
             </div>
 

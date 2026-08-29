@@ -48,6 +48,7 @@ import {
   type WorkLocation,
 } from '@/lib/attendance/policy';
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const WORK_LOCATION_ICONS: Record<WorkLocation, typeof Building2> = {
   OFFICE: Building2,
@@ -764,7 +765,7 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
               </Button>
             ) : (
               <div className="hidden items-center gap-1 rounded-lg border border-border bg-card p-0.5 md:flex">
-                <select
+                <NativeSelect
                   value={breakType}
                   onChange={(e) => setBreakType(e.target.value as any)}
                   className="bg-background text-foreground border-none text-xs rounded-md px-2 py-1 focus:ring-0"
@@ -773,7 +774,7 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
                   <option value="TEA">Tea / Coffee</option>
                   <option value="PERSONAL">Personal</option>
                   <option value="MEETING">Client Meeting</option>
-                </select>
+                </NativeSelect>
                 <Button
                   type="button"
                   onClick={() => handleBreak('start')}

@@ -5,6 +5,7 @@ import { Mail, MessageCircle, Smartphone, Save, CheckCircle2 } from "lucide-reac
 import { toast } from "sonner";
 
 import { Badge, ConsoleCard } from "@/components/saas-admin/console-ui";
+import { NativeSelect } from "@/components/ui/native-select";
 
 /**
  * Channel credentials, edited in the console instead of the deployment
@@ -146,7 +147,7 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
                       <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">
                         Provider
                       </span>
-                      <select
+                      <NativeSelect
                         value={drafts.email_provider ?? f.value ?? "smtp"}
                         onChange={(e) =>
                           setDrafts((d) => ({ ...d, email_provider: e.target.value }))
@@ -155,7 +156,7 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
                       >
                         <option value="smtp">SMTP (any mailbox)</option>
                         <option value="microsoft">Microsoft 365 / Outlook (Graph)</option>
-                      </select>
+                      </NativeSelect>
                     </label>
                   ) : (
                   <label key={f.key} className="block">

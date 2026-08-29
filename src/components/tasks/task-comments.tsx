@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface TaskCommentsProps {
   taskId: string;
@@ -147,7 +148,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
       </ScrollArea>
 
       <div className="mt-4 flex gap-2">
-        <Textarea
+        <RichTextArea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."

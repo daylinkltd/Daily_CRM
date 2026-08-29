@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { NativeSelect } from "@/components/ui/native-select";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface CRMActivityModalProps {
   isOpen: boolean;
@@ -114,7 +116,7 @@ export function CRMActivityModal({
             <label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
               Activity Type
             </label>
-            <select
+            <NativeSelect
               value={type}
               onChange={(e) => setType(e.target.value as CRMActivityType)}
               className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -124,7 +126,7 @@ export function CRMActivityModal({
                   {t.label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
 
           {/* Title */}
@@ -216,7 +218,7 @@ export function CRMActivityModal({
             <label className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
               Notes & Action Items
             </label>
-            <Textarea
+            <RichTextArea
               rows={3}
               placeholder="Add agenda items, meeting notes, or follow-up details..."
               value={notes}

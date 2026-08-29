@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface LeaveRequestFormProps {
   open: boolean;
@@ -134,7 +135,7 @@ export function LeaveRequestForm({ open, onOpenChange, onSaved }: LeaveRequestFo
 
           <div className="space-y-2">
             <Label className="text-foreground">Reason / Remarks (Optional)</Label>
-            <Textarea plain
+            <RichTextArea plain
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Provide a brief explanation..."

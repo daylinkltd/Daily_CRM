@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Loader2, CheckCircle2, AlertCircle, Upload, File, X } from 'lucide-react';
 import type { CustomForm, CustomFormField } from '@/types';
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface SharedFormClientProps {
   form: CustomForm;
@@ -246,7 +247,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
 
                 {/* Select Dropdown Rendering */}
                 {field.field_type === 'select' && (
-                  <select
+                  <NativeSelect
                     id={field.id}
                     value={values[field.id] || ''}
                     onChange={(e) => handleInputChange(field.id, e.target.value)}
@@ -262,7 +263,7 @@ export default function SharedFormClient({ form, fields }: SharedFormClientProps
                         {opt}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 )}
 
                 {/* Checkbox Rendering */}

@@ -46,6 +46,7 @@ import type {
   FormMappingType,
 } from '@/types';
 import { IconAction } from "@/components/ui/icon-action";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface CustomFieldDef {
   id: string;
@@ -480,7 +481,7 @@ export default function FormBuilderPage({
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="form-meta-desc" className="text-muted-foreground">Description / Instructions</Label>
-                    <Textarea
+                    <RichTextArea
                       id="form-meta-desc"
                       value={formDesc}
                       onChange={(e) => setFormDesc(e.target.value)}

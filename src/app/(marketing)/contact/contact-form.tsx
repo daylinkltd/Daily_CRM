@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { NativeSelect } from "@/components/ui/native-select";
 
 /**
  * The contact form, posting to the same /api/prospects endpoint as the
@@ -102,7 +103,7 @@ export function ContactForm() {
           className={inputCls}
         />
       </div>
-      <select
+      <NativeSelect
         value={form.team_size}
         onChange={(e) => set("team_size", e.target.value)}
         aria-label="Team size"
@@ -113,7 +114,7 @@ export function ContactForm() {
         <option value="6-15">6–15</option>
         <option value="16-50">16–50</option>
         <option value="51+">51+</option>
-      </select>
+      </NativeSelect>
       <textarea
         value={form.message}
         onChange={(e) => set("message", e.target.value)}

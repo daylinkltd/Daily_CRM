@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export function AccountingSettingsPanel() {
   const supabase = createClient();
@@ -137,7 +138,7 @@ export function AccountingSettingsPanel() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Financial Year Start Month</Label>
-              <select
+              <NativeSelect
                 value={financialYearStartMonth}
                 onChange={(e) => setFinancialYearStartMonth(e.target.value)}
                 className="w-full bg-background border border-border text-foreground text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary"
@@ -146,7 +147,7 @@ export function AccountingSettingsPanel() {
                 <option value="4">April (April to March - India / UK)</option>
                 <option value="7">July (July to June)</option>
                 <option value="10">October (October to September)</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div className="space-y-1.5">

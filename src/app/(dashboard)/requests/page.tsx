@@ -26,6 +26,7 @@ import {
 import { FileCheck, Plus, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { IconAction } from "@/components/ui/icon-action";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 const REQUEST_TYPES = [
   { value: 'SALARY_CERTIFICATE', label: 'Salary Certificate Request' },
@@ -208,7 +209,7 @@ export default function EmployeeRequestsPage() {
 
             <div className="space-y-2">
               <Label>Details / Notes for HR</Label>
-              <Textarea plain
+              <RichTextArea plain
                 placeholder="Provide context or the reason for the request. Do NOT include bank details here — HR will collect them securely."
                 value={notes}
                 onChange={e => setNotes(e.target.value)}

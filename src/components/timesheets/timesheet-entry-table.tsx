@@ -19,6 +19,7 @@ import {
   validateEntry, type TimesheetField,
 } from "@/lib/hr/timesheet-templates";
 import { draftKey, parseDraft, serializeDraft } from "@/lib/tables/draft-storage";
+import { NativeSelect } from "@/components/ui/native-select";
 
 type EntryRow = Record<string, string>;
 
@@ -242,7 +243,7 @@ export function TimesheetEntryTable({
     if (f.type === "reference" || f.type === "reference_multi") {
       const opts = refOptions[f.source ?? ""] ?? [];
       return (
-        <select
+        <NativeSelect
           value={value}
           onChange={(e) => setCell(i, f.key, e.target.value)}
           className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs"
@@ -251,7 +252,7 @@ export function TimesheetEntryTable({
           {opts.map((o) => (
             <option key={o.id} value={o.id}>{o.label}</option>
           ))}
-        </select>
+        </NativeSelect>
       );
     }
     if (f.type === "textarea") {

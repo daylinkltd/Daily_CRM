@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Send,
 } from "lucide-react";
+import { NativeSelect } from "@/components/ui/native-select";
 
 
 
@@ -177,7 +178,7 @@ export function SalesModal({
                 <label className="text-xs font-bold text-[var(--mkt-fg-muted)] uppercase tracking-wider">Team Size</label>
                 <div className="relative">
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--mkt-fg-subtle)] pointer-events-none" />
-                  <select
+                  <NativeSelect
                     value={form.team_size}
                     onChange={e => set("team_size", e.target.value)}
                     className="mkt-field w-full appearance-none px-3 py-2.5"
@@ -187,7 +188,7 @@ export function SalesModal({
                     <option value="6-15">6–15</option>
                     <option value="16-50">16–50</option>
                     <option value="50+">50+</option>
-                  </select>
+                  </NativeSelect>
                 </div>
               </div>
             </div>

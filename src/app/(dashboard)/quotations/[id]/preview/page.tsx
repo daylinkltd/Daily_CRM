@@ -23,6 +23,7 @@ import { Card } from "@/components/ui/card";
 import { IconAction } from "@/components/ui/icon-action";
 import { contactDisplayName } from "@/lib/contact-display";
 import { BrandedProposalTemplate } from "@/components/shared/BrandedProposalTemplate";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -489,20 +490,20 @@ export default function QuotationPreviewPage({ params }: PageProps) {
       <div className="no-print p-4 border border-border bg-muted/30 rounded-lg flex flex-wrap items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-muted-foreground">Format Layout Preset:</span>
-          <select
+          <NativeSelect
             value={layoutPreset}
             onChange={(e) => setLayoutPreset(e.target.value as any)}
             className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary font-medium"
           >
             <option value="daylink_standard">Daylink Standard (Service / IT / Agency)</option>
             <option value="milestone_itemized">Milestone Itemized (Licensing / Compliance / Supply)</option>
-          </select>
+          </NativeSelect>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="font-medium text-foreground">Tax Type:</span>
-            <select
+            <NativeSelect
               value={taxMode}
               onChange={(e) => setTaxMode(e.target.value as any)}
               className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
@@ -510,13 +511,13 @@ export default function QuotationPreviewPage({ params }: PageProps) {
               <option value="gst_split">SGST + CGST (Intra-State / Within State)</option>
               <option value="igst">IGST (Inter-State / Outside State)</option>
               <option value="exempt">Exempt / SEZ / Zero-Rated (0% Tax)</option>
-            </select>
+            </NativeSelect>
           </div>
 
           {taxMode !== "exempt" && (
             <div className="flex items-center gap-2">
               <span className="font-medium text-foreground">Tax Rate:</span>
-              <select
+              <NativeSelect
                 value={taxRatePercent}
                 onChange={(e) => setTaxRatePercent(Number(e.target.value))}
                 className="h-8 rounded-md border border-input bg-background px-2.5 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
@@ -525,7 +526,7 @@ export default function QuotationPreviewPage({ params }: PageProps) {
                 <option value={12}>12% GST</option>
                 <option value={5}>5% GST</option>
                 <option value={28}>28% GST</option>
-              </select>
+              </NativeSelect>
             </div>
           )}
         </div>

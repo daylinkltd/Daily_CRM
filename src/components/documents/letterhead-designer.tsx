@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export function LetterheadDesigner() {
   const supabase = createClient();
@@ -566,19 +567,19 @@ export function LetterheadDesigner() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Paper Standard</Label>
-                <select
+                <NativeSelect
                   value={paperSize}
                   onChange={(e) => setPaperSize(e.target.value as any)}
                   className="w-full bg-background border border-border text-foreground text-xs rounded-lg px-3 py-2"
                 >
                   <option value="A4">A4 (210mm x 297mm - Global)</option>
                   <option value="Letter">US Letter (8.5in x 11in - US/CA)</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Page Margin</Label>
-                <select
+                <NativeSelect
                   value={pageMargin}
                   onChange={(e) => setPageMargin(e.target.value as any)}
                   className="w-full bg-background border border-border text-foreground text-xs rounded-lg px-3 py-2"
@@ -586,7 +587,7 @@ export function LetterheadDesigner() {
                   <option value="compact">Compact Margins</option>
                   <option value="normal">Standard Margins</option>
                   <option value="wide">Wide Margins</option>
-                </select>
+                </NativeSelect>
               </div>
             </div>
 

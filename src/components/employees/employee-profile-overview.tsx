@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, Save } from 'lucide-react';
 import { useMemberDirectory } from '@/hooks/use-member-directory';
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface EmployeeProfileOverviewProps {
   employee: any;
@@ -198,7 +199,7 @@ export function EmployeeProfileOverview({
 
             <div className="space-y-2">
               <Label>Address</Label>
-              <Textarea 
+              <RichTextArea 
                 value={formData.address}
                 onChange={(e) => handleChange('address', e.target.value)}
                 disabled={!canEdit}
@@ -208,7 +209,7 @@ export function EmployeeProfileOverview({
             </div>
             <div className="space-y-2">
               <Label>HR Notes</Label>
-              <Textarea 
+              <RichTextArea 
                 value={formData.notes}
                 onChange={(e) => handleChange('notes', e.target.value)}
                 disabled={!canEdit}

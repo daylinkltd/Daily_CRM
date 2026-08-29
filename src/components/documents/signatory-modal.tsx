@@ -10,6 +10,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2, Upload, UserCheck, ShieldCheck, Trash2 } from "lucide-react";
 import { IconAction } from "@/components/ui/icon-action";
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface SignatoryModalProps {
   open: boolean;
@@ -148,7 +149,7 @@ export function SignatoryModal({ open, onOpenChange, onSaved, initialData }: Sig
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Department</Label>
-              <select
+              <NativeSelect
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
                 className="w-full bg-background border border-border text-foreground text-xs rounded-lg px-3 py-2"
@@ -158,7 +159,7 @@ export function SignatoryModal({ open, onOpenChange, onSaved, initialData }: Sig
                 <option value="Finance">Finance</option>
                 <option value="Legal">Legal</option>
                 <option value="Sales">Sales</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
 

@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { NativeSelect } from "@/components/ui/native-select";
 
 interface TeamMember {
   id: string;
@@ -182,7 +183,7 @@ export default function MarketingTeamPage() {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-foreground">Marketing Role</label>
-                <select
+                <NativeSelect
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as TeamMember['role'])}
                   className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
@@ -193,7 +194,7 @@ export default function MarketingTeamPage() {
                   <option value="Designer">Designer (Media & Assets)</option>
                   <option value="Reviewer">Reviewer (Approve & Request Changes)</option>
                   <option value="Analyst">Analyst (View & Metrics)</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-border">

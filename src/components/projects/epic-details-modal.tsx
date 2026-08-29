@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { formatMemberName } from '@/components/tasks/task-form';
 import { IconAction } from "@/components/ui/icon-action";
+import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface EpicDetailsModalProps {
   open: boolean;
@@ -283,7 +284,7 @@ export function EpicDetailsModal({
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Description
                   </span>
-                  <Textarea
+                  <RichTextArea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Add a description..."

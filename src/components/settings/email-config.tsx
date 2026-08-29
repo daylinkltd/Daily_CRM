@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { NativeSelect } from "@/components/ui/native-select";
 
 export function EmailConfig() {
   const [saving, setSaving] = useState(false);
@@ -62,11 +63,11 @@ export function EmailConfig() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label className="text-foreground">Provider</Label>
-              <select value={provider} onChange={(e) => setProvider(e.target.value)} className="w-full h-10 rounded-md bg-muted border-border text-foreground px-3">
+              <NativeSelect value={provider} onChange={(e) => setProvider(e.target.value)} className="w-full h-10 rounded-md bg-muted border-border text-foreground px-3">
                 <option value="SendGrid">SendGrid</option>
                 <option value="AWS SES">AWS SES</option>
                 <option value="Resend">Resend</option>
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-2">
               <Label className="text-foreground">From Email Address</Label>

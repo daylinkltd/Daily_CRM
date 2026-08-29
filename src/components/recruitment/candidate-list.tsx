@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { CandidateApplication } from "./candidate-board";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const STAGE_STYLES: Record<string, string> = {
   APPLIED: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/30",
@@ -82,7 +83,7 @@ export function CandidateList({
               </TableCell>
               <TableCell>
                 {canManage ? (
-                  <select
+                  <NativeSelect
                     value={app.stage}
                     onChange={(e) => onMove(app.id, e.target.value)}
                     aria-label={`Stage for ${app.candidate?.full_name || "candidate"}`}
@@ -93,7 +94,7 @@ export function CandidateList({
                         {s}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 ) : (
                   <Badge
                     variant="outline"
