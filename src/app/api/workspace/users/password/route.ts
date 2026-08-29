@@ -40,6 +40,8 @@ import {
   validateNewPassword,
 } from "@/lib/auth/passwords";
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from "@/lib/rate-limit";
+import { sendPlatformMail } from "@/lib/platform/mailer";
+import { BRAND } from "@/config/brand";
 
 const RANK: Record<string, number> = { owner: 3, admin: 2, member: 1, viewer: 1 };
 
@@ -137,10 +139,44 @@ export async function POST(request: NextRequest) {
       if (!targetProfile?.email) {
         return NextResponse.json({ error: "This member has no email on file." }, { status: 400 });
       }
-      const { error } = await supabase.auth.resetPasswordForEmail(targetProfile.email, {
-        redirectTo: recoveryRedirectUrl(request),
+      // Minted here, delivered by the platform mailbox — the same path
+      // the self-service and console resets take. Supabase's own mailer
+      // would compose its own message and take the destination from the
+      // project's Site URL setting, which is the localhost bug.
+      const { data: linkData, error } = await admin.auth.admin.generateLink({
+        type: "recovery",
+        email: targetProfile.email,
+        options: { redirectTo: recoveryRedirectUrl(request) },
       });
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error || !linkData?.properties?.action_link) {
+        return NextResponse.json(
+          { error: error?.message ?? "Could not create a reset link." },
+          { status: 500 },
+        );
+      }
+
+      const sent = await sendPlatformMail({
+        to: targetProfile.email,
+        kind: "password_reset",
+        workspaceId: workspace_id,
+        subject: `Reset your ${BRAND.name} password`,
+        body: `
+          <p>An administrator started a password reset for your account.</p>
+          <p style="margin:24px 0;">
+            <a href="${linkData.properties.action_link}"
+               style="display:inline-block;padding:12px 22px;background:#0f172a;color:#ffffff;
+                      text-decoration:none;border-radius:10px;font-weight:600;">
+              Choose a new password
+            </a>
+          </p>
+          <p style="color:#64748b;font-size:13px;">The link works once and expires shortly.</p>`,
+      });
+      if (!sent.ok) {
+        return NextResponse.json(
+          { error: sent.error ?? "Could not send the reset email." },
+          { status: 502 },
+        );
+      }
 
       await logActivity({
         event: ACTIVITY.MEMBER_PASSWORD_RESET_EMAILED,
