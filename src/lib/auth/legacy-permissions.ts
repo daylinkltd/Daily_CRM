@@ -26,7 +26,11 @@ export const LEGACY_PERMISSION_SOURCES: Record<string, string[]> = {
   people_view: ["employees:read"],
   // Managing projects & tasks
   projects_manage: ["projects:create", "projects:update", "projects:delete"],
+  projects_create: ["projects:create"],
   projects_view: ["projects:read"],
+  tasks_manage: ["tasks:create", "tasks:update", "tasks:delete"],
+  tasks_create: ["tasks:create"],
+  tasks_view: ["tasks:read"],
   // Editing an attendance record is what regularisation approval does.
   attendance_manage: ["attendance:update", "attendance:delete"],
   // Approving leave is an update on the request.

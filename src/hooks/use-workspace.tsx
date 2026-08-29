@@ -82,6 +82,7 @@ export interface WorkspacePermissions {
   people_manage: boolean;
   attendance_manage: boolean;
   leave_approve: boolean;
+  [key: string]: boolean;
 }
 
 export const DEFAULT_MEMBER_PERMISSIONS: WorkspacePermissions = {
@@ -169,7 +170,7 @@ interface WorkspaceContextValue {
   refreshWorkspaces: () => Promise<void>;
   createWorkspace: (name: string) => Promise<Workspace | null>;
   /** True if the current user has a given permission key */
-  can: (key: keyof WorkspacePermissions) => boolean;
+  can: (key: keyof WorkspacePermissions | string) => boolean;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);

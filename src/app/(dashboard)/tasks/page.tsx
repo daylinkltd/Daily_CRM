@@ -59,7 +59,8 @@ type ViewMode = 'list' | 'hierarchy';
 
 export default function GlobalTasksPage() {
   const supabase = createClient();
-  const { activeWorkspace, activeMember } = useWorkspace();
+  const { activeWorkspace, activeMember, can, activeRole } = useWorkspace();
+  const canCreateTask = activeRole === 'owner' || activeRole === 'admin' || can('tasks_manage') || can('tasks_create');
 
   const [tasks, setTasks] = useState<any[]>([]);
   const [epics, setEpics] = useState<any[]>([]);
@@ -583,7 +584,9 @@ export default function GlobalTasksPage() {
         title="My Tasks"
         description="Manage your assigned deliverables across Projects, Epics, Tasks, and Subtasks."
         action={
-          <IconAction label="New Task" icon={<Plus className="size-4 " />} onClick={() => { setEditTask(null); setFormOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
+          canCreateTask && (
+            <IconAction label="New Task" icon={<Plus className="size-4 " />} onClick={() => { setEditTask(null); setFormOpen(true); }} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" />
+          )
         }
       />
 

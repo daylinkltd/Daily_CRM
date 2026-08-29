@@ -25,7 +25,9 @@ function ProjectDashboardPageContent() {
   const supabase = createClient();
   const router = useRouter();
   const { activeWorkspace, defaultCurrency, can, activeRole } = useWorkspace();
-  const canCreate = can('projects_manage') || activeRole === 'owner' || activeRole === 'admin' || activeRole === 'member';
+  
+  const canCreateProject = activeRole === 'owner' || activeRole === 'admin' || can('projects_manage') || can('projects_create');
+  const canCreateTask = activeRole === 'owner' || activeRole === 'admin' || can('tasks_manage') || can('tasks_create');
 
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -69,17 +71,17 @@ function ProjectDashboardPageContent() {
         description="High-level metrics and health tracking across all workspace projects."
         action={
           <div className="flex flex-wrap items-center gap-2">
-            {canCreate && (
-              <>
-                <Button onClick={() => setProjectModalOpen(true)} size="sm" className="font-bold gap-1.5">
-                  <Plus className="size-4" />
-                  New Project
-                </Button>
-                <Button onClick={() => setTaskModalOpen(true)} variant="secondary" size="sm" className="font-bold gap-1.5">
-                  <Plus className="size-4 text-primary" />
-                  Create Ticket / Task
-                </Button>
-              </>
+            {canCreateProject && (
+              <Button onClick={() => setProjectModalOpen(true)} size="sm" className="font-bold gap-1.5">
+                <Plus className="size-4" />
+                New Project
+              </Button>
+            )}
+            {canCreateTask && (
+              <Button onClick={() => setTaskModalOpen(true)} variant="secondary" size="sm" className="font-bold gap-1.5">
+                <Plus className="size-4 text-primary" />
+                Create Ticket / Task
+              </Button>
             )}
             <Button onClick={() => router.push('/projects')} variant="outline" size="sm" className="border-border">
               View All Projects
