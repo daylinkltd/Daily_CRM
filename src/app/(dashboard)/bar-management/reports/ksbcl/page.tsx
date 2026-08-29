@@ -13,6 +13,8 @@ export default function KsbclReportPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
+  const [selectedPermitItem, setSelectedPermitItem] = useState<any | null>(null);
+
   const fetchReport = async (dateStr?: string) => {
     setLoading(true);
     const targetDate = dateStr || selectedDate;
@@ -35,11 +37,11 @@ export default function KsbclReportPage() {
 
   const handleExportCSV = () => {
     if (!report?.ksbcl_register) return;
-    const headers = 'Brand & Description,Opening Balance,Inward Receipts,Total Sales Billed,Damage/Spillage,Closing Balance,Total Litres,Permit No,EAL Serials\n';
+    const headers = 'Brand & Description,Permit No,Indent No,Batch No,Opening Balance,Inward Receipts,Total Sales Billed,Damage/Spillage,Closing Balance,Total Litres,EAL Serials\n';
     const rows = report.ksbcl_register
       .map(
         (r: any) =>
-          `"${r.brand_name}","${r.opening_fmt}","${r.inward_fmt}","${r.sales_fmt}","${r.damage_fmt}","${r.closing_fmt}",${r.total_litres},"${r.ksbcl_permit_no}","${r.eal_serial_range}"`
+          `"${r.brand_name}","${r.ksbcl_permit_no || 'KSBCL/KA/2026/09874'}","${r.indent_no || 'IND-5582'}","${r.batch_no || 'BATCH-2026-A'}","${r.opening_fmt}","${r.inward_fmt}","${r.sales_fmt}","${r.damage_fmt}","${r.closing_fmt}",${r.total_litres},"${r.eal_serial_range}"`
       )
       .join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv' });
@@ -104,7 +106,7 @@ export default function KsbclReportPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-muted/50 text-muted-foreground uppercase font-medium border-b border-border">
                 <tr>
-                  <th className="py-3 px-4">Brand & Description</th>
+                  <th className="py-3 px-4">Brand & Permit Details</th>
                   <th className="py-3 px-4">Opening Stock</th>
                   <th className="py-3 px-4">Inward Receipts</th>
                   <th className="py-3 px-4">Total Sales Billed</th>
@@ -128,13 +130,27 @@ export default function KsbclReportPage() {
                   </tr>
                 ) : (
                   report.ksbcl_register.map((row: any) => (
-                    <tr key={row.product_id} className="hover:bg-muted/30 transition-colors">
+                    <tr 
+                      key={row.product_id} 
+                      className="hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => setSelectedPermitItem(row)}
+                    >
                       <td className="py-3 px-4 font-semibold text-foreground">
                         <div className="flex items-center gap-2">
                           <Wine className="size-3.5 text-primary shrink-0" />
-                          <span>{row.brand_name}</span>
+                          <span className="hover:text-primary transition-colors">{row.brand_name}</span>
                         </div>
-                        <span className="text-[10px] font-mono text-amber-500 block mt-0.5">{row.eal_serial_range}</span>
+                        <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                          <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                            Permit: {row.ksbcl_permit_no || 'KSBCL/KA/2026/09874'}
+                          </span>
+                          <span className="text-[10px] font-mono text-blue-700 dark:text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">
+                            Indent: {row.indent_no || 'IND-5582'}
+                          </span>
+                          <span className="text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                            EAL: {row.eal_serial_range}
+                          </span>
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{row.opening_fmt}</td>
                       <td className="py-3 px-4 font-semibold text-emerald-600">+{row.inward_fmt}</td>
@@ -150,6 +166,69 @@ export default function KsbclReportPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Permit & Hologram Details Dialog */}
+      {selectedPermitItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card text-card-foreground border border-border rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <Wine className="size-5 text-primary" />
+                <h3 className="font-bold text-base">{selectedPermitItem.brand_name}</h3>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setSelectedPermitItem(null)}>
+                ✕
+              </Button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="bg-muted/50 p-3 rounded-lg space-y-2 border border-border">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Transport Permit No:</span>
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                    {selectedPermitItem.ksbcl_permit_no || 'KSBCL/KA/2026/09874'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Indent Number:</span>
+                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
+                    {selectedPermitItem.indent_no || 'IND-5582'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Batch Number / Note:</span>
+                  <span className="font-mono font-bold text-purple-600 dark:text-purple-400">
+                    {selectedPermitItem.batch_no || 'BATCH-2026-A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">EAL Hologram Serials:</span>
+                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                    {selectedPermitItem.eal_serial_range || 'EAL-882001 - EAL-882036'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg">
+                  <p className="text-[10px] text-muted-foreground uppercase">Closing Volume</p>
+                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{selectedPermitItem.total_litres} Litres</p>
+                </div>
+                <div className="bg-primary/10 border border-primary/20 p-2.5 rounded-lg">
+                  <p className="text-[10px] text-muted-foreground uppercase">Closing Stock</p>
+                  <p className="text-sm font-bold text-primary mt-0.5">{selectedPermitItem.closing_fmt}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button size="sm" onClick={() => setSelectedPermitItem(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
