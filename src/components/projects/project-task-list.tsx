@@ -58,6 +58,7 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
   const supabase = createClient();
   const [tasks, setTasks] = useState<any[]>([]);
   const [epics, setEpics] = useState<any[]>([]);
+  const [membersList, setMembersList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [groupByEpic, setGroupByEpic] = useState(true);
@@ -101,6 +102,7 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
       const loadedEpics = epicsRes.data || [];
 
       setEpics(loadedEpics);
+      setMembersList(memberList);
 
       const memberMap = new Map(memberList.map((m: any) => [m.id, m]));
       const enriched = loadedTasks.map((t: any) => ({
@@ -125,6 +127,21 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
       setLoading(false);
     }
   }, [projectId, supabase]);
+
+  const handleUpdateAssignee = async (taskId: string, memberId: string | null) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ assigned_workspace_member_id: memberId })
+        .eq('id', taskId);
+      if (error) throw error;
+      toast.success('Assignee updated');
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to update assignee');
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -484,17 +501,53 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                                 </TableCell>
 
                                 {/* 5. Assignee */}
-                                <TableCell className="py-2.5 px-4">
-                                  <div className="flex items-center gap-2">
-                                    <Avatar className="size-6">
-                                      <AvatarFallback className="text-[10px] font-semibold bg-primary/10 text-primary">
-                                        {assigneeName.charAt(0)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-xs text-muted-foreground truncate max-w-[120px]">
-                                      {assigneeName}
-                                    </span>
-                                  </div>
+                                <TableCell className="py-2.5 px-4" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger
+                                      render={
+                                        <button
+                                          type="button"
+                                          className="flex items-center gap-1.5 hover:bg-muted/80 px-2 py-1 rounded-md transition-colors cursor-pointer text-left w-full max-w-[140px] outline-none border-0 bg-transparent"
+                                        >
+                                          <Avatar className="size-5 shrink-0">
+                                            <AvatarFallback className="text-[9px] font-semibold bg-primary/10 text-primary">
+                                              {assigneeName.charAt(0)}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                          <span className="text-xs text-muted-foreground font-medium truncate">
+                                            {assigneeName}
+                                          </span>
+                                          <ChevronDown className="size-3 text-muted-foreground/60 shrink-0 ml-auto" />
+                                        </button>
+                                      }
+                                    />
+                                    <DropdownMenuContent align="start" className="w-48 bg-popover border-border max-h-56 overflow-y-auto">
+                                      <DropdownMenuItem
+                                        onClick={() => handleUpdateAssignee(t.id, null)}
+                                        className="text-xs gap-2 cursor-pointer font-medium text-muted-foreground"
+                                      >
+                                        <Avatar className="size-5">
+                                          <AvatarFallback className="text-[9px] bg-muted text-muted-foreground">U</AvatarFallback>
+                                        </Avatar>
+                                        Unassigned
+                                      </DropdownMenuItem>
+                                      {membersList.map((m) => {
+                                        const name = formatMemberName(m);
+                                        return (
+                                          <DropdownMenuItem
+                                            key={m.id}
+                                            onClick={() => handleUpdateAssignee(t.id, m.id)}
+                                            className="text-xs gap-2 cursor-pointer font-medium"
+                                          >
+                                            <Avatar className="size-5">
+                                              <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="truncate">{name}</span>
+                                          </DropdownMenuItem>
+                                        );
+                                      })}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </TableCell>
 
                                 {/* 6. Due Date */}
@@ -545,8 +598,53 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                                       <TableCell className="py-2 px-4">
                                         {getPriorityBadge(st.priority)}
                                       </TableCell>
-                                      <TableCell className="py-2 px-4 text-xs text-muted-foreground">
-                                        {stAssigneeName}
+                                      <TableCell className="py-2 px-4" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger
+                                            render={
+                                              <button
+                                                type="button"
+                                                className="flex items-center gap-1.5 hover:bg-muted/80 px-2 py-1 rounded-md transition-colors cursor-pointer text-left w-full max-w-[140px] outline-none border-0 bg-transparent"
+                                              >
+                                                <Avatar className="size-4 shrink-0">
+                                                  <AvatarFallback className="text-[8px] font-semibold bg-primary/10 text-primary">
+                                                    {stAssigneeName.charAt(0)}
+                                                  </AvatarFallback>
+                                                </Avatar>
+                                                <span className="text-xs text-muted-foreground font-medium truncate">
+                                                  {stAssigneeName}
+                                                </span>
+                                                <ChevronDown className="size-2.5 text-muted-foreground/60 shrink-0 ml-auto" />
+                                              </button>
+                                            }
+                                          />
+                                          <DropdownMenuContent align="start" className="w-48 bg-popover border-border max-h-56 overflow-y-auto">
+                                            <DropdownMenuItem
+                                              onClick={() => handleUpdateAssignee(st.id, null)}
+                                              className="text-xs gap-2 cursor-pointer font-medium text-muted-foreground"
+                                            >
+                                              <Avatar className="size-5">
+                                                <AvatarFallback className="text-[9px] bg-muted text-muted-foreground">U</AvatarFallback>
+                                              </Avatar>
+                                              Unassigned
+                                            </DropdownMenuItem>
+                                            {membersList.map((m) => {
+                                              const name = formatMemberName(m);
+                                              return (
+                                                <DropdownMenuItem
+                                                  key={m.id}
+                                                  onClick={() => handleUpdateAssignee(st.id, m.id)}
+                                                  className="text-xs gap-2 cursor-pointer font-medium"
+                                                >
+                                                  <Avatar className="size-5">
+                                                    <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{name.charAt(0)}</AvatarFallback>
+                                                  </Avatar>
+                                                  <span className="truncate">{name}</span>
+                                                </DropdownMenuItem>
+                                              );
+                                            })}
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
                                       </TableCell>
                                       <TableCell className="py-2 px-4 text-right text-xs text-muted-foreground font-mono">
                                         {st.due_date ? format(new Date(st.due_date), 'MMM d') : '-'}
