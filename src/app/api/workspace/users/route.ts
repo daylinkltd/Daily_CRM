@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { ACTIVITY, logActivity } from '@/lib/saas-admin/activity';
 import { systemRoleNameCandidates, type WorkspaceDbRole } from '@/lib/auth/roles';
+import { getWorkspaceUsageAndLimits } from '@/lib/limits';
 import {
   checkTeamPermission,
   teamPermissionError,
@@ -76,41 +77,35 @@ export async function POST(request: NextRequest) {
 
     const adminClient = createAdminClient();
 
-    // --- Check max_members limit ---
-    const { data: wsData } = await adminClient
-      .from('workspaces')
-      .select('plan_limits')
-      .eq('id', workspace_id)
-      .single();
+    // --- Check the seat limit ---
+    // Pooled across the tenant, matching migration 118 and lib/limits.
+    // Counting this workspace alone would disagree with the database
+    // trigger: the request would pass here and then fail with a raw
+    // constraint error instead of the "Add seats" path below.
+    const usage = await getWorkspaceUsageAndLimits(workspace_id);
+    const maxMembers = usage.maxUsers;
+    const count = usage.memberCount;
 
-    const maxMembers = wsData?.plan_limits?.max_members as number | null;
-    if (maxMembers) {
-      const { count } = await adminClient
-        .from('workspace_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('workspace_id', workspace_id);
-        
-      if (count !== null && count >= maxMembers) {
-        // `code` lets the members UI show an "Add seats" button instead of
-        // a dead-end error string. Logged because a tenant repeatedly
-        // hitting the wall is an expansion signal the admin should see.
-        await logActivity({
-          event: ACTIVITY.SEAT_LIMIT_HIT,
-          severity: 'warning',
-          workspaceId: workspace_id,
-          details: { members: count, seats: maxMembers },
-          request,
-        });
-        return NextResponse.json(
-          {
-            error: `All ${maxMembers} seats are in use. Add seats from Billing to invite more people.`,
-            code: 'seat_limit',
-            seats: maxMembers,
-            members: count,
-          },
-          { status: 403 }
-        );
-      }
+    if (maxMembers !== null && count >= maxMembers) {
+      // `code` lets the members UI show an "Add seats" button instead of
+      // a dead-end error string. Logged because a tenant repeatedly
+      // hitting the wall is an expansion signal the admin should see.
+      await logActivity({
+        event: ACTIVITY.SEAT_LIMIT_HIT,
+        severity: 'warning',
+        workspaceId: workspace_id,
+        details: { members: count, seats: maxMembers },
+        request,
+      });
+      return NextResponse.json(
+        {
+          error: `All ${maxMembers} seats are in use across your workspaces. Add seats from Billing to invite more people.`,
+          code: 'seat_limit',
+          seats: maxMembers,
+          members: count,
+        },
+        { status: 403 }
+      );
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -207,7 +202,7 @@ export async function POST(request: NextRequest) {
         .eq('workspace_id', workspace_id)
         .eq('is_system', true)
         // Both names, because a workspace only carries "Team Member"
-        // once migration 116 has run.
+        // once migration 119 has run.
         .in('name', systemRoleNameCandidates(dbRole))
         .limit(1)
         .maybeSingle();

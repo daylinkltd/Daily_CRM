@@ -131,7 +131,7 @@ export function defaultSystemRoleName(dbRole: WorkspaceDbRole): string {
  * user-visible benefit.
  *
  * Both names are accepted when looking a role up by name, because a
- * workspace only carries the new name once migration 116 has run — code
+ * workspace only carries the new name once migration 119 has run — code
  * that assumed one or the other would break on exactly one side of that
  * deploy.
  */
