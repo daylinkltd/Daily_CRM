@@ -51,7 +51,7 @@ export function enumRoleForRoleName(
  * pre-select the dropdown for members who predate `role_id`.
  *
  * 'agent' resolves to the staff role — "Team Member", or "Agent" in a
- * workspace where migration 116 has not run yet. The caller matches the
+ * workspace where migration 119 has not run yet. The caller matches the
  * returned candidates against the workspace's actual `workspace_roles`
  * rows, so whichever name is really there wins.
  */

@@ -1,5 +1,5 @@
 -- ============================================================
--- 116 — Team & Access permission, "Agent" → "Team Member",
+-- 119 — Team & Access permission, "Agent" → "Team Member",
 --       and (again) co-member profile visibility
 --
 -- Three related fixes in one paste, because they are all needed
