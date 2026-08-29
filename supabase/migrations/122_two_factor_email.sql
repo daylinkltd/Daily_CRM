@@ -25,6 +25,27 @@
 
 BEGIN;
 
+-- ------------------------------------------------------------
+-- Prerequisites. This migration extends `user_sessions` (migration
+-- 100) and re-defines `register_session`, whose body logs to
+-- `platform_activity_log` (migration 101). Without them Postgres
+-- reports a bare 42P01 naming a table nobody remembers creating, so
+-- say plainly what to run instead.
+-- ------------------------------------------------------------
+DO $pre$
+BEGIN
+  IF to_regclass('public.user_sessions') IS NULL THEN
+    RAISE EXCEPTION
+      'Migration 100 (single active session) has not been applied — it creates public.user_sessions. Run 100_single_active_session.sql, then 101_saas_admin_console.sql, then this one. Paste 000_preflight_check.sql to see everything that is missing.';
+  END IF;
+
+  IF to_regclass('public.platform_activity_log') IS NULL THEN
+    RAISE EXCEPTION
+      'Migration 101 (SaaS admin console) has not been applied — it creates public.platform_activity_log, which register_session writes to. Run 101_saas_admin_console.sql first.';
+  END IF;
+END
+$pre$;
+
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS two_factor_enabled boolean NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS two_factor_enabled_at timestamptz;
