@@ -13,10 +13,11 @@ export default function KsbclReportPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const fetchReport = async () => {
+  const fetchReport = async (dateStr?: string) => {
     setLoading(true);
+    const targetDate = dateStr || selectedDate;
     try {
-      const res = await fetch('/api/bar/reports/ksbcl');
+      const res = await fetch(`/api/bar/reports/ksbcl?date=${targetDate}`);
       if (res.ok) {
         const data = await res.json();
         setReport(data);
@@ -29,8 +30,8 @@ export default function KsbclReportPage() {
   };
 
   useEffect(() => {
-    fetchReport();
-  }, []);
+    fetchReport(selectedDate);
+  }, [selectedDate]);
 
   const handleExportCSV = () => {
     if (!report?.ksbcl_register) return;
@@ -81,7 +82,7 @@ export default function KsbclReportPage() {
             <Printer className="size-4 mr-1.5" />
             Print FL-4 Sheet
           </Button>
-          <Button size="sm" onClick={fetchReport}>
+          <Button size="sm" onClick={() => fetchReport()}>
             <RefreshCw className="size-4 mr-1.5" />
             Refresh
           </Button>

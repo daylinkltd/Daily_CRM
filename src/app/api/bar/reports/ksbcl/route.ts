@@ -69,12 +69,13 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get("workspace_id") || undefined;
+    const reqDate = searchParams.get("date") || new Date().toISOString().split("T")[0];
     const ctx = await getCurrentAccount(workspaceId).catch(() => null);
 
     if (!ctx || !ctx.accountId) {
       return NextResponse.json({
         success: true,
-        report_date: new Date().toISOString().split("T")[0],
+        report_date: reqDate,
         ksbcl_register: demoItems,
       });
     }
