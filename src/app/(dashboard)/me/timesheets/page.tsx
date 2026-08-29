@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { TimeLogForm } from "@/components/timesheets/time-log-form";
+import { TimesheetEntryTable } from "@/components/timesheets/timesheet-entry-table";
+import { useTimesheetTemplate } from "@/hooks/use-timesheet-template";
 import { IconAction } from "@/components/ui/icon-action";
 import {
   Table,
@@ -42,6 +43,7 @@ export default function MyTimesheetsPage() {
   const [logs, setLogs] = useState<TimeLogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+  const { templateId: timesheetTemplateId } = useTimesheetTemplate();
 
   // Filters
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>("");
@@ -329,7 +331,14 @@ export default function MyTimesheetsPage() {
         </div>
       )}
 
-      <TimeLogForm open={formOpen} onOpenChange={setFormOpen} onSaved={fetchMine} />
+      <TimesheetEntryTable
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        templateId={timesheetTemplateId}
+        allowDateChange
+        title="Log daily time"
+        onSaved={fetchMine}
+      />
     </div>
   );
 }
