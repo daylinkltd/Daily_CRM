@@ -1,6 +1,11 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { calculateGst } from "./gst-calculator";
 import { NO_IRN, isEInvoicingConfigured } from "./e-invoice";
+import {
+  classifySupply,
+  resolvePlaceOfSupply,
+  type SupplyType,
+} from "./supply-classification";
 
 export interface GstLedgerEntryPayload {
   workspace_id: string;
@@ -17,6 +22,17 @@ export interface GstLedgerEntryPayload {
   gst_rate: number;
   is_tax_inclusive?: boolean;
   is_b2b?: boolean;
+  /** Which GST document this is. Defaults to a tax invoice. */
+  document_type?: "TAX_INVOICE" | "BILL_OF_SUPPLY" | "CREDIT_NOTE" | "DEBIT_NOTE";
+  /** Why the rate is what it is, when the rate alone cannot say. */
+  tax_treatment?: "TAXABLE" | "EXEMPT" | "NIL_RATED" | "NON_GST" | "EXPORT" | "SEZ";
+  place_of_supply?: string;
+  cess_amount?: number;
+  is_reverse_charge?: boolean;
+  original_invoice_number?: string;
+  original_invoice_date?: string;
+  /** Which part of the app produced this row. */
+  source_document?: "POS" | "INVOICE" | "PURCHASE" | "MANUAL" | "IMPORT";
 }
 
 export async function recordGstLedgerEntry(
@@ -33,11 +49,23 @@ export async function recordGstLedgerEntry(
     gstin,
     source_state_code: source_state_code_input,
     destination_state_code: destination_state_code_input,
-    hsn_sac_code = "7113",
+    // No default. '7113' is articles of jewellery — a real code for
+    // someone else's business, and a wrong HSN is filed as confidently
+    // as a right one. Unset must read as unset so the exception list
+    // can ask for it.
+    hsn_sac_code,
     base_amount,
     gst_rate,
     is_tax_inclusive = false,
     is_b2b = false,
+    document_type = "TAX_INVOICE",
+    tax_treatment = "TAXABLE",
+    place_of_supply: place_of_supply_input,
+    cess_amount = 0,
+    is_reverse_charge = false,
+    original_invoice_number,
+    original_invoice_date,
+    source_document,
   } = payload;
 
   // Where the seller is, and where the supply lands. These two decide
@@ -70,6 +98,39 @@ export async function recordGstLedgerEntry(
     destinationStateCode: destination_state_code,
   });
 
+  // Which table of the return this row belongs in. Derived rather than
+  // asked for: the facts that decide it — a buyer GSTIN, two state
+  // codes, the invoice value — are already known here, and every place
+  // that had to state it separately was a place it could be stated
+  // wrongly.
+  const place_of_supply =
+    place_of_supply_input ??
+    resolvePlaceOfSupply({
+      buyerGstin: gstin,
+      sellerStateCode: source_state_code,
+      placeOfSupply: destination_state_code,
+      invoiceValue: gstCalc.totalAmount,
+      gstRate: gst_rate,
+    }) ??
+    undefined;
+
+  const supply_type: SupplyType =
+    ledger_type === "OUTPUT"
+      ? classifySupply({
+          buyerGstin: gstin,
+          sellerStateCode: source_state_code,
+          placeOfSupply: place_of_supply,
+          invoiceValue: gstCalc.totalAmount,
+          gstRate: gst_rate,
+          taxTreatment: tax_treatment,
+        })
+      : // Inward supplies are not bucketed for GSTR-1 at all; they feed
+        // ITC in 3B and reconcile against 2B. B2B is the honest label
+        // for a purchase from a registered supplier.
+        gstin
+        ? "B2B"
+        : "B2CS";
+
   // E-invoice columns stay empty until a real IRP acknowledgement exists.
   //
   // This block used to fabricate an IRN locally for every B2B outward
@@ -86,6 +147,28 @@ export async function recordGstLedgerEntry(
     );
   }
 
+  // Posting is retried — a double-clicked Send, or a response lost after
+  // the write committed. A second row here does not look like an error,
+  // it looks like a second sale, and it doubles the tax owed in the
+  // return. The database enforces this too (one ACTIVE row per document,
+  // migration 123); this check makes a retry a no-op rather than a
+  // caught constraint violation.
+  const { data: existing } = await supabase
+    .from("commerce_gst_ledgers")
+    .select("id")
+    .eq("workspace_id", workspace_id)
+    .eq("ledger_type", ledger_type)
+    .eq("invoice_number", invoice_number)
+    .eq("status", "ACTIVE")
+    .maybeSingle();
+
+  if (existing) {
+    console.info(
+      `[gst] ${invoice_number}: already in the ${ledger_type} ledger, not recording it twice.`,
+    );
+    return existing;
+  }
+
   const { data, error } = await supabase
     .from("commerce_gst_ledgers")
     .insert({
@@ -98,8 +181,11 @@ export async function recordGstLedgerEntry(
       gstin: gstin || null,
       source_state_code,
       destination_state_code,
+      place_of_supply: place_of_supply || null,
       is_interstate: gstCalc.isInterstate,
-      hsn_sac_code,
+      hsn_sac_code: hsn_sac_code || null,
+      document_type,
+      supply_type,
       taxable_amount: gstCalc.taxableAmount,
       cgst_rate: gstCalc.cgstRate,
       cgst_amount: gstCalc.cgstAmount,
@@ -108,6 +194,11 @@ export async function recordGstLedgerEntry(
       igst_rate: gstCalc.igstRate,
       igst_amount: gstCalc.igstAmount,
       total_gst: gstCalc.totalGst,
+      cess_amount,
+      is_reverse_charge,
+      original_invoice_number: original_invoice_number || null,
+      original_invoice_date: original_invoice_date || null,
+      source_document: source_document || null,
       total_invoice_amount: gstCalc.totalAmount,
       is_b2b,
       ...irnColumns,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { postPurchaseReceived } from "@/lib/accounting/posting";
+import { recordGstLedgerEntry } from "@/lib/commerce/gst/gst-ledger-manager";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -193,11 +194,104 @@ export async function POST(request: Request) {
       accounting_error = err instanceof Error ? err.message : "Accounting posting failed";
     }
 
+    // Receiving goods is also when input tax credit arises, so the
+    // purchase enters the INPUT side of the GST ledger here.
+    //
+    // Nothing has ever written that side. `commerce_gst_ledgers` has an
+    // INPUT ledger_type and, until now, no code path that produced one —
+    // so ITC was permanently zero, GSTR-3B could not be computed, and
+    // there was nothing for a GSTR-2B download to reconcile against.
+    // Every rupee of credit a customer was entitled to was invisible.
+    let gst_recorded = false;
+    let gst_error: string | null = null;
+    try {
+      const { data: supplierTax } = supplier_id
+        ? await supabase
+            .from("commerce_suppliers")
+            .select("company_name, gstin")
+            .eq("id", supplier_id)
+            .maybeSingle()
+        : { data: null };
+
+      // Purchase lines carry cost, not tax, so the rate comes from the
+      // products bought. A single rate across the order is recorded when
+      // the order is uniform, and left at zero when it is not — an
+      // averaged rate would be a number that matches no invoice.
+      const productIds: string[] = Array.from(
+        new Set(
+          (items as Array<{ product_id?: string }>)
+            .map((i) => i.product_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      );
+      let gstRate = 0;
+      let hsn: string | null = null;
+      if (productIds.length > 0) {
+        const { data: products } = await supabase
+          .from("commerce_products")
+          .select("id, gst_rate, hsn_sac_code")
+          .in("id", productIds);
+        const taxable = (products ?? []) as Array<{
+          gst_rate?: number | null;
+          hsn_sac_code?: string | null;
+        }>;
+        const rates = new Set(taxable.map((p) => Number(p.gst_rate || 0)));
+        if (rates.size === 1) gstRate = [...rates][0];
+        const codes = new Set(
+          taxable.map((p) => p.hsn_sac_code).filter((c): c is string => Boolean(c)),
+        );
+        if (codes.size === 1) hsn = [...codes][0];
+      }
+
+      // An inward supply runs the other way: FROM the supplier's state
+      // TO ours. Both ends must be passed explicitly, because the
+      // manager's defaults assume an outward sale — it would otherwise
+      // read the counterparty GSTIN as the destination and book every
+      // purchase as intra-state, splitting real IGST into CGST+SGST that
+      // can never be reconciled against the supplier's own return.
+      const { data: ws } = await supabase
+        .from("workspaces")
+        .select("state_code, gstin")
+        .eq("id", workspace_id)
+        .maybeSingle();
+      const ourState =
+        ws?.state_code || (ws?.gstin ? String(ws.gstin).slice(0, 2) : null);
+      const supplierState = supplierTax?.gstin
+        ? String(supplierTax.gstin).slice(0, 2)
+        : null;
+
+      // Supplier costs are entered exclusive of tax, so the order total
+      // is the taxable value.
+      const entry = await recordGstLedgerEntry(supabase, {
+        workspace_id,
+        ledger_type: "INPUT",
+        invoice_id: po.id,
+        invoice_number: po.po_number,
+        party_name: supplierTax?.company_name ?? undefined,
+        gstin: supplierTax?.gstin ?? undefined,
+        source_state_code: supplierState ?? ourState ?? undefined,
+        destination_state_code: ourState ?? undefined,
+        place_of_supply: ourState ?? undefined,
+        hsn_sac_code: hsn ?? undefined,
+        base_amount: totalAmount,
+        gst_rate: gstRate,
+        is_tax_inclusive: false,
+        is_b2b: Boolean(supplierTax?.gstin),
+        source_document: "PURCHASE",
+      });
+      gst_recorded = Boolean(entry);
+      if (!entry) gst_error = "The GST input-credit row could not be written.";
+    } catch (err) {
+      gst_error = err instanceof Error ? err.message : "GST ledger write failed";
+    }
+
     return NextResponse.json({
       success: true,
       purchase_order: po,
       accounting_posted,
+      gst_recorded,
       ...(accounting_error ? { accounting_error } : {}),
+      ...(gst_error ? { gst_error } : {}),
     });
   }
 
