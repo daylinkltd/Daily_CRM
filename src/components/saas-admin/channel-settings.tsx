@@ -137,7 +137,9 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
         return;
       }
       setDiagnosis(null);
-      toast.success(`Test sent to ${json.to} via ${json.host}:${json.port}`);
+      // `via` names the transport that actually carried it — Graph or a
+      // host:port — so the confirmation cannot claim SMTP for a Graph send.
+      toast.success(`Test sent to ${json.to} via ${json.via ?? `${json.host}:${json.port}`}`);
     } catch {
       setTestError("Could not reach the server");
     } finally {

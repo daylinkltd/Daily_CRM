@@ -4,6 +4,7 @@ import {
   buildFromHeader,
   explainGraphError,
   explainSmtpError,
+  graphSendMailPayload,
   htmlToPlainText,
 } from "./messaging";
 
@@ -177,5 +178,40 @@ describe("explainSmtpError — tenant-wide vs per-mailbox", () => {
     const out = explainSmtpError("535 5.7.139 Authentication unsuccessful, basic authentication is disabled");
     expect(out).toContain("Manage email apps");
     expect(out).not.toContain("WHOLE TENANT");
+  });
+});
+
+/**
+ * Regression, and the exact twin of the SMTP one above: the SMTP path
+ * was fixed to send `html`, but the Graph path still declared its body
+ * as Text. The first email Graph ever delivered arrived showing its own
+ * markup — `<div style="margin:0;padding:24px;...">` — because Outlook
+ * was told, truthfully, that this was plain text.
+ *
+ * Graph carries ONE body, so this is the only place the content type
+ * can be right.
+ */
+describe("graphSendMailPayload", () => {
+  const BODY = '<div style="padding:24px;"><h1>Platform email is working</h1></div>';
+
+  it("declares the body as HTML, so Outlook renders it instead of printing it", () => {
+    const payload = graphSendMailPayload({
+      to: "someone@example.com",
+      subject: "Test",
+      body: BODY,
+    });
+    expect(payload.message.body.contentType).toBe("HTML");
+    expect(payload.message.body.contentType).not.toBe("Text");
+  });
+
+  it("sends the body through untouched — the wrapper's inline styles must survive", () => {
+    const payload = graphSendMailPayload({ to: "a@b.com", subject: "S", body: BODY });
+    expect(payload.message.body.content).toBe(BODY);
+  });
+
+  it("addresses the single recipient and keeps a copy in Sent Items", () => {
+    const payload = graphSendMailPayload({ to: "a@b.com", subject: "S", body: BODY });
+    expect(payload.message.toRecipients).toEqual([{ emailAddress: { address: "a@b.com" } }]);
+    expect(payload.saveToSentItems).toBe(true);
   });
 });

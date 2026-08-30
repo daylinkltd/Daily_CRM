@@ -15,7 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { requireSuperAdmin } from '@/lib/saas-admin/guard';
 import { loadMessagingConfig } from '@/lib/saas-admin/messaging-config';
-import { sendPlatformEmail, buildFromHeader } from '@/lib/saas-admin/messaging';
+import { sendPlatformEmail, buildFromHeader, emailProvider } from '@/lib/saas-admin/messaging';
 import { wrapPlatformEmail } from '@/lib/platform/mailer';
 import {
   describeCredential,
@@ -42,14 +42,22 @@ export async function POST(request: NextRequest) {
   const host = config.smtp_host?.trim() || 'smtp.office365.com';
   const port = config.smtp_port?.trim() || '587';
 
+  // Which transport actually carried this. The footer used to name the
+  // SMTP host unconditionally, so a message delivered by Graph arrived
+  // insisting it came over SMTP — the one line whose whole job is to say
+  // where the mail came from was the line that lied about it.
+  const usingGraph = emailProvider(config) === 'microsoft';
+  const via = usingGraph
+    ? `Microsoft Graph as ${config.ms_sender}`
+    : `${host}:${port} as ${buildFromHeader(config.smtp_from, user)}`;
+
   const body = wrapPlatformEmail(
     'Platform email is working',
     `<p>This is a test from ${BRAND.name}'s SaaS console. If you are reading it,
         password resets, sign-in codes, invitations and billing reminders can
         all be delivered.</p>
      <p style="color:#64748b;font-size:13px;">
-       Sent via <strong>${host}:${port}</strong> as
-       <strong>${buildFromHeader(config.smtp_from, user)}</strong>.
+       Sent via <strong>${via}</strong>.
      </p>`,
   );
 
@@ -76,7 +84,7 @@ export async function POST(request: NextRequest) {
   if (!result.ok) {
     // Graph has its own four settings; diagnosing them as if they were
     // SMTP would point at the wrong things entirely.
-    if (config.email_provider?.trim().toLowerCase() === 'microsoft') {
+    if (usingGraph) {
       return NextResponse.json(
         {
           ok: false,
@@ -119,6 +127,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     to: actor.email,
+    via,
     host,
     port,
     from: buildFromHeader(config.smtp_from, user),

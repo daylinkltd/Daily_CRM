@@ -147,6 +147,32 @@ async function getGraphToken(config: MessagingConfig): Promise<string> {
  * Prefer restricting the app to the one sending mailbox with an
  * ApplicationAccessPolicy, since Mail.Send is otherwise tenant-wide.
  */
+/**
+ * The Graph sendMail payload.
+ *
+ * `contentType` MUST be HTML. Every body this codebase sends is HTML —
+ * `wrapPlatformEmail` builds an inline-styled shell — and declaring it
+ * as Text does not degrade gracefully: Outlook renders the markup
+ * literally, so the reader sees `<div style="...">` instead of the
+ * message. That is exactly how the first successful Graph send arrived.
+ *
+ * Unlike SMTP there is no second part to supply: Graph takes one body,
+ * and the receiving client derives its own plain-text alternative.
+ *
+ * Extracted from the send so the content type is a testable fact rather
+ * than a string buried in a fetch call.
+ */
+export function graphSendMailPayload(input: { to: string; subject: string; body: string }) {
+  return {
+    message: {
+      subject: input.subject,
+      body: { contentType: 'HTML', content: input.body },
+      toRecipients: [{ emailAddress: { address: input.to } }],
+    },
+    saveToSentItems: true,
+  };
+}
+
 async function sendViaMicrosoft(
   config: MessagingConfig,
   input: { to: string; subject: string; body: string },
@@ -157,14 +183,7 @@ async function sendViaMicrosoft(
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        message: {
-          subject: input.subject,
-          body: { contentType: 'Text', content: input.body },
-          toRecipients: [{ emailAddress: { address: input.to } }],
-        },
-        saveToSentItems: true,
-      }),
+      body: JSON.stringify(graphSendMailPayload(input)),
     },
   );
 
