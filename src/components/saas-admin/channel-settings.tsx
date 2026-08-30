@@ -248,6 +248,24 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
               )}
 
               <p className="text-xs leading-relaxed text-amber-300">{diagnosis.advice}</p>
+
+              {/* The advice's own conclusion, as a button. Being told to
+                  "switch to Graph" and then having to find the control
+                  is the step where this got lost. */}
+              {diagnosis.provider === "microsoft" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDrafts((d) => ({ ...d, email_provider: "microsoft" }));
+                    setTestError(null);
+                    setDiagnosis(null);
+                    toast.info("Switched to Microsoft Graph — fill in the four fields below, then Save.");
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary-hover"
+                >
+                  Switch this to Microsoft Graph
+                </button>
+              )}
             </div>
           )}
         </div>
