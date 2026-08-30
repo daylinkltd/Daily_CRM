@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Mail, MessageCircle, Smartphone, Save, CheckCircle2 } from "lucide-react";
+import { Mail, MessageCircle, Smartphone, Save, CheckCircle2, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge, ConsoleCard } from "@/components/saas-admin/console-ui";
@@ -49,6 +49,8 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testError, setTestError] = useState<string | null>(null);
 
   const load = async () => {
     try {
@@ -95,22 +97,65 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
     }
   };
 
+  /**
+   * Send one email to the admin's own address. Debugging a mailbox
+   * otherwise means triggering a real password reset and reading the
+   * log — slow, and it emails a customer to do it.
+   */
+  const sendTest = async () => {
+    setTesting(true);
+    setTestError(null);
+    try {
+      const res = await fetch("/api/saas-admin/messaging/test", { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) {
+        setTestError(json.error ?? "Test send failed");
+        return;
+      }
+      toast.success(`Test sent to ${json.to} via ${json.host}:${json.port}`);
+    } catch {
+      setTestError("Could not reach the server");
+    } finally {
+      setTesting(false);
+    }
+  };
+
   if (loading) return null;
 
   return (
     <ConsoleCard
       title="Channel settings"
       action={
-        <button
-          type="button"
-          disabled={saving}
-          onClick={save}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
-        >
-          <Save className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={testing}
+            onClick={sendTest}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-foreground hover:bg-muted disabled:opacity-50"
+          >
+            {testing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            {testing ? "Sending…" : "Send test email"}
+          </button>
+          <button
+            type="button"
+            disabled={saving}
+            onClick={save}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
+          >
+            <Save className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save"}
+          </button>
+        </div>
       }
     >
+      {testError && (
+        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3">
+          <p className="text-xs font-bold text-red-400">The mailbox rejected the test</p>
+          <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-red-300">
+            {testError}
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-3">
         {(["email", "whatsapp", "sms"] as const).map((ch) => {
           const meta = CHANNEL_META[ch];

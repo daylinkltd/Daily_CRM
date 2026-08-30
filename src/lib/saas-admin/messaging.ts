@@ -203,6 +203,53 @@ export function htmlToPlainText(html: string): string {
     .trim();
 }
 
+
+/**
+ * Build a valid RFC-5322 From header.
+ *
+ * `smtp_from` is meant to be `"Name" <box@example.com>`, but a value
+ * set through an env file often arrives as just `Dailybuz`: a shell or
+ * dotenv parser reading PLATFORM_SMTP_FROM="Dailybuz" <box@daylink.in>
+ * stops at the closing quote and drops the address. Passing that on
+ * gives SMTP a From with no mailbox in it.
+ *
+ * So: a value containing an address is used as-is; anything else is
+ * treated as the display name it clearly is, and paired with the
+ * authenticated mailbox — which is the only address Office 365 would
+ * accept from this connection anyway.
+ */
+export function buildFromHeader(smtpFrom: string | undefined, user: string): string {
+  const raw = smtpFrom?.trim();
+  if (!raw) return `"${BRAND.name}" <${user}>`;
+  if (raw.includes('@')) return raw;
+  // A bare display name. Strip stray quotes before re-quoting it.
+  const name = raw.replace(/^["']|["']$/g, '').trim();
+  return name ? `"${name}" <${user}>` : `"${BRAND.name}" <${user}>`;
+}
+
+/**
+ * Turn a provider rejection into something an operator can act on.
+ * "535 5.7.3 Authentication unsuccessful" names the failure but not the
+ * fix, and the fix here is almost never "check the password".
+ */
+export function explainSmtpError(message: string): string {
+  const m = message.toLowerCase();
+
+  if (m.includes('5.7.139') || (m.includes('535') && m.includes('basic'))) {
+    return `${message} — Microsoft has SMTP AUTH disabled for this mailbox. Enable "Authenticated SMTP" for it in the Microsoft 365 admin centre (Users -> Mail -> Manage email apps), or switch this Provider to Microsoft Graph, which does not use passwords.`;
+  }
+  if (m.includes('535') || m.includes('authentication unsuccessful') || m.includes('5.7.3')) {
+    return `${message} — the mailbox rejected the credentials. If the password is right, this is almost always SMTP AUTH being disabled for the mailbox, or a tenant that requires modern auth. Enable "Authenticated SMTP" for it, or switch to Microsoft Graph.`;
+  }
+  if (m.includes('5.7.60') || m.includes('send as') || m.includes('not allowed to send')) {
+    return `${message} — the From address is not this mailbox. Set "From address" to the signed-in mailbox, or grant it Send As permission.`;
+  }
+  if (m.includes('etimedout') || m.includes('econnrefused') || m.includes('timeout')) {
+    return `${message} — nothing answered on that host and port. Check the SMTP host, and that the port is 587 (STARTTLS) or 465 (implicit TLS).`;
+  }
+  return message;
+}
+
 export async function sendPlatformEmail(
   config: MessagingConfig,
   input: {
@@ -245,7 +292,7 @@ export async function sendPlatformEmail(
     // `text` is the fallback for clients that refuse HTML, and its
     // presence also helps deliverability.
     const info = await transporter.sendMail({
-      from: config.smtp_from || `"${BRAND.name}" <${user}>`,
+      from: buildFromHeader(config.smtp_from, user),
       to: input.to,
       subject: input.subject,
       html: input.body,
@@ -253,7 +300,10 @@ export async function sendPlatformEmail(
     });
     return { ok: true, providerId: info.messageId };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'Email send failed' };
+    return {
+      ok: false,
+      error: explainSmtpError(err instanceof Error ? err.message : 'Email send failed'),
+    };
   }
 }
 
