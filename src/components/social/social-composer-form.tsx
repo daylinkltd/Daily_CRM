@@ -157,7 +157,7 @@ export function SocialComposerForm({
       setMediaUrl(PRESET_MEDIA[0].url);
       setMediaType('image');
       setHashtagsStr('#DailyCRM #Growth #Marketing #Omnichannel');
-      setLink('https://dailycrm.co');
+      setLink('https://dailybuz.com');
       setAltText('Daily CRM modern workspace interface');
       setFirstComment('Link in bio to claim your 14-day free workspace trial! ✨');
       setTagsCampaign('Q3 Growth 2026');
@@ -585,7 +585,7 @@ export function SocialComposerForm({
               </label>
               <Input
                 type="text"
-                placeholder="https://dailycrm.co/landing-page"
+                placeholder="https://dailybuz.com/landing-page"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 className="h-9 rounded-xl text-xs"

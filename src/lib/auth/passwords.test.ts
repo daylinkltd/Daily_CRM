@@ -43,9 +43,9 @@ describe("validateNewPassword", () => {
 describe("requestOrigin", () => {
   it("prefers forwarded headers over the request URL", () => {
     const req = new Request("http://10.0.0.5:3000/api/x", {
-      headers: { "x-forwarded-host": "dailycrm.cloud", "x-forwarded-proto": "https" },
+      headers: { "x-forwarded-host": "dailybuz.com", "x-forwarded-proto": "https" },
     });
-    expect(requestOrigin(req)).toBe("https://dailycrm.cloud");
+    expect(requestOrigin(req)).toBe("https://dailybuz.com");
   });
 
   it("falls back to the request origin without a proxy", () => {

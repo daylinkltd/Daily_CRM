@@ -24,6 +24,7 @@ import {
   rateLimitResponse,
   RATE_LIMITS,
 } from "@/lib/rate-limit";
+import { BRAND } from "@/config/brand";
 
 // Resolve the base URL we publish invite links under.
 //
@@ -123,7 +124,7 @@ function getBaseUrl(request: Request): string {
       "[POST /api/account/invitations] could not derive base URL from request; falling back to marketing domain",
     );
   }
-  return "https://dailycrm.cloud";
+  return BRAND.appUrl;
 }
 
 const MAX_LABEL_LEN = 80;

@@ -272,7 +272,7 @@ export function useCalendarStore() {
   // Current active user object derived from real authenticated session
   const currentUser: UserProfile = useMemo(() => {
     const name = profile?.full_name || authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0] || 'Administrator';
-    const email = authUser?.email || profile?.email || 'admin@dailycrm.co';
+    const email = authUser?.email || profile?.email || 'admin@dailybuz.com';
     const baseRole: UserRole = (profile?.role === 'admin' || profile?.account_role === 'owner' || profile?.account_role === 'admin') ? 'admin' : 'creator';
     const effectiveRole = activeRoleOverride || baseRole;
 
@@ -1162,7 +1162,7 @@ export function useCalendarStore() {
           channels: p.channels,
           defaultCaption: p.caption,
           hashtags: ['#DailyCRM', '#BusinessGrowth', '#Automations'],
-          link: `https://dailycrm.co${utm}`,
+          link: `https://dailybuz.com${utm}`,
           tagsCampaign: batch.name,
           campaignId: campId,
           status: 'pending_approval',

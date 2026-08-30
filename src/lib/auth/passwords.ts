@@ -58,3 +58,31 @@ export function requestOrigin(request: Request): string {
 export function recoveryRedirectUrl(request: Request): string {
   return `${requestOrigin(request)}/auth/callback?next=/reset-password`;
 }
+
+/**
+ * A recovery link that points at THIS app, not at Supabase.
+ *
+ * `generateLink` returns an `action_link` aimed at Supabase's own
+ * /auth/v1/verify endpoint with our destination in `redirect_to`. But
+ * Supabase validates that parameter against the project's Site URL and
+ * Redirect URL allow-list, and silently substitutes the Site URL when it
+ * does not match — which is why reset emails kept arriving with
+ * `redirect_to=http://localhost:3000` no matter what the app passed.
+ *
+ * The same response also carries `hashed_token`, the actual credential.
+ * Building our own URL around it takes Supabase's redirect out of the
+ * loop entirely: the link lands on /auth/callback, which exchanges the
+ * token with verifyOtp. No dashboard setting can misdirect it.
+ */
+export function appRecoveryLink(
+  request: Request,
+  hashedToken: string,
+  next = "/reset-password",
+): string {
+  const params = new URLSearchParams({
+    token_hash: hashedToken,
+    type: "recovery",
+    next,
+  });
+  return `${requestOrigin(request)}/auth/callback?${params}`;
+}

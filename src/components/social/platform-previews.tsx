@@ -551,7 +551,7 @@ export function PinterestPreview({
 }) {
   const caption = override?.caption || post.defaultCaption || 'Inspiration for modern CRM workflows and workspace productivity.';
   const media = override?.mediaUrl || post.mediaUrl;
-  const link = override?.link || post.link || 'dailycrm.co';
+  const link = override?.link || post.link || 'dailybuz.com';
 
   return (
     <div className="mx-auto w-full max-w-[340px] rounded-3xl border border-border bg-card shadow-xl overflow-hidden font-sans group">

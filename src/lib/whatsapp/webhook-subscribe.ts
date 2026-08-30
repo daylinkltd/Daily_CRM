@@ -1,4 +1,5 @@
 import { subscribeWabaToApp } from './meta-api'
+import { BRAND } from '@/config/brand';
 
 /**
  * The public webhook callback URL for this deployment. Meta delivers
@@ -6,7 +7,7 @@ import { subscribeWabaToApp } from './meta-api'
  * pinned via override_callback_uri.
  */
 export function getWebhookCallbackUrl(): string {
-  const base = (process.env.NEXT_PUBLIC_APP_URL || 'https://dailycrm.cloud')
+  const base = (process.env.NEXT_PUBLIC_APP_URL || BRAND.appUrl)
     .trim()
     .replace(/\/+$/, '')
   return `${base}/api/whatsapp/webhook`

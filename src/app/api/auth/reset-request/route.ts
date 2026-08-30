@@ -23,7 +23,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendPlatformMail } from '@/lib/platform/mailer';
-import { recoveryRedirectUrl } from '@/lib/auth/passwords';
+import { appRecoveryLink, recoveryRedirectUrl } from '@/lib/auth/passwords';
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 import { BRAND } from '@/config/brand';
 
@@ -56,11 +56,11 @@ export async function POST(request: NextRequest) {
     });
 
     // No account for that address: say nothing, answer the same.
-    if (error || !data?.properties?.action_link) {
+    if (error || !data?.properties?.hashed_token) {
       return NextResponse.json(SAME_ANSWER);
     }
 
-    const link = data.properties.action_link;
+    const link = appRecoveryLink(request, data.properties.hashed_token);
     const sent = await sendPlatformMail({
       to: email,
       kind: 'password_reset',

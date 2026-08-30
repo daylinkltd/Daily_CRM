@@ -11,9 +11,9 @@ import { htmlToPlainText } from "./messaging";
 describe("htmlToPlainText", () => {
   it("keeps a link's destination, which a text-only client still needs", () => {
     const out = htmlToPlainText(
-      '<p>Reset it:</p><a href="https://dailycrm.cloud/reset?t=abc">Choose a new password</a>',
+      '<p>Reset it:</p><a href="https://dailybuz.com/reset?t=abc">Choose a new password</a>',
     );
-    expect(out).toContain("https://dailycrm.cloud/reset?t=abc");
+    expect(out).toContain("https://dailybuz.com/reset?t=abc");
     expect(out).toContain("Choose a new password");
   });
 

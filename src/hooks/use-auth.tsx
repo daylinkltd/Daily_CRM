@@ -238,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (isDemo) {
           const demoUser = {
             id: "usr_admin",
-            email: "admin@dailycrm.co",
+            email: "admin@dailybuz.com",
             app_metadata: {},
             user_metadata: { full_name: "Admin User" },
             aud: "authenticated",
@@ -248,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile({
             id: "usr_admin",
             full_name: "Admin User",
-            email: "admin@dailycrm.co",
+            email: "admin@dailybuz.com",
             avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
             role: "owner",
             system_role: "admin",

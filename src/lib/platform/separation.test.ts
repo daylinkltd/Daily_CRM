@@ -91,3 +91,42 @@ describe("every password reset leaves from the platform mailbox", () => {
     }
   });
 });
+
+/**
+ * One home, named once.
+ *
+ * The app has moved host three times (dailycrm.cloud → dailybiz.in →
+ * dailybuz.com) and each move left literals behind in places nobody
+ * thought to grep — a docs page, a webhook fallback, an invite-link
+ * default. `BRAND.appUrl` is the single answer; these fail if a
+ * competing host is written into application code again.
+ */
+describe("no application code hardcodes a host", () => {
+  const files = [
+    "config/brand.ts",
+    "app/api/account/invitations/route.ts",
+    "app/api/admin/webhook-status/route.ts",
+    "lib/whatsapp/webhook-subscribe.ts",
+    "app/(dashboard)/docs/page.tsx",
+  ];
+
+  it("uses BRAND.appUrl rather than a literal host", () => {
+    for (const f of files) {
+      const src = read(f)
+        .split("\n")
+        // Comments may name an old host historically; code may not.
+        .filter((l) => !l.trim().startsWith("//") && !l.trim().startsWith("*"))
+        .join("\n");
+      expect(src, `${f} must not hardcode dailycrm.cloud`).not.toContain(
+        "dailycrm.cloud",
+      );
+      expect(src, `${f} must not hardcode dailybiz.in`).not.toContain(
+        "dailybiz.in",
+      );
+    }
+  });
+
+  it("keeps one canonical app URL", () => {
+    expect(read("config/brand.ts")).toContain("appUrl: 'https://dailybuz.com'");
+  });
+});

@@ -3,6 +3,7 @@ import { Fragment } from 'react';
 import { API_KEY_PREFIX } from '@/lib/api-keys/keys';
 import { SCOPE_DESCRIPTIONS, SCOPE_GROUPS } from '@/lib/api-keys/scopes';
 import { V1_PATHS } from '@/lib/api/v1/resource-registry';
+import { BRAND } from '@/config/brand';
 
 /**
  * Developer documentation for the public REST API.
@@ -13,7 +14,7 @@ import { V1_PATHS } from '@/lib/api/v1/resource-registry';
  * code.
  */
 
-const BASE_URL = 'https://dailycrm.cloud';
+const BASE_URL = BRAND.appUrl;
 
 function Code({ children }: { children: React.ReactNode }) {
   return (

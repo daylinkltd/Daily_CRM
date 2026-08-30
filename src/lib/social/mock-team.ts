@@ -17,7 +17,7 @@ export const MOCK_TEAM_MEMBERS: SocialTeamMember[] = [
   {
     id: 'usr_alex',
     name: 'Alex Johnson',
-    email: 'alex@dailycrm.co',
+    email: 'alex@dailybuz.com',
     roleTitle: 'Marketing Creator',
     role: 'creator',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
@@ -29,7 +29,7 @@ export const MOCK_TEAM_MEMBERS: SocialTeamMember[] = [
   {
     id: 'usr_vivian',
     name: 'Vivian Torres',
-    email: 'vivian@dailycrm.co',
+    email: 'vivian@dailybuz.com',
     roleTitle: 'Marketing Approver',
     role: 'approver',
     avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
@@ -41,7 +41,7 @@ export const MOCK_TEAM_MEMBERS: SocialTeamMember[] = [
   {
     id: 'usr_admin',
     name: 'Sarah Admin',
-    email: 'admin@dailycrm.co',
+    email: 'admin@dailybuz.com',
     roleTitle: 'Administrator',
     role: 'admin',
     avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',

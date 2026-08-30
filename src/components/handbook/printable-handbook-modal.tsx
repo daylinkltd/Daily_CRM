@@ -64,8 +64,8 @@ export function PrintableHandbookModal({
           brand_name: details.brand_name || workspaceName,
           director_name: details.director_name || "Authorized Director",
           registered_address: details.registered_address || "Company Headquarters",
-          website: details.website || "www.dailycrm.cloud",
-          contact_email: details.contact_email || "hr@dailycrm.cloud",
+          website: details.website || "www.dailybuz.com",
+          contact_email: details.contact_email || "hr@dailybuz.com",
           logo_url: logo,
         });
 

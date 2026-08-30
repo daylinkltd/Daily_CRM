@@ -35,6 +35,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ACTIVITY, logActivity } from "@/lib/saas-admin/activity";
 import {
+  appRecoveryLink,
   generatePassword,
   recoveryRedirectUrl,
   validateNewPassword,
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
         email: targetProfile.email,
         options: { redirectTo: recoveryRedirectUrl(request) },
       });
-      if (error || !linkData?.properties?.action_link) {
+      if (error || !linkData?.properties?.hashed_token) {
         return NextResponse.json(
           { error: error?.message ?? "Could not create a reset link." },
           { status: 500 },
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
         body: `
           <p>An administrator started a password reset for your account.</p>
           <p style="margin:24px 0;">
-            <a href="${linkData.properties.action_link}"
+            <a href="${appRecoveryLink(request, linkData.properties.hashed_token)}"
                style="display:inline-block;padding:12px 22px;background:#0f172a;color:#ffffff;
                       text-decoration:none;border-radius:10px;font-weight:600;">
               Choose a new password

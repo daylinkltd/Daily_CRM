@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { requireSuperAdmin } from '@/lib/saas-admin/guard';
 import {
+  appRecoveryLink,
   generatePassword,
   recoveryRedirectUrl,
   validateNewPassword,
@@ -243,12 +244,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         email: target.email,
         options: { redirectTo: recoveryRedirectUrl(request) },
       });
-      if (error || !linkData?.properties?.action_link) {
+      if (error || !linkData?.properties?.hashed_token) {
         return NextResponse.json(
           { error: error?.message ?? 'Could not create a reset link.' },
           { status: 500 },
         );
       }
+      const resetLink = appRecoveryLink(request, linkData.properties.hashed_token);
 
       const sent = await sendPlatformMail({
         to: target.email,
@@ -257,7 +259,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         body: `
           <p>An administrator started a password reset for your account.</p>
           <p style="margin:24px 0;">
-            <a href="${linkData.properties.action_link}"
+            <a href="${resetLink}"
                style="display:inline-block;padding:12px 22px;background:#0f172a;color:#ffffff;
                       text-decoration:none;border-radius:10px;font-weight:600;">
               Choose a new password

@@ -381,7 +381,7 @@ export function AIConversationalAssistant() {
         `intent:demo`,
         `lead:hot`,
       ],
-      utmLink: `https://dailycrm.co?utm_source=${platforms[0]}&utm_medium=social&utm_campaign=${audience.toLowerCase().replace(/\s+/g, '-')}-growth`,
+      utmLink: `https://dailybuz.com?utm_source=${platforms[0]}&utm_medium=social&utm_campaign=${audience.toLowerCase().replace(/\s+/g, '-')}-growth`,
       posts: [
         {
           title: 'Stop Losing Customers: 5 Automated Follow-Up Systems',

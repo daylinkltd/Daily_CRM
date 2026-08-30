@@ -135,7 +135,7 @@ export class BufferService {
       accountData = {
         id: `buf_acc_${workspaceId.substring(0, 8)}`,
         name: 'Daily CRM Brand Hub',
-        email: 'marketing@dailycrm.co',
+        email: 'marketing@dailybuz.com',
         organizations: [
           {
             id: `org_primary_${workspaceId.substring(0, 6)}`,

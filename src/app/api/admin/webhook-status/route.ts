@@ -6,6 +6,7 @@ import { appSecretVariants } from '@/lib/whatsapp/webhook-signature';
 import { ensureWabaSubscribed } from '@/lib/whatsapp/webhook-subscribe';
 import { decrypt } from '@/lib/whatsapp/encryption';
 import { isAuthorizedAdminRequest } from '@/lib/auth/admin-gate';
+import { BRAND } from '@/config/brand';
 
 function supabaseAdmin() {
   return createClient(
@@ -287,7 +288,7 @@ export async function POST(request: Request) {
     };
 
     // Forward payload directly to the internal webhook POST route
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dailycrm.cloud';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || BRAND.appUrl;
     const webhookRes = await fetch(`${baseUrl}/api/whatsapp/webhook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

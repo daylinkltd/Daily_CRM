@@ -37,8 +37,12 @@ export const BRAND = {
   description:
     'Dailybuz is an all-in-one business platform for Indian SMBs that combines CRM, HR, accounting, retail and project management with a shared WhatsApp inbox — priced per user, with every module included.',
 
-  /** Where the product runs. Distinct from the marketing domain. */
-  appUrl: 'https://dailycrm.cloud',
+  /**
+   * Where the signed-in product runs. Was dailycrm.cloud; the app now
+   * answers on the brand domain, so links in emails and share cards go
+   * to one place rather than bouncing people between hosts.
+   */
+  appUrl: 'https://dailybuz.com',
 
   contact: {
     email: 'hello@dailybuz.com',
