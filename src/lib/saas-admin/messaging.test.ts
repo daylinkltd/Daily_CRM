@@ -154,3 +154,28 @@ describe("explainGraphError", () => {
     expect(explainGraphError("some other graph error")).toBe("some other graph error");
   });
 });
+
+/**
+ * The tenant switched SMTP AUTH off globally:
+ *   535 5.7.139 ... SmtpClientAuthentication is disabled for the Tenant
+ * Nearly the same string as the per-mailbox refusal, but no per-user
+ * setting can fix it — sending people to "Manage email apps" would
+ * waste their time.
+ */
+describe("explainSmtpError — tenant-wide vs per-mailbox", () => {
+  const TENANT =
+    "Invalid login: 535 5.7.139 Authentication unsuccessful, SmtpClientAuthentication is disabled for the Tenant.";
+
+  it("says tenant-wide, and does not send anyone to a per-user setting", () => {
+    const out = explainSmtpError(TENANT);
+    expect(out).toContain("WHOLE TENANT");
+    expect(out).toContain("Graph");
+    expect(out).not.toContain("Manage email apps");
+  });
+
+  it("still gives the per-mailbox advice when the tenant is not implicated", () => {
+    const out = explainSmtpError("535 5.7.139 Authentication unsuccessful, basic authentication is disabled");
+    expect(out).toContain("Manage email apps");
+    expect(out).not.toContain("WHOLE TENANT");
+  });
+});

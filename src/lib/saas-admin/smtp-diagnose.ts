@@ -176,3 +176,123 @@ export async function tryCandidates(
 
   return out;
 }
+
+// ============================================================
+// Graph, checked field by field.
+//
+// Graph has four settings and a wrong one anywhere produces a refusal
+// that names none of them. Splitting the check into its two natural
+// halves — can we get a token, and does the sender mailbox exist —
+// points at the single field to fix instead of at the feature.
+// ============================================================
+
+export interface GraphCheck {
+  step: string;
+  ok: boolean;
+  detail: string;
+}
+
+export async function diagnoseGraph(config: {
+  ms_tenant_id?: string;
+  ms_client_id?: string;
+  ms_client_secret?: string;
+  ms_sender?: string;
+}): Promise<GraphCheck[]> {
+  const checks: GraphCheck[] = [];
+  const { ms_tenant_id: tenant, ms_client_id: client, ms_client_secret: secret, ms_sender: sender } = config;
+
+  const missing = [
+    !tenant && 'Tenant ID',
+    !client && 'Client ID',
+    !secret && 'Client secret',
+    !sender && 'Send as',
+  ].filter(Boolean);
+  if (missing.length) {
+    checks.push({
+      step: 'Settings present',
+      ok: false,
+      detail: `Still needed: ${missing.join(', ')}.`,
+    });
+    return checks;
+  }
+  checks.push({ step: 'Settings present', ok: true, detail: 'All four fields are set.' });
+
+  // 1. The app registration itself — tenant, client id and secret.
+  let token: string | null = null;
+  try {
+    const res = await fetch(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: client!,
+        client_secret: secret!,
+        scope: 'https://graph.microsoft.com/.default',
+        grant_type: 'client_credentials',
+      }),
+    });
+    const json = (await res.json()) as { access_token?: string; error_description?: string };
+    if (json.access_token) {
+      token = json.access_token;
+      checks.push({ step: 'App registration', ok: true, detail: 'Tenant, client ID and secret are accepted.' });
+    } else {
+      const desc = json.error_description ?? `token endpoint returned ${res.status}`;
+      checks.push({
+        step: 'App registration',
+        ok: false,
+        detail: /AADSTS700016|application.*not found/i.test(desc)
+          ? `${desc.split('\n')[0]} — the Client ID is not an app in this tenant.`
+          : /AADSTS7000215|invalid client secret/i.test(desc)
+            ? `${desc.split('\n')[0]} — the Client secret is wrong or expired.`
+            : /AADSTS90002|tenant.*not found/i.test(desc)
+              ? `${desc.split('\n')[0]} — the Tenant ID is wrong.`
+              : desc.split('\n')[0],
+      });
+      return checks;
+    }
+  } catch (err) {
+    checks.push({
+      step: 'App registration',
+      ok: false,
+      detail: err instanceof Error ? err.message : 'Could not reach Microsoft to get a token.',
+    });
+    return checks;
+  }
+
+  // 2. The mailbox we are being asked to send from.
+  try {
+    const res = await fetch(
+      `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(sender!)}?$select=mail,userPrincipalName`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    if (res.ok) {
+      checks.push({ step: 'Send-as mailbox', ok: true, detail: `${sender} exists in this tenant.` });
+      checks.push({
+        step: 'Mail.Send permission',
+        ok: true,
+        detail: 'Readable with the app token. If sending still fails with access denied, grant the APPLICATION Mail.Send permission and admin consent.',
+      });
+    } else if (res.status === 404) {
+      checks.push({
+        step: 'Send-as mailbox',
+        ok: false,
+        detail: `${sender} is not a mailbox in this tenant. An unlicensed shared mailbox is fine — but the address must exist.`,
+      });
+    } else if (res.status === 403) {
+      checks.push({
+        step: 'Mail.Send permission',
+        ok: false,
+        detail: 'The app has no directory access. Grant the APPLICATION permissions Mail.Send (and User.Read.All to verify the mailbox), then click "Grant admin consent".',
+      });
+    } else {
+      checks.push({ step: 'Send-as mailbox', ok: false, detail: `Graph returned ${res.status}.` });
+    }
+  } catch (err) {
+    checks.push({
+      step: 'Send-as mailbox',
+      ok: false,
+      detail: err instanceof Error ? err.message : 'Could not reach Graph.',
+    });
+  }
+
+  return checks;
+}

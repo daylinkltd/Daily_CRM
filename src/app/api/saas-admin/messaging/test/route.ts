@@ -20,6 +20,7 @@ import { wrapPlatformEmail } from '@/lib/platform/mailer';
 import {
   describeCredential,
   detectProvider,
+  diagnoseGraph,
   tryCandidates,
 } from '@/lib/saas-admin/smtp-diagnose';
 import { BRAND } from '@/config/brand';
@@ -73,6 +74,20 @@ export async function POST(request: NextRequest) {
   });
 
   if (!result.ok) {
+    // Graph has its own four settings; diagnosing them as if they were
+    // SMTP would point at the wrong things entirely.
+    if (config.email_provider?.trim().toLowerCase() === 'microsoft') {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: result.error,
+          provider: 'microsoft',
+          graphChecks: await diagnoseGraph(config),
+        },
+        { status: 502 },
+      );
+    }
+
     // A refusal is where the guessing starts, so answer the questions
     // that refusal cannot: who hosts this domain, does the credential
     // look intact, and does ANY of that provider's endpoints accept it.

@@ -262,6 +262,12 @@ export function buildFromHeader(smtpFrom: string | undefined, user: string): str
 export function explainSmtpError(message: string): string {
   const m = message.toLowerCase();
 
+  // Tenant-wide and per-mailbox produce nearly the same string, and the
+  // fix is completely different: no per-user setting can rescue a
+  // tenant that has SMTP AUTH switched off entirely.
+  if (m.includes('tenant') && (m.includes('smtpclientauthentication') || m.includes('5.7.139'))) {
+    return `${message} — SMTP AUTH is disabled for the WHOLE TENANT, so no mailbox can use it and no per-user setting will change that. Either an administrator re-enables SmtpClientAuthentication tenant-wide (Microsoft discourages this and it may be blocked by policy), or switch this Provider to Microsoft Graph, which does not use SMTP at all. Graph is the supported route and also sends from unlicensed shared mailboxes.`;
+  }
   if (m.includes('5.7.139') || (m.includes('535') && m.includes('basic'))) {
     return `${message} — Microsoft has SMTP AUTH disabled for this mailbox. Enable "Authenticated SMTP" for it in the Microsoft 365 admin centre (Users -> Mail -> Manage email apps), or switch this Provider to Microsoft Graph, which does not use passwords.`;
   }

@@ -43,6 +43,12 @@ const CHANNEL_META = {
   sms: { icon: Smartphone, label: "SMS (MSG91)" },
 } as const;
 
+interface GraphCheck {
+  step: string;
+  ok: boolean;
+  detail: string;
+}
+
 interface Diagnosis {
   provider: string;
   mx: string[];
@@ -64,6 +70,7 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
   const [testing, setTesting] = useState(false);
   const [testError, setTestError] = useState<string | null>(null);
   const [diagnosis, setDiagnosis] = useState<Diagnosis | null>(null);
+  const [graphChecks, setGraphChecks] = useState<GraphCheck[] | null>(null);
 
   const load = async () => {
     try {
@@ -119,12 +126,14 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
     setTesting(true);
     setTestError(null);
     setDiagnosis(null);
+    setGraphChecks(null);
     try {
       const res = await fetch("/api/saas-admin/messaging/test", { method: "POST" });
       const json = await res.json();
       if (!res.ok) {
         setTestError(json.error ?? "Test send failed");
         setDiagnosis(json.diagnosis ?? null);
+        setGraphChecks(json.graphChecks ?? null);
         return;
       }
       setDiagnosis(null);
@@ -171,6 +180,25 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
               {testError}
             </p>
           </div>
+
+          {graphChecks && (
+            <div className="space-y-2 rounded-md bg-background/40 p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                Microsoft Graph — checked field by field
+              </p>
+              {graphChecks.map((c) => (
+                <p key={c.step} className="text-xs">
+                  {c.ok ? (
+                    <span className="text-emerald-400">ok</span>
+                  ) : (
+                    <span className="text-red-400">failed</span>
+                  )}{" "}
+                  <span className="font-medium text-foreground">{c.step}</span>
+                  <span className="block pl-8 text-muted-foreground">{c.detail}</span>
+                </p>
+              ))}
+            </div>
+          )}
 
           {diagnosis && (
             <div className="space-y-2 rounded-md bg-background/40 p-3">
