@@ -511,7 +511,18 @@ export default function MessagingPage() {
                       {h.status === "sent" ? (
                         <Badge tone="good">sent</Badge>
                       ) : (
-                        <span title={h.error ?? undefined}><Badge tone="bad">failed</Badge></span>
+                        <div className="space-y-1">
+                          <Badge tone="bad">failed</Badge>
+                          {/* The reason, in the open. It used to live in a
+                              hover tooltip — useless precisely when a
+                              mailbox is broken and someone is trying to
+                              find out why. */}
+                          {h.error && (
+                            <p className="max-w-sm text-[11px] leading-snug text-red-400">
+                              {h.error}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </td>
                   </tr>

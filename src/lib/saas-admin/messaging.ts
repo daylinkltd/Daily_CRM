@@ -177,6 +177,32 @@ async function sendViaMicrosoft(
   return { ok: false, error: err.error?.message || `Graph sendMail returned ${res.status}` };
 }
 
+
+/**
+ * A readable plain-text version of an HTML body, for the multipart
+ * alternative. Not a general HTML renderer: it keeps link targets
+ * visible (a text-only client must still be able to follow a reset
+ * link) and collapses the rest to lines.
+ */
+export function htmlToPlainText(html: string): string {
+  return html
+    // Surface the destination of every link before tags are stripped.
+    .replace(/<a\b[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, '$2: $1')
+    .replace(/<\/(p|div|h[1-6]|li|tr)>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#8377;/g, '\u20b9')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line, i, all) => line !== '' || all[i - 1] !== '')
+    .join('\n')
+    .trim();
+}
+
 export async function sendPlatformEmail(
   config: MessagingConfig,
   input: {
@@ -202,15 +228,28 @@ export async function sendPlatformEmail(
     const transporter = nodemailer.createTransport({
       host,
       port,
+      // 465 is implicit TLS; 587 starts plain and upgrades. `requireTLS`
+      // makes that upgrade mandatory rather than opportunistic, so a
+      // password is never sent over a cleartext connection because a
+      // server failed to advertise STARTTLS.
       secure: port === 465,
+      requireTLS: port !== 465,
       auth: { user, pass },
+      connectionTimeout: 15_000,
+      greetingTimeout: 10_000,
     });
 
+    // Bodies are HTML. Passing them as `text` shipped the markup itself
+    // to the recipient — every reset link and sign-in code arrived as
+    // visible <div style="..."> source. `html` renders it; the derived
+    // `text` is the fallback for clients that refuse HTML, and its
+    // presence also helps deliverability.
     const info = await transporter.sendMail({
       from: config.smtp_from || `"${BRAND.name}" <${user}>`,
       to: input.to,
       subject: input.subject,
-      text: input.body,
+      html: input.body,
+      text: htmlToPlainText(input.body),
     });
     return { ok: true, providerId: info.messageId };
   } catch (err) {
