@@ -43,6 +43,18 @@ const CHANNEL_META = {
   sms: { icon: Smartphone, label: "SMS (MSG91)" },
 } as const;
 
+interface Diagnosis {
+  provider: string;
+  mx: string[];
+  advice: string;
+  credential: {
+    length: number;
+    hasSurroundingWhitespace: boolean;
+    looksTruncatedAtQuote: boolean;
+  };
+  attempts: { host: string; port: number; label: string; ok: boolean; error?: string }[];
+}
+
 export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
   const [fields, setFields] = useState<FieldState[]>([]);
   const [channels, setChannels] = useState<ChannelInfo[]>([]);
@@ -51,6 +63,7 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testError, setTestError] = useState<string | null>(null);
+  const [diagnosis, setDiagnosis] = useState<Diagnosis | null>(null);
 
   const load = async () => {
     try {
@@ -105,13 +118,16 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
   const sendTest = async () => {
     setTesting(true);
     setTestError(null);
+    setDiagnosis(null);
     try {
       const res = await fetch("/api/saas-admin/messaging/test", { method: "POST" });
       const json = await res.json();
       if (!res.ok) {
         setTestError(json.error ?? "Test send failed");
+        setDiagnosis(json.diagnosis ?? null);
         return;
       }
+      setDiagnosis(null);
       toast.success(`Test sent to ${json.to} via ${json.host}:${json.port}`);
     } catch {
       setTestError("Could not reach the server");
@@ -148,11 +164,64 @@ export function ChannelSettings({ onChanged }: { onChanged?: () => void }) {
       }
     >
       {testError && (
-        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3">
-          <p className="text-xs font-bold text-red-400">The mailbox rejected the test</p>
-          <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-red-300">
-            {testError}
-          </p>
+        <div className="mb-4 space-y-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3">
+          <div>
+            <p className="text-xs font-bold text-red-400">The mailbox rejected the test</p>
+            <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-red-300">
+              {testError}
+            </p>
+          </div>
+
+          {diagnosis && (
+            <div className="space-y-2 rounded-md bg-background/40 p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                What we checked
+              </p>
+
+              {/* Who really hosts this domain. A mailbox pointed at the
+                  wrong provider fails identically to a bad password. */}
+              <p className="text-xs text-foreground">
+                <span className="text-muted-foreground">Mail host for this domain:</span>{" "}
+                <strong>{diagnosis.provider}</strong>
+                {diagnosis.mx?.[0] && (
+                  <span className="text-muted-foreground"> ({diagnosis.mx[0]})</span>
+                )}
+              </p>
+
+              {/* Shape only — never the secret itself. */}
+              <p className="text-xs text-foreground">
+                <span className="text-muted-foreground">Stored password:</span>{" "}
+                {diagnosis.credential.length} characters
+                {diagnosis.credential.hasSurroundingWhitespace && (
+                  <strong className="text-amber-400"> · has leading/trailing whitespace</strong>
+                )}
+                {diagnosis.credential.looksTruncatedAtQuote && (
+                  <strong className="text-amber-400"> · looks cut off at a quote</strong>
+                )}
+              </p>
+
+              {diagnosis.attempts?.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Endpoints tried:</p>
+                  {diagnosis.attempts.map((a) => (
+                    <p key={`${a.host}:${a.port}`} className="pl-3 text-xs">
+                      {a.ok ? (
+                        <span className="text-emerald-400">accepted</span>
+                      ) : (
+                        <span className="text-red-400">refused</span>
+                      )}{" "}
+                      <span className="text-foreground">
+                        {a.host}:{a.port}
+                      </span>{" "}
+                      <span className="text-muted-foreground">— {a.label}</span>
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-xs leading-relaxed text-amber-300">{diagnosis.advice}</p>
+            </div>
+          )}
         </div>
       )}
 

@@ -17,6 +17,11 @@ import { requireSuperAdmin } from '@/lib/saas-admin/guard';
 import { loadMessagingConfig } from '@/lib/saas-admin/messaging-config';
 import { sendPlatformEmail, buildFromHeader } from '@/lib/saas-admin/messaging';
 import { wrapPlatformEmail } from '@/lib/platform/mailer';
+import {
+  describeCredential,
+  detectProvider,
+  tryCandidates,
+} from '@/lib/saas-admin/smtp-diagnose';
 import { BRAND } from '@/config/brand';
 
 export async function POST(request: NextRequest) {
@@ -68,8 +73,30 @@ export async function POST(request: NextRequest) {
   });
 
   if (!result.ok) {
+    // A refusal is where the guessing starts, so answer the questions
+    // that refusal cannot: who hosts this domain, does the credential
+    // look intact, and does ANY of that provider's endpoints accept it.
+    const profile = await detectProvider(user);
+    const credential = describeCredential(config.smtp_pass);
+    const attempts = config.smtp_pass
+      ? await tryCandidates(profile.candidates, user, config.smtp_pass)
+      : [];
+
     return NextResponse.json(
-      { ok: false, error: result.error, host, port, from: buildFromHeader(config.smtp_from, user) },
+      {
+        ok: false,
+        error: result.error,
+        host,
+        port,
+        from: buildFromHeader(config.smtp_from, user),
+        diagnosis: {
+          provider: profile.provider,
+          mx: profile.mx,
+          advice: profile.advice,
+          credential,
+          attempts,
+        },
+      },
       { status: 502 },
     );
   }
