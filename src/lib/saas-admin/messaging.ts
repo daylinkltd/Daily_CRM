@@ -174,7 +174,34 @@ async function sendViaMicrosoft(
     return { ok: true, providerId: res.headers.get('request-id') ?? 'graph-accepted' };
   }
   const err = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
-  return { ok: false, error: err.error?.message || `Graph sendMail returned ${res.status}` };
+  return {
+    ok: false,
+    error: explainGraphError(
+      err.error?.message || `Graph sendMail returned ${res.status}`,
+      config.ms_sender,
+    ),
+  };
+}
+
+/**
+ * Graph's refusals are terse and their causes are not obvious. The one
+ * that cost us most: "The requested user 'x' is invalid" simply means
+ * the Send-as mailbox does not exist in the tenant — nothing to do with
+ * permissions or the app registration.
+ */
+export function explainGraphError(message: string, sender?: string): string {
+  const m = message.toLowerCase();
+
+  if (m.includes('requested user') && m.includes('invalid')) {
+    return `${message} — "${sender ?? 'the Send as address'}" is not a mailbox in this tenant. Set "Send as" to a real address; an unlicensed shared mailbox is fine here, which is the point of using Graph.`;
+  }
+  if (m.includes('access') && (m.includes('denied') || m.includes('token'))) {
+    return `${message} — the app registration cannot send as that mailbox. It needs the APPLICATION permission Mail.Send with admin consent granted, not the delegated one. If an ApplicationAccessPolicy restricts the app, the Send-as mailbox must be inside its scope.`;
+  }
+  if (m.includes('mailboxnotenabled') || m.includes('not have a mailbox')) {
+    return `${message} — that account has no mailbox to send from.`;
+  }
+  return message;
 }
 
 

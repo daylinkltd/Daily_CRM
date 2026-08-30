@@ -45,13 +45,13 @@ export const MESSAGING_SETTINGS: SettingDef[] = [
   { key: 'ms_tenant_id', label: 'Microsoft tenant ID', channel: 'email', secret: false, required: false, placeholder: 'contoso.onmicrosoft.com or GUID', envFallback: 'PLATFORM_MS_TENANT_ID' },
   { key: 'ms_client_id', label: 'Microsoft client ID', channel: 'email', secret: false, required: false, placeholder: 'Entra app registration ID', envFallback: 'PLATFORM_MS_CLIENT_ID' },
   { key: 'ms_client_secret', label: 'Microsoft client secret', channel: 'email', secret: true, required: false, placeholder: '••••••••', envFallback: 'PLATFORM_MS_CLIENT_SECRET' },
-  { key: 'ms_sender', label: 'Send as (mailbox)', channel: 'email', secret: false, required: false, placeholder: 'no-reply@dailybuz.com', envFallback: 'PLATFORM_MS_SENDER' },
+  { key: 'ms_sender', label: 'Send as (mailbox)', channel: 'email', secret: false, required: false, placeholder: 'contact@daylink.in — shared mailboxes work, no licence needed', envFallback: 'PLATFORM_MS_SENDER' },
   // Email (SMTP)
   { key: 'smtp_host', label: 'SMTP host', channel: 'email', secret: false, required: false, placeholder: 'smtp.office365.com (default if left blank)', envFallback: 'PLATFORM_SMTP_HOST' },
   { key: 'smtp_port', label: 'SMTP port', channel: 'email', secret: false, required: false, placeholder: '587 for Office 365, 465 for implicit TLS', envFallback: 'PLATFORM_SMTP_PORT' },
-  { key: 'smtp_user', label: 'SMTP username', channel: 'email', secret: false, required: true, placeholder: 'no-reply@dailybuz.com', envFallback: 'PLATFORM_SMTP_USER' },
+  { key: 'smtp_user', label: 'SMTP username (a mailbox that can sign in)', channel: 'email', secret: false, required: true, placeholder: 'a licensed user — shared mailboxes cannot sign in', envFallback: 'PLATFORM_SMTP_USER' },
   { key: 'smtp_pass', label: 'SMTP password', channel: 'email', secret: true, required: true, placeholder: '••••••••', envFallback: 'PLATFORM_SMTP_PASS' },
-  { key: 'smtp_from', label: 'From address', channel: 'email', secret: false, required: false, placeholder: 'Blank sends as the username above', envFallback: 'PLATFORM_SMTP_FROM' },
+  { key: 'smtp_from', label: 'From address (may differ from the login)', channel: 'email', secret: false, required: false, placeholder: 'e.g. contact@daylink.in — needs Send As on that mailbox', envFallback: 'PLATFORM_SMTP_FROM' },
   // WhatsApp (Meta Cloud API)
   { key: 'wa_phone_id', label: 'WhatsApp phone number ID', channel: 'whatsapp', secret: false, required: true, placeholder: '123456789012345', envFallback: 'PLATFORM_WA_PHONE_ID' },
   { key: 'wa_token', label: 'WhatsApp access token', channel: 'whatsapp', secret: true, required: true, placeholder: '••••••••', envFallback: 'PLATFORM_WA_TOKEN' },

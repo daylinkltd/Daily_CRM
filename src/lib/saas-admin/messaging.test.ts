@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { buildFromHeader, explainSmtpError, htmlToPlainText } from "./messaging";
+import {
+  buildFromHeader,
+  explainGraphError,
+  explainSmtpError,
+  htmlToPlainText,
+} from "./messaging";
 
 /**
  * Regression: the SMTP path passed the HTML body as `text`, so every
@@ -104,5 +109,48 @@ describe("explainSmtpError", () => {
 
   it("passes an unrecognised error through unchanged", () => {
     expect(explainSmtpError("something odd happened")).toBe("something odd happened");
+  });
+});
+
+/**
+ * The shared-mailbox case, which is what daylink.in actually uses: an
+ * unlicensed shared mailbox cannot sign in, so SMTP must authenticate
+ * as a licensed user and send AS the shared address. Graph sends from
+ * it directly.
+ */
+describe("sending as a shared mailbox over SMTP", () => {
+  it("keeps the shared address as From while logging in as someone else", () => {
+    // Auth as the licensed user, send as the shared mailbox.
+    expect(buildFromHeader("contact@daylink.in", "swaraj@daylink.in")).toBe(
+      "contact@daylink.in",
+    );
+    expect(buildFromHeader('"Dailybuz" <contact@daylink.in>', "swaraj@daylink.in")).toBe(
+      '"Dailybuz" <contact@daylink.in>',
+    );
+  });
+
+  it("only falls back to the login when no From address is given", () => {
+    expect(buildFromHeader(undefined, "swaraj@daylink.in")).toContain("swaraj@daylink.in");
+  });
+});
+
+describe("explainGraphError", () => {
+  it("explains the invalid-sender case that blocked the first attempt", () => {
+    const out = explainGraphError(
+      "The requested user 'hello@dailybuz.com' is invalid.",
+      "hello@dailybuz.com",
+    );
+    expect(out).toContain("not a mailbox in this tenant");
+    expect(out).toContain("shared mailbox");
+  });
+
+  it("distinguishes a permission problem from a missing mailbox", () => {
+    const out = explainGraphError("Access is denied. Check credentials and try again.");
+    expect(out).toContain("APPLICATION permission Mail.Send");
+    expect(out).not.toContain("not a mailbox in this tenant");
+  });
+
+  it("passes an unrecognised message through", () => {
+    expect(explainGraphError("some other graph error")).toBe("some other graph error");
   });
 });

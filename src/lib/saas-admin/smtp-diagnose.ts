@@ -71,12 +71,17 @@ export async function detectProvider(email: string): Promise<ProviderProfile> {
       mx,
       candidates: MICROSOFT_CANDIDATES,
       advice:
-        `${domain} is hosted by Microsoft 365, so the host and port are right. ` +
-        'A 535 from here is the ACCOUNT refusing the login, not a wrong server. In order of likelihood: ' +
-        '(1) "Authenticated SMTP" is off for this mailbox — Microsoft 365 admin centre → Users → ' +
-        'Active users → the user → Mail → Manage email apps → tick Authenticated SMTP; ' +
-        '(2) the mailbox has MFA, so a normal password cannot be used — create an app password, or use Graph; ' +
-        '(3) the tenant has Security Defaults on, which blocks SMTP AUTH outright — Graph is the way through that.',
+        `${domain} is hosted by Microsoft 365, so the host and port are right — a 535 here is the ACCOUNT ` +
+        'refusing the login, not the wrong server. ' +
+        'IF THIS IS A SHARED MAILBOX: it has no licence and its sign-in is disabled by design, so it can ' +
+        'never authenticate with its own password, no matter what the password is. Two supported ways to ' +
+        'send from it: (a) SMTP as a LICENSED user that has Send As permission on the shared mailbox — put ' +
+        'that user in SMTP username/password and the shared address in "From address"; or (b) Microsoft ' +
+        'Graph, which sends from an unlicensed shared mailbox directly — switch Provider to Microsoft and ' +
+        'set "Send as" to the shared address. ' +
+        'IF IT IS A NORMAL MAILBOX: Authenticated SMTP is probably off for it (admin centre → Users → the ' +
+        'user → Mail → Manage email apps), or MFA/Security Defaults are blocking SMTP AUTH — Graph is the ' +
+        'way through those.',
     };
   }
   if (joined.includes('zoho')) {
