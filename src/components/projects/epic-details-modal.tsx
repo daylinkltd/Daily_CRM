@@ -37,7 +37,8 @@ import {
   Bookmark,
   Bug,
   ChevronDown,
-  Zap
+  Zap,
+  Trash2
 } from 'lucide-react';
 import { formatMemberName } from '@/components/tasks/task-form';
 import { IconAction } from "@/components/ui/icon-action";
