@@ -58,7 +58,9 @@ WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
     ('121', 'table',  'platform_email_codes',
        'One-time codes: two-factor, email verification, step-up.'),
     ('122', 'function','mark_session_two_factor_verified',
-       'Two-step sign-in cannot be satisfied.')
+       'Two-step sign-in cannot be satisfied.'),
+    ('123', 'function','document_series_period_key',
+       'Invoice numbers never reset per financial year, breaking Rule 46.')
 ),
 objects AS (
   SELECT
@@ -104,6 +106,29 @@ details AS (
             WHERE table_name = 'profiles' AND column_name = 'two_factor_enabled')
          THEN 'present' ELSE '-- MISSING --' END,
          'The two-step sign-in switch has nowhere to store its state.'
+  UNION ALL
+  SELECT '123', 'GST ledger can describe a return',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'commerce_gst_ledgers' AND column_name = 'supply_type')
+         THEN 'present' ELSE '-- MISSING --' END,
+         'No B2B/B2CL/B2CS split, so GSTR-1 cannot be built from the ledger at all.'
+  UNION ALL
+  SELECT '123', 'customers can hold a GSTIN',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'contacts' AND column_name = 'gstin')
+         THEN 'present' ELSE '-- MISSING --' END,
+         'Every sale files as B2CS, so business buyers never get their input credit.'
+  UNION ALL
+  SELECT '123', 'wrong GST defaults removed',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'commerce_gst_ledgers'
+              AND column_name = 'source_state_code'
+              AND column_default IS NOT NULL)
+         THEN '-- MISSING --' ELSE 'present' END,
+         'State defaults to Maharashtra, so CGST/SGST vs IGST is silently wrong.'
   UNION ALL
   SELECT '122', 'two_factor_verified_at on user_sessions',
          CASE WHEN to_regclass('public.user_sessions') IS NULL

@@ -168,6 +168,21 @@ export function MembersTab() {
     null,
   );
 
+  // Seats are POOLED ACROSS THE TENANT — every workspace the same owner
+  // owns draws from one allowance, and a person occupying seats in three
+  // of them is still one seat. That count cannot be derived from this
+  // page: the roster below is a single workspace, so `members.length`
+  // answers a different question and answers it differently in every
+  // workspace you switch to.
+  //
+  // `tenant_seat_usage` and `tenant_seat_limit` (migration 118) are the
+  // authority, and they are the same functions the insert trigger
+  // enforces with — so what this panel shows and what the server permits
+  // can no longer disagree.
+  const [seats, setSeats] = useState<{ used: number; limit: number | null } | null>(
+    null,
+  );
+
   const loadEverything = useCallback(async () => {
     try {
       const targetWorkspaceId = activeWorkspace?.id || accountId;
@@ -178,7 +193,7 @@ export function MembersTab() {
         ? `/api/account/invitations?workspace_id=${targetWorkspaceId}`
         : '/api/account/invitations';
 
-      const [mres, ires, rolesRes] = await Promise.all([
+      const [mres, ires, rolesRes, seatUsage, seatLimit] = await Promise.all([
         fetch(membersUrl, { cache: 'no-store' }),
         canManageMembers
           ? fetch(invitesUrl, { cache: 'no-store' })
@@ -192,10 +207,36 @@ export function MembersTab() {
               .select(WORKSPACE_ROLE_COLUMNS)
               .eq('workspace_id', accountId)
           : Promise.resolve({ data: [], error: null }),
+        // Both sides of the seat sum come from the tenant, not from this
+        // workspace. The LIMIT is pooled too: plan_limits is copied onto
+        // each workspace, so reading it from whichever one is active
+        // makes the allowance appear to change as you switch.
+        targetWorkspaceId
+          ? supabase.rpc('tenant_seat_usage', { p_workspace: targetWorkspaceId })
+          : Promise.resolve({ data: null, error: null }),
+        targetWorkspaceId
+          ? supabase.rpc('tenant_seat_limit', { p_workspace: targetWorkspaceId })
+          : Promise.resolve({ data: null, error: null }),
       ]);
 
       if (rolesRes && !rolesRes.error) {
         setRoles(sortRoles((rolesRes.data ?? []) as WorkspaceRoleRow[]));
+      }
+
+      // Only trust a real answer. If the functions are unreachable the
+      // panel falls back to the old single-workspace numbers rather than
+      // rendering a confident zero — an under-count here reads as "you
+      // have seats free" right up until the server refuses the invite.
+      if (!seatUsage?.error && typeof seatUsage?.data === 'number') {
+        setSeats({
+          used: seatUsage.data,
+          limit:
+            !seatLimit?.error && typeof seatLimit?.data === 'number'
+              ? seatLimit.data
+              : null,
+        });
+      } else {
+        setSeats(null);
       }
 
       if (!mres.ok) {
@@ -223,7 +264,11 @@ export function MembersTab() {
     } finally {
       setLoading(false);
     }
-  }, [canManageMembers, accountId, supabase]);
+    // `activeWorkspace?.id` decides every request in here, and it comes
+    // from a different provider than `accountId` — so leaving it out let
+    // the callback keep a stale workspace after a switch and load one
+    // workspace's roster beside another's seat count.
+  }, [canManageMembers, accountId, activeWorkspace?.id, supabase]);
 
   useEffect(() => {
     void loadEverything();
@@ -438,10 +483,16 @@ export function MembersTab() {
         const limits = (activeWorkspace?.plan_limits ?? {}) as {
           max_members?: number | null;
         };
-        const seatMax = Number(limits.max_members) || null;
+        // Tenant-wide figures when we have them; this workspace's own
+        // only as a fallback when the seat functions did not answer.
+        const seatMax = seats?.limit ?? Number(limits.max_members) ?? null;
         if (!seatMax || seatMax >= 999999) return null;
-        const used = members.length;
+        const used = seats?.used ?? members.length;
         const full = used >= seatMax;
+        // The roster below lists ONE workspace, so a pooled count will
+        // legitimately exceed it. Unexplained, that difference reads as
+        // a bug — which is exactly how it was reported.
+        const pooledBeyondThisWorkspace = seats !== null && used > members.length;
         return (
           <div
             className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 ${
@@ -456,6 +507,13 @@ export function MembersTab() {
                 {full
                   ? 'Every paid seat is taken. Add seats to invite more people.'
                   : `${seatMax - used} seat${seatMax - used === 1 ? '' : 's'} free.`}
+                {pooledBeyondThisWorkspace && (
+                  <>
+                    {' '}
+                    Counted across all your workspaces — {members.length} of these
+                    {members.length === 1 ? ' person is' : ' people are'} in this one.
+                  </>
+                )}
               </span>
               <div className="mt-2 h-1.5 w-48 max-w-full rounded-full bg-card">
                 <div
