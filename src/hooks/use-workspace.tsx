@@ -252,16 +252,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             logo_url,
             default_currency,
             company_name,
-            company_address,
-            enabled_modules,
-            business_type,
-            team_size
+            company_address
           )
         `)
         .eq("user_id", user.id);
 
       if (error) {
         console.error("[WorkspaceProvider] error fetching memberships:", error);
+        setLoading(false);
         return;
       }
 

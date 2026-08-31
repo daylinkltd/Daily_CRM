@@ -34,7 +34,7 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 
 function OnboardingInner() {
   const { user, profile, signOut } = useAuth();
-  const { workspaces, createWorkspace, refreshWorkspaces } = useWorkspace();
+  const { workspaces, createWorkspace, refreshWorkspaces, loading: wsLoading } = useWorkspace();
   const router = useRouter();
   const supabase = createClient();
 
@@ -58,8 +58,10 @@ function OnboardingInner() {
   // of tools for other people's businesses concludes the product is for
   // other people.
   const [moduleSelection, setModuleSelection] = useState<ModuleSelection>(() =>
-    initialSelection(),
+    initialSelection("GENERAL_RETAIL"),
   );
+  const [currency, setCurrency] = useState("INR");
+  const [submitting, setSubmitting] = useState(false);
 
   // Action states
   const [loading, setLoading] = useState(false);
@@ -72,11 +74,14 @@ function OnboardingInner() {
   }, [profile, fullName]);
   const [, setIsUploading] = useState(false);
 
-  // Load pre-selected plan preference from signup step
+  // Restore choices carried from /pricing (plan, cycle, seat count)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedPlan = localStorage.getItem("crm_onboarding_plan");
-      const savedCycle = localStorage.getItem("crm_onboarding_cycle");
+      const savedCycle = localStorage.getItem("crm_onboarding_billing_cycle") as
+        | "monthly"
+        | "annual"
+        | null;
       if (savedPlan && PLANS.some((p) => p.id === savedPlan)) {
         setSelectedPlan(savedPlan);
       }
@@ -102,6 +107,7 @@ function OnboardingInner() {
   // Membership wins over a (possibly stale) invite token so accepted
   // members always land in their workspace's dashboard.
   useEffect(() => {
+    if (wsLoading) return;
     if (workspaces.length > 0) {
       router.push("/dashboard");
       return;
@@ -120,7 +126,7 @@ function OnboardingInner() {
     if (pendingInvite) {
       router.push(`/join/${encodeURIComponent(pendingInvite)}`);
     }
-  }, [workspaces, user, router]);
+  }, [workspaces, wsLoading, user, router]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

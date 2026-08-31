@@ -81,7 +81,7 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
-    } else if (!loading && user && !wsLoading && workspaces.length === 0) {
+    } else if (!loading && !wsLoading && user && workspaces.length === 0) {
       // No workspace yet — check for a pending invitation before
       // falling back to onboarding. The token can live in two places:
       //   1. auth user_metadata (set at signup) — survives new tabs
