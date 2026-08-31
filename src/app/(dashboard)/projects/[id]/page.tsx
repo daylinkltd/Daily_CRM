@@ -5,13 +5,28 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronLeft, Loader2, Briefcase, Calendar, Banknote, Target, Users, Settings } from 'lucide-react';
+import { ChevronLeft, Loader2, Briefcase, Calendar, Banknote, Target, Users, Settings, UserPlus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { ProjectKanban } from '@/components/tasks/project-kanban';
 import { PlanningView } from '@/components/projects/planning-view';
 import { WorkflowSettings } from '@/components/projects/workflow-settings';
@@ -31,6 +46,59 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
   const [project, setProject] = useState<any | null>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Manage Team Members Dialog state
+  const [manageMembersOpen, setManageMembersOpen] = useState(false);
+  const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
+  const [selectedMemberId, setSelectedMemberId] = useState<string>('none');
+  const [selectedRole, setSelectedRole] = useState<string>('member');
+  const [addingMember, setAddingMember] = useState(false);
+
+  const fetchWorkspaceMembers = async () => {
+    if (!activeWorkspace?.id) return;
+    try {
+      const res = await fetch(`/api/account/members?workspace_id=${activeWorkspace.id}`);
+      const json = await res.json();
+      setWorkspaceMembers(json?.members || []);
+    } catch (err) {
+      console.error('Failed to fetch workspace members:', err);
+    }
+  };
+
+  const handleAddMember = async () => {
+    if (!selectedMemberId || selectedMemberId === 'none') return;
+    setAddingMember(true);
+    try {
+      const { error } = await supabase.from('project_members').insert({
+        project_id: id,
+        workspace_member_id: selectedMemberId,
+        role: selectedRole,
+      });
+      if (error) throw error;
+      toast.success('Team member added to project');
+      setSelectedMemberId('none');
+      fetchProjectData();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to add member to project');
+    } finally {
+      setAddingMember(false);
+    }
+  };
+
+  const handleRemoveMember = async (workspaceMemberId: string) => {
+    try {
+      const { error } = await supabase
+        .from('project_members')
+        .delete()
+        .eq('project_id', id)
+        .eq('workspace_member_id', workspaceMemberId);
+      if (error) throw error;
+      toast.success('Team member removed from project');
+      fetchProjectData();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove member');
+    }
+  };
 
   const fetchProjectData = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -201,28 +269,68 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
 
               <div className="space-y-6">
                 <Card className="border-border bg-card shadow-sm">
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
                     <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
                       <Users className="size-4" /> Team Members
                     </CardTitle>
+                    {canManageProjects && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs gap-1.5"
+                        onClick={() => {
+                          fetchWorkspaceMembers();
+                          setManageMembersOpen(true);
+                        }}
+                      >
+                        <UserPlus className="size-3.5" />
+                        Manage Team
+                      </Button>
+                    )}
                   </CardHeader>
                   <CardContent>
                     {members.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">No members assigned.</p>
+                      <div className="text-center py-6 space-y-3">
+                        <p className="text-sm text-muted-foreground">No members assigned to this project.</p>
+                        {canManageProjects && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                            onClick={() => {
+                              fetchWorkspaceMembers();
+                              setManageMembersOpen(true);
+                            }}
+                          >
+                            <UserPlus className="size-3.5 mr-1.5" /> Add Members
+                          </Button>
+                        )}
+                      </div>
                     ) : (
                       <div className="space-y-3">
                         {members.map(m => {
                           const prof = Array.isArray(m.workspace_members?.profiles) ? m.workspace_members.profiles[0] : m.workspace_members?.profiles;
                           return (
-                            <div key={m.id} className="flex items-center gap-3">
-                              <Avatar className="size-8">
-                                <AvatarImage src={prof?.avatar_url} />
-                                <AvatarFallback className="bg-primary/10 text-primary text-xs">{prof?.full_name?.charAt(0) || 'U'}</AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium text-foreground">{prof?.full_name || 'Unknown'}</span>
-                                <span className="text-xs text-muted-foreground capitalize">{m.role || 'Member'}</span>
+                            <div key={m.id} className="flex items-center justify-between group py-1">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="size-8">
+                                  <AvatarImage src={prof?.avatar_url} />
+                                  <AvatarFallback className="bg-primary/10 text-primary text-xs">{prof?.full_name?.charAt(0) || 'U'}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium text-foreground">{prof?.full_name || 'Unknown'}</span>
+                                  <span className="text-xs text-muted-foreground capitalize">{m.role || 'Member'}</span>
+                                </div>
                               </div>
+                              {canManageProjects && (
+                                <IconAction
+                                  icon={<Trash2 className="size-4" />}
+                                  label="Remove from Project"
+                                  destructive
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => handleRemoveMember(m.workspace_member_id)}
+                                />
+                              )}
                             </div>
                           );
                         })}
@@ -361,6 +469,109 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
           </Tabs>
         );
       })()}
+      {/* Manage Team Members Dialog */}
+      <Dialog open={manageMembersOpen} onOpenChange={setManageMembersOpen}>
+        <DialogContent className="bg-popover border-border text-popover-foreground sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Manage Team Members</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label>Select Workspace Member</Label>
+              <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Select a team member..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">-- Select Member --</SelectItem>
+                  {workspaceMembers
+                    .filter((wm) => !members.some((m) => m.workspace_member_id === wm.id))
+                    .map((wm) => {
+                      const name = wm.full_name || wm.email || 'Member';
+                      return (
+                        <SelectItem key={wm.id} value={wm.id}>
+                          {name}
+                        </SelectItem>
+                      );
+                    })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Role in Project</Label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="lead">Project Lead</SelectItem>
+                  <SelectItem value="developer">Developer</SelectItem>
+                  <SelectItem value="designer">Designer</SelectItem>
+                  <SelectItem value="qa">QA / Tester</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              className="w-full mt-2"
+              onClick={handleAddMember}
+              disabled={addingMember || selectedMemberId === 'none'}
+            >
+              {addingMember ? <Loader2 className="size-4 animate-spin mr-2" /> : <UserPlus className="size-4 mr-2" />}
+              Add to Project
+            </Button>
+
+            <div className="border-t border-border pt-4 mt-4 space-y-2">
+              <Label className="text-xs uppercase text-muted-foreground font-mono">Current Members ({members.length})</Label>
+              {members.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">No members assigned yet.</p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {members.map((m) => {
+                    const prof = Array.isArray(m.workspace_members?.profiles)
+                      ? m.workspace_members.profiles[0]
+                      : m.workspace_members?.profiles;
+                    return (
+                      <div key={m.id} className="flex items-center justify-between bg-card p-2 rounded-md border border-border">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="size-7">
+                            <AvatarImage src={prof?.avatar_url} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                              {prof?.full_name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium">{prof?.full_name || 'Member'}</span>
+                            <span className="text-[10px] text-muted-foreground capitalize">{m.role || 'Member'}</span>
+                          </div>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRemoveMember(m.workspace_member_id)}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManageMembersOpen(false)}>
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

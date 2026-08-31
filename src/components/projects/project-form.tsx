@@ -131,6 +131,14 @@ export function ProjectForm({ open, onOpenChange, project, onSaved }: ProjectFor
             { project_id: newProj.id, name: 'Review', category: 'IN_PROGRESS', color: 'orange', sort_order: 3 },
             { project_id: newProj.id, name: 'Done', category: 'DONE', color: 'emerald', sort_order: 4 },
           ]);
+
+          if (payload.manager_workspace_member_id) {
+            await supabase.from('project_members').insert({
+              project_id: newProj.id,
+              workspace_member_id: payload.manager_workspace_member_id,
+              role: 'lead',
+            });
+          }
         }
 
         toast.success('Project created successfully');
