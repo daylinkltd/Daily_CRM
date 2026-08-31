@@ -425,7 +425,7 @@ export function WorkflowSettings({ projectId }: WorkflowSettingsProps) {
               statuses.map((status) => (
                 <div key={status.id} className="flex items-center justify-between p-3 border border-border rounded-lg bg-card">
                   <div className="flex items-center gap-3">
-                    <GripVertical className="size-4 text-muted-foreground cursor-grab" />
+                    <GripVertical className="size-4 text-muted-foreground cursor-grab drag-handle" />
                     <span className="font-medium text-sm">{status.name}</span>
                     <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full border ${getCategoryColor(status.category)}`}>
                       {status.category.replace('_', ' ')}

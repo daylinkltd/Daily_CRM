@@ -233,7 +233,7 @@ function CandidateCard({
           <button
             type="button"
             aria-label={`Move ${application.candidate?.full_name || "candidate"}`}
-            className="mt-0.5 cursor-grab text-muted-foreground active:cursor-grabbing"
+            className="mt-0.5 cursor-grab text-muted-foreground active:cursor-grabbing drag-handle"
             {...listeners}
             {...attributes}
           >

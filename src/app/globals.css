@@ -91,9 +91,6 @@
 
 /* ---- MODE: neutral surfaces ---- */
 
-:root {
-}
-
 :root,
 html[data-mode="dark"] {
   --background: oklch(0.13 0.01 260);
@@ -407,4 +404,24 @@ html[data-mode="light"] :is(h1, h2, h3, h4, h5, h6, p, label, span, select, inpu
     size: A4;
     margin: 12mm;
   }
+}
+
+/* Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Drag Handle Scoped Cursors */
+.drag-handle {
+  cursor: grab !important;
+}
+.drag-handle:active {
+  cursor: grabbing !important;
 }

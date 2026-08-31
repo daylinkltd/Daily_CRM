@@ -3,6 +3,25 @@
  * Enterprise Component Rules (20 Rules Single Source of Truth)
  * =========================================================================== */
 
+/* Universal Interactive Cursor Rules */
+button,
+[role="button"],
+[role="tab"],
+select,
+summary,
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed !important;
+}
+
 /* Buttons */
 .btn-primary {
   height: var(--height-button);
