@@ -32,6 +32,8 @@ import {
   Mail,
   MailX,
   Plus,
+  ShieldCheck,
+  ShieldOff,
   Trash2,
   UsersRound,
 } from 'lucide-react';
@@ -183,6 +185,10 @@ export function MembersTab() {
     null,
   );
 
+  // Who has had their licence taken away. Only revocations are stored,
+  // so this is the exception set -- anyone absent from it is licensed.
+  const [unlicensed, setUnlicensed] = useState<Set<string>>(new Set());
+
   const loadEverything = useCallback(async () => {
     try {
       const targetWorkspaceId = activeWorkspace?.id || accountId;
@@ -193,7 +199,8 @@ export function MembersTab() {
         ? `/api/account/invitations?workspace_id=${targetWorkspaceId}`
         : '/api/account/invitations';
 
-      const [mres, ires, rolesRes, seatUsage, seatLimit] = await Promise.all([
+      const [mres, ires, rolesRes, seatUsage, seatLimit, licenceRows] =
+        await Promise.all([
         fetch(membersUrl, { cache: 'no-store' }),
         canManageMembers
           ? fetch(invitesUrl, { cache: 'no-store' })
@@ -217,6 +224,11 @@ export function MembersTab() {
         targetWorkspaceId
           ? supabase.rpc('tenant_seat_limit', { p_workspace: targetWorkspaceId })
           : Promise.resolve({ data: null, error: null }),
+        // RLS scopes this to the caller's own tenant.
+        supabase
+          .from('tenant_user_licenses')
+          .select('user_id, is_licensed')
+          .eq('is_licensed', false),
       ]);
 
       if (rolesRes && !rolesRes.error) {
@@ -238,6 +250,19 @@ export function MembersTab() {
       } else {
         setSeats(null);
       }
+
+      // A failed read leaves everyone shown as licensed. That matches
+      // the database's own rule (no row = licensed) and errs toward
+      // showing access rather than inventing a lockout on screen.
+      setUnlicensed(
+        new Set(
+          !licenceRows?.error
+            ? ((licenceRows?.data ?? []) as Array<{ user_id: string }>).map(
+                (r) => r.user_id,
+              )
+            : [],
+        ),
+      );
 
       if (!mres.ok) {
         const payload = await mres.json().catch(() => ({}));
@@ -273,6 +298,52 @@ export function MembersTab() {
   useEffect(() => {
     void loadEverything();
   }, [loadEverything]);
+
+  /**
+   * Grant or revoke one person's licence.
+   *
+   * The permission check, the owner protection and the session
+   * revocation all live in `set_user_license` -- this only asks. A UI
+   * that decided who may do this would be a second, drifting copy of a
+   * rule the database already enforces.
+   */
+  const toggleLicense = useCallback(
+    async (member: Member, licensed: boolean) => {
+      const targetWorkspaceId = activeWorkspace?.id || accountId;
+      if (!targetWorkspaceId) return;
+      setPendingMemberAction(member.user_id);
+      try {
+        const { error } = await supabase.rpc('set_user_license', {
+          p_workspace: targetWorkspaceId,
+          p_user: member.user_id,
+          p_licensed: licensed,
+          p_reason: licensed ? null : 'Revoked from Settings → Members',
+        });
+        if (error) {
+          toast.error(error.message.replace(/^[a-z_]+: /, ''));
+          return;
+        }
+        setUnlicensed((prev) => {
+          const next = new Set(prev);
+          if (licensed) next.delete(member.user_id);
+          else next.add(member.user_id);
+          return next;
+        });
+        toast.success(
+          licensed
+            ? `${member.full_name} can sign in again.`
+            : `${member.full_name} has been signed out and no longer uses a seat.`,
+        );
+        // The seat count is computed in the database, so re-read it
+        // rather than adjusting a number here and hoping they agree.
+        void loadEverything();
+      } finally {
+        setPendingMemberAction(null);
+      }
+    },
+    [activeWorkspace?.id, accountId, supabase, loadEverything],
+  );
+
 
   // Every workspace role except the built-in Owner — assigning that one
   // would hand out the owner bypass, so promotions stay in the
@@ -642,6 +713,15 @@ export function MembersTab() {
                             You
                           </Badge>
                         )}
+                        {/* Stated on the row, not only in the button.
+                            Someone auditing who they are paying for
+                            scans the list; they should not have to
+                            hover each person to find out. */}
+                        {unlicensed.has(member.user_id) && (
+                          <Badge className="border-amber-500/40 bg-amber-500/10 text-[10px] uppercase tracking-wide text-amber-300">
+                            No licence
+                          </Badge>
+                        )}
                       </div>
                       {member.email && (
                         <p className="truncate text-xs text-muted-foreground">
@@ -727,6 +807,41 @@ export function MembersTab() {
                           disabled={isBusy}
                         />
                       )}
+
+                    {/* Licence. The cheaper alternative to deleting
+                        someone: they keep every row they created and
+                        simply cannot sign in, and the seat returns to
+                        the pool. Never on the owner (the database
+                        refuses it) and never on yourself. */}
+                    {canManageMembers && !isOwnerRow && !isSelf && (
+                      <IconAction
+                        label={
+                          unlicensed.has(member.user_id)
+                            ? 'Give licence'
+                            : 'Remove licence'
+                        }
+                        icon={
+                          unlicensed.has(member.user_id) ? (
+                            <ShieldOff className="size-4" />
+                          ) : (
+                            <ShieldCheck className="size-4" />
+                          )
+                        }
+                        variant="outline"
+                        onClick={() =>
+                          void toggleLicense(
+                            member,
+                            unlicensed.has(member.user_id),
+                          )
+                        }
+                        disabled={isBusy}
+                        className={
+                          unlicensed.has(member.user_id)
+                            ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                            : undefined
+                        }
+                      />
+                    )}
 
                     {canManageMembers && !isOwnerRow && !isSelf && (
                       <IconAction

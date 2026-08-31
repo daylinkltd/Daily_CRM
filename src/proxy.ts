@@ -83,6 +83,26 @@ export async function proxy(request: NextRequest) {
         return response
       }
 
+      // The account holds no licence in any tenant, so it is not paid
+      // for and cannot be used. Handled exactly like a revoked session —
+      // signed out and bounced to /login — but with its own reason, so
+      // the page can say who is able to give the seat back instead of
+      // leaving them guessing at a generic refusal.
+      //
+      // Nothing of theirs is deleted; this is a door, not an eraser.
+      if (verdict === 'unlicensed') {
+        await supabase.auth.signOut()
+
+        const url = request.nextUrl.clone()
+        url.pathname = '/login'
+        url.search = '?reason=no-license'
+
+        const response = NextResponse.redirect(url)
+        withRefreshedCookies(response)
+        response.cookies.delete(SESSION_COOKIE)
+        return response
+      }
+
       // Two-factor is on for this account and this session has not
       // answered its code. Everything stays reachable EXCEPT the app
       // itself, so the challenge page and its API can still load.

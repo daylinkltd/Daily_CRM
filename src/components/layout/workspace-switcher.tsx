@@ -288,14 +288,27 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
               );
             })}
           </div>
-          <DropdownMenuSeparator className="bg-border" />
-          <DropdownMenuItem
-            onClick={() => setIsDialogOpen(true)}
-            className="flex items-center gap-2 px-2 py-2 text-primary focus:bg-primary/10 focus:text-primary font-medium cursor-pointer rounded-md"
-          >
-            <Plus className="h-4 w-4 shrink-0" />
-            Create Workspace
-          </DropdownMenuItem>
+          {/* Only the account owner creates workspaces. A new workspace
+              inherits the tenant's plan and draws on its seat pool, so
+              a member spinning one up would extend an account they do
+              not pay for and the owner cannot see.
+
+              `assert_may_create_workspace` is the actual rule; this
+              just stops offering a button that would refuse. The empty
+              state above stays open deliberately — someone with no
+              workspace at all is signing up, not extending anyone. */}
+          {activeRole === 'owner' && (
+            <>
+              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuItem
+                onClick={() => setIsDialogOpen(true)}
+                className="flex items-center gap-2 px-2 py-2 text-primary focus:bg-primary/10 focus:text-primary font-medium cursor-pointer rounded-md"
+              >
+                <Plus className="h-4 w-4 shrink-0" />
+                Create Workspace
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

@@ -93,7 +93,13 @@ export function isWithinTrustWindow(
   return Number.isFinite(expiresAt) && Date.now() < expiresAt;
 }
 
-export type SessionVerdict = 'active' | 'revoked' | 'needs_2fa' | 'unknown';
+export type SessionVerdict =
+  | 'active'
+  | 'revoked'
+  | 'needs_2fa'
+  /** No licence in any tenant. They exist, they just aren't paid for. */
+  | 'unlicensed'
+  | 'unknown';
 
 /**
  * Ask the database whether this session is still the active one.
@@ -125,6 +131,10 @@ export async function verifySession(
     // An older one answers 'active', so a mid-rollout deploy fails OPEN
     // rather than locking every user out at once.
     if (data === 'needs_2fa') return 'needs_2fa';
+    // Same rollout contract as needs_2fa: a database without migration
+    // 124 never says this, and an app without this line reads it as
+    // 'unknown' and lets the request through.
+    if (data === 'unlicensed') return 'unlicensed';
     return data === 'active' ? 'active' : 'unknown';
   } catch (err) {
     console.error(

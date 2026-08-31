@@ -60,7 +60,13 @@ WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
     ('122', 'function','mark_session_two_factor_verified',
        'Two-step sign-in cannot be satisfied.'),
     ('123', 'function','document_series_period_key',
-       'Invoice numbers never reset per financial year, breaking Rule 46.')
+       'Invoice numbers never reset per financial year, breaking Rule 46.'),
+    ('124', 'table',   'tenant_user_licenses',
+       'Per-user licences. Nobody can be un-licensed, so seats cannot be freed.'),
+    ('124', 'function','set_user_license',
+       'Granting/revoking a licence from the members page.'),
+    ('124', 'function','assert_may_create_workspace',
+       'Any member can create workspaces under the owner''s plan and seat pool.')
 ),
 objects AS (
   SELECT
@@ -129,6 +135,23 @@ details AS (
               AND column_default IS NOT NULL)
          THEN '-- MISSING --' ELSE 'present' END,
          'State defaults to Maharashtra, so CGST/SGST vs IGST is silently wrong.'
+  UNION ALL
+  SELECT '124', 'sign-in blocked without a licence',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM pg_proc p
+             JOIN pg_namespace n ON n.oid = p.pronamespace
+            WHERE n.nspname = 'public' AND p.proname = 'user_has_any_license')
+         THEN 'present' ELSE '-- MISSING --' END,
+         'Un-licensed people can still sign in, so revoking a licence saves nothing.'
+  UNION ALL
+  SELECT '124', 'new workspaces seed Team Member, not Agent',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM pg_proc p
+             JOIN pg_namespace n ON n.oid = p.pronamespace
+            WHERE n.nspname = 'public' AND p.proname = 'create_workspace_for_user'
+              AND pg_get_functiondef(p.oid) LIKE '%Team Member%')
+         THEN 'present' ELSE '-- MISSING --' END,
+         'Every new workspace re-creates the old "Agent" role, undoing migration 119.'
   UNION ALL
   SELECT '122', 'two_factor_verified_at on user_sessions',
          CASE WHEN to_regclass('public.user_sessions') IS NULL

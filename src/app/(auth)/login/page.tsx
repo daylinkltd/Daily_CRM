@@ -34,10 +34,16 @@ function LoginPageInner() {
 
   const inviteToken = searchParams.get("invite");
 
+  const reason = searchParams.get("reason");
   const signedOutReason =
-    searchParams.get("reason") === "signed-in-elsewhere"
+    reason === "signed-in-elsewhere"
       ? "You were signed out because your account was used to sign in on another device. Only one device can be signed in at a time."
-      : searchParams.get("error");
+      : reason === "no-license"
+        // Says who can fix it, because the person reading this cannot.
+        // "Access denied" would send them to support; this sends them to
+        // the one person who can actually give the seat back.
+        ? "Your account does not have a licence, so it cannot be used to sign in. Your account owner or an admin can assign you one from Settings \u2192 Members. Nothing you created has been deleted."
+        : searchParams.get("error");
 
   useEffect(() => {
     if (inviteToken) {
