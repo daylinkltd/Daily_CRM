@@ -22,7 +22,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Tags, Eye, EyeOff, CheckSquare, Sparkles, Bookmark, Bug } from 'lucide-react';
+import { Loader2, Tags, Eye, EyeOff, CheckSquare, Sparkles, Bookmark, Bug, Trash2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { TaskComments } from '@/components/tasks/task-comments';
 import { TaskAttachments } from '@/components/tasks/task-attachments';
@@ -221,7 +221,7 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
         setStatusId('none');
         setTaskType(defaultProjectId ? 'PROJECT' : 'GENERAL');
         setProjectId(defaultProjectId || 'none');
-        setAssigneeId(activeMember?.id || 'none'); // Auto assign to self by default
+        setAssigneeId('none'); // Default to unassigned so explicit selection is respected
         setStartDate('');
         setDueDate('');
         setSprintId('none');
@@ -796,11 +796,37 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
           </div>
         )}
 
-        <DialogFooter className="pt-4 border-t border-border mt-auto">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving} className="border-border hover:bg-muted">Close</Button>
-          <Button type="submit" form="task-form" disabled={saving || !title.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            {saving && <Loader2 className="size-4 animate-spin mr-2" />} {task ? 'Save Changes' : 'Create Task'}
-          </Button>
+        <DialogFooter className="pt-4 border-t border-border mt-auto flex justify-between items-center w-full">
+          {task?.id ? (
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={saving}
+              onClick={async () => {
+                if (!confirm('Are you sure you want to delete this task?')) return;
+                setSaving(true);
+                try {
+                  const { error } = await supabase.from('tasks').delete().eq('id', task.id);
+                  if (error) throw error;
+                  toast.success('Task deleted successfully');
+                  onOpenChange(false);
+                  onSaved();
+                } catch (err: any) {
+                  toast.error(err.message || 'Failed to delete task');
+                } finally {
+                  setSaving(false);
+                }
+              }}
+            >
+              <Trash2 className="size-4 mr-1.5" /> Delete Task
+            </Button>
+          ) : <div />}
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving} className="border-border hover:bg-muted">Close</Button>
+            <Button type="submit" form="task-form" disabled={saving || !title.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              {saving && <Loader2 className="size-4 animate-spin mr-2" />} {task ? 'Save Changes' : 'Create Task'}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
 

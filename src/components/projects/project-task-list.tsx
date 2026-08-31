@@ -35,7 +35,8 @@ import {
   Layers,
   CornerDownRight,
   ChevronsUpDown,
-  Filter
+  Filter,
+  Trash2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -94,7 +95,7 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
           .select('*')
           .eq('project_id', projectId)
           .order('created_at', { ascending: true }),
-        fetch('/api/account/members').then((r) => r.json()).catch(() => ({ members: [] })),
+        fetch(`/api/account/members`).then((r) => r.json()).catch(() => ({ members: [] })),
       ]);
 
       const loadedTasks = tasksRes.data || [];
@@ -146,6 +147,20 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleDeleteTask = async (taskId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    try {
+      const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+      if (error) throw error;
+      toast.success('Task deleted successfully');
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to delete task');
+    }
+  };
 
   const toggleEpic = (epicId: string) => {
     setExpandedEpics((prev) => ({ ...prev, [epicId]: !prev[epicId] }));
@@ -561,6 +576,18 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                                     <span className="text-xs text-muted-foreground/50">-</span>
                                   )}
                                 </TableCell>
+
+                                {/* 7. Actions */}
+                                <TableCell className="py-2.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                  {canManage && (
+                                    <IconAction
+                                      icon={<Trash2 className="size-4" />}
+                                      label="Delete Task"
+                                      destructive
+                                      onClick={(e) => handleDeleteTask(t.id, e)}
+                                    />
+                                  )}
+                                </TableCell>
                               </TableRow>
 
                               {/* Sub-tasks */}
@@ -648,6 +675,16 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                                       </TableCell>
                                       <TableCell className="py-2 px-4 text-right text-xs text-muted-foreground font-mono">
                                         {st.due_date ? format(new Date(st.due_date), 'MMM d') : '-'}
+                                      </TableCell>
+                                      <TableCell className="py-2 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                        {canManage && (
+                                          <IconAction
+                                            icon={<Trash2 className="size-4" />}
+                                            label="Delete Task"
+                                            destructive
+                                            onClick={(e) => handleDeleteTask(st.id, e)}
+                                          />
+                                        )}
                                       </TableCell>
                                     </TableRow>
                                   );

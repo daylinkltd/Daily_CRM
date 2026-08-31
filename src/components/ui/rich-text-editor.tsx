@@ -230,6 +230,30 @@ export function RichTextEditor({
    */
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     if (disabled) return;
+    const items = Array.from(e.clipboardData.items);
+    const imageItem = items.find((item) => item.type.startsWith("image/"));
+
+    if (imageItem) {
+      e.preventDefault();
+      const file = imageItem.getAsFile();
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const src = evt.target?.result as string;
+          if (src) {
+            document.execCommand(
+              "insertHTML",
+              false,
+              `<img src="${src}" alt="Pasted Image" class="max-w-full h-auto rounded my-2 border border-border" />`
+            );
+            handleInput();
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+      return;
+    }
+
     const html = e.clipboardData.getData("text/html");
     const text = e.clipboardData.getData("text/plain");
     if (!html && !text) return;
