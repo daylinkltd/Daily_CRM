@@ -4,6 +4,8 @@ import { useDraggable } from '@dnd-kit/core';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 
+import { plainTextFromHtml } from '@/lib/markdown-utils';
+
 interface KanbanTaskProps {
   task: any;
   onEdit: () => void;
@@ -49,7 +51,7 @@ export function KanbanTask({ task, onEdit, isOverlay }: KanbanTaskProps) {
       </div>
       
       {task.description && (
-        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{task.description}</p>
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{plainTextFromHtml(task.description)}</p>
       )}
       
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">

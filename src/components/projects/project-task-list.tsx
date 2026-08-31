@@ -162,6 +162,22 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
     }
   };
 
+  const handleDeleteEpic = async (epicId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!confirm('Are you sure you want to delete this epic? Tasks inside will be unassigned from this epic.')) return;
+    try {
+      // Unlink tasks attached to this epic first
+      await supabase.from('tasks').update({ epic_id: null }).eq('epic_id', epicId);
+      const { error } = await supabase.from('epics').delete().eq('id', epicId);
+      if (error) throw error;
+      toast.success('Epic deleted successfully');
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to delete epic');
+    }
+  };
+
   const toggleEpic = (epicId: string) => {
     setExpandedEpics((prev) => ({ ...prev, [epicId]: !prev[epicId] }));
   };
@@ -389,8 +405,8 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                               {group.tasks.length} {group.tasks.length === 1 ? 'item' : 'items'}
                             </span>
 
-                            {/* Quick-add button */}
-                            <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
+                             {/* Quick-add button & Delete Epic button */}
+                            <div className="ml-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                               <DropdownMenu>
                                 <DropdownMenuTrigger
                                   render={
@@ -442,6 +458,16 @@ export function ProjectTaskList({ projectId, canManage }: ProjectTaskListProps) 
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
+
+                              {canManage && group.id !== 'no-epic' && (
+                                <IconAction
+                                  icon={<Trash2 className="size-3.5" />}
+                                  label="Delete Epic"
+                                  destructive
+                                  size="xs"
+                                  onClick={(e) => handleDeleteEpic(group.id, e)}
+                                />
+                              )}
                             </div>
                           </div>
                         </TableCell>

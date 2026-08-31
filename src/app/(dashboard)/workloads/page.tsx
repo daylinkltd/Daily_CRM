@@ -100,23 +100,21 @@ export default function WorkloadsPage() {
       // Filter tasks by horizon and assign hours
       tasks?.forEach(task => {
         if (!task.assigned_workspace_member_id || !memberMap.has(task.assigned_workspace_member_id)) return;
-        if (!task.estimated_hours || task.estimated_hours <= 0) return;
 
-        // If task has no dates, assume it's ongoing and count it? Let's count it to be safe, 
-        // or strictly filter. We will strictly filter if it has dates.
+        // If task has dates, check intersection with horizon window
         if (task.start_date || task.due_date) {
           const start = task.start_date ? parseISO(task.start_date) : today;
           const end = task.due_date ? parseISO(task.due_date) : addMonths(today, 1);
           
-          // Check intersection with our horizon window
           if (isAfter(start, endHorizon) || isBefore(end, today)) {
-             return; // Task is completely outside the window
+             return; // Task is outside the window
           }
         }
 
         const data = memberMap.get(task.assigned_workspace_member_id);
-        data.assignedHours += Number(task.estimated_hours);
-        data.tasks.push(task);
+        const est = task.estimated_hours && Number(task.estimated_hours) > 0 ? Number(task.estimated_hours) : 8;
+        data.assignedHours += est;
+        data.tasks.push({ ...task, displayEst: task.estimated_hours ? `${task.estimated_hours}h` : '8h (def)' });
       });
 
       // Calculate utilization
@@ -239,7 +237,7 @@ export default function WorkloadsPage() {
                             </span>
                           </div>
                           <div className="text-right">
-                            <span className="font-semibold text-primary">{t.estimated_hours}h</span>
+                            <span className="font-semibold text-primary">{t.displayEst}</span>
                           </div>
                         </div>
                       ))}

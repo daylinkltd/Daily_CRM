@@ -244,14 +244,24 @@ export function EpicDetailsModal({
 
               <div className="flex items-center gap-2">
                 <IconAction
-                  label="View"
-                  icon={<Eye className="size-4" />}
+                  label="Delete Epic"
+                  icon={<Trash2 className="size-4 text-destructive" />}
                   variant="ghost"
-                  className="size-8 text-muted-foreground"
+                  destructive
+                  className="size-8"
+                  onClick={async () => {
+                    if (!epicId || !confirm('Are you sure you want to delete this epic? Tasks inside will be unassigned from this epic.')) return;
+                    try {
+                      await supabase.from('tasks').update({ epic_id: null }).eq('epic_id', epicId);
+                      const { error } = await supabase.from('epics').delete().eq('id', epicId);
+                      if (error) throw error;
+                      toast.success('Epic deleted successfully');
+                      onOpenChange(false);
+                    } catch (err: any) {
+                      toast.error(err.message || 'Failed to delete epic');
+                    }
+                  }}
                 />
-                <Button variant="ghost" size="icon" className="size-8 text-muted-foreground">
-                  <Share2 className="size-4" />
-                </Button>
                 <IconAction
                   label="Close"
                   icon={<X className="size-4" />}

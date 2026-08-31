@@ -217,3 +217,16 @@ export function markdownToHtml(md: string): string {
   // markdown can embed raw HTML too.
   return sanitizeHtml(processed.join('\n'));
 }
+
+/**
+ * Strips HTML tags and returns clean plain text for card previews.
+ */
+export function plainTextFromHtml(htmlOrMd: string): string {
+  if (!htmlOrMd) return "";
+  return htmlOrMd
+    .replace(/<img[^>]*>/gi, "[Image]")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
