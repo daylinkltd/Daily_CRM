@@ -299,12 +299,24 @@ export function TaskForm({ open, onOpenChange, task, defaultProjectId, defaultCo
     
     try {
       const currentStatusObj = projectStatuses.find(s => s.id === statusId);
+      const mapTaskTypeToDb = (type: string) => {
+        switch (type) {
+          case 'TASK':
+          case 'FEATURE':
+          case 'STORY':
+          case 'BUG':
+            return 'PROJECT';
+          default:
+            return ['PROJECT', 'GENERAL', 'SUPPORT', 'MEETING', 'TRAINING', 'ADMIN'].includes(type) ? type : 'PROJECT';
+        }
+      };
+
       const payload: any = {
         title: title.trim(),
         description: description.trim() || null,
         priority,
         status_id: statusId === 'none' ? null : statusId,
-        task_type: ['TASK', 'FEATURE', 'STORY', 'BUG'].includes(taskType) ? taskType : 'TASK',
+        task_type: mapTaskTypeToDb(taskType),
         project_id: projectId === 'none' ? null : projectId,
         assigned_workspace_member_id: assigneeId === 'none' ? null : assigneeId,
         start_date: startDate || null,

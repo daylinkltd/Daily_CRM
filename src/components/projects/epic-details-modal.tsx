@@ -147,7 +147,7 @@ export function EpicDetailsModal({
           epic_id: epicId,
           title: newChildTitle.trim(),
           status_id: defaultStatus,
-          task_type: 'STORY',
+          task_type: 'PROJECT',
         })
         .select('*, project_statuses(id, name, color, category)')
         .single();
