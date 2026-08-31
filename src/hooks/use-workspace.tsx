@@ -14,6 +14,7 @@ import { withDerivedLegacyPermissions } from "@/lib/auth/legacy-permissions";
 import { DEFAULT_CURRENCY } from "@/lib/currency";
 import {
   applyPlatformFlags,
+  applyWorkspaceModules,
   deriveModuleAccess,
   type ModuleAccess,
   type PlatformModuleFlags,
@@ -43,6 +44,10 @@ export interface Workspace {
    *  it reported a saved address as still missing. */
   company_name?: string | null;
   company_address?: string | null;
+  /** Modules this business chose to use. Null/empty means all of them. */
+  enabled_modules?: string[] | null;
+  business_type?: string | null;
+  team_size?: string | null;
 }
 
 export interface WorkspaceMember {
@@ -247,7 +252,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             logo_url,
             default_currency,
             company_name,
-            company_address
+            company_address,
+            enabled_modules,
+            business_type,
+            team_size
           )
         `)
         .eq("user_id", user.id);
@@ -481,11 +489,22 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [permissions]
   );
 
-  // Derive per-module access from the enum role + raw custom-role JSONB.
-  // Owner/admin ⇒ all modules; role-less members ⇒ DEFAULT_MODULE_ACCESS.
+  // Three authorities, narrowest wins, applied outermost-last:
+  //   role        — who on the team may see this module
+  //   platform    — what we allow this tenant to have at all
+  //   workspace   — which of those this business actually uses
+  //
+  // The workspace layer is applied last and does NOT bypass for owners:
+  // a module the business switched off is off for the person who
+  // switched it off too, and they turn it back on where they turned it
+  // off (Settings → Modules).
   const moduleAccess = useMemo(
-    () => applyPlatformFlags(deriveModuleAccess(activeRole, rolePermissions), platformFlags),
-    [activeRole, rolePermissions, platformFlags]
+    () =>
+      applyWorkspaceModules(
+        applyPlatformFlags(deriveModuleAccess(activeRole, rolePermissions), platformFlags),
+        activeWorkspace?.enabled_modules,
+      ),
+    [activeRole, rolePermissions, platformFlags, activeWorkspace?.enabled_modules]
   );
 
   return (

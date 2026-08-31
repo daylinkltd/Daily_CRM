@@ -198,3 +198,44 @@ export function applyPlatformFlags(
     projects: access.projects && flags.enable_projects !== false,
   };
 }
+
+// ────────────────────────────────────────────────────────────
+// What the BUSINESS chose to use.
+// ────────────────────────────────────────────────────────────
+
+/**
+ * Narrow access to the modules this workspace actually turned on.
+ *
+ * A third authority, distinct from the two above and answering a
+ * different question:
+ *
+ *   - the PLATFORM decides what a tenant is allowed to have (flags);
+ *   - the BUSINESS decides which of those it actually uses (this);
+ *   - the OWNER decides who on the team sees each one (roles).
+ *
+ * Chosen at signup from a handful of questions and changed afterwards in
+ * Settings → Modules. It exists because the product keeps growing
+ * modules and most businesses want a fraction of them — without this,
+ * a restaurant's sidebar carries a project tracker forever.
+ *
+ * Like the platform flags, this does NOT bypass for owners: a module
+ * the business switched off is off for everyone, including the person
+ * who switched it off. They turn it back on in settings, where they
+ * turned it off.
+ *
+ * NULL OR EMPTY MEANS EVERYTHING. Every workspace that existed before
+ * this feature has no selection stored, and must not silently lose its
+ * sidebar. An explicit empty list is treated the same way rather than
+ * hiding every module and leaving no way back in.
+ */
+export function applyWorkspaceModules(
+  access: ModuleAccess,
+  enabled: readonly string[] | null | undefined,
+): ModuleAccess {
+  if (!enabled || enabled.length === 0) return access;
+  const on = new Set(enabled);
+  return MODULE_KEYS.reduce<ModuleAccess>(
+    (acc, key) => ({ ...acc, [key]: access[key] && on.has(key) }),
+    { ...access },
+  );
+}

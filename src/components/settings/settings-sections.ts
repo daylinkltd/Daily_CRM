@@ -40,6 +40,7 @@ export const SETTINGS_SECTIONS = [
   'hr',
   'retail',
   'members',
+  'modules',
   'billing',
   'api',
   'catalog',
@@ -79,6 +80,7 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   // The company itself — identity that appears on outgoing documents.
   branding: { id: 'branding', label: 'Company branding', icon: Building2, group: 'company', blurb: 'Logo, company details and the letterhead used on every document' },
   members: { id: 'members', label: 'Team & access', icon: UsersRound, group: 'company', blurb: 'Members, invitations, roles and permissions' },
+  modules: { id: 'modules', label: 'Modules', icon: LayoutGrid, group: 'company', blurb: 'Which parts of the product this business uses' },
 
   // Reusable content shared across every module.
   templates: { id: 'templates', label: 'Templates', icon: FileText, group: 'content', blurb: 'Messages, emails and letters for every module' },

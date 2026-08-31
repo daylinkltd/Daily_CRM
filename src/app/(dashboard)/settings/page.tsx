@@ -23,6 +23,7 @@ import { BrandingSettings } from '@/components/settings/branding-settings';
 import { CopyFromWorkspacePanel } from '@/components/settings/copy-from-workspace-panel';
 import { IdentifiersPanel } from '@/components/settings/identifiers-panel';
 import { BillingPanel } from '@/components/settings/billing-panel';
+import { ModulesPanel } from '@/components/settings/modules-panel';
 import { HRSettingsPanel } from '@/components/settings/hr-settings-panel';
 import { TemplateLibraryPanel } from '@/components/settings/template-library-panel';
 import { AttendancePolicyPanel } from '@/components/settings/attendance-policy-panel';
@@ -136,6 +137,8 @@ export default function SettingsPage() {
             ]}
           />
         );
+      case 'modules':
+        return <ModulesPanel />;
       case 'billing':
         return <BillingPanel />;
       case 'api':

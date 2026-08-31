@@ -66,7 +66,9 @@ WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
     ('124', 'function','set_user_license',
        'Granting/revoking a licence from the members page.'),
     ('124', 'function','assert_may_create_workspace',
-       'Any member can create workspaces under the owner''s plan and seat pool.')
+       'Any member can create workspaces under the owner''s plan and seat pool.'),
+    ('125', 'function','set_workspace_modules',
+       'Businesses cannot choose their modules; every sidebar shows all of them.')
 ),
 objects AS (
   SELECT
@@ -135,6 +137,13 @@ details AS (
               AND column_default IS NOT NULL)
          THEN '-- MISSING --' ELSE 'present' END,
          'State defaults to Maharashtra, so CGST/SGST vs IGST is silently wrong.'
+  UNION ALL
+  SELECT '125', 'workspaces can record their modules',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'workspaces' AND column_name = 'enabled_modules')
+         THEN 'present' ELSE '-- MISSING --' END,
+         'The onboarding module picker has nowhere to save, so it silently does nothing.'
   UNION ALL
   SELECT '124', 'sign-in blocked without a licence',
          CASE WHEN EXISTS (

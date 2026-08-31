@@ -25,6 +25,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { INDUSTRY_TEMPLATES } from "@/app/(dashboard)/settings/retail/page";
+import {
+  ModulePicker,
+  initialSelection,
+  type ModuleSelection,
+} from "@/components/workspace/module-picker";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
 function OnboardingInner() {
@@ -48,6 +53,13 @@ function OnboardingInner() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [selectedIndustryTemplate, setSelectedIndustryTemplate] = useState("GENERAL_RETAIL");
+  // Which modules this business will actually use. Asked here rather
+  // than left to discovery: a new customer who lands in a sidebar full
+  // of tools for other people's businesses concludes the product is for
+  // other people.
+  const [moduleSelection, setModuleSelection] = useState<ModuleSelection>(() =>
+    initialSelection(),
+  );
 
   // Action states
   const [loading, setLoading] = useState(false);
@@ -170,6 +182,20 @@ function OnboardingInner() {
         throw new Error("Failed to create workspace.");
       }
       workspaceId = workspace.id;
+
+      // Record the module selection immediately, so the very first
+      // sidebar they see is already theirs. A failure here is not fatal:
+      // the workspace exists, and the selection is changeable in
+      // Settings → Modules, which is where the picker told them to go.
+      const { error: moduleError } = await supabase.rpc("set_workspace_modules", {
+        p_workspace: workspaceId,
+        p_modules: moduleSelection.modules,
+        p_business_type: moduleSelection.businessType,
+        p_team_size: moduleSelection.teamSize,
+      });
+      if (moduleError) {
+        console.warn("[onboarding] module selection did not save:", moduleError.message);
+      }
 
       // Save industry template settings to localStorage
       if (typeof window !== "undefined") {
@@ -504,7 +530,9 @@ function OnboardingInner() {
           )}
 
           {step === 3 && (
-            <form onSubmit={handleOnboardingComplete} className="space-y-6 max-w-md mx-auto">
+            // Wider than the other steps: the module cards are a grid, and
+            // at max-w-md they collapse to one cramped column.
+            <form onSubmit={handleOnboardingComplete} className="space-y-6 max-w-2xl mx-auto">
               <div className="text-center">
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4 text-primary">
                   <Building2 className="h-6 w-6" />
@@ -579,6 +607,14 @@ function OnboardingInner() {
                     <strong>Preset Features:</strong> {INDUSTRY_TEMPLATES.find(t => t.id === selectedIndustryTemplate)?.desc}
                   </p>
                 </div>
+              </div>
+
+              {/* Which modules this business will use. Deliberately the
+                  same component as the create-workspace dialog and
+                  Settings → Modules, so the recommendation someone sees
+                  here is the one they see when they revisit it. */}
+              <div className="rounded-xl border border-border bg-muted/20 p-4">
+                <ModulePicker value={moduleSelection} onChange={setModuleSelection} />
               </div>
 
               {/* Selected Plan limits summary card */}

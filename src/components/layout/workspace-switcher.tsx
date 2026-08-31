@@ -22,6 +22,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  ModulePicker,
+  initialSelection,
+  type ModuleSelection,
+} from "@/components/workspace/module-picker";
+import { createClient } from "@/lib/supabase/client";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
@@ -53,6 +59,10 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  // A second workspace is usually a different part of the same business
+  // -- a new branch, a new venture -- so it gets asked the same two
+  // questions rather than inheriting the first one's module set.
+  const [selection, setSelection] = useState<ModuleSelection>(() => initialSelection());
 
   const maxWorkspaces = activeWorkspace?.plan_limits?.max_workspaces;
   const isLimitReached = maxWorkspaces !== null && maxWorkspaces !== undefined && workspaces.length >= maxWorkspaces;
@@ -65,9 +75,29 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
     try {
       const created = await createWorkspace(newWorkspaceName.trim());
       if (created) {
+        // Applied after creation rather than inside it: the workspace is
+        // the thing that must exist, and a module selection that failed
+        // to save is recoverable in settings, whereas a workspace that
+        // failed to create is not recoverable at all.
+        const { error: moduleError } = await createClient().rpc(
+          "set_workspace_modules",
+          {
+            p_workspace: created.id,
+            p_modules: selection.modules,
+            p_business_type: selection.businessType,
+            p_team_size: selection.teamSize,
+          },
+        );
+        if (moduleError) {
+          toast.warning(
+            "Workspace created, but the module selection did not save. Set it in Settings → Modules.",
+          );
+        } else {
+          toast.success("Workspace created");
+        }
         setNewWorkspaceName("");
+        setSelection(initialSelection());
         setIsDialogOpen(false);
-        toast.success("Workspace created");
       }
     } catch (error: any) {
       console.error("Error creating workspace:", error);
@@ -368,6 +398,10 @@ export function WorkspaceSwitcher({ hideText = false, minimalist = false }: { hi
                     required
                     autoFocus
                   />
+                </div>
+
+                <div className="max-h-[55vh] overflow-y-auto pr-1">
+                  <ModulePicker value={selection} onChange={setSelection} />
                 </div>
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
