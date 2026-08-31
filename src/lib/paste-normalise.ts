@@ -83,9 +83,9 @@ export function normalisePastedHtml(html: string): string {
     }
   }
 
-  // A <b>/<strong> with nothing but whitespace inside is noise.
+  // A <b>/<strong> with nothing but whitespace inside is noise (unless it contains media like images).
   for (const el of Array.from(doc.body.querySelectorAll("b, strong"))) {
-    if ((el.textContent ?? "").trim() === "") unwrap(el);
+    if ((el.textContent ?? "").trim() === "" && el.querySelectorAll("img").length === 0) unwrap(el);
   }
 
   return doc.body.innerHTML;

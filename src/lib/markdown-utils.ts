@@ -33,7 +33,7 @@ const ALLOWED_ATTRS: Record<string, Set<string>> = {
   img: new Set(["class", "src", "alt", "width", "height", "style"]),
 };
 
-const SAFE_URL = /^(https?:|mailto:|tel:|#|\/|data:image\/)/i;
+const SAFE_URL = /^(https?:|mailto:|tel:|#|\/|data:image\/[a-z0-9\+\-\;\,\=]+)/i;
 
 /**
  * Strip anything executable from an HTML string using an allowlist.
@@ -83,7 +83,7 @@ export function sanitizeHtml(html: string): string {
           child.removeAttribute(attr.name);
           continue;
         }
-        if ((name === "href" || name === "src") && !SAFE_URL.test(attr.value.trim())) {
+        if ((name === "href" || name === "src") && !SAFE_URL.test(attr.value.trim()) && !attr.value.trim().startsWith("data:image/")) {
           child.removeAttribute(attr.name);
         }
       }

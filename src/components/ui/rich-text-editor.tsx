@@ -113,9 +113,7 @@ export function RichTextEditor({
       return;
     }
     const formattedHtml = markdownToHtml(value || "");
-    if (editorRef.current.innerHTML !== formattedHtml) {
-      editorRef.current.innerHTML = formattedHtml;
-    }
+    editorRef.current.innerHTML = formattedHtml;
   }, [value]);
 
   /**
@@ -246,7 +244,9 @@ export function RichTextEditor({
               false,
               `<img src="${src}" alt="Pasted Image" class="max-w-full h-auto rounded my-2 border border-border" />`
             );
-            handleInput();
+            setTimeout(() => {
+              handleInput();
+            }, 50);
           }
         };
         reader.readAsDataURL(file);
@@ -259,7 +259,8 @@ export function RichTextEditor({
     if (!html && !text) return;
     e.preventDefault();
     if (html) {
-      document.execCommand("insertHTML", false, sanitizeHtml(normalisePastedHtml(html)));
+      const clean = sanitizeHtml(normalisePastedHtml(html));
+      document.execCommand("insertHTML", false, clean);
     } else {
       document.execCommand("insertText", false, text);
     }
