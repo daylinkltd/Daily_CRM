@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bookmark, Plus, Search, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,15 +8,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
+interface BrandItem {
+  id: string;
+  name: string;
+  manufacturer: string;
+  category: string;
+}
+
 export default function BarBrandsPage() {
-  const [brands, setBrands] = useState([
-    { id: '1', name: 'Glenfiddich', manufacturer: 'William Grant & Sons', category: 'Single Malt' },
-    { id: '2', name: "Jack Daniel's", manufacturer: 'Brown-Forman', category: 'Tennessee Whiskey' },
-    { id: '3', name: 'Old Monk', manufacturer: 'Mohan Meakin', category: 'Dark Rum' },
-    { id: '4', name: 'Absolut', manufacturer: 'Pernod Ricard', category: 'Swedish Vodka' },
-    { id: '5', name: 'Heineken', manufacturer: 'Heineken N.V.', category: 'Lager Beer' },
-    { id: '6', name: 'Chivas Regal', manufacturer: 'Pernod Ricard', category: 'Blended Scotch' },
-  ]);
+  const [brands, setBrands] = useState<BrandItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_brands_master');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return [
+      { id: '1', name: 'Glenfiddich', manufacturer: 'William Grant & Sons', category: 'Single Malt' },
+      { id: '2', name: "Jack Daniel's", manufacturer: 'Brown-Forman', category: 'Tennessee Whiskey' },
+      { id: '3', name: 'Old Monk', manufacturer: 'Mohan Meakin', category: 'Dark Rum' },
+      { id: '4', name: 'Absolut', manufacturer: 'Pernod Ricard', category: 'Swedish Vodka' },
+      { id: '5', name: 'Heineken', manufacturer: 'Heineken N.V.', category: 'Lager Beer' },
+      { id: '6', name: 'Chivas Regal', manufacturer: 'Pernod Ricard', category: 'Blended Scotch' },
+    ];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bar_brands_master', JSON.stringify(brands));
+    }
+  }, [brands]);
 
   const [search, setSearch] = useState('');
   const [newBrandName, setNewBrandName] = useState('');

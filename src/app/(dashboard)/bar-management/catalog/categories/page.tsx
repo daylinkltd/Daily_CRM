@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tag, Plus, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,40 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
+interface CategoryItem {
+  id: string;
+  name: string;
+  excise: string;
+  taxRate: string;
+}
+
 export default function BarCategoriesPage() {
-  const [categories, setCategories] = useState([
-    { id: '1', name: 'SINGLE MALT WHISKY', excise: 'IMFL', taxRate: '18%' },
-    { id: '2', name: 'BLENDED SCOTCH', excise: 'IMFL', taxRate: '18%' },
-    { id: '3', name: 'DARK RUM', excise: 'IMFL', taxRate: '18%' },
-    { id: '4', name: 'VODKA & SPIRITS', excise: 'IMFL', taxRate: '18%' },
-    { id: '5', name: 'CRAFT DRAFT BEER', excise: 'CRAFT BEER', taxRate: '18%' },
-    { id: '6', name: 'IMPORTED WINE', excise: 'IFL', taxRate: '18%' },
-  ]);
+  const [categories, setCategories] = useState<CategoryItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_categories_master');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return [
+      { id: '1', name: 'SINGLE MALT WHISKY', excise: 'IMFL', taxRate: '18%' },
+      { id: '2', name: 'BLENDED SCOTCH', excise: 'IMFL', taxRate: '18%' },
+      { id: '3', name: 'DARK RUM', excise: 'IMFL', taxRate: '18%' },
+      { id: '4', name: 'VODKA & SPIRITS', excise: 'IMFL', taxRate: '18%' },
+      { id: '5', name: 'CRAFT DRAFT BEER', excise: 'CRAFT BEER', taxRate: '18%' },
+      { id: '6', name: 'IMPORTED WINE', excise: 'IFL', taxRate: '18%' },
+    ];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bar_categories_master', JSON.stringify(categories));
+    }
+  }, [categories]);
 
   const [search, setSearch] = useState('');
   const [newCatName, setNewCatName] = useState('');

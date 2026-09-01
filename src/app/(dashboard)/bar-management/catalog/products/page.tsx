@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wine, Plus, Search, Tag, Scale, Package, Check, Trash2, Edit2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,76 +28,122 @@ interface LiquorProduct {
 }
 
 export default function BarCatalogProductsPage() {
-  const [products, setProducts] = useState<LiquorProduct[]>([
-    {
-      id: '1',
-      name: 'Glenfiddich 12 Single Malt',
-      category: 'WHISKY',
-      brand: 'Glenfiddich',
-      bottleSizeMl: 750,
-      bottlesPerCase: 12,
-      prices: { '30ml': 450, '60ml': 850, bottle: 8500 },
-    },
-    {
-      id: '2',
-      name: "Jack Daniel's Old No. 7",
-      category: 'WHISKY',
-      brand: "Jack Daniel's",
-      bottleSizeMl: 750,
-      bottlesPerCase: 12,
-      prices: { '30ml': 320, '60ml': 600, bottle: 5800 },
-    },
-    {
-      id: '3',
-      name: 'Old Monk Supreme Rum',
-      category: 'RUM',
-      brand: 'Old Monk',
-      bottleSizeMl: 750,
-      bottlesPerCase: 12,
-      prices: { '30ml': 150, '60ml': 280, bottle: 2200 },
-    },
-    {
-      id: '4',
-      name: 'Absolut Swedish Vodka',
-      category: 'VODKA',
-      brand: 'Absolut',
-      bottleSizeMl: 750,
-      bottlesPerCase: 12,
-      prices: { '30ml': 260, '60ml': 490, bottle: 4600 },
-    },
-    {
-      id: '5',
-      name: 'Heineken Lager Beer',
-      category: 'BEER',
-      brand: 'Heineken',
-      bottleSizeMl: 500,
-      bottlesPerCase: 24,
-      prices: { can: 280 },
-    },
-  ]);
+  const [products, setProducts] = useState<LiquorProduct[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_liquor_products');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return [
+      {
+        id: '1',
+        name: 'Glenfiddich 12 Single Malt',
+        category: 'WHISKY',
+        brand: 'Glenfiddich',
+        bottleSizeMl: 750,
+        bottlesPerCase: 12,
+        prices: { '30ml': 450, '60ml': 850, bottle: 8500 },
+      },
+      {
+        id: '2',
+        name: "Jack Daniel's Old No. 7",
+        category: 'WHISKY',
+        brand: "Jack Daniel's",
+        bottleSizeMl: 750,
+        bottlesPerCase: 12,
+        prices: { '30ml': 320, '60ml': 600, bottle: 5800 },
+      },
+      {
+        id: '3',
+        name: 'Old Monk Supreme Rum',
+        category: 'RUM',
+        brand: 'Old Monk',
+        bottleSizeMl: 750,
+        bottlesPerCase: 12,
+        prices: { '30ml': 150, '60ml': 280, bottle: 2200 },
+      },
+      {
+        id: '4',
+        name: 'Absolut Swedish Vodka',
+        category: 'VODKA',
+        brand: 'Absolut',
+        bottleSizeMl: 750,
+        bottlesPerCase: 12,
+        prices: { '30ml': 260, '60ml': 490, bottle: 4600 },
+      },
+      {
+        id: '5',
+        name: 'Heineken Lager Beer',
+        category: 'BEER',
+        brand: 'Heineken',
+        bottleSizeMl: 500,
+        bottlesPerCase: 24,
+        prices: { can: 280 },
+      },
+    ];
+  });
 
-  const [brandList, setBrandList] = useState<string[]>([
-    'Glenfiddich',
-    "Jack Daniel's",
-    'Old Monk',
-    'Absolut',
-    'Heineken',
-    'Kingfisher',
-    'Chivas Regal',
-    'Royal Salute',
-    'Bacardi',
-    'Smirnoff',
-  ]);
+  const [brandList, setBrandList] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_liquor_brands');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return [
+      'Glenfiddich',
+      "Jack Daniel's",
+      'Old Monk',
+      'Absolut',
+      'Heineken',
+      'Kingfisher',
+      'Chivas Regal',
+      'Royal Salute',
+      'Bacardi',
+      'Smirnoff',
+    ];
+  });
 
-  const [categoryList, setCategoryList] = useState<string[]>([
-    'WHISKY',
-    'RUM',
-    'VODKA',
-    'GIN',
-    'TEQUILA',
-    'BEER',
-    'WINE',
-  ]);
+  const [categoryList, setCategoryList] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_liquor_categories');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return ['WHISKY', 'RUM', 'VODKA', 'GIN', 'TEQUILA', 'BEER', 'WINE'];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bar_liquor_products', JSON.stringify(products));
+    }
+  }, [products]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bar_liquor_brands', JSON.stringify(brandList));
+    }
+  }, [brandList]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bar_liquor_categories', JSON.stringify(categoryList));
+    }
+  }, [categoryList]);
 
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);

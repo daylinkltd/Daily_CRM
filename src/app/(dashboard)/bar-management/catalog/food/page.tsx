@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   UtensilsCrossed,
   Plus,
@@ -79,117 +79,135 @@ export default function BarFoodCatalogPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedItemForDetails, setSelectedItemForDetails] = useState<FoodItem | null>(null);
 
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([
-    {
-      id: '1',
-      name: 'Paneer Tikka Tandoori',
-      category: 'STARTERS',
-      dietaryType: 'VEG',
-      kitchenStation: 'TANDOOR',
-      prepTimeMinutes: 18,
-      spicinessLevel: 2,
-      allergens: ['Dairy'],
-      basePrice: 280,
-      branchPrices: { 'Main Branch': 280, 'Rooftop Bar': 320 },
-      isAvailable: true,
-      variants: [
-        { id: 'v1', name: 'Half Plate (4 Pcs)', priceOffset: -100 },
-        { id: 'v2', name: 'Full Plate (8 Pcs)', priceOffset: 0 },
-      ],
-      modifierGroups: [
-        {
-          id: 'mg1',
-          groupName: 'Extra Dips & Sauce',
-          minSelection: 0,
-          maxSelection: 2,
-          options: [
-            { id: 'mo1', name: 'Mint Chutney', price: 20 },
-            { id: 'mo2', name: 'Extra Butter Pour', price: 30, ingredientName: 'Butter', ingredientQty: '25g' },
-          ],
-        },
-      ],
-      recipeBom: [
-        { ingredientName: 'Fresh Cottage Cheese (Paneer)', quantity: '200g' },
-        { ingredientName: 'Capsicum & Diced Onion', quantity: '80g' },
-        { ingredientName: 'Tandoori Masala & Mustard Oil', quantity: '30g' },
-      ],
-    },
-    {
-      id: '2',
-      name: 'Butter Chicken Murgh Khas',
-      category: 'MAIN_COURSE',
-      dietaryType: 'NON_VEG',
-      kitchenStation: 'MAIN_KITCHEN',
-      prepTimeMinutes: 25,
-      spicinessLevel: 1,
-      allergens: ['Dairy', 'Nuts'],
-      basePrice: 380,
-      branchPrices: { 'Main Branch': 380, 'Rooftop Bar': 420 },
-      isAvailable: true,
-      variants: [
-        { id: 'v3', name: 'Half Portion', priceOffset: -140 },
-        { id: 'v4', name: 'Full Portion', priceOffset: 0 },
-      ],
-      modifierGroups: [
-        {
-          id: 'mg2',
-          groupName: 'Bread Accompanying',
-          minSelection: 0,
-          maxSelection: 3,
-          options: [
-            { id: 'mo3', name: 'Butter Naan', price: 60 },
-            { id: 'mo4', name: 'Garlic Roti', price: 40 },
-          ],
-        },
-      ],
-      recipeBom: [
-        { ingredientName: 'Raw Bone-in Chicken', quantity: '350g' },
-        { ingredientName: 'Tomato Cashew Gravy Base', quantity: '250ml' },
-        { ingredientName: 'Amul Fresh Cream', quantity: '40ml' },
-      ],
-    },
-    {
-      id: '3',
-      name: 'Chilli Chicken Dry (Indo-Chinese)',
-      category: 'STARTERS',
-      dietaryType: 'NON_VEG',
-      kitchenStation: 'CHINESE',
-      prepTimeMinutes: 15,
-      spicinessLevel: 3,
-      allergens: ['Soy', 'Gluten'],
-      basePrice: 310,
-      branchPrices: { 'Main Branch': 310, 'Rooftop Bar': 350 },
-      isAvailable: true,
-      variants: [
-        { id: 'v5', name: 'Standard Portion', priceOffset: 0 },
-      ],
-      modifierGroups: [],
-      recipeBom: [
-        { ingredientName: 'Chicken Breast Cubes', quantity: '250g' },
-        { ingredientName: 'Dark Soy & Chilli Sauce', quantity: '40ml' },
-        { ingredientName: 'Spring Onion & Capsicum', quantity: '60g' },
-      ],
-    },
-    {
-      id: '4',
-      name: 'Crispy Salt & Pepper Mushrooms',
-      category: 'STARTERS',
-      dietaryType: 'VEG',
-      kitchenStation: 'PANTRY',
-      prepTimeMinutes: 12,
-      spicinessLevel: 1,
-      allergens: ['Gluten'],
-      basePrice: 240,
-      branchPrices: { 'Main Branch': 240, 'Rooftop Bar': 270 },
-      isAvailable: true,
-      variants: [],
-      modifierGroups: [],
-      recipeBom: [
-        { ingredientName: 'Button Mushrooms', quantity: '200g' },
-        { ingredientName: 'Crushed Black Pepper & Cornflour', quantity: '30g' },
-      ],
-    },
-  ]);
+  const [foodItems, setFoodItems] = useState<FoodItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_food_catalog_items');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return [
+      {
+        id: '1',
+        name: 'Paneer Tikka Tandoori',
+        category: 'STARTERS',
+        dietaryType: 'VEG',
+        kitchenStation: 'TANDOOR',
+        prepTimeMinutes: 18,
+        spicinessLevel: 2,
+        allergens: ['Dairy'],
+        basePrice: 280,
+        branchPrices: { 'Main Branch': 280, 'Rooftop Bar': 320 },
+        isAvailable: true,
+        variants: [
+          { id: 'v1', name: 'Half Plate (4 Pcs)', priceOffset: -100 },
+          { id: 'v2', name: 'Full Plate (8 Pcs)', priceOffset: 0 },
+        ],
+        modifierGroups: [
+          {
+            id: 'mg1',
+            groupName: 'Extra Dips & Sauce',
+            minSelection: 0,
+            maxSelection: 2,
+            options: [
+              { id: 'mo1', name: 'Mint Chutney', price: 20 },
+              { id: 'mo2', name: 'Extra Butter Pour', price: 30, ingredientName: 'Butter', ingredientQty: '25g' },
+            ],
+          },
+        ],
+        recipeBom: [
+          { ingredientName: 'Fresh Cottage Cheese (Paneer)', quantity: '200g' },
+          { ingredientName: 'Capsicum & Diced Onion', quantity: '80g' },
+          { ingredientName: 'Tandoori Masala & Mustard Oil', quantity: '30g' },
+        ],
+      },
+      {
+        id: '2',
+        name: 'Butter Chicken Murgh Khas',
+        category: 'MAIN_COURSE',
+        dietaryType: 'NON_VEG',
+        kitchenStation: 'MAIN_KITCHEN',
+        prepTimeMinutes: 25,
+        spicinessLevel: 1,
+        allergens: ['Dairy', 'Nuts'],
+        basePrice: 380,
+        branchPrices: { 'Main Branch': 380, 'Rooftop Bar': 420 },
+        isAvailable: true,
+        variants: [
+          { id: 'v3', name: 'Half Portion', priceOffset: -140 },
+          { id: 'v4', name: 'Full Portion', priceOffset: 0 },
+        ],
+        modifierGroups: [
+          {
+            id: 'mg2',
+            groupName: 'Bread Accompanying',
+            minSelection: 0,
+            maxSelection: 3,
+            options: [
+              { id: 'mo3', name: 'Butter Naan', price: 60 },
+              { id: 'mo4', name: 'Garlic Roti', price: 40 },
+            ],
+          },
+        ],
+        recipeBom: [
+          { ingredientName: 'Raw Bone-in Chicken', quantity: '350g' },
+          { ingredientName: 'Tomato Cashew Gravy Base', quantity: '250ml' },
+          { ingredientName: 'Amul Fresh Cream', quantity: '40ml' },
+        ],
+      },
+      {
+        id: '3',
+        name: 'Chilli Chicken Dry (Indo-Chinese)',
+        category: 'STARTERS',
+        dietaryType: 'NON_VEG',
+        kitchenStation: 'CHINESE',
+        prepTimeMinutes: 15,
+        spicinessLevel: 3,
+        allergens: ['Soy', 'Gluten'],
+        basePrice: 310,
+        branchPrices: { 'Main Branch': 310, 'Rooftop Bar': 350 },
+        isAvailable: true,
+        variants: [
+          { id: 'v5', name: 'Standard Portion', priceOffset: 0 },
+        ],
+        modifierGroups: [],
+        recipeBom: [
+          { ingredientName: 'Chicken Breast Cubes', quantity: '250g' },
+          { ingredientName: 'Dark Soy & Chilli Sauce', quantity: '40ml' },
+          { ingredientName: 'Spring Onion & Capsicum', quantity: '60g' },
+        ],
+      },
+      {
+        id: '4',
+        name: 'Crispy Salt & Pepper Mushrooms',
+        category: 'STARTERS',
+        dietaryType: 'VEG',
+        kitchenStation: 'PANTRY',
+        prepTimeMinutes: 12,
+        spicinessLevel: 1,
+        allergens: ['Gluten'],
+        basePrice: 240,
+        branchPrices: { 'Main Branch': 240, 'Rooftop Bar': 270 },
+        isAvailable: true,
+        variants: [],
+        modifierGroups: [],
+        recipeBom: [
+          { ingredientName: 'Button Mushrooms', quantity: '200g' },
+          { ingredientName: 'Crushed Black Pepper & Cornflour', quantity: '30g' },
+        ],
+      },
+    ];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bar_food_catalog_items', JSON.stringify(foodItems));
+    }
+  }, [foodItems]);
 
   // Form State for Adding New Item
   const [newItem, setNewItem] = useState({
