@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,9 +10,31 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
+interface ProductItem {
+  id: string;
+  name: string;
+  category?: string;
+  brand?: string;
+}
+
 export default function DamageLogPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [catalogProducts, setCatalogProducts] = useState<ProductItem[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_liquor_products');
+      if (saved) {
+        try {
+          const items = JSON.parse(saved);
+          setCatalogProducts(items);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, []);
 
   const [form, setForm] = useState({
     product_id: '',
@@ -56,6 +78,22 @@ export default function DamageLogPage() {
         throw new Error(err.error || 'Failed to log damage');
       }
 
+      // Persist log locally for instant UI reflection & offline sync
+      try {
+        const existing = JSON.parse(localStorage.getItem('bar_damage_logs_local') || '[]');
+        const newLog = {
+          product_id: form.product_id,
+          damage_type: form.damage_type,
+          bottles_damaged: Number(form.bottles_damaged),
+          volume_ml_damaged: Number(form.volume_ml_damaged),
+          reason: form.reason,
+          logged_at: new Date().toISOString(),
+        };
+        localStorage.setItem('bar_damage_logs_local', JSON.stringify([newLog, ...existing]));
+      } catch (e) {
+        console.error(e);
+      }
+
       toast.success('Damage log created & stock deducted!');
       router.push('/bar-management/inventory');
     } catch (err: any) {
@@ -88,11 +126,34 @@ export default function DamageLogPage() {
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="space-y-1.5">
-              <Label>Product ID / Liquor SKU</Label>
+              <Label>Select Liquor Product</Label>
+              {catalogProducts.length > 0 && (
+                <Select
+                  value={catalogProducts.some((p) => p.name === form.product_id || p.id === form.product_id) ? form.product_id : 'CUSTOM'}
+                  onValueChange={(val) => {
+                    if (val !== 'CUSTOM') {
+                      handleChange('product_id', val);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="bg-background text-xs">
+                    <SelectValue placeholder="Select product from catalog..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {catalogProducts.map((prod) => (
+                      <SelectItem key={prod.id} value={prod.name}>
+                        {prod.name} {prod.brand ? `(${prod.brand})` : ''}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="CUSTOM">+ Enter Custom SKU / Code</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
               <Input
                 value={form.product_id}
                 onChange={(e) => handleChange('product_id', e.target.value)}
-                placeholder="e.g. prod_whisky_750"
+                placeholder="Product SKU or Name (e.g. GLEN-750, Glenfiddich 12)"
+                className="mt-1.5 bg-background text-xs"
                 required
               />
             </div>

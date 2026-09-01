@@ -90,7 +90,22 @@ export async function GET(request: NextRequest) {
 
     const admin = createAdminClient();
 
-    // 1. Fetch Bar Inventory with product details
+    // 1. Fetch damage logs for damage mapping
+    const { data: damageLogs } = await admin
+      .from("bar_damage_logs")
+      .select("product_id, bottles_damaged, volume_ml_damaged")
+      .eq("workspace_id", ctx.accountId);
+
+    const damageMap: Record<string, { bottles: number; ml: number }> = {};
+    (damageLogs || []).forEach((d: any) => {
+      if (!damageMap[d.product_id]) {
+        damageMap[d.product_id] = { bottles: 0, ml: 0 };
+      }
+      damageMap[d.product_id].bottles += Number(d.bottles_damaged || 0);
+      damageMap[d.product_id].ml += Number(d.volume_ml_damaged || 0);
+    });
+
+    // 2. Fetch Bar Inventory with product details
     const { data: inventoryRows, error: invError } = await admin
       .from("bar_inventory")
       .select(`
@@ -117,6 +132,9 @@ export async function GET(request: NextRequest) {
       const casesCount = Math.floor(sealedBottles / btlPerCase);
       const looseBottles = sealedBottles % btlPerCase;
 
+      const dmg = damageMap[row.product_id] || damageMap[row.product?.sku] || { bottles: 0, ml: 0 };
+      const damageFmt = dmg.bottles > 0 ? `${dmg.bottles} Btl (${dmg.ml}ml)` : "0 Btl (0ml)";
+
       return {
         product_id: row.product_id,
         brand_name: row.product?.name || "Liquor Brand Item",
@@ -124,7 +142,7 @@ export async function GET(request: NextRequest) {
         opening_fmt: `${casesCount} Cases + ${looseBottles} Btl`,
         inward_fmt: "0 Cases + 0 Btl",
         sales_fmt: "0 Cases + 2 Btl",
-        damage_fmt: "0 Btl (0ml)",
+        damage_fmt: damageFmt,
         closing_fmt: `${casesCount} Cases + ${looseBottles} Btl`,
         total_volume_ml: totalMl,
         total_litres: Number(totalLitres.toFixed(2)),

@@ -31,7 +31,30 @@ export default function BarInventoryPage() {
       const res = await fetch(`/api/bar/reports/ksbcl?date=${targetDate}`);
       if (res.ok) {
         const data = await res.json();
-        setStockRows(data.ksbcl_register || []);
+        let rows = data.ksbcl_register || [];
+
+        // Merge local damage logs from localStorage if available
+        if (typeof window !== 'undefined') {
+          const localLogs: any[] = JSON.parse(localStorage.getItem('bar_damage_logs_local') || '[]');
+          if (localLogs.length > 0) {
+            rows = rows.map((r: any) => {
+              const matchedLogs = localLogs.filter(
+                (l) => l.product_id === r.brand_name || l.product_id === r.sku || l.product_id === r.product_id
+              );
+              if (matchedLogs.length > 0) {
+                const totalDmgBtl = matchedLogs.reduce((acc, l) => acc + (Number(l.bottles_damaged) || 0), 0);
+                const totalDmgMl = matchedLogs.reduce((acc, l) => acc + (Number(l.volume_ml_damaged) || 0), 0);
+                return {
+                  ...r,
+                  damage_fmt: `${totalDmgBtl} Btl (${totalDmgMl}ml)`,
+                  damage_bottles: totalDmgBtl,
+                };
+              }
+              return r;
+            });
+          }
+        }
+        setStockRows(rows);
       }
     } catch (err) {
       console.error(err);
@@ -120,6 +143,7 @@ export default function BarInventoryPage() {
                   <th className="py-3 px-4">Opening Stock</th>
                   <th className="py-3 px-4">Inward Receipts</th>
                   <th className="py-3 px-4">Sales Billed</th>
+                  <th className="py-3 px-4 text-amber-500">Spillage / Damage</th>
                   <th className="py-3 px-4 font-bold text-foreground">Closing Stock</th>
                   <th className="py-3 px-4">Total Volume</th>
                   <th className="py-3 px-4 text-right">Est. Value</th>
@@ -128,13 +152,13 @@ export default function BarInventoryPage() {
               <tbody className="divide-y divide-border/60">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-muted-foreground text-xs">
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground text-xs">
                       Loading KSBCL daily stock register for {selectedDate}...
                     </td>
                   </tr>
                 ) : stockRows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-muted-foreground text-xs">
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground text-xs">
                       No stock records found for {selectedDate}. Use "Inward Permit Stock" to add inventory.
                     </td>
                   </tr>
@@ -167,6 +191,7 @@ export default function BarInventoryPage() {
                       <td className="py-3 px-4 text-xs text-muted-foreground">{row.opening_fmt || `${row.sealed_bottles || 0} Btl`}</td>
                       <td className="py-3 px-4 text-xs font-semibold text-emerald-600">+{row.inward_fmt || '0 Btl'}</td>
                       <td className="py-3 px-4 text-xs font-semibold text-blue-600">-{row.sales_fmt || '0 Btl'}</td>
+                      <td className="py-3 px-4 text-xs font-semibold text-amber-500">{row.damage_fmt || '0 Btl (0ml)'}</td>
                       <td className="py-3 px-4 font-bold text-foreground bg-muted/20">{row.closing_fmt || `${row.sealed_bottles || 0} Btl`}</td>
                       <td className="py-3 px-4 font-bold text-primary">{row.total_litres} L</td>
                       <td className="py-3 px-4 font-bold text-right text-emerald-600">₹{row.estimated_inventory_value?.toLocaleString()}</td>
