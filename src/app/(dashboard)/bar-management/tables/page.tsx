@@ -416,8 +416,10 @@ export default function TablesLayoutPage() {
                   type="number"
                   min={1}
                   max={50}
-                  value={formCapacity}
-                  onChange={(e) => setFormCapacity(Number(e.target.value))}
+                  value={formCapacity || ''}
+                  onChange={(e) => setFormCapacity(e.target.value === '' ? 0 : Number(e.target.value))}
+                  onFocus={(e) => e.target.select()}
+                  placeholder="4"
                   className="bg-background text-xs h-9"
                   required
                 />
@@ -445,9 +447,11 @@ export default function TablesLayoutPage() {
                 <Input
                   type="number"
                   min={0}
-                  max={formCapacity}
-                  value={formGuestCount}
-                  onChange={(e) => setFormGuestCount(Number(e.target.value))}
+                  max={formCapacity || 50}
+                  value={formGuestCount === 0 ? '' : formGuestCount}
+                  onChange={(e) => setFormGuestCount(e.target.value === '' ? 0 : Number(e.target.value))}
+                  onFocus={(e) => e.target.select()}
+                  placeholder="0"
                   className="bg-background text-xs h-9"
                 />
               </div>
@@ -509,8 +513,10 @@ export default function TablesLayoutPage() {
                   type="number"
                   min={1}
                   max={50}
-                  value={formCapacity}
-                  onChange={(e) => setFormCapacity(Number(e.target.value))}
+                  value={formCapacity || ''}
+                  onChange={(e) => setFormCapacity(e.target.value === '' ? 0 : Number(e.target.value))}
+                  onFocus={(e) => e.target.select()}
+                  placeholder="4"
                   className="bg-background text-xs h-9"
                   required
                 />
@@ -538,9 +544,11 @@ export default function TablesLayoutPage() {
                 <Input
                   type="number"
                   min={0}
-                  max={formCapacity}
-                  value={formGuestCount}
-                  onChange={(e) => setFormGuestCount(Number(e.target.value))}
+                  max={formCapacity || 50}
+                  value={formGuestCount === 0 ? '' : formGuestCount}
+                  onChange={(e) => setFormGuestCount(e.target.value === '' ? 0 : Number(e.target.value))}
+                  onFocus={(e) => e.target.select()}
+                  placeholder="0"
                   className="bg-background text-xs h-9"
                 />
               </div>
