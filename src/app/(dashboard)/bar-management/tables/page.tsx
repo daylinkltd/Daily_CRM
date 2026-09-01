@@ -262,8 +262,8 @@ export default function TablesLayoutPage() {
         {filteredTables.map((t) => (
           <Card
             key={t.id}
-            onClick={() => handleAdvanceStatus(t.id, t.status)}
-            className={`transition-all cursor-pointer hover:scale-[1.03] flex flex-col justify-between p-4 border relative group shadow-xs ${
+            onClick={() => handleOpenEditModal(t)}
+            className={`transition-all cursor-pointer hover:scale-[1.02] flex flex-col justify-between p-4 border relative group shadow-xs ${
               t.status === 'VACANT'
                 ? 'border-emerald-500/40 bg-emerald-500/5 hover:border-emerald-500'
                 : t.status === 'OCCUPIED'
@@ -278,14 +278,46 @@ export default function TablesLayoutPage() {
                 <span className="font-bold text-xl text-foreground">{t.tableNumber}</span>
                 
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60">
+                  <DropdownMenuTrigger onClick={(e) => e.stopPropagation()} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60">
                     <MoreVertical className="size-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="text-xs">
-                    <DropdownMenuItem onClick={() => handleOpenEditModal(t)}>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEditModal(t); }}>
                       <Edit2 className="size-3.5 mr-2" />
                       Edit Table Details
                     </DropdownMenuItem>
+                    
+                    {/* Explicit Status Controls */}
+                    {t.status !== 'OCCUPIED' && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTables((prev) =>
+                            prev.map((item) => (item.id === t.id ? { ...item, status: 'OCCUPIED', guestCount: item.capacity } : item))
+                          );
+                          toast.success(`Table ${t.tableNumber} status set to OCCUPIED`);
+                        }}
+                      >
+                        <CheckCircle2 className="size-3.5 mr-2 text-blue-500" />
+                        Mark as Occupied
+                      </DropdownMenuItem>
+                    )}
+
+                    {t.status !== 'BILLING' && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTables((prev) =>
+                            prev.map((item) => (item.id === t.id ? { ...item, status: 'BILLING' } : item))
+                          );
+                          toast.success(`Table ${t.tableNumber} status set to BILLING`);
+                        }}
+                      >
+                        <Clock className="size-3.5 mr-2 text-amber-500" />
+                        Mark for Billing
+                      </DropdownMenuItem>
+                    )}
+
                     {t.status !== 'VACANT' && (
                       <DropdownMenuItem
                         onClick={(e) => {
@@ -295,15 +327,16 @@ export default function TablesLayoutPage() {
                               item.id === t.id ? { ...item, status: 'VACANT', guestCount: 0 } : item
                             )
                           );
-                          toast.error(`Order for ${t.tableNumber} cancelled & table reset to VACANT (Customer Left).`);
+                          toast.success(`Table ${t.tableNumber} cleared & marked VACANT`);
                         }}
-                        className="text-amber-600 font-semibold"
+                        className="text-emerald-600 font-semibold"
                       >
-                        <AlertCircle className="size-3.5 mr-2 text-amber-600" />
-                        Cancel Order & Reset Table
+                        <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" />
+                        Clear & Mark Vacant
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem onClick={() => handleDeleteTable(t.id, t.tableNumber)} className="text-red-500">
+
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDeleteTable(t.id, t.tableNumber); }} className="text-red-500">
                       <Trash2 className="size-3.5 mr-2" />
                       Delete Table
                     </DropdownMenuItem>

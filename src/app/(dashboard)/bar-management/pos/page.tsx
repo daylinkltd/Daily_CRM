@@ -174,6 +174,40 @@ export default function BarPosPage() {
       const data = await res.json().catch(() => ({}));
       const orderNo = data.order_number || `INV-${Date.now().toString().slice(-6)}`;
       
+      // Save completed sales transaction into localStorage ledger for Sales Report Analytics
+      try {
+        if (typeof window !== 'undefined') {
+          const ledger = JSON.parse(localStorage.getItem('bar_completed_sales_ledger') || '[]');
+          const saleTransaction = {
+            id: `sale_${Date.now()}`,
+            orderNumber: orderNo,
+            tableNumber: selectedTable,
+            paymentMethod: method,
+            date: new Date().toISOString().split('T')[0],
+            timestamp: new Date().toISOString(),
+            subtotal,
+            taxAmount,
+            grandTotal,
+            items: cart.map((i) => {
+              const menuMatch = menuItems.find((m) => m.name.includes(i.name) || i.name.includes(m.name));
+              return {
+                id: i.id,
+                name: i.name,
+                portion: i.portion,
+                qty: i.quantity,
+                unitPrice: i.unitPrice,
+                totalPrice: i.unitPrice * i.quantity,
+                type: menuMatch?.type || (i.portion === '60ML' || i.portion === '30ML' || i.portion === 'BOTTLE' || i.portion === 'PINT' || i.portion === 'CAN' ? 'DRINK' : 'FOOD'),
+                category: menuMatch?.category || 'GENERAL',
+              };
+            }),
+          };
+          localStorage.setItem('bar_completed_sales_ledger', JSON.stringify([saleTransaction, ...ledger]));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
       // Save snapshot for receipt popup
       setReceiptInvoiceNo(orderNo);
       setReceiptPaymentMethod(method);

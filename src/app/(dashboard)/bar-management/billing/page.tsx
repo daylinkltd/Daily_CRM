@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ReceiptText,
   Plus,
@@ -63,51 +63,85 @@ export default function RestaurantTableBillingPage() {
   const [newRoundQty, setNewRoundQty] = useState(1);
   const [newRoundPrice, setNewRoundPrice] = useState(280);
 
-  const [runningTabs, setRunningTabs] = useState<RunningTableTab[]>([
-    {
-      id: '2',
-      tableNumber: 'Table 4',
-      section: 'Main Floor',
-      serverName: 'Rahul M.',
-      openedAgo: '35 mins ago',
-      guestCount: 5,
-      status: 'OCCUPIED',
-      items: [
-        { id: 'k1', name: 'Glenfiddich 12 Single Malt', portion: '60ML', qty: 2, unitPrice: 850, roundNo: 1, kotTime: '12:15 PM' },
-        { id: 'k2', name: 'Heineken Lager Draft Pint', portion: 'PINT', qty: 3, unitPrice: 340, roundNo: 1, kotTime: '12:15 PM' },
-        { id: 'k3', name: 'Paneer Tikka Tandoori', portion: 'FULL', qty: 1, unitPrice: 280, roundNo: 2, kotTime: '12:30 PM' },
-        { id: 'k4', name: 'Chilli Chicken Dry', portion: 'PORTION', qty: 1, unitPrice: 310, roundNo: 2, kotTime: '12:30 PM' },
-      ],
-    },
-    {
-      id: '3',
-      tableNumber: 'T3',
-      section: 'Main Floor',
-      serverName: 'Anita S.',
-      openedAgo: '50 mins ago',
-      guestCount: 4,
-      status: 'BILLING',
-      items: [
-        { id: 'k5', name: 'Jack Daniel\'s Old No. 7', portion: '60ML', qty: 4, unitPrice: 600, roundNo: 1, kotTime: '12:00 PM' },
-        { id: 'k6', name: 'Butter Chicken Murgh Khas', portion: 'FULL', qty: 1, unitPrice: 380, roundNo: 2, kotTime: '12:20 PM' },
-        { id: 'k7', name: 'Tandoori Butter Naan', portion: 'FULL', qty: 4, unitPrice: 60, roundNo: 2, kotTime: '12:20 PM' },
-      ],
-    },
-    {
-      id: '7',
-      tableNumber: 'V1',
-      section: 'VIP Lounge',
-      serverName: 'Vikram K.',
-      openedAgo: '1 hour ago',
-      guestCount: 8,
-      status: 'OCCUPIED',
-      items: [
-        { id: 'k8', name: 'Absolut Swedish Vodka', portion: 'BOTTLE', qty: 1, unitPrice: 4600, roundNo: 1, kotTime: '11:50 AM' },
-        { id: 'k9', name: 'Long Island Iced Tea (LIIT)', portion: '60ML', qty: 2, unitPrice: 580, roundNo: 2, kotTime: '12:15 PM' },
-        { id: 'k10', name: 'Crispy Salt & Pepper Mushrooms', portion: 'PORTION', qty: 2, unitPrice: 240, roundNo: 2, kotTime: '12:15 PM' },
-      ],
-    },
-  ]);
+  const itemPriceCatalog: Record<string, number> = {
+    'Paneer Tikka Tandoori': 280,
+    'Butter Chicken Murgh Khas': 380,
+    'Glenfiddich 12 Single Malt': 850,
+    'Heineken Lager Draft Pint': 340,
+    'Tandoori Butter Naan': 60,
+    'French Fries Peri Peri': 160,
+  };
+
+  const handleItemSelectChange = (val: string) => {
+    setNewRoundItemName(val);
+    if (itemPriceCatalog[val]) {
+      setNewRoundPrice(itemPriceCatalog[val]);
+    }
+  };
+
+  const [runningTabs, setRunningTabs] = useState<RunningTableTab[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_running_table_tabs');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return [
+      {
+        id: '2',
+        tableNumber: 'Table 4',
+        section: 'Main Floor',
+        serverName: 'Rahul M.',
+        openedAgo: '35 mins ago',
+        guestCount: 5,
+        status: 'OCCUPIED',
+        items: [
+          { id: 'k1', name: 'Glenfiddich 12 Single Malt', portion: '60ML', qty: 2, unitPrice: 850, roundNo: 1, kotTime: '12:15 PM' },
+          { id: 'k2', name: 'Heineken Lager Draft Pint', portion: 'PINT', qty: 3, unitPrice: 340, roundNo: 1, kotTime: '12:15 PM' },
+          { id: 'k3', name: 'Paneer Tikka Tandoori', portion: 'FULL', qty: 1, unitPrice: 280, roundNo: 2, kotTime: '12:30 PM' },
+          { id: 'k4', name: 'Chilli Chicken Dry', portion: 'PORTION', qty: 1, unitPrice: 310, roundNo: 2, kotTime: '12:30 PM' },
+        ],
+      },
+      {
+        id: '3',
+        tableNumber: 'T3',
+        section: 'Main Floor',
+        serverName: 'Anita S.',
+        openedAgo: '50 mins ago',
+        guestCount: 4,
+        status: 'BILLING',
+        items: [
+          { id: 'k5', name: "Jack Daniel's Old No. 7", portion: '60ML', qty: 4, unitPrice: 600, roundNo: 1, kotTime: '12:00 PM' },
+          { id: 'k6', name: 'Butter Chicken Murgh Khas', portion: 'FULL', qty: 1, unitPrice: 380, roundNo: 2, kotTime: '12:20 PM' },
+          { id: 'k7', name: 'Tandoori Butter Naan', portion: 'FULL', qty: 4, unitPrice: 60, roundNo: 2, kotTime: '12:20 PM' },
+        ],
+      },
+      {
+        id: '7',
+        tableNumber: 'V1',
+        section: 'VIP Lounge',
+        serverName: 'Vikram K.',
+        openedAgo: '1 hour ago',
+        guestCount: 8,
+        status: 'OCCUPIED',
+        items: [
+          { id: 'k8', name: 'Absolut Swedish Vodka', portion: 'BOTTLE', qty: 1, unitPrice: 4600, roundNo: 1, kotTime: '11:50 AM' },
+          { id: 'k9', name: 'Long Island Iced Tea (LIIT)', portion: '60ML', qty: 2, unitPrice: 580, roundNo: 2, kotTime: '12:15 PM' },
+          { id: 'k10', name: 'Crispy Salt & Pepper Mushrooms', portion: 'PORTION', qty: 2, unitPrice: 240, roundNo: 2, kotTime: '12:15 PM' },
+        ],
+      },
+    ];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bar_running_table_tabs', JSON.stringify(runningTabs));
+    }
+  }, [runningTabs]);
 
   const activeTab = runningTabs.find((t) => t.id === selectedTabId) || runningTabs[0];
 
@@ -132,12 +166,14 @@ export default function RestaurantTableBillingPage() {
     const maxRound = Math.max(...activeTab.items.map((i) => i.roundNo), 0);
     const newRoundNo = maxRound + 1;
 
+    const calculatedUnitPrice = itemPriceCatalog[newRoundItemName] || newRoundPrice || 250;
+
     const newItem: TableKotItem = {
       id: `k_${Date.now()}`,
       name: newRoundItemName,
       portion: newRoundPortion,
       qty: Number(newRoundQty),
-      unitPrice: Number(newRoundPrice),
+      unitPrice: Number(calculatedUnitPrice),
       roundNo: newRoundNo,
       kotTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
@@ -171,10 +207,43 @@ export default function RestaurantTableBillingPage() {
   const handleSettleTableBill = (paymentMethod: string) => {
     if (!activeTab) return;
     setIsSubmitting(true);
+    const invoiceNo = `INV-${activeTab.tableNumber.replace(/\s+/g, '')}-${Date.now().toString().slice(-4)}`;
     setActivePaymentMethod(paymentMethod);
     setIsReceiptProforma(false);
-    setActiveInvoiceNumber(`INV-${activeTab.tableNumber.replace(/\s+/g, '')}-${Date.now().toString().slice(-4)}`);
+    setActiveInvoiceNumber(invoiceNo);
     setShowReceiptModal(true);
+
+    // Save transaction into localStorage sales ledger for Sales Report Analytics
+    try {
+      if (typeof window !== 'undefined') {
+        const ledger = JSON.parse(localStorage.getItem('bar_completed_sales_ledger') || '[]');
+        const saleTransaction = {
+          id: `sale_tbl_${Date.now()}`,
+          orderNumber: invoiceNo,
+          tableNumber: activeTab.tableNumber,
+          paymentMethod,
+          date: new Date().toISOString().split('T')[0],
+          timestamp: new Date().toISOString(),
+          subtotal: currentSubtotal,
+          taxAmount: currentGst,
+          grandTotal: currentGrandTotal,
+          items: activeTab.items.map((i) => ({
+            id: i.id,
+            name: i.name,
+            portion: i.portion,
+            qty: i.qty,
+            unitPrice: i.unitPrice,
+            totalPrice: i.unitPrice * i.qty,
+            type: (i.portion === '60ML' || i.portion === '30ML' || i.portion === 'BOTTLE' || i.portion === 'PINT' || i.portion === 'CAN' || i.name.toLowerCase().includes('vodka') || i.name.toLowerCase().includes('whisky') || i.name.toLowerCase().includes('beer') || i.name.toLowerCase().includes('rum')) ? 'DRINK' : 'FOOD',
+            category: (i.portion === '60ML' || i.portion === '30ML' || i.portion === 'BOTTLE' || i.portion === 'PINT' || i.portion === 'CAN') ? 'BEVERAGE' : 'KITCHEN',
+          })),
+        };
+        localStorage.setItem('bar_completed_sales_ledger', JSON.stringify([saleTransaction, ...ledger]));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     setTimeout(() => {
       setRunningTabs((prev) => prev.filter((t) => t.id !== activeTab.id));
       toast.success(
@@ -431,7 +500,7 @@ export default function RestaurantTableBillingPage() {
           <form onSubmit={handleAddKotRound} className="space-y-4 py-2 text-xs">
             <div className="space-y-1.5">
               <Label className="font-semibold">Select Dish or Drink</Label>
-              <Select value={newRoundItemName} onValueChange={(val) => setNewRoundItemName(val)}>
+              <Select value={newRoundItemName} onValueChange={handleItemSelectChange}>
                 <SelectTrigger className="bg-background text-xs h-9">
                   <SelectValue />
                 </SelectTrigger>

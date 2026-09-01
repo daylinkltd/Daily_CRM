@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart3,
   Calendar as CalendarIcon,
@@ -61,8 +61,8 @@ export default function DishAndLiquorSalesReportPage() {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Itemized Dish Sales Mock Data
-  const [salesData] = useState<ItemSalesRow[]>([
+  // Itemized Dish Sales Data with LocalStorage Sync
+  const [salesData, setSalesData] = useState<ItemSalesRow[]>([
     { id: '1', name: 'Butter Chicken Murgh Khas', category: 'MAIN_COURSE', type: 'FOOD', portion: 'FULL', unitPrice: 380, qtySold: 64, totalRevenue: 24320, pctContribution: 16.4 },
     { id: '2', name: 'Glenfiddich 12 Single Malt', category: 'WHISKY', type: 'DRINK', portion: '60ML', unitPrice: 850, qtySold: 26, totalRevenue: 22100, pctContribution: 14.9 },
     { id: '3', name: 'Paneer Tikka Tandoori', category: 'STARTERS', type: 'FOOD', portion: 'FULL', unitPrice: 280, qtySold: 52, totalRevenue: 14560, pctContribution: 9.8 },
@@ -78,14 +78,74 @@ export default function DishAndLiquorSalesReportPage() {
   ]);
 
   // Calendar Day-Wise Sales Summary Data
-  const [dailySalesData] = useState<DailySalesSummaryRow[]>([
-    { date: '2026-08-25', dayOfWeek: 'Tuesday', orderCount: 52, foodRevenue: 74900, drinkRevenue: 73620, gstTax: 26733, cashRevenue: 45000, cardRevenue: 62000, upiRevenue: 41520, totalRevenue: 148520 },
-    { date: '2026-08-24', dayOfWeek: 'Monday', orderCount: 41, foodRevenue: 58200, drinkRevenue: 61400, gstTax: 21528, cashRevenue: 34000, cardRevenue: 51000, upiRevenue: 34600, totalRevenue: 119600 },
-    { date: '2026-08-23', dayOfWeek: 'Sunday', orderCount: 68, foodRevenue: 98400, drinkRevenue: 112000, gstTax: 37872, cashRevenue: 62000, cardRevenue: 94000, upiRevenue: 54400, totalRevenue: 210400 },
-    { date: '2026-08-22', dayOfWeek: 'Saturday', orderCount: 74, foodRevenue: 104500, drinkRevenue: 128400, gstTax: 41922, cashRevenue: 71000, cardRevenue: 102000, upiRevenue: 59900, totalRevenue: 232900 },
-    { date: '2026-08-21', dayOfWeek: 'Friday', orderCount: 62, foodRevenue: 86300, drinkRevenue: 94800, gstTax: 32598, cashRevenue: 53000, cardRevenue: 78000, upiRevenue: 50100, totalRevenue: 181100 },
-    { date: '2026-08-20', dayOfWeek: 'Thursday', orderCount: 46, foodRevenue: 64100, drinkRevenue: 67500, gstTax: 23688, cashRevenue: 39000, cardRevenue: 56000, upiRevenue: 36600, totalRevenue: 131600 },
+  const [dailySalesData, setDailySalesData] = useState<DailySalesSummaryRow[]>([
+    { date: '2026-09-01', dayOfWeek: 'Tuesday', orderCount: 52, foodRevenue: 74900, drinkRevenue: 73620, gstTax: 26733, cashRevenue: 45000, cardRevenue: 62000, upiRevenue: 41520, totalRevenue: 148520 },
+    { date: '2026-08-31', dayOfWeek: 'Monday', orderCount: 41, foodRevenue: 58200, drinkRevenue: 61400, gstTax: 21528, cashRevenue: 34000, cardRevenue: 51000, upiRevenue: 34600, totalRevenue: 119600 },
+    { date: '2026-08-30', dayOfWeek: 'Sunday', orderCount: 68, foodRevenue: 98400, drinkRevenue: 112000, gstTax: 37872, cashRevenue: 62000, cardRevenue: 94000, upiRevenue: 54400, totalRevenue: 210400 },
   ]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const ledger: any[] = JSON.parse(localStorage.getItem('bar_completed_sales_ledger') || '[]');
+      if (ledger.length > 0) {
+        // Build map of itemized sales from completed transactions
+        const itemMap: Record<string, { name: string; category: string; type: 'FOOD' | 'DRINK'; portion: string; unitPrice: number; qtySold: number; totalRevenue: number }> = {};
+
+        ledger.forEach((tx) => {
+          (tx.items || []).forEach((i: any) => {
+            const key = `${i.name}_${i.portion}`;
+            if (!itemMap[key]) {
+              itemMap[key] = {
+                name: i.name,
+                category: i.category || (i.type === 'DRINK' ? 'BEVERAGES' : 'STARTERS'),
+                type: i.type || (i.portion === '60ML' || i.portion === '30ML' || i.portion === 'BOTTLE' || i.portion === 'PINT' ? 'DRINK' : 'FOOD'),
+                portion: i.portion || 'PORTION',
+                unitPrice: Number(i.unitPrice || 0),
+                qtySold: 0,
+                totalRevenue: 0,
+              };
+            }
+            itemMap[key].qtySold += Number(i.qty || 1);
+            itemMap[key].totalRevenue += Number(i.totalPrice || (i.unitPrice * i.qty));
+          });
+        });
+
+        // Merge into salesData
+        setSalesData((prev) => {
+          const updated = [...prev];
+          Object.values(itemMap).forEach((item) => {
+            const existingIdx = updated.findIndex((r) => r.name.toLowerCase().includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(r.name.toLowerCase()));
+            if (existingIdx >= 0) {
+              updated[existingIdx] = {
+                ...updated[existingIdx],
+                qtySold: updated[existingIdx].qtySold + item.qtySold,
+                totalRevenue: updated[existingIdx].totalRevenue + item.totalRevenue,
+              };
+            } else {
+              updated.unshift({
+                id: `sales_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+                name: item.name,
+                category: item.category,
+                type: item.type,
+                portion: item.portion,
+                unitPrice: item.unitPrice,
+                qtySold: item.qtySold,
+                totalRevenue: item.totalRevenue,
+                pctContribution: 5.0,
+              });
+            }
+          });
+
+          // Recalculate % contribution
+          const grandTotalRev = updated.reduce((sum, r) => sum + r.totalRevenue, 0) || 1;
+          return updated.map((r) => ({
+            ...r,
+            pctContribution: Number(((r.totalRevenue / grandTotalRev) * 100).toFixed(1)),
+          }));
+        });
+      }
+    }
+  }, []);
 
   const handleDatePresetChange = (val: string) => {
     setDatePreset(val);
