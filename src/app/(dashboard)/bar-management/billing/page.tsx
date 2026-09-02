@@ -63,14 +63,68 @@ export default function RestaurantTableBillingPage() {
   const [newRoundQty, setNewRoundQty] = useState(1);
   const [newRoundPrice, setNewRoundPrice] = useState(280);
 
-  const itemPriceCatalog: Record<string, number> = {
+  // Dynamic Item Price Catalog loaded from Food Catalog & Liquor Catalog
+  const [itemPriceCatalog, setItemPriceCatalog] = useState<Record<string, number>>({
     'Paneer Tikka Tandoori': 280,
     'Butter Chicken Murgh Khas': 380,
     'Glenfiddich 12 Single Malt': 850,
     'Heineken Lager Draft Pint': 340,
     'Tandoori Butter Naan': 60,
     'French Fries Peri Peri': 160,
-  };
+  });
+
+  useEffect(() => {
+    const loadCatalogPrices = () => {
+      if (typeof window === 'undefined') return;
+      const catalogMap: Record<string, number> = {
+        'Paneer Tikka Tandoori': 280,
+        'Butter Chicken Murgh Khas': 380,
+        'Glenfiddich 12 Single Malt': 850,
+        'Heineken Lager Draft Pint': 340,
+      };
+
+      // Load Food Items
+      const savedFood = localStorage.getItem('bar_food_catalog_items');
+      if (savedFood) {
+        try {
+          const foodList = JSON.parse(savedFood);
+          foodList.forEach((dish: any) => {
+            if (dish.name && dish.basePrice) {
+              catalogMap[dish.name] = dish.basePrice;
+            }
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Load Liquor Items
+      const savedLiquor = localStorage.getItem('bar_liquor_products');
+      if (savedLiquor) {
+        try {
+          const liquorList = JSON.parse(savedLiquor);
+          liquorList.forEach((prod: any) => {
+            if (prod.name) {
+              const mainPrice = prod.prices?.['30ml'] || prod.prices?.['60ml'] || prod.prices?.bottle || prod.price || 500;
+              catalogMap[prod.name] = mainPrice;
+            }
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      setItemPriceCatalog(catalogMap);
+    };
+
+    loadCatalogPrices();
+    window.addEventListener('storage', loadCatalogPrices);
+    window.addEventListener('focus', loadCatalogPrices);
+    return () => {
+      window.removeEventListener('storage', loadCatalogPrices);
+      window.removeEventListener('focus', loadCatalogPrices);
+    };
+  }, []);
 
   const handleItemSelectChange = (val: string) => {
     setNewRoundItemName(val);

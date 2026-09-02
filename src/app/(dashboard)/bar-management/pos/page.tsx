@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Wine,
   Plus,
@@ -59,25 +59,113 @@ export default function BarPosPage() {
 
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
-  const menuItems = [
-    // --- ALCOHOL & DRINKS ---
-    { id: '1', barcode: '8901234567891', name: 'Glenfiddich 12 Single Malt (750ml)', category: 'WHISKY', type: 'DRINK', prices: { BOTTLE: 8500, '30ML': 450, '60ML': 850 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
-    { id: '2', barcode: '8901234567892', name: "Jack Daniel's Old No. 7 (750ml)", category: 'WHISKY', type: 'DRINK', prices: { BOTTLE: 5800, '30ML': 320, '60ML': 600 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
-    { id: '3', barcode: '8901234567893', name: 'Old Monk Supreme Rum (750ml)', category: 'RUM', type: 'DRINK', prices: { BOTTLE: 2200, '30ML': 150, '60ML': 280 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
-    { id: '4', barcode: '8901234567894', name: 'Absolut Swedish Vodka (750ml)', category: 'VODKA', type: 'DRINK', prices: { BOTTLE: 4600, '30ML': 260, '60ML': 490 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
-    { id: '5', barcode: '8901234567895', name: 'Heineken Lager Draft Beer (500ml Can)', category: 'BEER', type: 'DRINK', prices: { CAN: 280, PINT: 340 }, volumes: { CAN: 500, PINT: 500 } },
-    { id: '6', barcode: '8901234567896', name: 'Kingfisher Premium Beer (650ml Btl)', category: 'BEER', type: 'DRINK', prices: { BOTTLE: 210 }, volumes: { BOTTLE: 650 } },
-    { id: '7', barcode: '8901234567897', name: 'Long Island Iced Tea (LIIT)', category: 'COCKTAIL', type: 'DRINK', prices: { '60ML': 580 }, volumes: { '60ML': 250 } },
+  // Dynamic Menu Items Loaded from Food Catalog & Liquor Catalog
+  const [menuItems, setMenuItems] = useState<any[]>([]);
 
-    // --- RESTAURANT FOOD DISHES ---
-    { id: '101', barcode: '8901234560101', name: 'Paneer Tikka Tandoori', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { FULL: 280, HALF: 180 }, volumes: { FULL: 0, HALF: 0 } },
-    { id: '102', barcode: '8901234560102', name: 'Butter Chicken Murgh Khas', category: 'MAIN_COURSE', type: 'FOOD', dietary: 'NON_VEG', prices: { FULL: 380, HALF: 240 }, volumes: { FULL: 0, HALF: 0 } },
-    { id: '103', barcode: '8901234560103', name: 'Chilli Chicken Dry (Indo-Chinese)', category: 'STARTERS', type: 'FOOD', dietary: 'NON_VEG', prices: { PORTION: 310 }, volumes: { PORTION: 0 } },
-    { id: '104', barcode: '8901234560104', name: 'Crispy Salt & Pepper Mushrooms', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { PORTION: 240 }, volumes: { PORTION: 0 } },
-    { id: '105', barcode: '8901234560105', name: 'Tandoori Butter Naan / Roti', category: 'TANDOOR', type: 'FOOD', dietary: 'VEG', prices: { FULL: 60, HALF: 40 }, volumes: { FULL: 0, HALF: 0 } },
-    { id: '106', barcode: '8901234560106', name: 'Bar Masala Peanuts & Chana Roast', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { PORTION: 120 }, volumes: { PORTION: 0 } },
-    { id: '107', barcode: '8901234560107', name: 'French Fries (Peri Peri Salted)', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { PORTION: 160 }, volumes: { PORTION: 0 } },
-  ];
+  useEffect(() => {
+    const loadCatalogItems = () => {
+      if (typeof window === 'undefined') return;
+
+      const DEFAULT_MENU_ITEMS = [
+        { id: '1', barcode: '8901234567891', name: 'Glenfiddich 12 Single Malt (750ml)', category: 'WHISKY', type: 'DRINK', prices: { BOTTLE: 8500, '30ML': 450, '60ML': 850 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
+        { id: '2', barcode: '8901234567892', name: "Jack Daniel's Old No. 7 (750ml)", category: 'WHISKY', type: 'DRINK', prices: { BOTTLE: 5800, '30ML': 320, '60ML': 600 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
+        { id: '3', barcode: '8901234567893', name: 'Old Monk Supreme Rum (750ml)', category: 'RUM', type: 'DRINK', prices: { BOTTLE: 2200, '30ML': 150, '60ML': 280 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
+        { id: '4', barcode: '8901234567894', name: 'Absolut Swedish Vodka (750ml)', category: 'VODKA', type: 'DRINK', prices: { BOTTLE: 4600, '30ML': 260, '60ML': 490 }, volumes: { BOTTLE: 750, '30ML': 30, '60ML': 60 } },
+        { id: '5', barcode: '8901234567895', name: 'Heineken Lager Draft Beer (500ml Can)', category: 'BEER', type: 'DRINK', prices: { CAN: 280, PINT: 340 }, volumes: { CAN: 500, PINT: 500 } },
+        { id: '101', barcode: '8901234560101', name: 'Paneer Tikka Tandoori', category: 'STARTERS', type: 'FOOD', dietary: 'VEG', prices: { FULL: 280, HALF: 180 }, volumes: { FULL: 0, HALF: 0 } },
+        { id: '102', barcode: '8901234560102', name: 'Butter Chicken Murgh Khas', category: 'MAIN_COURSE', type: 'FOOD', dietary: 'NON_VEG', prices: { FULL: 380, HALF: 240 }, volumes: { FULL: 0, HALF: 0 } },
+      ];
+
+      // Load Food Items
+      let foodList: any[] = [];
+      const savedFood = localStorage.getItem('bar_food_catalog_items');
+      if (savedFood) {
+        try {
+          foodList = JSON.parse(savedFood);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Load Liquor Items
+      let liquorList: any[] = [];
+      const savedLiquor = localStorage.getItem('bar_liquor_products');
+      if (savedLiquor) {
+        try {
+          liquorList = JSON.parse(savedLiquor);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Format Food Catalog items for POS
+      const formattedFood = foodList.map((dish: any) => {
+        const pricesObj: Record<string, number> = {
+          PORTION: dish.basePrice || 250,
+          FULL: dish.basePrice || 250,
+        };
+        if (Array.isArray(dish.variants)) {
+          dish.variants.forEach((v: any) => {
+            const key = (v.name || 'PORTION').toUpperCase().replace(/\s+/g, '_');
+            pricesObj[key] = (dish.basePrice || 250) + (v.priceOffset || 0);
+          });
+        }
+        return {
+          id: `food_${dish.id}`,
+          barcode: dish.barcode || `8901234560${dish.id}`,
+          name: dish.name,
+          category: dish.category || 'STARTERS',
+          type: 'FOOD',
+          dietary: dish.dietaryType || 'VEG',
+          prices: pricesObj,
+          volumes: { PORTION: 0, FULL: 0 },
+          isAvailable: dish.isAvailable !== false,
+        };
+      });
+
+      // Format Liquor Catalog items for POS
+      const formattedLiquor = liquorList.map((prod: any) => {
+        const pricesObj: Record<string, number> = {};
+        if (prod.prices) {
+          if (prod.prices['30ml']) pricesObj['30ML'] = prod.prices['30ml'];
+          if (prod.prices['60ml']) pricesObj['60ML'] = prod.prices['60ml'];
+          if (prod.prices['bottle']) pricesObj['BOTTLE'] = prod.prices['bottle'];
+          if (prod.prices['pint']) pricesObj['PINT'] = prod.prices['pint'];
+          if (prod.prices['can']) pricesObj['CAN'] = prod.prices['can'];
+        }
+        if (Object.keys(pricesObj).length === 0) {
+          pricesObj['BOTTLE'] = prod.price || 1000;
+        }
+
+        return {
+          id: `liquor_${prod.id}`,
+          barcode: prod.barcode || `8901234567${prod.id}`,
+          name: prod.name,
+          category: prod.category || 'WHISKY',
+          type: 'DRINK',
+          prices: pricesObj,
+          volumes: { BOTTLE: prod.bottleSizeMl || 750, '30ML': 30, '60ML': 60, PINT: 500, CAN: 500 },
+          isAvailable: true,
+        };
+      });
+
+      const combined = [...formattedLiquor, ...formattedFood];
+      if (combined.length > 0) {
+        setMenuItems(combined);
+      } else {
+        setMenuItems(DEFAULT_MENU_ITEMS);
+      }
+    };
+
+    loadCatalogItems();
+
+    window.addEventListener('storage', loadCatalogItems);
+    window.addEventListener('focus', loadCatalogItems);
+    return () => {
+      window.removeEventListener('storage', loadCatalogItems);
+      window.removeEventListener('focus', loadCatalogItems);
+    };
+  }, []);
 
   const addToCart = (item: any, portion: '30ML' | '60ML' | 'PINT' | 'BOTTLE' | 'CAN') => {
     const price = item.prices[portion];
@@ -292,9 +380,16 @@ export default function BarPosPage() {
     return matchesCategory && matchesSearch;
   });
 
-  const availableCategories = isRetailShopMode
-    ? ['ALL', 'WHISKY', 'RUM', 'VODKA', 'BEER', 'COCKTAIL']
-    : ['ALL', 'STARTERS', 'MAIN_COURSE', 'TANDOOR', 'WHISKY', 'RUM', 'VODKA', 'BEER', 'COCKTAIL'];
+  const availableCategories = React.useMemo(() => {
+    const cats = new Set<string>();
+    cats.add('ALL');
+    menuItems.forEach((item) => {
+      if (item.category && (!isRetailShopMode || item.type !== 'FOOD')) {
+        cats.add(item.category);
+      }
+    });
+    return Array.from(cats);
+  }, [menuItems, isRetailShopMode]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-8rem)]">
@@ -428,7 +523,7 @@ export default function BarPosPage() {
                       className="flex-1 text-xs py-1 h-auto flex flex-col items-center cursor-pointer hover:border-primary hover:bg-primary/10"
                     >
                       <span className="font-bold text-[11px]">{portion}</span>
-                      <span className="text-[10px] text-muted-foreground">₹{price}</span>
+                      <span className="text-[10px] text-muted-foreground">₹{String(price)}</span>
                     </Button>
                   ))}
                 </div>
