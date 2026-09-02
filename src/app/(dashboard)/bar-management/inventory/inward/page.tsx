@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowDownToLine, ArrowLeft, CheckCircle2, Plus, Trash2, Wine } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,12 +26,40 @@ export default function KsbclInwardPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
-  // Shared Header Information
-  const [ksbclPermitNo, setKsbclPermitNo] = useState('KSBCL/KA/2026/09874');
-  const [indentNo, setIndentNo] = useState('IND-5582');
-  const [batchNumber, setBatchNumber] = useState('BATCH-2026-A');
+  // Shared Header Information - Clean Default Inputs
+  const [ksbclPermitNo, setKsbclPermitNo] = useState('');
+  const [indentNo, setIndentNo] = useState('');
+  const [batchNumber, setBatchNumber] = useState('');
 
-  // Multi-Item Table Grid Rows
+  // Catalog Products loaded dynamically from Liquor Catalog
+  const [catalogProducts, setCatalogProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bar_liquor_products');
+      if (saved) {
+        try {
+          const items = JSON.parse(saved);
+          if (Array.isArray(items) && items.length > 0) {
+            setCatalogProducts(items);
+            return;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    // Default fallback catalog items
+    setCatalogProducts([
+      { id: 'prod_glenfiddich_750', name: 'Glenfiddich 12 Single Malt (750ml)', bottle_size_ml: 750, bottles_per_case: 12, case_price: 54000 },
+      { id: 'prod_jd_750', name: "Jack Daniel's Old No. 7 (750ml)", bottle_size_ml: 750, bottles_per_case: 12, case_price: 38400 },
+      { id: 'prod_oldmonk_750', name: 'Old Monk Supreme Rum (750ml)', bottle_size_ml: 750, bottles_per_case: 12, case_price: 14400 },
+      { id: 'prod_heineken_can_500', name: 'Heineken Lager Draft Beer (500ml)', bottle_size_ml: 500, bottles_per_case: 24, case_price: 5600 },
+      { id: 'prod_kingfisher_650', name: 'Kingfisher Premium Beer (650ml Btl)', bottle_size_ml: 650, bottles_per_case: 12, case_price: 2400 },
+    ]);
+  }, []);
+
+  // Multi-Item Table Grid Rows - Starts with 1 clean initial row
   const [lines, setLines] = useState<InwardLineItem[]>([
     {
       id: 'line_1',
@@ -39,46 +67,25 @@ export default function KsbclInwardPage() {
       pkg_template: 'QUART',
       bottles_per_case: 12,
       bottle_size_ml: 750,
-      cases_received: 2,
+      cases_received: 1,
       case_purchase_price: 54000,
-      eal_serial_start: 'EAL-882001',
-      eal_serial_end: 'EAL-882024',
-    },
-    {
-      id: 'line_2',
-      product_id: 'prod_oldmonk_750',
-      pkg_template: 'QUART',
-      bottles_per_case: 12,
-      bottle_size_ml: 750,
-      cases_received: 5,
-      case_purchase_price: 14400,
-      eal_serial_start: 'EAL-882025',
-      eal_serial_end: 'EAL-882084',
-    },
-    {
-      id: 'line_3',
-      product_id: 'prod_kingfisher_650',
-      pkg_template: 'BEER_BOTTLE',
-      bottles_per_case: 12,
-      bottle_size_ml: 650,
-      cases_received: 6,
-      case_purchase_price: 2400,
-      eal_serial_start: 'EAL-882085',
-      eal_serial_end: 'EAL-882156',
+      eal_serial_start: '',
+      eal_serial_end: '',
     },
   ]);
 
   const addLineItem = () => {
+    const nextProd = catalogProducts[lines.length % catalogProducts.length] || catalogProducts[0];
     const newLine: InwardLineItem = {
       id: `line_${Date.now()}`,
-      product_id: 'prod_heineken_can_500',
-      pkg_template: 'BEER_CAN',
-      bottles_per_case: 24,
-      bottle_size_ml: 500,
-      cases_received: 3,
-      case_purchase_price: 5600,
-      eal_serial_start: 'EAL-882157',
-      eal_serial_end: 'EAL-882228',
+      product_id: nextProd?.id || nextProd?.name || 'prod_oldmonk_750',
+      pkg_template: nextProd?.bottle_size_ml === 500 ? 'BEER_CAN' : 'QUART',
+      bottles_per_case: nextProd?.bottles_per_case || 12,
+      bottle_size_ml: nextProd?.bottle_size_ml || 750,
+      cases_received: 1,
+      case_purchase_price: nextProd?.case_price || 14400,
+      eal_serial_start: '',
+      eal_serial_end: '',
     };
     setLines((prev) => [...prev, newLine]);
     toast.success('Added new line item row to permit invoice');
@@ -98,36 +105,31 @@ export default function KsbclInwardPage() {
         if (l.id === id) {
           const updated = { ...l, [field]: value };
           if (field === 'product_id') {
-            if (value === 'prod_glenfiddich_750') {
+            const matched = catalogProducts.find((p) => p.id === value || p.name === value);
+            if (matched) {
+              updated.bottle_size_ml = matched.bottle_size_ml || 750;
+              updated.bottles_per_case = matched.bottles_per_case || 12;
+              updated.case_purchase_price = matched.case_price || 14400;
+            } else if (value === 'prod_glenfiddich_750') {
               updated.bottle_size_ml = 750;
               updated.bottles_per_case = 12;
               updated.case_purchase_price = 54000;
-              updated.pkg_template = 'QUART';
             } else if (value === 'prod_jd_750') {
               updated.bottle_size_ml = 750;
               updated.bottles_per_case = 12;
               updated.case_purchase_price = 38400;
-              updated.pkg_template = 'QUART';
             } else if (value === 'prod_oldmonk_750') {
               updated.bottle_size_ml = 750;
               updated.bottles_per_case = 12;
               updated.case_purchase_price = 14400;
-              updated.pkg_template = 'QUART';
             } else if (value === 'prod_heineken_can_500') {
               updated.bottle_size_ml = 500;
               updated.bottles_per_case = 24;
               updated.case_purchase_price = 5600;
-              updated.pkg_template = 'BEER_CAN';
             } else if (value === 'prod_kingfisher_650') {
               updated.bottle_size_ml = 650;
               updated.bottles_per_case = 12;
               updated.case_purchase_price = 2400;
-              updated.pkg_template = 'BEER_BOTTLE';
-            } else if (value === 'prod_keg_50l') {
-              updated.bottle_size_ml = 50000;
-              updated.bottles_per_case = 1;
-              updated.case_purchase_price = 18000;
-              updated.pkg_template = 'KEG';
             }
           }
           return updated;
@@ -340,13 +342,11 @@ export default function KsbclInwardPage() {
                               <SelectValue placeholder="Select Product" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="prod_glenfiddich_750">Glenfiddich 12 (750ml, 12/case)</SelectItem>
-                              <SelectItem value="prod_jd_750">Jack Daniel's No.7 (750ml, 12/case)</SelectItem>
-                              <SelectItem value="prod_oldmonk_750">Old Monk Supreme (750ml, 12/case)</SelectItem>
-                              <SelectItem value="prod_absolut_750">Absolut Vodka (750ml, 12/case)</SelectItem>
-                              <SelectItem value="prod_heineken_can_500">Heineken Beer (500ml Can, 24/case)</SelectItem>
-                              <SelectItem value="prod_kingfisher_650">Kingfisher Premium (650ml Btl, 12/case)</SelectItem>
-                              <SelectItem value="prod_keg_50l">Craft Draft Beer (50L Barrel Keg)</SelectItem>
+                              {catalogProducts.map((p) => (
+                                <SelectItem key={p.id || p.name} value={p.id || p.name}>
+                                  {p.name} ({p.bottle_size_ml || 750}ml, {p.bottles_per_case || 12}/case)
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </td>
