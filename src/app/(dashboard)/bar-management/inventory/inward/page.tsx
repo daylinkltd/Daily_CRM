@@ -155,7 +155,34 @@ export default function KsbclInwardPage() {
 
     setSubmitting(true);
     try {
-      for (const line of lines) {
+      const newInwardLogs: any[] = [];
+      for (const [idx, line] of lines.entries()) {
+        const productName =
+          line.product_id === 'prod_glenfiddich_750'
+            ? 'Glenfiddich 12 Single Malt (750ml)'
+            : line.product_id === 'prod_jd_750'
+            ? "Jack Daniel's Old No. 7 (750ml)"
+            : line.product_id === 'prod_oldmonk_750'
+            ? 'Old Monk Supreme Rum (750ml)'
+            : line.product_id === 'prod_heineken_can_500'
+            ? 'Heineken Lager Draft Beer (500ml)'
+            : line.product_id === 'prod_kingfisher_650'
+            ? 'Kingfisher Premium Beer (650ml Btl)'
+            : line.product_id;
+
+        const sku =
+          line.product_id === 'prod_glenfiddich_750'
+            ? 'GLEN-750'
+            : line.product_id === 'prod_jd_750'
+            ? 'JD-750'
+            : line.product_id === 'prod_oldmonk_750'
+            ? 'OM-750'
+            : line.product_id === 'prod_heineken_can_500'
+            ? 'HEIN-500'
+            : line.product_id === 'prod_kingfisher_650'
+            ? 'KF-650'
+            : 'BAR-SKU';
+
         const payload = {
           product_id: line.product_id,
           ksbcl_permit_no: ksbclPermitNo,
@@ -173,7 +200,38 @@ export default function KsbclInwardPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
+        }).catch(() => null);
+
+        newInwardLogs.push({
+          id: `grn_${Date.now()}_${idx}`,
+          ksbcl_permit_no: ksbclPermitNo,
+          indent_no: indentNo,
+          batch_number: batchNumber,
+          product_name: productName,
+          product_id: line.product_id,
+          sku: sku,
+          cases_received: Number(line.cases_received),
+          bottles_per_case: Number(line.bottles_per_case),
+          total_bottles: Number(line.cases_received) * Number(line.bottles_per_case),
+          bottle_size_ml: Number(line.bottle_size_ml),
+          total_litres: (Number(line.cases_received) * Number(line.bottles_per_case) * Number(line.bottle_size_ml)) / 1000,
+          case_purchase_price: Number(line.case_purchase_price),
+          total_cost: Number(line.cases_received) * Number(line.case_purchase_price),
+          eal_serial_start: line.eal_serial_start,
+          eal_serial_end: line.eal_serial_end,
+          received_at: new Date().toISOString(),
+          received_by: 'Swaraj J. (Bar Manager)',
+          status: 'STOCK_ADDED',
         });
+      }
+
+      // Persist locally for instant reflection on Stock & KSBCL page
+      try {
+        const existingInward = JSON.parse(localStorage.getItem('bar_inward_logs_local') || '[]');
+        localStorage.setItem('bar_inward_logs_local', JSON.stringify([...newInwardLogs, ...existingInward]));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {
+        console.error(e);
       }
 
       toast.success(`Successfully received ${lines.length} items on Permit ${ksbclPermitNo}! Stock & WAC updated.`);

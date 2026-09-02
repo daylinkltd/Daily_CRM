@@ -38,13 +38,48 @@ export async function POST(request: NextRequest) {
     const total_cost = (cases_received * case_purchase_price) + Number(excise_duty_amount);
     const unit_cost_per_ml = total_cost / total_volume_ml;
 
+    const isUuid = (val: any): boolean =>
+      typeof val === "string" &&
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val);
+
+    let targetProductId = product_id;
+    if (!isUuid(product_id)) {
+      const { data: existing } = await admin
+        .from("commerce_products")
+        .select("id")
+        .eq("workspace_id", ctx.accountId)
+        .or(`sku.eq.${product_id},name.eq.${product_id}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (existing?.id) {
+        targetProductId = existing.id;
+      } else {
+        const { data: newProd } = await admin
+          .from("commerce_products")
+          .insert({
+            workspace_id: ctx.accountId,
+            sku: String(product_id),
+            name: String(product_id),
+          })
+          .select("id")
+          .maybeSingle();
+
+        if (newProd?.id) {
+          targetProductId = newProd.id;
+        }
+      }
+    }
+
+    const validBranchId = isUuid(branch_id) ? branch_id : null;
+
     // 1. Insert KSBCL Inward Record
     const { data: inwardRecord, error: inwardError } = await admin
       .from("bar_inward_stock")
       .insert({
         workspace_id: ctx.accountId,
-        branch_id: branch_id || null,
-        product_id,
+        branch_id: validBranchId,
+        product_id: targetProductId,
         ksbcl_permit_no: ksbcl_permit_no || "PERMIT-PENDING",
         indent_no: indent_no || null,
         eal_serial_start: eal_serial_start || null,

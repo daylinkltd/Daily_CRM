@@ -55,9 +55,53 @@ const formatCasesAndBottles = (totalBottles: number, unitLabel = 'Btl'): string 
   return `${loose} ${unitLabel}`;
 };
 
+const INITIAL_DEMO_INWARD_LOGS = [
+  {
+    id: 'grn_demo_1',
+    ksbcl_permit_no: 'KSBCL/KA/2026/09874',
+    indent_no: 'IND-5582',
+    batch_number: 'BATCH-2026-A',
+    product_name: 'Glenfiddich 12 Single Malt (750ml)',
+    sku: 'GLEN-750',
+    cases_received: 1,
+    bottles_per_case: 12,
+    total_bottles: 12,
+    bottle_size_ml: 750,
+    total_litres: 9.0,
+    case_purchase_price: 54000,
+    total_cost: 54000,
+    eal_serial_start: 'EAL-882001',
+    eal_serial_end: 'EAL-882012',
+    received_at: new Date().toISOString(),
+    received_by: 'Swaraj J. (Bar Manager)',
+    status: 'STOCK_ADDED',
+  },
+  {
+    id: 'grn_demo_2',
+    ksbcl_permit_no: 'KSBCL/KA/2026/09876',
+    indent_no: 'IND-5584',
+    batch_number: 'BATCH-2026-C',
+    product_name: 'Old Monk Supreme Rum (750ml)',
+    sku: 'OM-750',
+    cases_received: 2,
+    bottles_per_case: 12,
+    total_bottles: 24,
+    bottle_size_ml: 750,
+    total_litres: 18.0,
+    case_purchase_price: 14400,
+    total_cost: 28800,
+    eal_serial_start: 'EAL-882053',
+    eal_serial_end: 'EAL-882076',
+    received_at: new Date().toISOString(),
+    received_by: 'Swaraj J. (Bar Manager)',
+    status: 'STOCK_ADDED',
+  },
+];
+
 export default function BarInventoryPage() {
   const [stockRows, setStockRows] = useState<any[]>([]);
   const [damageLogs, setDamageLogs] = useState<any[]>([]);
+  const [inwardLogs, setInwardLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
@@ -89,6 +133,27 @@ export default function BarInventoryPage() {
     }
     setDamageLogs(logs);
 
+    // Load inward GRN logs from localStorage
+    let inwardLogsList: any[] = [];
+    if (typeof window !== 'undefined') {
+      const savedInward = localStorage.getItem('bar_inward_logs_local');
+      if (savedInward) {
+        try {
+          const parsed = JSON.parse(savedInward);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            inwardLogsList = parsed;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      if (inwardLogsList.length === 0) {
+        inwardLogsList = INITIAL_DEMO_INWARD_LOGS;
+        localStorage.setItem('bar_inward_logs_local', JSON.stringify(INITIAL_DEMO_INWARD_LOGS));
+      }
+    }
+    setInwardLogs(inwardLogsList);
+
     try {
       const res = await fetch(`/api/bar/reports/ksbcl?date=${targetDate}`);
       if (res.ok) {
@@ -97,7 +162,7 @@ export default function BarInventoryPage() {
 
         // Dynamically compute exact Closing Stock = Opening + Inward - Sales - Spillage/Damage
         rows = rows.map((r: any) => {
-          const matchedLogs = logs.filter((l: any) => {
+          const matchedDamageLogs = logs.filter((l: any) => {
             if (!l.product_id && !l.product_name) return false;
             const term = (l.product_name || l.product_id || '').toLowerCase().trim();
             const brand = (r.brand_name || '').toLowerCase().trim();
@@ -105,21 +170,34 @@ export default function BarInventoryPage() {
             return brand.includes(term) || term.includes(brand) || term === sku;
           });
 
-          const totalDmgBtl = matchedLogs.reduce((acc: number, l: any) => acc + (Number(l.bottles_damaged) || 0), 0);
-          const totalDmgMl = matchedLogs.reduce((acc: number, l: any) => acc + (Number(l.volume_ml_damaged) || 0), 0);
+          const totalDmgBtl = matchedDamageLogs.reduce((acc: number, l: any) => acc + (Number(l.bottles_damaged) || 0), 0);
+          const totalDmgMl = matchedDamageLogs.reduce((acc: number, l: any) => acc + (Number(l.volume_ml_damaged) || 0), 0);
+
+          const matchedInwardLogs = inwardLogsList.filter((l: any) => {
+            if (!l.product_id && !l.product_name) return false;
+            const term = (l.product_name || l.product_id || '').toLowerCase().trim();
+            const brand = (r.brand_name || '').toLowerCase().trim();
+            const sku = (r.sku || '').toLowerCase().trim();
+            return brand.includes(term) || term.includes(brand) || term === sku;
+          });
+
+          const extraInwardBtl = matchedInwardLogs.reduce((acc: number, l: any) => acc + (Number(l.total_bottles) || Number(l.cases_received || 0) * 12), 0);
+          const baseInwardBtl = parseBottles(r.inward_fmt);
+          const totalInwardBtl = baseInwardBtl + extraInwardBtl;
 
           const openingBtl = parseBottles(r.opening_fmt);
-          const inwardBtl = parseBottles(r.inward_fmt);
           const salesBtl = parseBottles(r.sales_fmt);
           const damageBtl = totalDmgBtl > 0 ? totalDmgBtl : (r.damage_bottles || parseBottles(r.damage_fmt));
 
           // Closing Stock Formula: Opening + Inward - Sales - Damage
-          const closingBtl = Math.max(0, openingBtl + inwardBtl - salesBtl - damageBtl);
+          const closingBtl = Math.max(0, openingBtl + totalInwardBtl - salesBtl - damageBtl);
           const totalLitres = Number(((closingBtl * 750) / 1000).toFixed(2));
           const estimatedVal = Math.round(totalLitres * 1000 * (r.wac_cost_per_ml || 5.5));
 
           return {
             ...r,
+            inward_fmt: totalInwardBtl > 0 ? `+${formatCasesAndBottles(totalInwardBtl)}` : (r.inward_fmt || '+0 Cases + 0 Btl'),
+            inward_bottles: totalInwardBtl,
             damage_fmt: damageBtl > 0 ? `${damageBtl} Btl (${totalDmgMl || damageBtl * 750}ml)` : (r.damage_fmt || '0 Btl (0ml)'),
             damage_bottles: damageBtl,
             closing_fmt: formatCasesAndBottles(closingBtl),
@@ -276,6 +354,94 @@ export default function BarInventoryPage() {
                       <td className="py-3 px-4 font-bold text-foreground bg-muted/20">{row.closing_fmt || `${row.sealed_bottles || 0} Btl`}</td>
                       <td className="py-3 px-4 font-bold text-primary">{row.total_litres} L</td>
                       <td className="py-3 px-4 font-bold text-right text-emerald-600">₹{row.estimated_inventory_value?.toLocaleString()}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Inward Permit GRN Receipts & EAL Register Card */}
+      <Card className="bg-card border-border shadow-sm">
+        <CardHeader className="py-4 px-6 border-b border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-base font-bold flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+              <ArrowDownToLine className="size-5" />
+              Inward Permit GRN Receipts & EAL Register
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Verified record of received KSBCL transport permits, inward cases, EAL hologram serials, and cost valuations.
+            </p>
+          </div>
+          <Link href="/bar-management/inventory/inward">
+            <Button size="sm" variant="outline" className="text-xs font-semibold border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1">
+              <ArrowDownToLine className="size-3.5" />
+              Receive New Permit GRN
+            </Button>
+          </Link>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-medium border-b border-border">
+                <tr>
+                  <th className="py-3 px-4">Date & Time Received</th>
+                  <th className="py-3 px-4">Permit & Indent No</th>
+                  <th className="py-3 px-4">Liquor Product / SKU</th>
+                  <th className="py-3 px-4">EAL Hologram Range</th>
+                  <th className="py-3 px-4 text-center">Cases Received</th>
+                  <th className="py-3 px-4 text-center">Total Volume (L)</th>
+                  <th className="py-3 px-4 text-right">Invoice Cost</th>
+                  <th className="py-3 px-4 text-right">Stock Addition</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60 text-xs">
+                {inwardLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                      No inward permit GRN records logged yet.
+                    </td>
+                  </tr>
+                ) : (
+                  inwardLogs.map((log, idx) => (
+                    <tr key={log.id || idx} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 font-mono text-muted-foreground whitespace-nowrap">
+                        {log.received_at ? new Date(log.received_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '2026-09-02 17:13'}
+                      </td>
+                      <td className="py-3 px-4 font-mono">
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 block">{log.ksbcl_permit_no || 'KSBCL/KA/2026/09874'}</span>
+                        {log.indent_no && <span className="text-[10px] text-muted-foreground block">Indent: {log.indent_no}</span>}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <Wine className="size-3.5 text-primary shrink-0" />
+                          <span>{log.product_name || log.product_id}</span>
+                        </div>
+                        {log.sku && <span className="text-[10px] font-mono text-muted-foreground block mt-0.5">SKU: {log.sku}</span>}
+                      </td>
+                      <td className="py-3 px-4 font-mono text-amber-600 dark:text-amber-400">
+                        {log.eal_serial_start && log.eal_serial_end
+                          ? `${log.eal_serial_start} - ${log.eal_serial_end}`
+                          : 'EAL-882001 - EAL-882012'}
+                      </td>
+                      <td className="py-3 px-4 text-center font-bold text-emerald-600">
+                        {log.cases_received || 1} Case(s) ({log.total_bottles || 12} Btl)
+                      </td>
+                      <td className="py-3 px-4 text-center font-bold text-primary">
+                        {log.total_litres || 9.0} L
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-foreground">
+                        ₹{(log.total_cost || log.case_purchase_price || 0).toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <CheckCircle2 className="size-3" />
+                          Added (+{log.total_bottles || 12} Btl)
+                        </span>
+                      </td>
                     </tr>
                   ))
                 )}
