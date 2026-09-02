@@ -466,20 +466,17 @@ export default function BarFoodCatalogPage() {
                   </div>
                 </div>
 
-                <div className="text-right flex flex-col items-end">
-                  <div className="flex items-center gap-1">
-                    <div className="text-lg font-bold text-foreground">₹{dish.basePrice}</div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleOpenEditModal(dish)}
-                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
-                      title="Edit Item"
-                    >
-                      <Edit2 className="size-3.5" />
-                    </Button>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">Base Price</span>
+                <div className="text-right flex flex-col items-end gap-1">
+                  <div className="text-lg font-bold text-foreground">₹{dish.basePrice}</div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenEditModal(dish)}
+                    className="h-7 text-[11px] font-bold text-primary border-primary/40 hover:bg-primary hover:text-white transition-all gap-1 shadow-xs"
+                  >
+                    <Edit2 className="size-3" />
+                    Edit Item
+                  </Button>
                 </div>
               </div>
             </CardHeader>
