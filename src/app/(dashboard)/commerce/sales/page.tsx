@@ -220,11 +220,13 @@ export default function SalesPage() {
                 @media print {
                   @page {
                     size: A4 portrait;
-                    margin: 12mm;
+                    margin: 10mm;
                   }
-                  body {
+                  html, body {
                     background: #ffffff !important;
                     color: #000000 !important;
+                    width: 100% !important;
+                    height: auto !important;
                   }
                   .print-invoice-card {
                     background-color: #ffffff !important;
@@ -235,6 +237,7 @@ export default function SalesPage() {
                     width: 100% !important;
                     padding: 0 !important;
                     margin: 0 !important;
+                    font-size: 12pt !important;
                   }
                   .print-invoice-card * {
                     -webkit-print-color-adjust: exact !important;
@@ -244,16 +247,25 @@ export default function SalesPage() {
                   .print-invoice-card .bg-card {
                     background-color: #ffffff !important;
                     color: #000000 !important;
-                    border-color: #e5e7eb !important;
+                    border-color: #d1d5db !important;
+                  }
+                  .print-invoice-card table {
+                    width: 100% !important;
+                    border-collapse: collapse !important;
+                  }
+                  .print-invoice-card th, 
+                  .print-invoice-card td {
+                    border: 1px solid #d1d5db !important;
+                    padding: 8px 10px !important;
                   }
                   .print-invoice-card .text-muted-foreground {
-                    color: #4b5563 !important;
+                    color: #374151 !important;
                   }
                   .print-invoice-card .text-foreground {
                     color: #000000 !important;
                   }
                   .print-invoice-card .border-border {
-                    border-color: #e5e7eb !important;
+                    border-color: #d1d5db !important;
                   }
                 }
               `,
@@ -284,9 +296,9 @@ export default function SalesPage() {
               <div className="flex items-center gap-2 print:hidden" data-print-hide>
                 <button
                   onClick={() => window.print()}
-                  className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-xl hover:opacity-90 transition-opacity"
+                  className="flex items-center gap-1 bg-[#00aef0] hover:bg-[#0284c7] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-colors"
                 >
-                  <Printer className="h-3.5 w-3.5" /> Print Invoice
+                  <Printer className="h-3.5 w-3.5" /> Print A4 Tax Invoice
                 </button>
                 <button
                   onClick={() => setShowInvoiceModal(false)}
@@ -300,8 +312,8 @@ export default function SalesPage() {
             {/* Customer & Counter Banner */}
             <div className="grid grid-cols-2 gap-3 bg-background p-3.5 rounded-2xl border border-border text-xs">
               <div>
-                <span className="text-muted-foreground block">Customer Information</span>
-                <span className="font-bold text-foreground block mt-0.5">
+                <span className="text-muted-foreground block font-semibold">Customer Information</span>
+                <span className="font-bold text-foreground block mt-0.5 text-sm">
                   {selectedOrder.customer
                     ? `${selectedOrder.customer.first_name} ${selectedOrder.customer.last_name || ""}`
                     : selectedOrder.is_walkin_customer
@@ -315,7 +327,7 @@ export default function SalesPage() {
                 )}
               </div>
               <div>
-                <span className="text-muted-foreground block">Billing Details</span>
+                <span className="text-muted-foreground block font-semibold">Billing & Payment Details</span>
                 <span className="font-bold text-[#00aef0] block mt-0.5 uppercase">
                   Counter: {selectedOrder.counter_number || "COUNTER-1"} ({selectedOrder.channel || "POS"})
                 </span>
@@ -354,7 +366,7 @@ export default function SalesPage() {
                       <td className="py-2.5 px-3 text-right">
                         ₹{Number(item.selling_price || item.unit_price || 0).toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-purple-400 print:text-purple-700 font-mono">
+                      <td className="py-2.5 px-3 text-right text-purple-400 print:text-purple-800 font-mono">
                         {item.tax_rate || 0}%
                       </td>
                       <td className="py-2.5 px-3 text-right font-extrabold text-foreground">
@@ -396,12 +408,91 @@ export default function SalesPage() {
                 Dailybuz Enterprise POS Billing System
               </span>
               <div className="flex items-center gap-2">
-                <IconAction label="Print Receipt" icon={<Printer className="h-4 w-4" />} variant="outline"
+                <Button
+                  variant="outline"
                   onClick={() => {
-                    window.print();
-                    toast.success("Printing invoice receipt...");
+                    const printWin = window.open("", "_blank", "width=400,height=600");
+                    if (printWin) {
+                      const itemsHtml = (selectedOrder.items || [])
+                        .map(
+                          (it: any) => `
+                          <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:4px;">${it.quantity}x ${it.product?.name || "Item"}</div>
+                            <div style="flex-shrink:0;">₹${Number(it.total_price || it.quantity * it.selling_price).toFixed(2)}</div>
+                          </div>
+                        `
+                        )
+                        .join("");
+
+                      const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Receipt #${selectedOrder.order_number}</title>
+  <style>
+    @page { size: 80mm auto; margin: 2mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 76mm;
+      margin: 0 auto;
+      padding: 2mm;
+      font-family: monospace, Courier, sans-serif;
+      font-size: 11px;
+      color: #000000;
+      background: #ffffff;
+      -webkit-print-color-adjust: exact;
+    }
+    .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px; }
+    .store { font-weight: bold; font-size: 13px; text-transform: uppercase; }
+    .meta { font-size: 10px; margin-bottom: 4px; border-bottom: 1px dashed #000; padding-bottom: 4px; }
+    .items { border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px; }
+    .totals { text-align: right; margin-bottom: 6px; }
+    .total-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+    .grand-total { font-weight: bold; font-size: 13px; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 0; margin-top: 2px; }
+    .footer { text-align: center; font-size: 9px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="store">${activeWorkspace?.name || "DAILYBUZ RETAIL STORE"}</div>
+    <div style="font-size:9px;">GSTIN: 29AAAAA0000A1Z5</div>
+  </div>
+  <div class="meta">
+    <div>Order: #${selectedOrder.order_number}</div>
+    <div>Date: ${new Date(selectedOrder.created_at).toLocaleString()}</div>
+    <div>Customer: ${selectedOrder.customer ? `${selectedOrder.customer.first_name}` : "Walk-in Customer"}</div>
+    <div>Payment: ${selectedOrder.payment_method} (${selectedOrder.counter_number || "POS"})</div>
+  </div>
+  <div class="items">
+    ${itemsHtml}
+  </div>
+  <div class="totals">
+    <div class="total-row"><span>Subtotal:</span><span>₹${Number(selectedOrder.subtotal || 0).toFixed(2)}</span></div>
+    <div class="total-row"><span>GST Tax:</span><span>₹${Number(selectedOrder.tax_total || 0).toFixed(2)}</span></div>
+    ${Number(selectedOrder.discount_amount || 0) > 0 ? `<div class="total-row"><span>Discount:</span><span>-₹${Number(selectedOrder.discount_amount).toFixed(2)}</span></div>` : ""}
+    <div class="total-row grand-total"><span>TOTAL:</span><span>₹${Number(selectedOrder.grand_total || 0).toFixed(2)}</span></div>
+  </div>
+  <div class="footer">
+    *** Thank You For Shopping With Us ***<br>
+    Dailybuz Enterprise POS System
+  </div>
+</body>
+</html>`;
+
+                      printWin.document.open();
+                      printWin.document.write(htmlContent);
+                      printWin.document.close();
+                      printWin.focus();
+                      setTimeout(() => {
+                        printWin.print();
+                        printWin.close();
+                      }, 300);
+                    }
                   }}
-                  className="border-border hover:border-[#00aef0] text-foreground hover:text-[#00aef0] gap-1.5 rounded-xl text-xs h-10" />
+                  className="border-border text-foreground gap-1.5 rounded-xl text-xs h-10"
+                >
+                  🧾 Print 80mm Receipt
+                </Button>
                 <Button
                   onClick={() => setShowInvoiceModal(false)}
                   className="bg-muted hover:bg-muted text-foreground font-bold rounded-xl text-xs h-10 px-5"
