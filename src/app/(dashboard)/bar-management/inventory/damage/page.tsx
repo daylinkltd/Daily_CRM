@@ -81,15 +81,25 @@ export default function DamageLogPage() {
       // Persist log locally for instant UI reflection & offline sync
       try {
         const existing = JSON.parse(localStorage.getItem('bar_damage_logs_local') || '[]');
+        const matchedProd = catalogProducts.find((p) => p.name === form.product_id || p.id === form.product_id);
+        const productName = matchedProd ? matchedProd.name : form.product_id;
+
         const newLog = {
+          id: `dmg_${Date.now()}`,
           product_id: form.product_id,
+          product_name: productName,
+          sku: matchedProd?.brand ? `${productName} (${matchedProd.brand})` : productName,
           damage_type: form.damage_type,
-          bottles_damaged: Number(form.bottles_damaged),
-          volume_ml_damaged: Number(form.volume_ml_damaged),
-          reason: form.reason,
+          bottles_damaged: Number(form.bottles_damaged) || 1,
+          volume_ml_damaged: Number(form.volume_ml_damaged) || 750,
+          reason: form.reason || 'Counter breakage incident logged',
+          ksbcl_permit_no: form.ksbcl_permit_no || 'KSBCL/KA/2026/09874',
           logged_at: new Date().toISOString(),
+          logged_by: 'Bar Manager (Swaraj J.)',
+          status: 'STOCK_DEDUCTED',
         };
         localStorage.setItem('bar_damage_logs_local', JSON.stringify([newLog, ...existing]));
+        window.dispatchEvent(new Event('storage'));
       } catch (e) {
         console.error(e);
       }

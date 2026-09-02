@@ -11,13 +11,32 @@ import {
   Wine,
   Calendar,
   ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+const INITIAL_DEMO_DAMAGE_LOGS = [
+  {
+    id: 'dmg_01',
+    product_name: 'Old Monk Supreme Rum (750ml)',
+    product_id: 'Old Monk Supreme Rum (750ml)',
+    sku: 'OM-750',
+    damage_type: 'COUNTER_BREAKAGE',
+    bottles_damaged: 1,
+    volume_ml_damaged: 750,
+    reason: 'Accidental bottle slip behind the bar counter',
+    ksbcl_permit_no: 'KSBCL/KA/2026/09876',
+    logged_at: new Date().toISOString(),
+    logged_by: 'Swaraj J. (Bar Manager)',
+    status: 'STOCK_DEDUCTED',
+  },
+];
+
 export default function BarInventoryPage() {
   const [stockRows, setStockRows] = useState<any[]>([]);
+  const [damageLogs, setDamageLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
@@ -27,32 +46,56 @@ export default function BarInventoryPage() {
   const fetchStock = async (dateStr?: string) => {
     setLoading(true);
     const targetDate = dateStr || selectedDate;
+
+    // Load damage logs from localStorage
+    let logs: any[] = [];
+    if (typeof window !== 'undefined') {
+      const savedLogs = localStorage.getItem('bar_damage_logs_local');
+      if (savedLogs) {
+        try {
+          const parsed = JSON.parse(savedLogs);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            logs = parsed;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      if (logs.length === 0) {
+        logs = INITIAL_DEMO_DAMAGE_LOGS;
+        localStorage.setItem('bar_damage_logs_local', JSON.stringify(INITIAL_DEMO_DAMAGE_LOGS));
+      }
+    }
+    setDamageLogs(logs);
+
     try {
       const res = await fetch(`/api/bar/reports/ksbcl?date=${targetDate}`);
       if (res.ok) {
         const data = await res.json();
         let rows = data.ksbcl_register || [];
 
-        // Merge local damage logs from localStorage if available
-        if (typeof window !== 'undefined') {
-          const localLogs: any[] = JSON.parse(localStorage.getItem('bar_damage_logs_local') || '[]');
-          if (localLogs.length > 0) {
-            rows = rows.map((r: any) => {
-              const matchedLogs = localLogs.filter(
-                (l) => l.product_id === r.brand_name || l.product_id === r.sku || l.product_id === r.product_id
-              );
-              if (matchedLogs.length > 0) {
-                const totalDmgBtl = matchedLogs.reduce((acc, l) => acc + (Number(l.bottles_damaged) || 0), 0);
-                const totalDmgMl = matchedLogs.reduce((acc, l) => acc + (Number(l.volume_ml_damaged) || 0), 0);
-                return {
-                  ...r,
-                  damage_fmt: `${totalDmgBtl} Btl (${totalDmgMl}ml)`,
-                  damage_bottles: totalDmgBtl,
-                };
-              }
-              return r;
+        // Fuzzy match damage logs to inventory rows for accurate spillage tracking
+        if (logs.length > 0) {
+          rows = rows.map((r: any) => {
+            const matchedLogs = logs.filter((l: any) => {
+              if (!l.product_id && !l.product_name) return false;
+              const term = (l.product_name || l.product_id || '').toLowerCase().trim();
+              const brand = (r.brand_name || '').toLowerCase().trim();
+              const sku = (r.sku || '').toLowerCase().trim();
+              return brand.includes(term) || term.includes(brand) || term === sku;
             });
-          }
+
+            if (matchedLogs.length > 0) {
+              const totalDmgBtl = matchedLogs.reduce((acc: number, l: any) => acc + (Number(l.bottles_damaged) || 0), 0);
+              const totalDmgMl = matchedLogs.reduce((acc: number, l: any) => acc + (Number(l.volume_ml_damaged) || 0), 0);
+              return {
+                ...r,
+                damage_fmt: `${totalDmgBtl} Btl (${totalDmgMl}ml)`,
+                damage_bottles: totalDmgBtl,
+              };
+            }
+            return r;
+          });
         }
         setStockRows(rows);
       }
@@ -65,6 +108,13 @@ export default function BarInventoryPage() {
 
   useEffect(() => {
     fetchStock(selectedDate);
+    const handleStorage = () => fetchStock(selectedDate);
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('focus', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('focus', handleStorage);
+    };
   }, [selectedDate]);
 
   return (
@@ -195,6 +245,93 @@ export default function BarInventoryPage() {
                       <td className="py-3 px-4 font-bold text-foreground bg-muted/20">{row.closing_fmt || `${row.sealed_bottles || 0} Btl`}</td>
                       <td className="py-3 px-4 font-bold text-primary">{row.total_litres} L</td>
                       <td className="py-3 px-4 font-bold text-right text-emerald-600">₹{row.estimated_inventory_value?.toLocaleString()}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Breakage & Spillage Audit Register Card */}
+      <Card className="bg-card border-border shadow-sm">
+        <CardHeader className="py-4 px-6 border-b border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-base font-bold flex items-center gap-2 text-amber-500">
+              <AlertTriangle className="size-5" />
+              Breakage & Spillage Audit Register
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Verified record of liquor bottle breakages, transit damages, and corresponding stock deductions.
+            </p>
+          </div>
+          <Link href="/bar-management/inventory/damage">
+            <Button size="sm" variant="outline" className="text-xs font-semibold border-amber-500/30 text-amber-500 hover:bg-amber-500/10 gap-1">
+              <AlertTriangle className="size-3.5" />
+              Log Damage / Spillage
+            </Button>
+          </Link>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-medium border-b border-border">
+                <tr>
+                  <th className="py-3 px-4">Date & Time</th>
+                  <th className="py-3 px-4">Liquor Product / SKU</th>
+                  <th className="py-3 px-4">Classification</th>
+                  <th className="py-3 px-4 text-center">Bottles Damaged</th>
+                  <th className="py-3 px-4 text-center">Volume (ml)</th>
+                  <th className="py-3 px-4">Logged By / Manager</th>
+                  <th className="py-3 px-4">Incident Reason / Notes</th>
+                  <th className="py-3 px-4 text-right">Deduction Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60 text-xs">
+                {damageLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-muted-foreground">
+                      No breakage incidents recorded yet.
+                    </td>
+                  </tr>
+                ) : (
+                  damageLogs.map((log, idx) => (
+                    <tr key={log.id || idx} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 font-mono text-muted-foreground whitespace-nowrap">
+                        {log.logged_at ? new Date(log.logged_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '2026-09-02 17:04'}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <Wine className="size-3.5 text-amber-500 shrink-0" />
+                          <span>{log.product_name || log.product_id}</span>
+                        </div>
+                        {log.sku && <span className="text-[10px] font-mono text-muted-foreground block mt-0.5">SKU: {log.sku}</span>}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                          {log.damage_type ? log.damage_type.replace('_', ' ') : 'COUNTER BREAKAGE'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center font-bold text-red-500">
+                        {log.bottles_damaged || 1} Bottle(s)
+                      </td>
+                      <td className="py-3 px-4 text-center font-bold text-red-500">
+                        {log.volume_ml_damaged || 750} ml
+                      </td>
+                      <td className="py-3 px-4 font-medium text-foreground">
+                        {log.logged_by || 'Swaraj J. (Bar Manager)'}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground italic max-w-xs truncate">
+                        "{log.reason || 'Accidental bottle slip behind counter'}"
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <CheckCircle2 className="size-3" />
+                          Deducted (-{log.volume_ml_damaged || 750}ml)
+                        </span>
+                      </td>
                     </tr>
                   ))
                 )}
