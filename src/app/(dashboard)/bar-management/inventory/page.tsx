@@ -34,6 +34,27 @@ const INITIAL_DEMO_DAMAGE_LOGS = [
   },
 ];
 
+// Helper to parse bottle count from formatted string e.g. "2 Cases + 2 Btl" -> 26 bottles
+const parseBottles = (fmtStr?: string): number => {
+  if (!fmtStr) return 0;
+  const casesMatch = fmtStr.match(/(\d+)\s*Cases?/i);
+  const btlMatch = fmtStr.match(/(\d+)\s*Btl/i) || fmtStr.match(/(\d+)\s*Cans?/i);
+  const cases = casesMatch ? parseInt(casesMatch[1], 10) : 0;
+  const btl = btlMatch ? parseInt(btlMatch[1], 10) : 0;
+  return cases * 12 + btl;
+};
+
+// Format total bottles back into Cases + Loose Bottles
+const formatCasesAndBottles = (totalBottles: number, unitLabel = 'Btl'): string => {
+  const rounded = Math.max(0, totalBottles);
+  const cases = Math.floor(rounded / 12);
+  const loose = Number((rounded % 12).toFixed(1));
+  if (cases > 0) {
+    return loose > 0 ? `${cases} Cases + ${loose} ${unitLabel}` : `${cases} Cases + 0 ${unitLabel}`;
+  }
+  return `${loose} ${unitLabel}`;
+};
+
 export default function BarInventoryPage() {
   const [stockRows, setStockRows] = useState<any[]>([]);
   const [damageLogs, setDamageLogs] = useState<any[]>([]);
@@ -74,29 +95,39 @@ export default function BarInventoryPage() {
         const data = await res.json();
         let rows = data.ksbcl_register || [];
 
-        // Fuzzy match damage logs to inventory rows for accurate spillage tracking
-        if (logs.length > 0) {
-          rows = rows.map((r: any) => {
-            const matchedLogs = logs.filter((l: any) => {
-              if (!l.product_id && !l.product_name) return false;
-              const term = (l.product_name || l.product_id || '').toLowerCase().trim();
-              const brand = (r.brand_name || '').toLowerCase().trim();
-              const sku = (r.sku || '').toLowerCase().trim();
-              return brand.includes(term) || term.includes(brand) || term === sku;
-            });
-
-            if (matchedLogs.length > 0) {
-              const totalDmgBtl = matchedLogs.reduce((acc: number, l: any) => acc + (Number(l.bottles_damaged) || 0), 0);
-              const totalDmgMl = matchedLogs.reduce((acc: number, l: any) => acc + (Number(l.volume_ml_damaged) || 0), 0);
-              return {
-                ...r,
-                damage_fmt: `${totalDmgBtl} Btl (${totalDmgMl}ml)`,
-                damage_bottles: totalDmgBtl,
-              };
-            }
-            return r;
+        // Dynamically compute exact Closing Stock = Opening + Inward - Sales - Spillage/Damage
+        rows = rows.map((r: any) => {
+          const matchedLogs = logs.filter((l: any) => {
+            if (!l.product_id && !l.product_name) return false;
+            const term = (l.product_name || l.product_id || '').toLowerCase().trim();
+            const brand = (r.brand_name || '').toLowerCase().trim();
+            const sku = (r.sku || '').toLowerCase().trim();
+            return brand.includes(term) || term.includes(brand) || term === sku;
           });
-        }
+
+          const totalDmgBtl = matchedLogs.reduce((acc: number, l: any) => acc + (Number(l.bottles_damaged) || 0), 0);
+          const totalDmgMl = matchedLogs.reduce((acc: number, l: any) => acc + (Number(l.volume_ml_damaged) || 0), 0);
+
+          const openingBtl = parseBottles(r.opening_fmt);
+          const inwardBtl = parseBottles(r.inward_fmt);
+          const salesBtl = parseBottles(r.sales_fmt);
+          const damageBtl = totalDmgBtl > 0 ? totalDmgBtl : (r.damage_bottles || parseBottles(r.damage_fmt));
+
+          // Closing Stock Formula: Opening + Inward - Sales - Damage
+          const closingBtl = Math.max(0, openingBtl + inwardBtl - salesBtl - damageBtl);
+          const totalLitres = Number(((closingBtl * 750) / 1000).toFixed(2));
+          const estimatedVal = Math.round(totalLitres * 1000 * (r.wac_cost_per_ml || 5.5));
+
+          return {
+            ...r,
+            damage_fmt: damageBtl > 0 ? `${damageBtl} Btl (${totalDmgMl || damageBtl * 750}ml)` : (r.damage_fmt || '0 Btl (0ml)'),
+            damage_bottles: damageBtl,
+            closing_fmt: formatCasesAndBottles(closingBtl),
+            total_litres: totalLitres,
+            estimated_inventory_value: estimatedVal,
+          };
+        });
+
         setStockRows(rows);
       }
     } catch (err) {
