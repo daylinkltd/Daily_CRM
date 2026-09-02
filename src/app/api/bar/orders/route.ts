@@ -2,6 +2,39 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAccount } from "@/lib/auth/account";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const isUuid = (val: any): boolean =>
+  typeof val === "string" &&
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val);
+
+async function getOrCreateFallbackProductId(admin: any, workspaceId: string): Promise<string | null> {
+  try {
+    const { data: existing } = await admin
+      .from("commerce_products")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing?.id) return existing.id;
+
+    const { data: created } = await admin
+      .from("commerce_products")
+      .insert({
+        workspace_id: workspaceId,
+        name: "Bar Item",
+        sku: `BAR-ITEM-${Date.now()}`,
+        selling_price: 100,
+      })
+      .select("id")
+      .single();
+
+    return created?.id || null;
+  } catch (err) {
+    console.error("Fallback product resolution error:", err);
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -28,21 +61,27 @@ export async function POST(request: NextRequest) {
 
     const orderNumber = `BAR-${Date.now().toString().slice(-6)}`;
 
+    // Sanitize UUID inputs to prevent Postgres 22P02 invalid input syntax error
+    const validTableId = isUuid(table_id) ? table_id : null;
+    const validBranchId = isUuid(branch_id) ? branch_id : null;
+    const validContactId = isUuid(contact_id) ? contact_id : null;
+    const fallbackProductId = await getOrCreateFallbackProductId(admin, ctx.accountId);
+
     // 1. Insert Master Bar Order
     const { data: order, error: orderError } = await admin
       .from("bar_orders")
       .insert({
         workspace_id: ctx.accountId,
-        branch_id: branch_id || null,
-        table_id: table_id || null,
+        branch_id: validBranchId,
+        table_id: validTableId,
         order_number: orderNumber,
         server_member_id: ctx.userId,
-        contact_id: contact_id || null,
+        contact_id: validContactId,
         subtotal: subtotal || total_amount,
         tax_amount,
         discount_amount,
         total_amount,
-        order_status: "CLOSED",
+        order_status: body.order_status || "CLOSED",
         payment_status: payment_method ? "PAID" : "UNPAID",
       })
       .select()
@@ -56,23 +95,26 @@ export async function POST(request: NextRequest) {
     // 2. Insert Order Items & Trigger Atomic Stock Depletion
     const orderItemsPayload = items.map((item: any) => ({
       order_id: order.id,
-      product_id: item.product_id,
+      product_id: isUuid(item.product_id) ? item.product_id : fallbackProductId,
       portion_type: item.portion_type || "30ML",
       quantity: item.quantity || 1,
       volume_ml_per_unit: item.volume_ml_per_unit || 30,
-      unit_price: item.unit_price,
-      total_price: (item.quantity || 1) * item.unit_price,
+      unit_price: item.unit_price || 0,
+      total_price: (item.quantity || 1) * (item.unit_price || 0),
       notes: item.notes || null,
-      kds_status: "SERVED",
-    }));
+      kds_status: body.order_status === "SENT_TO_KITCHEN" ? "PENDING" : "SERVED",
+    })).filter((i: any) => i.product_id !== null);
 
-    const { error: itemsError } = await admin.from("bar_order_items").insert(orderItemsPayload);
-    if (itemsError) {
-      console.error("[POST /api/bar/orders] insert items error:", itemsError);
+    if (orderItemsPayload.length > 0) {
+      const { error: itemsError } = await admin.from("bar_order_items").insert(orderItemsPayload);
+      if (itemsError) {
+        console.error("[POST /api/bar/orders] insert items error:", itemsError);
+      }
     }
 
     // 3. Process Stock Depletions (Atomic RPC with Recipe BOM Expansion)
     for (const item of items) {
+      if (!isUuid(item.product_id)) continue;
       const totalItemVolumeMl = (item.quantity || 1) * (item.volume_ml_per_unit || 30);
 
       // Check if product has a cocktail recipe (Bill of Materials)
@@ -88,7 +130,7 @@ export async function POST(request: NextRequest) {
           try {
             await admin.rpc("atomic_deplete_bar_stock", {
               p_workspace_id: ctx.accountId,
-              p_branch_id: branch_id || null,
+              p_branch_id: validBranchId,
               p_product_id: ing.ingredient_product_id,
               p_volume_ml: ingredientVolumeMl,
             });
@@ -101,7 +143,7 @@ export async function POST(request: NextRequest) {
         try {
           await admin.rpc("atomic_deplete_bar_stock", {
             p_workspace_id: ctx.accountId,
-            p_branch_id: branch_id || null,
+            p_branch_id: validBranchId,
             p_product_id: item.product_id,
             p_volume_ml: totalItemVolumeMl,
           });
@@ -121,7 +163,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Automatic Table Status Transition Lifecycle
-    if (table_id) {
+    if (validTableId) {
       const isPaid = payment_method || body.payment_status === "PAID";
       const isKotSent = body.order_status === "SENT_TO_KITCHEN";
       const isBilling = body.order_status === "BILLING";
@@ -134,7 +176,7 @@ export async function POST(request: NextRequest) {
         ? "BILLING"
         : "OCCUPIED";
 
-      await admin.from("bar_tables").update({ status: targetStatus }).eq("id", table_id);
+      await admin.from("bar_tables").update({ status: targetStatus }).eq("id", validTableId);
     }
 
     return NextResponse.json({
