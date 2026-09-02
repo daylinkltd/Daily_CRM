@@ -212,12 +212,59 @@ export default function SalesPage() {
 
       {/* Invoice Detail Modal */}
       {showInvoiceModal && selectedOrder && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-card border border-border rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl my-8 text-foreground relative">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto">
+          {/* Scoped Invoice Print Styles */}
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+                @media print {
+                  @page {
+                    size: A4 portrait;
+                    margin: 12mm;
+                  }
+                  body {
+                    background: #ffffff !important;
+                    color: #000000 !important;
+                  }
+                  .print-invoice-card {
+                    background-color: #ffffff !important;
+                    color: #000000 !important;
+                    box-shadow: none !important;
+                    border: none !important;
+                    max-width: 100% !important;
+                    width: 100% !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                  }
+                  .print-invoice-card * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                  }
+                  .print-invoice-card .bg-background,
+                  .print-invoice-card .bg-card {
+                    background-color: #ffffff !important;
+                    color: #000000 !important;
+                    border-color: #e5e7eb !important;
+                  }
+                  .print-invoice-card .text-muted-foreground {
+                    color: #4b5563 !important;
+                  }
+                  .print-invoice-card .text-foreground {
+                    color: #000000 !important;
+                  }
+                  .print-invoice-card .border-border {
+                    border-color: #e5e7eb !important;
+                  }
+                }
+              `,
+            }}
+          />
+
+          <div className="print-area print-invoice-card bg-card border border-border rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl my-8 text-foreground relative">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
-                <span className="bg-[#00aef0]/10 text-[#00aef0] px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                <span className="bg-[#00aef0]/10 text-[#00aef0] px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 w-fit print:border print:border-[#00aef0]">
                   <Receipt className="h-3.5 w-3.5" /> Tax Invoice #{selectedOrder.order_number}
                 </span>
                 <h2 className="text-xl font-extrabold text-foreground tracking-tight mt-1">
@@ -229,12 +276,12 @@ export default function SalesPage() {
                     {new Date(selectedOrder.created_at).toLocaleString()}
                   </span>
                   <span>•</span>
-                  <span className="text-emerald-400 font-semibold">
+                  <span className="text-emerald-500 font-semibold">
                     Payment Status: {selectedOrder.payment_status || "PAID"}
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 print:hidden" data-print-hide>
                 <button
                   onClick={() => window.print()}
                   className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-xl hover:opacity-90 transition-opacity"
@@ -307,7 +354,7 @@ export default function SalesPage() {
                       <td className="py-2.5 px-3 text-right">
                         ₹{Number(item.selling_price || item.unit_price || 0).toFixed(2)}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-purple-400 font-mono">
+                      <td className="py-2.5 px-3 text-right text-purple-400 print:text-purple-700 font-mono">
                         {item.tax_rate || 0}%
                       </td>
                       <td className="py-2.5 px-3 text-right font-extrabold text-foreground">
@@ -330,7 +377,7 @@ export default function SalesPage() {
                 <span>₹{Number(selectedOrder.tax_total || 0).toFixed(2)}</span>
               </div>
               {Number(selectedOrder.discount_amount || 0) > 0 && (
-                <div className="flex justify-between text-emerald-400 font-semibold">
+                <div className="flex justify-between text-emerald-500 font-semibold">
                   <span>Discount Applied</span>
                   <span>-₹{Number(selectedOrder.discount_amount).toFixed(2)}</span>
                 </div>
@@ -344,7 +391,7 @@ export default function SalesPage() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-border pt-4">
+            <div className="flex items-center justify-between border-t border-border pt-4 print:hidden" data-print-hide>
               <span className="text-[11px] text-muted-foreground">
                 Dailybuz Enterprise POS Billing System
               </span>

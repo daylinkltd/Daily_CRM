@@ -806,9 +806,9 @@ function POSTerminalPageContent() {
 
       {/* Printable Thermal Receipt Modal */}
       {showReceiptModal && completedOrder && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white print:static print:inset-auto">
+          <div className="bg-card border border-border rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl print:p-0 print:border-none print:shadow-none">
+            <div className="flex items-center justify-between border-b border-border pb-3 print:hidden" data-print-hide>
               <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                 <span>🧾</span> Order Receipt
               </h2>
@@ -818,7 +818,7 @@ function POSTerminalPageContent() {
             </div>
 
             {/* Printable Thermal Receipt Preview Area */}
-            <div id="printable-pos-receipt" className="bg-white text-black p-4 rounded-xl font-mono text-xs space-y-2 border border-slate-300">
+            <div id="printable-pos-receipt" className="print-area bg-white text-black p-4 rounded-xl font-mono text-xs space-y-2 border border-slate-300 print:border-none print:p-0">
               <div className="text-center font-bold text-sm border-b pb-1">
                 <div>DAILYBUZ RETAIL STORE</div>
                 <div className="text-[10px] font-normal text-slate-600">GSTIN: 29AAAAA0000A1Z5</div>
@@ -850,12 +850,12 @@ function POSTerminalPageContent() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
+            <div className="flex items-center gap-2 pt-2 print:hidden" data-print-hide>
               <Button
                 onClick={() => {
                   window.print();
                 }}
-                className="flex-1 bg-[#00aef0] hover:bg-[#0284c7] text-foreground font-bold h-10 text-xs rounded-xl"
+                className="flex-1 bg-[#00aef0] hover:bg-[#0284c7] text-white font-bold h-10 text-xs rounded-xl"
               >
                 🖨️ Print Receipt (80mm)
               </Button>
