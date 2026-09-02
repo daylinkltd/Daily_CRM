@@ -479,6 +479,8 @@ export default function ProductsPage() {
     setReorderLevel(prod.reorder_level !== undefined ? String(prod.reorder_level) : "10");
     setShelfNumber(prod.shelf_number || "");
     setBinLocation(prod.bin_location || "");
+    setCategoryName(prod.category_id || prod.category?.name || prod.category_name || "");
+    setBrandName(prod.brand_id || prod.brand || prod.brand_name || "");
     setAllowNegativeStock(!!prod.allow_negative_stock);
     setTrackBatch(!!prod.track_batch);
     setTrackSerial(!!prod.track_serial);

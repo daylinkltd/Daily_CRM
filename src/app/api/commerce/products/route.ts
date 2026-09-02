@@ -1,6 +1,40 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+// Helper to resolve or auto-create category UUID from category_id or category_name
+async function resolveCategoryId(supabase: any, workspaceId: string, categoryVal?: string): Promise<string | null> {
+  if (!categoryVal || String(categoryVal).trim() === "") return null;
+  const str = String(categoryVal).trim();
+
+  // Check if valid UUID
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  if (isUuid) return str;
+
+  // Search by category name
+  const { data: existing } = await supabase
+    .from("commerce_categories")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .ilike("name", str)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing?.id) return existing.id;
+
+  // Auto-create category if missing
+  const { data: newCat } = await supabase
+    .from("commerce_categories")
+    .insert({
+      workspace_id: workspaceId,
+      name: str,
+      slug: str.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+    })
+    .select("id")
+    .maybeSingle();
+
+  return newCat?.id || null;
+}
+
 export async function GET(request: Request) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -70,13 +104,14 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { workspace_id, sku, barcode, name, category_id, brand, unit, tax_rate, purchase_price, selling_price, mrp, reorder_level, attributes } = body;
+  const { workspace_id, sku, barcode, name, category_id, category_name, brand, brand_name, unit, tax_rate, purchase_price, selling_price, mrp, reorder_level, attributes } = body;
 
   if (!workspace_id || !sku || !name) {
     return NextResponse.json({ error: "Workspace ID, SKU, and Product Name are required" }, { status: 400 });
   }
 
   const autoBarcode = barcode && String(barcode).trim() !== "" ? String(barcode).trim() : `890${Date.now().toString().slice(-10)}`;
+  const resolvedCategoryId = await resolveCategoryId(supabase, workspace_id, category_id || category_name);
 
   const { data, error } = await supabase
     .from("commerce_products")
@@ -85,8 +120,8 @@ export async function POST(request: Request) {
       sku,
       barcode: autoBarcode,
       name,
-      category_id: category_id || null,
-      brand: brand || null,
+      category_id: resolvedCategoryId,
+      brand: brand || brand_name || null,
       unit: unit || "PCS",
       tax_rate: tax_rate || 0,
       purchase_price: purchase_price || 0,
@@ -143,9 +178,10 @@ export async function PUT(request: Request) {
     alias_name,
     manufacturer_name,
     department_name,
+    brand,
     brand_name,
+    category_id,
     category_name,
-    sub_category_name,
     preferred_supplier,
     product_status,
     hsn_sac_code,
@@ -223,14 +259,17 @@ export async function PUT(request: Request) {
   if (alias_name !== undefined) updateData.alias_name = alias_name;
   if (manufacturer_name !== undefined) updateData.manufacturer_name = manufacturer_name;
   if (department_name !== undefined) updateData.department_name = department_name;
-  if (brand_name !== undefined) updateData.brand_name = brand_name;
-  if (category_name !== undefined) updateData.category_name = category_name;
-  if (sub_category_name !== undefined) updateData.sub_category_name = sub_category_name;
+  if (brand !== undefined || brand_name !== undefined) updateData.brand = brand || brand_name;
   if (preferred_supplier !== undefined) updateData.preferred_supplier = preferred_supplier;
-  if (product_status !== undefined) updateData.product_status = product_status;
+  if (product_status !== undefined) updateData.status = product_status;
   if (shelf_number !== undefined) updateData.shelf_number = shelf_number;
   if (bin_location !== undefined) updateData.bin_location = bin_location;
   if (initial_stock !== undefined) updateData.opening_stock = Number(initial_stock || 0);
+
+  const categoryVal = category_id || category_name;
+  if (categoryVal !== undefined) {
+    updateData.category_id = await resolveCategoryId(supabase, workspace_id, categoryVal);
+  }
 
   const { data, error } = await supabase
     .from("commerce_products")
@@ -246,3 +285,4 @@ export async function PUT(request: Request) {
 
   return NextResponse.json({ product: data });
 }
+
