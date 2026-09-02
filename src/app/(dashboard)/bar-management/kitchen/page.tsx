@@ -58,7 +58,7 @@ export default function KitchenDisplayPage() {
       console.warn('API KDS fetch fallback to local:', e);
     }
 
-    if (localList.length > 0) {
+    if (saved !== null) {
       setOrders(localList);
       setIsRefreshing(false);
       return;
@@ -204,9 +204,29 @@ export default function KitchenDisplayPage() {
         </div>
       </div>
 
-      {/* Ticket Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {orders.map((ticket) => (
+      {/* Ticket Cards Grid or Empty Queue State */}
+      {orders.length === 0 ? (
+        <Card className="p-12 text-center border-dashed border-border flex flex-col items-center justify-center space-y-3 bg-card/50">
+          <UtensilsCrossed className="size-10 text-muted-foreground/50 animate-pulse" />
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-foreground">KDS Queue Clean & Empty</h3>
+            <p className="text-xs text-muted-foreground max-w-md">
+              All tickets cleared! New order tickets dispatched from Touch POS or Table Billing will appear here automatically in real time.
+            </p>
+          </div>
+          <Button
+            onClick={handleAddTestTicket}
+            size="sm"
+            variant="outline"
+            className="text-xs font-semibold gap-1 mt-2"
+          >
+            <Plus className="size-3.5 text-primary" />
+            Send Test KOT Ticket
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {orders.map((ticket) => (
           <Card
             key={ticket.id}
             className={`border flex flex-col justify-between ${
@@ -292,7 +312,8 @@ export default function KitchenDisplayPage() {
             </div>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
