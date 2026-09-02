@@ -284,6 +284,92 @@ export default function BarFoodCatalogPage() {
     );
   };
 
+  // Form State for Editing Item
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
+  const [editTab, setEditTab] = useState<'general' | 'variants' | 'recipe'>('general');
+
+  const handleOpenEditModal = (dish: FoodItem) => {
+    setEditingItem(JSON.parse(JSON.stringify(dish)));
+    setEditTab('general');
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditFoodItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem || !editingItem.name.trim()) {
+      toast.error('Item name is required');
+      return;
+    }
+    setFoodItems((prev) =>
+      prev.map((item) => (item.id === editingItem.id ? editingItem : item))
+    );
+    setShowEditModal(false);
+    toast.success(`Updated "${editingItem.name}" in menu catalog!`);
+  };
+
+  const ALLERGEN_OPTIONS = ['Dairy', 'Nuts', 'Soy', 'Gluten', 'Egg', 'Shellfish', 'Peanuts'];
+
+  const toggleAllergenInEdit = (allergen: string) => {
+    if (!editingItem) return;
+    const exists = editingItem.allergens.includes(allergen);
+    const updatedAllergens = exists
+      ? editingItem.allergens.filter((a) => a !== allergen)
+      : [...editingItem.allergens, allergen];
+    setEditingItem({ ...editingItem, allergens: updatedAllergens });
+  };
+
+  const addVariantInEdit = () => {
+    if (!editingItem) return;
+    const newV: FoodVariant = {
+      id: `v_${Date.now()}`,
+      name: 'Half Portion / Extra Size',
+      priceOffset: 0,
+    };
+    setEditingItem({ ...editingItem, variants: [...editingItem.variants, newV] });
+  };
+
+  const removeVariantInEdit = (index: number) => {
+    if (!editingItem) return;
+    const updated = [...editingItem.variants];
+    updated.splice(index, 1);
+    setEditingItem({ ...editingItem, variants: updated });
+  };
+
+  const addModifierGroupInEdit = () => {
+    if (!editingItem) return;
+    const newMg: ModifierGroup = {
+      id: `mg_${Date.now()}`,
+      groupName: 'Custom Extra Add-ons',
+      minSelection: 0,
+      maxSelection: 3,
+      options: [{ id: `mo_${Date.now()}`, name: 'Extra Dip', price: 20 }],
+    };
+    setEditingItem({ ...editingItem, modifierGroups: [...editingItem.modifierGroups, newMg] });
+  };
+
+  const removeModifierGroupInEdit = (index: number) => {
+    if (!editingItem) return;
+    const updated = [...editingItem.modifierGroups];
+    updated.splice(index, 1);
+    setEditingItem({ ...editingItem, modifierGroups: updated });
+  };
+
+  const addRecipeBomInEdit = () => {
+    if (!editingItem) return;
+    setEditingItem({
+      ...editingItem,
+      recipeBom: [...editingItem.recipeBom, { ingredientName: '', quantity: '' }],
+    });
+  };
+
+  const removeRecipeBomInEdit = (index: number) => {
+    if (!editingItem) return;
+    const updated = [...editingItem.recipeBom];
+    updated.splice(index, 1);
+    setEditingItem({ ...editingItem, recipeBom: updated });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -380,8 +466,19 @@ export default function BarFoodCatalogPage() {
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="text-lg font-bold text-foreground">₹{dish.basePrice}</div>
+                <div className="text-right flex flex-col items-end">
+                  <div className="flex items-center gap-1">
+                    <div className="text-lg font-bold text-foreground">₹{dish.basePrice}</div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleOpenEditModal(dish)}
+                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                      title="Edit Item"
+                    >
+                      <Edit2 className="size-3.5" />
+                    </Button>
+                  </div>
                   <span className="text-[10px] text-muted-foreground">Base Price</span>
                 </div>
               </div>
@@ -433,14 +530,25 @@ export default function BarFoodCatalogPage() {
                   <span className="font-bold text-foreground">₹{dish.branchPrices['Rooftop Bar'] || dish.basePrice}</span>
                 </div>
 
-                <Button
-                  size="sm"
-                  variant={dish.isAvailable ? 'outline' : 'secondary'}
-                  onClick={() => toggleAvailability(dish.id)}
-                  className="h-7 text-[10px] font-semibold"
-                >
-                  {dish.isAvailable ? 'In Stock' : 'Mark Out of Stock'}
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenEditModal(dish)}
+                    className="h-7 text-[10px] font-semibold hover:border-primary hover:text-primary gap-1"
+                  >
+                    <Edit2 className="size-3" />
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={dish.isAvailable ? 'outline' : 'secondary'}
+                    onClick={() => toggleAvailability(dish.id)}
+                    className="h-7 text-[10px] font-semibold"
+                  >
+                    {dish.isAvailable ? 'In Stock' : 'Mark Out of Stock'}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -582,6 +690,438 @@ export default function BarFoodCatalogPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Food Item Modal */}
+      {showEditModal && editingItem && (
+        <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+          <DialogContent className="sm:max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between text-lg pr-4">
+                <span className="flex items-center gap-2">
+                  <Edit2 className="size-5 text-primary" />
+                  Edit Menu Item: <span className="text-primary font-bold">{editingItem.name}</span>
+                </span>
+                <Badge variant={editingItem.isAvailable ? "default" : "secondary"}>
+                  {editingItem.isAvailable ? "In Stock" : "Out of Stock"}
+                </Badge>
+              </DialogTitle>
+            </DialogHeader>
+
+            {/* Edit Navigation Tabs */}
+            <div className="flex items-center gap-2 border-b border-border pb-2 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setEditTab('general')}
+                className={`px-3 py-1.5 rounded-md transition-colors ${
+                  editTab === 'general' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                General & Pricing
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditTab('variants')}
+                className={`px-3 py-1.5 rounded-md transition-colors ${
+                  editTab === 'variants' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                Variants & Modifiers ({editingItem.variants.length + editingItem.modifierGroups.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditTab('recipe')}
+                className={`px-3 py-1.5 rounded-md transition-colors ${
+                  editTab === 'recipe' ? 'bg-primary text-primary-foreground font-bold' : 'hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                Recipe Ingredients ({editingItem.recipeBom.length})
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditFoodItem} className="space-y-4 py-2">
+              {editTab === 'general' && (
+                <div className="space-y-4">
+                  {/* Item Name */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Item Name</Label>
+                    <Input
+                      value={editingItem.name}
+                      onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                      className="bg-background text-xs h-9"
+                      required
+                    />
+                  </div>
+
+                  {/* Category & Dietary */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Category</Label>
+                      <Select
+                        value={editingItem.category}
+                        onValueChange={(val) => setEditingItem({ ...editingItem, category: val })}
+                      >
+                        <SelectTrigger className="bg-background text-xs h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="STARTERS">Starters / Appetizers</SelectItem>
+                          <SelectItem value="MAIN_COURSE">Main Course</SelectItem>
+                          <SelectItem value="CHINESE">Indo-Chinese</SelectItem>
+                          <SelectItem value="TANDOOR">Tandoor Specials</SelectItem>
+                          <SelectItem value="DESSERTS">Desserts</SelectItem>
+                          <SelectItem value="BEVERAGES">Beverages & Mocktails</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Dietary Type</Label>
+                      <Select
+                        value={editingItem.dietaryType}
+                        onValueChange={(val: any) => setEditingItem({ ...editingItem, dietaryType: val })}
+                      >
+                        <SelectTrigger className="bg-background text-xs h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="VEG">Vegetarian (Veg)</SelectItem>
+                          <SelectItem value="NON_VEG">Non-Vegetarian</SelectItem>
+                          <SelectItem value="EGG">Contains Egg</SelectItem>
+                          <SelectItem value="VEGAN">Vegan</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Kitchen Station & Base Price & Rooftop Price */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1.5 col-span-1">
+                      <Label className="text-xs font-semibold">Kitchen Station</Label>
+                      <Select
+                        value={editingItem.kitchenStation}
+                        onValueChange={(val: any) => setEditingItem({ ...editingItem, kitchenStation: val })}
+                      >
+                        <SelectTrigger className="bg-background text-xs h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MAIN_KITCHEN">Main Kitchen</SelectItem>
+                          <SelectItem value="TANDOOR">Tandoor Station</SelectItem>
+                          <SelectItem value="PANTRY">Pantry / Cold Section</SelectItem>
+                          <SelectItem value="CHINESE">Chinese Wok Station</SelectItem>
+                          <SelectItem value="BAKERY">Bakery & Desserts</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Base Price (₹)</Label>
+                      <Input
+                        type="number"
+                        value={editingItem.basePrice}
+                        onChange={(e) => setEditingItem({ ...editingItem, basePrice: Number(e.target.value) })}
+                        className="bg-background text-xs h-9 font-mono"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Rooftop Bar Price (₹)</Label>
+                      <Input
+                        type="number"
+                        value={editingItem.branchPrices['Rooftop Bar'] ?? editingItem.basePrice}
+                        onChange={(e) =>
+                          setEditingItem({
+                            ...editingItem,
+                            branchPrices: {
+                              ...editingItem.branchPrices,
+                              'Rooftop Bar': Number(e.target.value),
+                            },
+                          })
+                        }
+                        className="bg-background text-xs h-9 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Prep Time & Spice Level & Stock */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Prep Time (Mins)</Label>
+                      <Input
+                        type="number"
+                        value={editingItem.prepTimeMinutes}
+                        onChange={(e) => setEditingItem({ ...editingItem, prepTimeMinutes: Number(e.target.value) })}
+                        className="bg-background text-xs h-9"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Spiciness Level</Label>
+                      <Select
+                        value={editingItem.spicinessLevel.toString()}
+                        onValueChange={(val) => setEditingItem({ ...editingItem, spicinessLevel: Number(val) })}
+                      >
+                        <SelectTrigger className="bg-background text-xs h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">Mild / Kids Friendly</SelectItem>
+                          <SelectItem value="1">Medium Spice</SelectItem>
+                          <SelectItem value="2">Spicy</SelectItem>
+                          <SelectItem value="3">Extra Hot</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Stock Availability</Label>
+                      <Button
+                        type="button"
+                        variant={editingItem.isAvailable ? "outline" : "secondary"}
+                        onClick={() => setEditingItem({ ...editingItem, isAvailable: !editingItem.isAvailable })}
+                        className="w-full h-9 text-xs font-semibold justify-center"
+                      >
+                        {editingItem.isAvailable ? "In Stock" : "Mark Out of Stock"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Allergen Information */}
+                  <div className="space-y-1.5 pt-1">
+                    <Label className="text-xs font-semibold">Dietary & Allergen Information</Label>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {ALLERGEN_OPTIONS.map((allergen) => {
+                        const isSelected = editingItem.allergens.includes(allergen);
+                        return (
+                          <Badge
+                            key={allergen}
+                            variant={isSelected ? 'default' : 'outline'}
+                            className="cursor-pointer text-xs py-1 px-2.5"
+                            onClick={() => toggleAllergenInEdit(allergen)}
+                          >
+                            {isSelected && <Check className="size-3 mr-1" />}
+                            {allergen}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {editTab === 'variants' && (
+                <div className="space-y-6">
+                  {/* Variants Management */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between border-b border-border pb-2">
+                      <Label className="text-xs font-bold flex items-center gap-1.5">
+                        <Layers className="size-4 text-primary" />
+                        Dish Portion Variants
+                      </Label>
+                      <Button type="button" size="sm" variant="outline" onClick={addVariantInEdit} className="h-7 text-xs gap-1">
+                        <Plus className="size-3.5" /> Add Variant
+                      </Button>
+                    </div>
+
+                    {editingItem.variants.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic py-2">No variants added yet. (Base price applies).</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {editingItem.variants.map((variant, vIdx) => (
+                          <div key={variant.id || vIdx} className="flex items-center gap-2 bg-muted/40 p-2 rounded-lg border border-border/40">
+                            <Input
+                              value={variant.name}
+                              onChange={(e) => {
+                                const updated = [...editingItem.variants];
+                                updated[vIdx].name = e.target.value;
+                                setEditingItem({ ...editingItem, variants: updated });
+                              }}
+                              placeholder="e.g. Half Portion, Large Size"
+                              className="bg-background text-xs h-8 flex-1"
+                            />
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">Offset (₹):</span>
+                              <Input
+                                type="number"
+                                value={variant.priceOffset}
+                                onChange={(e) => {
+                                  const updated = [...editingItem.variants];
+                                  updated[vIdx].priceOffset = Number(e.target.value);
+                                  setEditingItem({ ...editingItem, variants: updated });
+                                }}
+                                className="bg-background text-xs h-8 w-24 font-mono"
+                              />
+                            </div>
+                            <Button type="button" size="icon" variant="ghost" onClick={() => removeVariantInEdit(vIdx)} className="size-8 text-red-500">
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Modifier Groups Management */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between border-b border-border pb-2">
+                      <Label className="text-xs font-bold flex items-center gap-1.5">
+                        <Sliders className="size-4 text-primary" />
+                        Modifier Groups & Add-ons
+                      </Label>
+                      <Button type="button" size="sm" variant="outline" onClick={addModifierGroupInEdit} className="h-7 text-xs gap-1">
+                        <Plus className="size-3.5" /> Add Modifier Group
+                      </Button>
+                    </div>
+
+                    {editingItem.modifierGroups.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic py-2">No modifier groups added yet.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {editingItem.modifierGroups.map((mg, mgIdx) => (
+                          <div key={mg.id || mgIdx} className="bg-muted/40 p-3 rounded-xl border border-border/50 space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <Input
+                                value={mg.groupName}
+                                onChange={(e) => {
+                                  const updated = [...editingItem.modifierGroups];
+                                  updated[mgIdx].groupName = e.target.value;
+                                  setEditingItem({ ...editingItem, modifierGroups: updated });
+                                }}
+                                placeholder="Group Name e.g. Extra Dips, Choice of Bread"
+                                className="bg-background text-xs h-8 font-semibold flex-1"
+                              />
+                              <Button type="button" size="icon" variant="ghost" onClick={() => removeModifierGroupInEdit(mgIdx)} className="size-8 text-red-500">
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
+
+                            {/* Options inside Modifier Group */}
+                            <div className="space-y-2 pl-2 border-l-2 border-primary/30">
+                              {mg.options.map((opt, optIdx) => (
+                                <div key={opt.id || optIdx} className="flex items-center gap-2">
+                                  <Input
+                                    value={opt.name}
+                                    onChange={(e) => {
+                                      const updated = [...editingItem.modifierGroups];
+                                      updated[mgIdx].options[optIdx].name = e.target.value;
+                                      setEditingItem({ ...editingItem, modifierGroups: updated });
+                                    }}
+                                    placeholder="Option Name e.g. Mint Chutney"
+                                    className="bg-background text-xs h-7 flex-1"
+                                  />
+                                  <Input
+                                    type="number"
+                                    value={opt.price}
+                                    onChange={(e) => {
+                                      const updated = [...editingItem.modifierGroups];
+                                      updated[mgIdx].options[optIdx].price = Number(e.target.value);
+                                      setEditingItem({ ...editingItem, modifierGroups: updated });
+                                    }}
+                                    placeholder="Price"
+                                    className="bg-background text-xs h-7 w-20 font-mono"
+                                  />
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      const updated = [...editingItem.modifierGroups];
+                                      updated[mgIdx].options.splice(optIdx, 1);
+                                      setEditingItem({ ...editingItem, modifierGroups: updated });
+                                    }}
+                                    className="size-7 text-muted-foreground hover:text-red-500"
+                                  >
+                                    <Trash2 className="size-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  const updated = [...editingItem.modifierGroups];
+                                  updated[mgIdx].options.push({
+                                    id: `mo_${Date.now()}`,
+                                    name: 'New Option',
+                                    price: 20,
+                                  });
+                                  setEditingItem({ ...editingItem, modifierGroups: updated });
+                                }}
+                                className="h-6 text-[10px] text-primary hover:bg-primary/10 gap-1"
+                              >
+                                <Plus className="size-3" /> Add Option
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {editTab === 'recipe' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-border pb-2">
+                    <Label className="text-xs font-bold flex items-center gap-1.5">
+                      <UtensilsCrossed className="size-4 text-primary" />
+                      Recipe Bill of Materials (BOM Ingredients)
+                    </Label>
+                    <Button type="button" size="sm" variant="outline" onClick={addRecipeBomInEdit} className="h-7 text-xs gap-1">
+                      <Plus className="size-3.5" /> Add Ingredient
+                    </Button>
+                  </div>
+
+                  {editingItem.recipeBom.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic py-2">No recipe ingredients specified for this item.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {editingItem.recipeBom.map((ing, ingIdx) => (
+                        <div key={ingIdx} className="flex items-center gap-2 bg-muted/40 p-2 rounded-lg border border-border/40">
+                          <Input
+                            value={ing.ingredientName}
+                            onChange={(e) => {
+                              const updated = [...editingItem.recipeBom];
+                              updated[ingIdx].ingredientName = e.target.value;
+                              setEditingItem({ ...editingItem, recipeBom: updated });
+                            }}
+                            placeholder="Ingredient Name e.g. Paneer, Chicken, Butter"
+                            className="bg-background text-xs h-8 flex-1"
+                          />
+                          <Input
+                            value={ing.quantity}
+                            onChange={(e) => {
+                              const updated = [...editingItem.recipeBom];
+                              updated[ingIdx].quantity = e.target.value;
+                              setEditingItem({ ...editingItem, recipeBom: updated });
+                            }}
+                            placeholder="Quantity e.g. 200g, 50ml"
+                            className="bg-background text-xs h-8 w-32 font-mono"
+                          />
+                          <Button type="button" size="icon" variant="ghost" onClick={() => removeRecipeBomInEdit(ingIdx)} className="size-8 text-red-500">
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <DialogFooter className="pt-4 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="text-xs">
+                  Cancel
+                </Button>
+                <Button type="submit" className="text-xs font-bold bg-primary text-primary-foreground">
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
