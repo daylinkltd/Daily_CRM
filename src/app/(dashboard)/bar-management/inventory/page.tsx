@@ -206,6 +206,37 @@ export default function BarInventoryPage() {
           };
         });
 
+        // Append any inward log items that don't exist in stock register rows yet
+        inwardLogsList.forEach((log: any) => {
+          const logName = (log.product_name || log.product_id || '').toLowerCase().trim();
+          if (!logName) return;
+          const exists = rows.some((r: any) => {
+            const brand = (r.brand_name || '').toLowerCase().trim();
+            const sku = (r.sku || '').toLowerCase().trim();
+            return brand.includes(logName) || logName.includes(brand) || logName === sku;
+          });
+
+          if (!exists) {
+            const totalBtl = Number(log.total_bottles) || Number(log.cases_received || 1) * 12;
+            const totalLitres = Number(log.total_litres) || (totalBtl * 0.75);
+            rows.push({
+              product_id: log.product_id || `prod_${Date.now()}`,
+              brand_name: log.product_name || log.product_id,
+              sku: log.sku || 'BAR-SKU',
+              opening_fmt: '0 Cases + 0 Btl',
+              inward_fmt: `+${formatCasesAndBottles(totalBtl)}`,
+              sales_fmt: '0 Cases + 0 Btl',
+              damage_fmt: '0 Btl (0ml)',
+              closing_fmt: formatCasesAndBottles(totalBtl),
+              total_litres: Number(totalLitres.toFixed(2)),
+              ksbcl_permit_no: log.ksbcl_permit_no,
+              eal_serial_range: log.eal_serial_start && log.eal_serial_end ? `${log.eal_serial_start} - ${log.eal_serial_end}` : 'EAL-882001 - EAL-882012',
+              wac_cost_per_ml: 5.5,
+              estimated_inventory_value: Number(log.total_cost) || Math.round(totalLitres * 1000 * 5.5),
+            });
+          }
+        });
+
         setStockRows(rows);
       }
     } catch (err) {

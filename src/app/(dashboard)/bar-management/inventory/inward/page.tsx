@@ -159,8 +159,10 @@ export default function KsbclInwardPage() {
     try {
       const newInwardLogs: any[] = [];
       for (const [idx, line] of lines.entries()) {
+        const matchedCat = catalogProducts.find((p) => p.id === line.product_id || p.name === line.product_id);
         const productName =
-          line.product_id === 'prod_glenfiddich_750'
+          matchedCat?.name ||
+          (line.product_id === 'prod_glenfiddich_750'
             ? 'Glenfiddich 12 Single Malt (750ml)'
             : line.product_id === 'prod_jd_750'
             ? "Jack Daniel's Old No. 7 (750ml)"
@@ -170,10 +172,12 @@ export default function KsbclInwardPage() {
             ? 'Heineken Lager Draft Beer (500ml)'
             : line.product_id === 'prod_kingfisher_650'
             ? 'Kingfisher Premium Beer (650ml Btl)'
-            : line.product_id;
+            : line.product_id);
 
         const sku =
-          line.product_id === 'prod_glenfiddich_750'
+          matchedCat?.sku ||
+          matchedCat?.brand ||
+          (line.product_id === 'prod_glenfiddich_750'
             ? 'GLEN-750'
             : line.product_id === 'prod_jd_750'
             ? 'JD-750'
@@ -183,7 +187,7 @@ export default function KsbclInwardPage() {
             ? 'HEIN-500'
             : line.product_id === 'prod_kingfisher_650'
             ? 'KF-650'
-            : 'BAR-SKU';
+            : 'BAR-SKU');
 
         const payload = {
           product_id: line.product_id,
