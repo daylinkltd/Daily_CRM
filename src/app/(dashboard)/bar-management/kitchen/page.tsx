@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UtensilsCrossed, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { UtensilsCrossed, Clock, CheckCircle2, AlertCircle, Plus, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,61 +18,119 @@ interface KdsOrder {
 
 export default function KitchenDisplayPage() {
   const [orders, setOrders] = useState<KdsOrder[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const loadKdsOrders = () => {
-      if (typeof window === 'undefined') return;
-      const saved = localStorage.getItem('bar_kds_orders');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setOrders(parsed);
-            return;
-          }
-        } catch (e) {
-          console.error(e);
+  const loadKdsOrders = async () => {
+    if (typeof window === 'undefined') return;
+    setIsRefreshing(true);
+    let localList: KdsOrder[] = [];
+    const saved = localStorage.getItem('bar_kds_orders');
+    if (saved) {
+      try {
+        localList = JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Also fetch from API endpoint
+    try {
+      const res = await fetch('/api/bar/orders');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.orders && Array.isArray(json.orders) && json.orders.length > 0) {
+          const apiOrders = json.orders;
+          // Combine API and local orders, deduplicating by orderNumber
+          const combinedMap = new Map();
+          [...localList, ...apiOrders].forEach((o) => {
+            if (o.orderNumber && !combinedMap.has(o.orderNumber)) {
+              combinedMap.set(o.orderNumber, o);
+            }
+          });
+          const merged = Array.from(combinedMap.values());
+          setOrders(merged);
+          localStorage.setItem('bar_kds_orders', JSON.stringify(merged));
+          setIsRefreshing(false);
+          return;
         }
       }
+    } catch (e) {
+      console.warn('API KDS fetch fallback to local:', e);
+    }
 
-      // Default sample tickets if empty
-      const defaults: KdsOrder[] = [
-        {
-          id: '1',
-          orderNumber: 'BAR-0982',
-          table: 'Table 4',
-          timeAgo: '3 mins ago',
-          status: 'PENDING',
-          items: [
-            { name: 'Glenfiddich 12 Single Malt', qty: 2, portion: '60ML', notes: 'With ice on side' },
-            { name: 'Long Island Iced Tea (LIIT)', qty: 1, portion: 'COCKTAIL' },
-          ],
-        },
-        {
-          id: '2',
-          orderNumber: 'BAR-0981',
-          table: 'VIP Booth 2',
-          timeAgo: '7 mins ago',
-          status: 'PREPARING',
-          items: [
-            { name: 'Heineken Lager Draft Pint', qty: 4, portion: 'PINT' },
-            { name: 'Absolut Swedish Vodka', qty: 2, portion: '30ML', notes: 'Neat' },
-          ],
-        },
-      ];
-      setOrders(defaults);
-      localStorage.setItem('bar_kds_orders', JSON.stringify(defaults));
-    };
+    if (localList.length > 0) {
+      setOrders(localList);
+      setIsRefreshing(false);
+      return;
+    }
 
+    // Default sample tickets if empty
+    const defaults: KdsOrder[] = [
+      {
+        id: '1',
+        orderNumber: 'BAR-0982',
+        table: 'Table 4',
+        timeAgo: '3 mins ago',
+        status: 'PENDING',
+        items: [
+          { name: 'Glenfiddich 12 Single Malt', qty: 2, portion: '60ML', notes: 'With ice on side' },
+          { name: 'Long Island Iced Tea (LIIT)', qty: 1, portion: 'COCKTAIL' },
+        ],
+      },
+      {
+        id: '2',
+        orderNumber: 'BAR-0981',
+        table: 'VIP Booth 2',
+        timeAgo: '7 mins ago',
+        status: 'PREPARING',
+        items: [
+          { name: 'Heineken Lager Draft Pint', qty: 4, portion: 'PINT' },
+          { name: 'Absolut Swedish Vodka', qty: 2, portion: '30ML', notes: 'Neat' },
+        ],
+      },
+    ];
+    setOrders(defaults);
+    localStorage.setItem('bar_kds_orders', JSON.stringify(defaults));
+    setIsRefreshing(false);
+  };
+
+  useEffect(() => {
     loadKdsOrders();
 
-    window.addEventListener('storage', loadKdsOrders);
-    window.addEventListener('focus', loadKdsOrders);
+    const handleStorage = () => loadKdsOrders();
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('focus', handleStorage);
     return () => {
-      window.removeEventListener('storage', loadKdsOrders);
-      window.removeEventListener('focus', loadKdsOrders);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('focus', handleStorage);
     };
   }, []);
+
+  const handleAddTestTicket = () => {
+    const randomTableNum = Math.floor(Math.random() * 8) + 1;
+    const kotNo = `KOT-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newTicket: KdsOrder = {
+      id: `test_${Date.now()}`,
+      orderNumber: kotNo,
+      table: `Table ${randomTableNum}`,
+      timeAgo: 'Just now',
+      status: 'PENDING',
+      items: [
+        { name: 'Paneer Tikka Tandoori', qty: 1, portion: 'FULL', notes: 'Extra Mint Chutney' },
+        { name: 'Butter Chicken Murgh Khas', qty: 1, portion: 'FULL' },
+        { name: 'Glenfiddich 12 Single Malt', qty: 2, portion: '60ML', notes: 'On the rocks' },
+      ],
+    };
+
+    setOrders((prev) => {
+      const updated = [newTicket, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('bar_kds_orders', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    toast.success(`Dispatched KOT #${kotNo} for Table ${randomTableNum} to KDS Queue!`);
+  };
 
   const updateStatus = (id: string, nextStatus: 'PREPARING' | 'READY') => {
     setOrders((prev) => {
@@ -122,6 +180,24 @@ export default function KitchenDisplayPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            onClick={handleAddTestTicket}
+            size="sm"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1 shadow-sm"
+          >
+            <Plus className="size-3.5" />
+            Send Test Ticket
+          </Button>
+          <Button
+            onClick={loadKdsOrders}
+            variant="outline"
+            size="sm"
+            disabled={isRefreshing}
+            className="text-xs font-semibold gap-1"
+          >
+            <RefreshCw className={`size-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Sync Queue
+          </Button>
           <Button onClick={handleClearCompleted} variant="outline" size="sm" className="text-xs font-semibold">
             Clear Ready Tickets
           </Button>

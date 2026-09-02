@@ -189,3 +189,51 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: err?.message || "Internal server error" }, { status: 500 });
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const workspaceId = searchParams.get("workspace_id") || undefined;
+    const ctx = await getCurrentAccount(workspaceId);
+    const admin = createAdminClient();
+
+    const { data: orders, error } = await admin
+      .from("bar_orders")
+      .select(`
+        id,
+        order_number,
+        order_status,
+        created_at,
+        bar_tables ( name ),
+        bar_order_items ( id, portion_type, quantity, notes, commerce_products ( name ) )
+      `)
+      .eq("workspace_id", ctx.accountId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error("[GET /api/bar/orders] error:", error);
+      return NextResponse.json({ orders: [] });
+    }
+
+    const formatted = (orders || []).map((o: any) => ({
+      id: o.id,
+      orderNumber: o.order_number,
+      table: o.bar_tables?.name || "Bar Counter",
+      status: o.order_status === "SENT_TO_KITCHEN" ? "PENDING" : o.order_status === "BILLING" ? "PREPARING" : "READY",
+      created_at: o.created_at,
+      timeAgo: "Just now",
+      items: (o.bar_order_items || []).map((i: any) => ({
+        name: i.commerce_products?.name || "Item",
+        qty: i.quantity,
+        portion: i.portion_type,
+        notes: i.notes,
+      })),
+    }));
+
+    return NextResponse.json({ orders: formatted });
+  } catch (err: any) {
+    console.error("[GET /api/bar/orders] exception:", err);
+    return NextResponse.json({ orders: [] });
+  }
+}
