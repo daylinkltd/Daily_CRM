@@ -219,8 +219,8 @@ export default function SalesPage() {
               __html: `
                 @media print {
                   @page {
-                    size: A4 portrait;
-                    margin: 10mm;
+                    size: A5 landscape;
+                    margin: 6mm 8mm;
                   }
                   html, body {
                     background: #ffffff !important;
@@ -237,7 +237,7 @@ export default function SalesPage() {
                     width: 100% !important;
                     padding: 0 !important;
                     margin: 0 !important;
-                    font-size: 12pt !important;
+                    font-size: 10pt !important;
                   }
                   .print-invoice-card * {
                     -webkit-print-color-adjust: exact !important;
@@ -256,7 +256,7 @@ export default function SalesPage() {
                   .print-invoice-card th, 
                   .print-invoice-card td {
                     border: 1px solid #d1d5db !important;
-                    padding: 8px 10px !important;
+                    padding: 5px 8px !important;
                   }
                   .print-invoice-card .text-muted-foreground {
                     color: #374151 !important;
@@ -298,7 +298,7 @@ export default function SalesPage() {
                   onClick={() => window.print()}
                   className="flex items-center gap-1 bg-[#00aef0] hover:bg-[#0284c7] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-colors"
                 >
-                  <Printer className="h-3.5 w-3.5" /> Print A4 Tax Invoice
+                  <Printer className="h-3.5 w-3.5" /> Print A5 Tax Invoice
                 </button>
                 <button
                   onClick={() => setShowInvoiceModal(false)}
