@@ -232,14 +232,28 @@ export default function RestaurantTableBillingPage() {
       kotTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    setRunningTabs((prev) =>
-      prev.map((t) =>
-        t.id === activeTab.id ? { ...t, status: 'OCCUPIED', items: [...t.items, newItem] } : t
-      )
-    );
+    // Push new KOT ticket to Kitchen & Bar Display System (KDS)
+    try {
+      if (typeof window !== 'undefined') {
+        const existingKds = JSON.parse(localStorage.getItem('bar_kds_orders') || '[]');
+        const newKdsTicket = {
+          id: `kds_tbl_${Date.now()}`,
+          orderNumber: `KOT-R${newRoundNo}-${Date.now().toString().slice(-4)}`,
+          table: activeTab.tableNumber,
+          timeAgo: 'Just now',
+          created_at: new Date().toISOString(),
+          status: 'PENDING',
+          items: [{ name: newRoundItemName, qty: Number(newRoundQty), portion: newRoundPortion }],
+        };
+        localStorage.setItem('bar_kds_orders', JSON.stringify([newKdsTicket, ...existingKds]));
+        window.dispatchEvent(new Event('storage'));
+      }
+    } catch (err) {
+      console.error(err);
+    }
 
     setShowAddRoundModal(false);
-    toast.success(`KOT Round ${newRoundNo} appended to ${activeTab.tableNumber}!`);
+    toast.success(`KOT Round ${newRoundNo} appended to ${activeTab.tableNumber}! Ticket sent to KDS.`);
   };
 
   const [showReceiptModal, setShowReceiptModal] = useState(false);

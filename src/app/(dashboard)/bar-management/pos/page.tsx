@@ -346,6 +346,31 @@ export default function BarPosPage() {
 
       const data = await res.json().catch(() => ({}));
       const kotNo = data.order_number || `KOT-${Date.now().toString().slice(-4)}`;
+
+      // Push new order ticket to Kitchen & Bar Display System (KDS)
+      try {
+        if (typeof window !== 'undefined') {
+          const existingKds = JSON.parse(localStorage.getItem('bar_kds_orders') || '[]');
+          const newKdsTicket = {
+            id: `kds_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            orderNumber: kotNo,
+            table: selectedTable || 'Bar Counter',
+            timeAgo: 'Just now',
+            created_at: new Date().toISOString(),
+            status: 'PENDING',
+            items: cart.map((i) => ({
+              name: i.name,
+              qty: i.quantity,
+              portion: i.portion,
+            })),
+          };
+          localStorage.setItem('bar_kds_orders', JSON.stringify([newKdsTicket, ...existingKds]));
+          window.dispatchEvent(new Event('storage'));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
       toast.success(`KOT #${kotNo} sent to Kitchen & Bar Queue for ${selectedTable}!`);
       setCart([]);
     } catch (err: any) {

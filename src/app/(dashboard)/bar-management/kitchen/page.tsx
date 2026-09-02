@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UtensilsCrossed, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,41 +17,94 @@ interface KdsOrder {
 }
 
 export default function KitchenDisplayPage() {
-  const [orders, setOrders] = useState<KdsOrder[]>([
-    {
-      id: '1',
-      orderNumber: 'BAR-0982',
-      table: 'Table 4',
-      timeAgo: '3 mins ago',
-      status: 'PENDING',
-      items: [
-        { name: 'Glenfiddich 12 Single Malt', qty: 2, portion: '60ML', notes: 'With ice on side' },
-        { name: 'Long Island Iced Tea (LIIT)', qty: 1, portion: 'COCKTAIL' },
-      ],
-    },
-    {
-      id: '2',
-      orderNumber: 'BAR-0981',
-      table: 'VIP Booth 2',
-      timeAgo: '7 mins ago',
-      status: 'PREPARING',
-      items: [
-        { name: 'Heineken Lager Draft Pint', qty: 4, portion: 'PINT' },
-        { name: 'Absolut Swedish Vodka', qty: 2, portion: '30ML', notes: 'Neat' },
-      ],
-    },
-  ]);
+  const [orders, setOrders] = useState<KdsOrder[]>([]);
+
+  useEffect(() => {
+    const loadKdsOrders = () => {
+      if (typeof window === 'undefined') return;
+      const saved = localStorage.getItem('bar_kds_orders');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setOrders(parsed);
+            return;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Default sample tickets if empty
+      const defaults: KdsOrder[] = [
+        {
+          id: '1',
+          orderNumber: 'BAR-0982',
+          table: 'Table 4',
+          timeAgo: '3 mins ago',
+          status: 'PENDING',
+          items: [
+            { name: 'Glenfiddich 12 Single Malt', qty: 2, portion: '60ML', notes: 'With ice on side' },
+            { name: 'Long Island Iced Tea (LIIT)', qty: 1, portion: 'COCKTAIL' },
+          ],
+        },
+        {
+          id: '2',
+          orderNumber: 'BAR-0981',
+          table: 'VIP Booth 2',
+          timeAgo: '7 mins ago',
+          status: 'PREPARING',
+          items: [
+            { name: 'Heineken Lager Draft Pint', qty: 4, portion: 'PINT' },
+            { name: 'Absolut Swedish Vodka', qty: 2, portion: '30ML', notes: 'Neat' },
+          ],
+        },
+      ];
+      setOrders(defaults);
+      localStorage.setItem('bar_kds_orders', JSON.stringify(defaults));
+    };
+
+    loadKdsOrders();
+
+    window.addEventListener('storage', loadKdsOrders);
+    window.addEventListener('focus', loadKdsOrders);
+    return () => {
+      window.removeEventListener('storage', loadKdsOrders);
+      window.removeEventListener('focus', loadKdsOrders);
+    };
+  }, []);
 
   const updateStatus = (id: string, nextStatus: 'PREPARING' | 'READY') => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: nextStatus } : o))
-    );
+    setOrders((prev) => {
+      const updated = prev.map((o) => (o.id === id ? { ...o, status: nextStatus } : o));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('bar_kds_orders', JSON.stringify(updated));
+      }
+      return updated;
+    });
     toast.success(`Order status updated to ${nextStatus}`);
   };
 
   const handleCancelOrder = (id: string, orderNumber: string, table: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
+    setOrders((prev) => {
+      const updated = prev.filter((o) => o.id !== id);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('bar_kds_orders', JSON.stringify(updated));
+      }
+      return updated;
+    });
     toast.error(`Order ${orderNumber} for ${table} CANCELLED. Ticket voided.`);
+  };
+
+  const handleClearCompleted = () => {
+    setOrders((prev) => {
+      const updated = prev.filter((o) => o.status !== 'READY');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('bar_kds_orders', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    toast.info('Cleared ready tickets from KDS display screen');
   };
 
   return (
@@ -59,10 +112,19 @@ export default function KitchenDisplayPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Kitchen & Bar Display System (KDS)</h1>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <UtensilsCrossed className="size-6 text-primary" />
+            Kitchen & Bar Display System (KDS)
+          </h1>
           <p className="text-sm text-muted-foreground">
             Live order ticket queue for bartenders and kitchen staff.
           </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button onClick={handleClearCompleted} variant="outline" size="sm" className="text-xs font-semibold">
+            Clear Ready Tickets
+          </Button>
         </div>
       </div>
 
