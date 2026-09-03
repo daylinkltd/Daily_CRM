@@ -1,215 +1,280 @@
-# Daily CRM — session handoff brief
+# Dailybuz — context brief
 
-Paste this whole file as your first message in a new session.
+**Point a new session at this file.** It carries the decisions, traps and
+open work that are not recoverable from the code or the git log. Read it,
+then start from **§9 Open work**. Don't re-litigate anything in §2 or §5 —
+those were settled the hard way.
+
+Last verified: **2026-09-02** on the tree at the commit that added this
+file — 746 tests passing, `next build` clean. Re-run the gates yourself
+before trusting that: several sessions push to `main` concurrently, and
+29 commits landed from another one while this brief was being written.
 
 ---
 
-You are picking up work on **Daily CRM** (`/Volumes/projects/Daily_CRM`), a
-multi-tenant WhatsApp CRM SaaS. Read this brief, then continue from
-"OPEN WORK" at the end. Don't re-litigate decisions recorded here.
+## 1. What this is
 
-## 1. Environment facts
+**Dailybuz** — a multi-tenant WhatsApp CRM + ERP SaaS for Indian SMBs.
+One workspace runs a whole business: customers, invoicing, GST, staff,
+stock, projects.
 
-- **Stack**: Next.js **16.2.6** (App Router; note its middleware file is
-  renamed — it is `src/proxy.ts`, do NOT delete it as "unreferenced"),
-  Supabase (Postgres + RLS), Tailwind v4 with CSS design tokens, Radix,
-  sonner toasts, vitest.
-- **Repo**: `github.com/daylinkltd/Daily_CRM`, branch `main`, auto-deploys
-  to **https://dailycrm.cloud** via **Coolify** on push.
-- **Read `AGENTS.md`/`CLAUDE.md` first** — the project instructs you to
-  consult `node_modules/next/dist/docs/` before writing framework code,
-  because this Next version differs from training data.
-- `.env.local` holds working Supabase + `ENCRYPTION_KEY` + `META_APP_SECRET`.
-  The local `ENCRYPTION_KEY` matches production (proven: locally-encrypted
-  values decrypt in prod), so you can decrypt/encrypt DB credentials locally.
-- **Other people/sessions commit to `main` concurrently.** Always
-  `git fetch` + rebase before pushing, and prefer committing only your own
-  files (`git add <paths>`) so you don't sweep someone's half-finished work.
+- Repo `github.com/daylinkltd/Daily_CRM`, branch `main`, auto-deploys via
+  **Coolify** on push.
+- Live at **https://dailybuz.com**. Older domains (`dailycrm.cloud`,
+  `dailybiz.in`) appear in history — a Dailybiz rename was tried and
+  fully reverted. **Brand is Dailybuz.** Internal identifiers were
+  deliberately left alone; don't "fix" them.
+- Local path: `~/Documents/projects/Daily_CRM`.
 
-## 2. Verified state at handoff
+**Stack**: Next.js **16.2.6** (App Router), React 19.2.4, Supabase
+(Postgres + RLS), Tailwind v4 design tokens, vitest, sonner.
 
-- HEAD = `701e328`. Typecheck clean, **217 tests pass**, production build
-  succeeds. Lint: 576 problems repo-wide (down from 6,087 — see §5).
-- WhatsApp **inbound and outbound both work in production** (confirmed with
-  real Meta traffic and real `wamid` ids).
+---
 
-## 3. What was fixed/built this session (the short version)
+## 2. Hard rules — do not deviate
 
-**WhatsApp (the original complaint: "no inbound, outbound only reaches my
-number")**
-- Inbound was dead because production's `META_APP_SECRET` was **not the
-  secret of Meta app `1491199826110226`**, so every signed webhook was
-  rejected 401. The correct secret is now stored **encrypted in
-  `whatsapp_config.app_secret`** for the workspace, which the code prefers
-  over the (still wrong) env var. Fixed + proven by sending a signed
-  webhook to prod and getting 200.
-- "Outbound only to my number" was **not a bug**: only `hello_world` is
-  APPROVED on Meta. Outside the 24-hour window a template is mandatory.
-  The library at Settings → Templates → Library exists to fix that.
-- WABA webhook subscription is pinned with `override_callback_uri`, so the
-  Meta App dashboard can't silently break delivery.
-- `/api/admin/webhook-status` now self-diagnoses app-secret validity and
-  logs rejected webhooks with a reason.
+**1. Never run DDL from code.** Migrations are written to
+`supabase/migrations/` and **the user pastes them into the Supabase SQL
+editor**. Every migration ends with a commented `Verify` block. This is
+not a preference; the app has no migration runner.
 
-**Security holes closed** (all were live): unauthenticated
-`/api/verify-payment` (anyone could upgrade any workspace for ₹1),
-public `/api/admin/*` leaking cross-tenant messages, path traversal in
-file uploads, workspace admins able to self-promote to owner, a webhook
-signature bypass, hardcoded super-admin credentials resettable from a
-public page, and five tables still on per-user RLS (including one policy
-that let **any** authenticated user insert into **any** conversation).
+**2. Run the preflight before believing anything about the database.**
+`supabase/migrations/000_preflight_check.sql` — one statement, writes
+nothing, lists every expected object as present/MISSING with what breaks
+without it. Hand-pasted migrations leave no record, and several features
+**fail silently** when their objects are absent. Memory has been wrong
+about this before.
 
-**RBAC (built this session, biggest piece)**
-- `src/lib/auth/resources.ts` is **the single source of truth**: 32 feature
-  resources → 120 tables. `scripts/generate-crud-rls.mjs` **generates**
-  migration `074` from it, so the UI matrix and DB policies cannot drift.
-  If you change permissions, edit the catalog and **regenerate**:
-  `node --experimental-strip-types scripts/generate-crud-rls.mjs > supabase/migrations/074_crud_rbac.sql`
-- Permissions are `<resource>:<action>` (e.g. `payroll:read`) + module keys
-  (`module_crm|hr|retail|projects`) in `workspace_roles.permissions` JSONB.
-  128 toggles per role. `workspace_members.role_id` points at the role.
-- Enforced in Postgres via RESTRICTIVE policies per SQL operation, plus
-  `has_resource_permission()`. Owners/admins bypass; `service_role`
-  bypasses RLS so webhooks are unaffected.
-- UI: dedicated **Roles panel** (`src/components/settings/roles-panel.tsx`
-  + `permission-matrix.tsx`), built-in **Owner/Admin/Viewer**, Viewer is
-  editable, Team Members picks any role.
+> The preflight only reports what somebody added to its list. A green
+> board says nothing about a migration written after it. **When you write
+> a migration, add its checks to the preflight in the same commit.**
 
-**Other**: inbox rebuilt visually (WhatsApp-style wallpaper, bubbles),
-24h-window template re-engage flow, sound + desktop notifications,
-polling cost cut ~95%, public API `/api/v1/messages` send + status,
-API key prefix rebranded to `dailycrm_live_` (legacy `wacrm_live_` still
-accepted), currency propagation, 19 prebuilt templates, landing page +
-auth pages fixed, dead code deleted.
+**3. The gates are `npm ci` and `npx next build`.** Not `npm install`
+(the lockfile has caught a missing dependency), and not `tsc --noEmit`
+(`next build` type-checks differently and has caught errors `tsc` passed).
+Run vitest too. Lint repo-wide has ~1290 pre-existing problems — check only
+that *your* files add none, with `npx eslint <paths>`.
 
-## 4. CRITICAL — do this first
-
-**Four migrations are NOT yet applied to production.** Everything below
-stays broken until they are:
-
-> Paste **`supabase/bundles/APPLY-PENDING.sql`** into the Supabase SQL
-> editor and run it once. It bundles 071→072→073→074 in dependency order,
-> is idempotent, and was validated end-to-end against a production-shaped
-> Postgres in Docker.
-
-What it fixes: emoji reactions (071), template submit + "Sync from Meta"
-(072), and it switches on the whole role system (073 module keys → 074
-CRUD). Applying it is **non-disruptive**: existing roles are granted
-exactly what their holders can already do, and members without a role are
-backfilled, so nobody loses access. You then restrict per role in the UI.
-
-Verify afterwards by re-running the pending-migration probe in §7.
-
-## 5. Hard-won knowledge — read before touching these areas
-
-1. **ALWAYS validate migrations in Docker before shipping.** Three of my
-   migrations were broken and caught only this way:
-   - a `record`→table row cast that failed on a CTE with an extra column;
-   - normalizing values **before** dropping the old CHECK constraint;
-   - **the dangerous one**: RESTRICTIVE-only policies. A restrictive policy
-     only subtracts; Postgres grants nothing unless a PERMISSIVE policy
-     matches. Enabling RLS on a table with no permissive policy returns
-     **zero rows to everyone, owners included**. The generator now adds a
-     baseline membership policy first. Test *outcomes*, not just "applied
-     clean", and always run each migration **twice** for idempotency.
-   Pattern used: `docker run -d --rm --name pg -e POSTGRES_PASSWORD=test
-   postgres:15-alpine`, create a `auth.uid()` stub reading a GUC
-   (`current_setting('test.uid')`), `CREATE ROLE authenticated service_role
-   anon`, then `SET ROLE authenticated; SET test.uid='…'` to simulate users.
-2. **This schema has drifted badly from the migrations folder.** Repeatedly,
-   code wrote columns that no migration ever created, or migrations were
-   only partly applied. **Probe the live DB before assuming a column
-   exists.** Known past instances: `messages.reply_to_message_id`,
-   `message_templates.{header_media_url,meta_template_id,quality_score,
-   sample_values,header_handle,submission_error,rejection_reason,
-   last_submitted_at}`, `message_reactions` missing its UNIQUE constraint,
-   `whatsapp_config.app_secret`.
-3. **`profiles.account_id` DOES NOT EXIST.** The schema is
-   `workspace_id`-based. Many routes queried it and 403'd for every user
-   (reactions, template submit/sync/edit/delete, media upload, flows). If
-   you see `account_id` on anything except `account_invitations`, it's a bug.
-4. **Phone matching**: use `isSamePhoneNumber()` / `findContactByPhoneDigits()`.
-   Do **not** match on "same last 8 digits" — real data contains
-   `+255000000001`, `+240000000001`, `+270000000001` (three countries, one
-   8-digit tail) and merging them would cross customers' chats.
-5. **Storage**: uploads go through `POST /api/storage/upload` (service role,
-   membership-checked). Direct client uploads fail — the buckets have no
-   RLS policies. Buckets `chat-media` and `flow-media` were created by me.
-6. **Don't "fix" the remaining `react-hooks/exhaustive-deps` warnings.**
-   ~15 name un-memoised fetch functions; adding them causes infinite fetch
-   loops. The `resyncToken` deps ESLint calls "unnecessary" are
-   load-bearing (they force a resync by changing callback identity).
-7. **The ~500 remaining `any`s are one root cause**: Supabase clients are
-   created without the generated `Database` generic, so all query results
-   are untyped. 141 more are `catch (err: any)` where `unknown` breaks
-   `err.message` under strict mode. Don't paper over these with disable
-   comments; fixing properly means generating DB types.
-8. **Lint counts**: `.claude/worktrees/`, `graphify-out/` and `scratch/` are
-   eslint-ignored — they were 5,037 phantom problems. Real debt is ~576.
-
-## 6. Constraints / things that are NOT possible
-
-- **Calling feature**: the WhatsApp Business Calling API is real, but the
-  number reports `calling.status: NOT_SET` and Meta requires a ≥2,000
-  business-initiated conversations/24h tier. Plus WebRTC + signalling + UI
-  — a multi-week project. Assessed, deliberately not started.
-- **No SQL/DDL access from code**: there is no `exec_sql` RPC, no `psql`,
-  no Supabase CLI locally. Migrations must be pasted by the user. You *can*
-  do data/storage work via the service-role client and the Storage API.
-- **Authenticated UI cannot be click-tested by the agent** — session
-  injection is blocked by the permission classifier and creating test users
-  in the production DB is off-limits. Verify via types/tests/build + live
-  API probes, and say plainly what you could not verify.
-
-## 7. Useful probes (copy-paste)
-
-Check which migrations are pending (run from repo root):
+**4. Pushing needs a different GitHub account.**
 ```bash
-node -e "require('dotenv').config({path:'.env.local',quiet:true});const{createClient}=require('@supabase/supabase-js');(async()=>{const c=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY);const nil='00000000-0000-0000-0000-000000000000';
-const t=[['072 template cols',async()=>(await c.from('message_templates').select('header_media_url').limit(1)).error],
-['073 module keys',async()=>{const{data}=await c.from('workspace_roles').select('permissions').limit(1).maybeSingle();return (data&&'module_crm' in (data.permissions||{}))?null:{message:'absent'}}],
-['074 has_resource_permission',async()=>(await c.rpc('has_resource_permission',{p_workspace_id:nil,p_user_id:nil,p_resource:'contacts',p_action:'read',p_module:'crm'})).error]];
-for(const[n,f]of t){const e=await f();console.log((e?'PENDING  ':'applied  ')+n)}})()"
+gh auth switch --user swaraj792725 && git push origin main; gh auth switch --user swarajseamless
 ```
+The default account (`swarajseamless`) gets 403 on this repo. Always
+switch back.
 
-Production webhook + app-secret diagnostics (needs a logged-in browser
-cookie, or set `ADMIN_DIAG_TOKEN`): `GET /api/admin/webhook-status` →
-look at `appSecretChecks`, `wabaSubscriptions`, `webhookLogs`.
+**5. Other sessions commit to `main` concurrently.** `git fetch` and
+rebase before pushing; prefer staging your own paths.
 
-Gates before any commit: `npx tsc --noEmit`, `npx vitest run`, `npm run build`.
+---
 
-## 8. OPEN WORK (pick up here)
+## 3. Verified database state
 
-**Awaiting the user's decision — do not act unilaterally:**
-1. **58 duplicate contact numbers** in production. Mixed causes: true
-   duplicates (same name twice), and legitimately shared business lines
-   (four "More Supermarket" branches on one number) which must **not** be
-   merged. Offer a read-only preview first, then a merge script that only
-   touches unambiguous same-name duplicates.
-2. **Flows/chatbot has no RBAC coverage** — `flows`/`flow_runs` are
-   `user_id`-scoped, not `workspace_id`, so they're outside the resource
-   catalog. Closing this needs a schema change + backfill.
-3. **Proven-unreferenced but possibly staged work** (don't delete without
-   asking): `src/lib/contacts/dedupe.ts`, `parse-contact-csv.ts`,
-   `src/lib/hr/attendance/attendance-engine.ts`,
-   `src/components/presence/presence-heartbeat.tsx`, three
-   `src/components/projects/project-{activity-log,invoices,timesheet}.tsx`
-   behind disabled tabs, `src/components/ui/{radio-group,separator}.tsx`.
+Applied: **100–124** (confirmed by preflight 2026-09-02).
+Pending: **125** (`supabase/migrations/125_workspace_module_selection.sql`) — until it runs,
+the onboarding module picker saves nothing, silently.
 
-**Ready to do:**
-4. After the user applies the bundle: **verify the RBAC round-trips** in the
-   real app — create a role, restrict a module, assign it to a member,
-   confirm the UI hides it and the DB refuses the data.
-5. Optional hardening: prevent an admin ticking *write* permissions on the
-   built-in "Viewer" role (currently possible; makes the name misleading).
-6. Optional: generate Supabase `Database` types to kill ~150 `any`s (§5.7).
-7. `src/app/api/account/members/[userId]/route.ts` has a **stale header
-   comment** claiming it delegates to SECURITY DEFINER RPCs from migration
-   018 — it has no `.rpc()` calls at all. Two divergent copies of
-   `rpcErrorToResponse` also remain (different status codes), so
-   consolidating them would change HTTP responses — reported, not done.
+Single-device sign-in and email 2FA are now genuinely live. Before 100 was
+applied, `register_session` errored on every call and the guard treated that
+as "unknown" and let requests through — enforcement had been failing open
+for months without a symptom.
 
-**Communication style the user expects**: lead with the outcome, be
-explicit about what was verified vs. assumed, and flag risky/destructive
-actions before doing them. They are the technical owner and act on precise
-instructions (e.g. "run this migration", "fix this env var").
+---
+
+## 4. Architecture you cannot guess from the code
+
+**`src/proxy.ts` is the middleware.** Next 16 renamed it. Do not delete it
+as unreferenced.
+
+**Module access resolves through three independent authorities**, narrowest
+wins, in this order:
+1. **Role** (`workspace_roles.permissions` → `deriveModuleAccess`) — who on
+   the team may see a module. Owner/admin bypass to everything.
+2. **Platform flags** (`saas_workspace_feature_flags` → `applyPlatformFlags`)
+   — our kill switch over a tenant. Does *not* honour the owner bypass.
+3. **Workspace selection** (`workspaces.enabled_modules` →
+   `applyWorkspaceModules`) — which of those this business actually uses,
+   chosen at onboarding. Also does not bypass for owners; they turn it back
+   on in Settings → Modules, where they turned it off.
+
+**A seat is a PERSON, not a membership.** A tenant is every workspace one
+user owns (`tenant_workspace_ids`). One human in three of them is one seat.
+`tenant_seat_usage` / `tenant_seat_limit` are the authority and are the same
+functions the insert trigger enforces with — **never recompute seats in the
+UI**, that bug has been fixed once already.
+
+**Licences** (`tenant_user_licenses`, migration 124) separate "works here"
+from "is paid for". Three rules, all deliberate:
+- **absence of a row means licensed** — so shipping it locked nobody out,
+  and a bug costs money rather than access;
+- **the owner always passes**, whatever the table says;
+- **sign-in is blocked only when licensed NOWHERE** — people work for two
+  tenants.
+
+**RBAC** is a CRUD matrix (39 resources × 4 actions) plus legacy coarse keys
+derived in `src/lib/auth/legacy-permissions.ts`. `has_resource_permission`
+gives owner/admin a **blanket DB bypass**, so restricting an admin must be
+enforced in the API route — RLS alone will not do it.
+
+**Session verdicts** from `register_session`: `active`, `revoked`,
+`needs_2fa`, `unlicensed`, `unknown`. **Every unrecognised verdict and every
+error must fail OPEN.** The app and database deploy separately; a database
+that knows a new verdict will hand it to an app that does not, and failing
+closed there logs out every user at once.
+
+**Platform email is Microsoft Graph only.** SMTP is impossible: the
+daylink.in tenant returns `535 5.7.139 SmtpClientAuthentication is disabled
+for the Tenant`, and the mailboxes are unlicensed shared mailboxes whose
+sign-in is disabled by design. Never suggest SMTP settings here.
+
+**Platform mail and tenant mail must stay separate**, and
+`src/lib/platform/separation.test.ts` fails the build if they blur: platform
+mail may not read `workspace_integrations`, tenant Outlook may not read
+`platform_settings`, no reset path may use Supabase's mailer, and no host
+may be hardcoded.
+
+---
+
+## 5. Traps that have already cost time
+
+| Trap | Lesson |
+|---|---|
+| Print captured the whole page; then the letterhead vanished | **A letterhead is a `<header>`.** Chrome-hiding print CSS must scope to `:not(.print-area *)`. |
+| Dropdowns showed the placeholder until opened | Base UI mounts items lazily, so effect-registered labels don't exist on first paint. Labels are read off the JSX tree synchronously (`collectItemLabels`). |
+| GST ledger defaulted to state `'27'` and HSN `'7113'` | Defaults that are *plausible* don't fail — they **file wrong**, on someone else's GSTIN. Unset must read as unset. |
+| `generate_next_document_number` ignored its own `reset_rule` | A column nothing reads is a lie. Invoice numbers must reset per financial year (Rule 46). |
+| Migration 119 renamed "Agent" → "Team Member" but the function creating new workspaces still seeded "Agent" | Renaming rows is half a rename. Find the code that makes new ones. |
+| A picker lost the first of two answers made in one tick | Handlers read `value` from props — a render snapshot. Use functional updates (`onChange(prev => …)`). Tests passed; only clicking it found this. |
+| HTML body sent as `contentType: 'Text'` (Graph) after the same bug was fixed for SMTP | Graph and SMTP are separate code paths. Fixing one does not reach the other. |
+| `next build` failed on a type error `tsc --noEmit` passed | See §2 rule 3. |
+| Empty selection could hide every module | Hiding everything also hides the navigation that undoes it. **Empty means "not chosen" and resolves to all.** |
+
+---
+
+## 6. Current initiative — automated GST filing
+
+Full plan (registration path, phases, pricing) was delivered as a PDF/artifact.
+The essentials:
+
+**Direct filing requires a GSP** — GSTN issues no API credentials to software
+vendors; we would be an ASP on a licensed GSP's gateway. Sandboxes are free;
+production is roughly **₹6k–25k/yr platform floor plus ₹0.10–₹1 per API call**
+(~₹12 per filing). **E-invoicing (IRN) is free** via the authorised IRPs
+(IRIS IRP basic tier; Cygnet IRP is free for ASPs).
+
+**Verify before quoting any of that to a customer.** GST thresholds, scheme
+limits and EVC eligibility change constantly.
+
+**Phases** — 0 (ledger correctness) ✅ done, 0.5 (return preview + GSTN JSON
+export, ₹0, independently sellable) ← next, 1 (GSP sandbox, prove CMP-08 end
+to end), 2 (production filing + prepaid billing), 3 (GSTR-2B reconciliation),
+4 (e-invoicing).
+
+**Phase 0 landed** in `0f252da`: the GST ledger is now fed by invoices *and*
+purchases (it was POS-only, so the INPUT/ITC side had never had a single row),
+plus `supply_type` classification (`src/lib/commerce/gst/supply-classification.ts`,
+tested) and the numbering fix.
+
+**Decisions still open — ask, don't assume:**
+1. **Billing model.** Cost-plus-5% per filing is ruled out by arithmetic:
+   ~₹12 cost, ₹0.60 margin, and Razorpay's ~2% eats half of that — ₹3.60/year
+   per shop. Recommended: **prepaid credits** (one gateway fee, cash collected
+   before any API call) at a flat ~₹49/filing, or bundle into a tier.
+2. **Composition or QRMP customers?** CMP-08 is the simplest return in GST and
+   the right first filing; GSTR-1 is a much bigger build. This decides the order.
+3. **Do we file, or does a CA approve and then we file?**
+4. **Static outbound IPs** — GSTN whitelists caller IPs. Coolify needs a fixed
+   egress IP before Phase 2 can reach production. This constrains hosting.
+
+**Rejected, with reasons** (don't revisit without new information):
+- *PhonePe as a filing source.* GST is charged on **supplies made**, not
+  payments received — filing from receipts omits every cash sale and the
+  penalty lands on the customer. There's also no API: a QR merchant has no
+  credentials, and Account Aggregator requires being a regulated FIU.
+  **Reframed as reconciliation** (upload a bank statement, compare deposits to
+  recorded sales) — genuinely valuable, ships with Phase 3's matching engine.
+- *Two invoice series to keep sales off the books.* The legitimate model is
+  three documents: tax invoice, bill of supply, proforma. What sends a sale to
+  the portal is **whether the supply is taxable**, not which series it carries.
+  `platform_number_series` already supports independent series.
+
+---
+
+## 7. How to verify work here
+
+**Database**: paste the preflight. For a specific migration, its `Verify`
+block is written to be pasted as-is.
+
+**UI**: a throwaway route under `src/app/<name>-temp/page.tsx` plus
+`preview_start` is the established pattern — render the component with stubbed
+props, drive it, screenshot, then **delete the route and restore
+`.claude/launch.json`**. This caught the module-picker stale-closure bug that
+746 passing tests did not.
+
+**What you cannot verify**: anything needing an authenticated session. Signing
+in with the user's credentials is off-limits. Say so plainly and name the check
+they should run instead — don't imply you verified it.
+
+---
+
+## 8. Working style the user expects
+
+- Lead with the outcome. Be explicit about **verified vs. assumed**.
+- They are the technical owner and act on precise instructions ("paste this
+  migration", "fix this env var").
+- **Push back with the arithmetic** when a plan doesn't survive it — the
+  cost-plus-5% pricing and the PhonePe idea were both corrected this way and
+  the corrections were wanted.
+- Don't guess at vague scope. "Fix other things in the app" got a request for
+  specifics rather than a speculative sweep, and that was the right call.
+
+---
+
+## 9. Open work
+
+### Ready to do
+1. **Paste migration 125.** Nothing else in this section depends on it, but the
+   module picker is inert until it runs.
+2. **GST Phase 0 remnants** — all agreed, none started:
+   - GSTIN field on the contact form (column exists from 123, no UI)
+   - HSN on products, with the AI-assisted suggestion (model keys are in env)
+   - The exception list as a screen — `ledgerExceptions()` in
+     `src/lib/commerce/gst/supply-classification.ts` returns the messages, nothing renders them
+3. **GST Phase 0.5** — compute GSTR-1 / GSTR-3B / CMP-08 from the ledger and
+   export GSTN-schema JSON. Zero cost, no vendor, independently sellable.
+4. **Verify licences and modules in the real app** — revoke a licence and
+   confirm the sign-in refusal names the owner; switch a module off and confirm
+   it leaves the sidebar for everyone.
+
+### Operational, needs the user
+5. **Rotate the production secrets pasted into chat** earlier in this session:
+   mailbox password, MongoDB URI, NextAuth secret, R2 keys, Gemini/Groq keys,
+   `DAYLINK_PAY_SECRET`.
+6. **Coolify env vars** `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_APP_URL` still
+   say `dailycrm.cloud`. They override the code, so links stay wrong until
+   changed to `https://dailybuz.com`.
+7. **Supabase dashboard Site URL** — the app now mints its own recovery links
+   (`appRecoveryLink`) so resets work, but the dashboard setting is still
+   unfixed.
+8. **Mongo import never ran** — needs a real `SUPABASE_SERVICE_ROLE_KEY`. The
+   script (`import-daylink-new-data.mjs`) is ready: 44 HR letters, 15 leads,
+   43 internships. `mongodb` is deliberately **not** a dependency; it loads
+   lazily in ETL scripts only. Do not add it to `package.json`.
+9. **Daylink payment-hub repo** (not on this machine) still shows "Dailybiz".
+
+### Inherited from an earlier session — carried forward, NOT re-verified
+Still present in the tree as of 2026-09-02, but their status was established
+before this session:
+10. **58 duplicate contact numbers** in production. Mixed causes — true
+    duplicates, and legitimately shared business lines (four branches on one
+    number) which must **not** be merged. Offer a read-only preview first.
+11. **Flows/chatbot has no RBAC coverage** — `flows`/`flow_runs` are
+    `user_id`-scoped, not `workspace_id`, so they sit outside the resource
+    catalog. Closing it needs a schema change plus backfill.
+12. **Unreferenced but possibly staged — ask before deleting**:
+    `src/lib/contacts/dedupe.ts`, `src/lib/contacts/parse-contact-csv.ts`,
+    `src/lib/hr/attendance/attendance-engine.ts`,
+    `src/components/presence/presence-heartbeat.tsx`,
+    `src/components/ui/radio-group.tsx`.
+13. Optional: generate Supabase `Database` types to remove ~150 `any`s.
+14. Optional: stop an admin ticking *write* permissions on the built-in
+    "Viewer" role, which currently makes the name misleading.
