@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 
 export default function BartenderShiftsPage() {
   const [activeShift, setActiveShift] = useState<any>(null);
+  const [shiftHistory, setShiftHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [startFloat, setStartFloat] = useState('2000');
   const [actualCash, setActualCash] = useState('');
@@ -22,6 +23,7 @@ export default function BartenderShiftsPage() {
       if (res.ok) {
         const data = await res.json();
         setActiveShift(data.shift);
+        setShiftHistory(data.shifts || []);
       }
     } catch (err) {
       console.error(err);
@@ -41,10 +43,13 @@ export default function BartenderShiftsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'OPEN', starting_cash_float: Number(startFloat) }),
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setActiveShift(data.shift);
         toast.success('Shift opened with cash float!');
+        fetchShift();
+      } else {
+        toast.error(data.error || 'Failed to open shift');
       }
     } catch (err) {
       toast.error('Failed to open shift');
@@ -63,11 +68,14 @@ export default function BartenderShiftsPage() {
           ending_cash_actual: Number(actualCash),
         }),
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setZReport(data.z_report);
         setActiveShift(null);
         toast.success('Shift closed & Z-Report generated!');
+        fetchShift();
+      } else {
+        toast.error(data.error || 'Failed to close shift');
       }
     } catch (err) {
       toast.error('Failed to close shift');
@@ -174,6 +182,79 @@ export default function BartenderShiftsPage() {
           </div>
         </Card>
       )}
+
+      {/* Shift History Table */}
+      <Card className="bg-card border-border">
+        <CardHeader className="py-4 px-6 border-b border-border">
+          <CardTitle className="text-sm font-bold flex items-center gap-2">
+            <Clock className="size-4 text-muted-foreground" />
+            Shift History & Past Z-Reports
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {shiftHistory.length === 0 ? (
+            <p className="p-6 text-center text-xs text-muted-foreground">No past shifts recorded yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold">
+                  <tr>
+                    <th className="p-3 pl-6">Opened</th>
+                    <th className="p-3">Closed</th>
+                    <th className="p-3 text-right">Start Float</th>
+                    <th className="p-3 text-right">Expected</th>
+                    <th className="p-3 text-right">Actual</th>
+                    <th className="p-3 text-right">Difference</th>
+                    <th className="p-3 pr-6 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {shiftHistory.map((shift) => {
+                    const diff = Number(shift.cash_difference ?? 0);
+                    return (
+                      <tr key={shift.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="p-3 pl-6 font-medium">
+                          {new Date(shift.opened_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                        </td>
+                        <td className="p-3 text-muted-foreground">
+                          {shift.closed_at
+                            ? new Date(shift.closed_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })
+                            : 'In Progress'}
+                        </td>
+                        <td className="p-3 text-right font-mono">₹{shift.starting_cash_float}</td>
+                        <td className="p-3 text-right font-mono">
+                          {shift.expected_cash !== null && shift.expected_cash !== undefined
+                            ? `₹${shift.expected_cash}`
+                            : '—'}
+                        </td>
+                        <td className="p-3 text-right font-mono">
+                          {shift.ending_cash_actual !== null && shift.ending_cash_actual !== undefined
+                            ? `₹${shift.ending_cash_actual}`
+                            : '—'}
+                        </td>
+                        <td className={`p-3 text-right font-mono font-semibold ${diff < 0 ? 'text-red-500' : diff > 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                          {shift.status === 'CLOSED' ? `₹${diff}` : '—'}
+                        </td>
+                        <td className="p-3 pr-6 text-center">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                              shift.status === 'OPEN'
+                                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                                : 'bg-muted text-muted-foreground border border-border'
+                            }`}
+                          >
+                            {shift.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
