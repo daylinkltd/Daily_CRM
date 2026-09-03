@@ -2,30 +2,21 @@
 
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Upload,
-  Sparkles,
   Image as ImageIcon,
   Video as VideoIcon,
   Trash2,
-  RefreshCw,
   CheckCircle2,
   AlertCircle,
-  Wand2,
-  Layers,
-  X,
-  Sliders,
-  Eye,
-  Check,
+  FileQuestion,
+  Paperclip,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import {
   validateMediaForPlatforms,
   getRecommendedFormatForPlatform,
-  type MediaMetadata,
 } from '@/lib/marketing/media-validator';
 
 export interface MediaCreativeData {
@@ -41,23 +32,12 @@ export interface MediaCreativeData {
 
 interface MediaCreativeSectionProps {
   media: MediaCreativeData | null;
-  postTopic: string;
+  postTopic?: string;
   targetPlatforms: string[];
   targetAudience?: string;
   onChange: (media: MediaCreativeData | null) => void;
   className?: string;
 }
-
-const VISUAL_STYLES = [
-  { id: 'Modern', label: 'Modern', desc: 'Vibrant gradients & sleek tech accents' },
-  { id: 'Professional', label: 'Professional', desc: 'Executive lighting & polished corporate' },
-  { id: 'Minimal', label: 'Minimal', desc: 'Clean typography & high negative space' },
-  { id: 'Product-focused', label: 'Product-focused', desc: 'Floating 3D UI dashboards & feature cards' },
-  { id: 'Promotional', label: 'Promotional', desc: 'High-energy commercial badges & bold CTA' },
-  { id: 'Educational', label: 'Educational', desc: 'Infographic layout with structured breakdown' },
-  { id: 'Lifestyle', label: 'Lifestyle', desc: 'Authentic professionals in collaborative spaces' },
-  { id: 'Custom', label: 'Custom', desc: 'Defined by custom prompt instructions' },
-];
 
 export function MediaCreativeSection({
   media,
@@ -67,32 +47,23 @@ export function MediaCreativeSection({
   onChange,
   className,
 }: MediaCreativeSectionProps) {
-  const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-
-  // AI Panel Form State
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState('Modern');
-  const [additionalInstructions, setAdditionalInstructions] = useState('');
-  const [customFormat, setCustomFormat] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   const formatRecommendation = getRecommendedFormatForPlatform(targetPlatforms);
-  const activeFormat = customFormat || formatRecommendation.aspectRatio;
 
-  // Validation
+  // Platform Validation
   const validation = media?.url
     ? validateMediaForPlatforms(media, targetPlatforms)
     : { valid: true, errors: [], warnings: [] };
 
-  // File Upload Handlers
+  // File Upload Handler
   const handleFileUpload = async (file: File, type: 'image' | 'video') => {
     const sizeMb = file.size / (1024 * 1024);
 
-    // Initial check
     if (type === 'image' && sizeMb > 15) {
       toast.error('Image file exceeds 15MB limit.');
       return;
@@ -102,6 +73,7 @@ export function MediaCreativeSection({
       return;
     }
 
+    setIsUploading(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -118,7 +90,7 @@ export function MediaCreativeSection({
         mediaUrl = data.url || data.media?.url || '';
       }
 
-      // Robust base64 fallback if server upload is unavailable
+      // Robust base64 fallback for offline/test environments
       if (!mediaUrl) {
         mediaUrl = await new Promise<string>((resolve) => {
           const reader = new FileReader();
@@ -132,28 +104,29 @@ export function MediaCreativeSection({
         url: mediaUrl,
         type,
         source: 'uploaded',
-        fileSizeMb: sizeMb,
+        fileSizeMb: Number(sizeMb.toFixed(2)),
         altText: `Uploaded ${type} for "${postTopic || 'Marketing Post'}"`,
-        aspectRatio: activeFormat,
+        aspectRatio: formatRecommendation.aspectRatio,
       };
 
       onChange(newMedia);
-      setIsAiPanelOpen(false);
-      toast.success(`${type === 'image' ? 'Image' : 'Video'} uploaded successfully!`);
+      toast.success(`${type === 'image' ? 'Image' : 'Video'} attached successfully!`);
     } catch (err: any) {
-      // Local Base64 fallback
       const reader = new FileReader();
       reader.onload = () => {
         onChange({
           url: reader.result as string,
           type,
           source: 'uploaded',
-          fileSizeMb: sizeMb,
+          fileSizeMb: Number(sizeMb.toFixed(2)),
           altText: `Uploaded ${type}`,
+          aspectRatio: formatRecommendation.aspectRatio,
         });
-        toast.success('Media ready for preview.');
+        toast.success('Media attached for preview.');
       };
       reader.readAsDataURL(file);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -175,57 +148,6 @@ export function MediaCreativeSection({
       const file = e.dataTransfer.files[0];
       const isVideo = file.type.startsWith('video/');
       handleFileUpload(file, isVideo ? 'video' : 'image');
-    }
-  };
-
-  // AI Image Generation Trigger
-  const handleGenerateAiCreative = async () => {
-    setIsGenerating(true);
-    try {
-      const res = await fetch('/api/marketing/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic: customPrompt.trim() || postTopic || 'Modern Business Workflow',
-          visualStyle: selectedStyle,
-          platform: targetPlatforms[0] || 'linkedin',
-          targetAudience,
-          additionalInstructions,
-          format: activeFormat,
-        }),
-      });
-
-      if (!res.ok) throw new Error('Generation failed');
-      const data = await res.json();
-
-      if (data.media) {
-        onChange({
-          url: data.media.url,
-          type: 'image',
-          source: 'ai_generated',
-          prompt: data.media.prompt,
-          altText: data.media.altText,
-          visualStyle: selectedStyle,
-          aspectRatio: activeFormat,
-        });
-        setIsAiPanelOpen(false);
-        toast.success('✨ AI Creative generated and attached!');
-      }
-    } catch (err: any) {
-      // Local synthesis fallback
-      const fallbackUrl = 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&auto=format&fit=crop&q=80';
-      onChange({
-        url: fallbackUrl,
-        type: 'image',
-        source: 'ai_generated',
-        visualStyle: selectedStyle,
-        aspectRatio: activeFormat,
-        altText: `AI generated visual for ${postTopic}`,
-      });
-      setIsAiPanelOpen(false);
-      toast.success('✨ AI Creative ready!');
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -255,26 +177,33 @@ export function MediaCreativeSection({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <ImageIcon className="h-4 w-4" />
+            <Paperclip className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-foreground">
-              Media / Creative
+            <h3 className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+              Attached Media Asset
+              <span className="text-[10px] font-normal normal-case text-muted-foreground bg-muted px-2 py-0.5 rounded-full border border-border/60">
+                Optional
+              </span>
             </h3>
             <p className="text-[11px] text-muted-foreground">
-              Attach uploaded visuals or synthesize branded AI graphics for your post
+              Copy the creative prompts below to generate your media with OpenAI, then attach your finalized asset here.
             </p>
           </div>
         </div>
 
-        {media?.url && (
+        {media?.url ? (
           <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-            <CheckCircle2 className="h-3 w-3" /> Creative ready
+            <CheckCircle2 className="h-3 w-3" /> Creative attached
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground bg-muted/60 px-2.5 py-0.5 rounded-full border border-border">
+            <FileQuestion className="h-3 w-3 text-muted-foreground/80" /> No media attached
           </span>
         )}
       </div>
 
-      {/* ACTIVE MEDIA PREVIEW */}
+      {/* ATTACHED MEDIA DISPLAY */}
       {media?.url ? (
         <div className="space-y-3">
           <div className="relative rounded-2xl border border-border/80 bg-muted/20 overflow-hidden group">
@@ -287,7 +216,7 @@ export function MediaCreativeSection({
             ) : (
               <img
                 src={media.url}
-                alt={media.altText || 'Post creative'}
+                alt={media.altText || 'Attached creative asset'}
                 className="w-full max-h-[340px] object-contain rounded-2xl bg-background"
               />
             )}
@@ -295,11 +224,11 @@ export function MediaCreativeSection({
             {/* Badges Over Image */}
             <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
               <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-black/75 text-white backdrop-blur-md shadow-sm">
-                {media.source === 'ai_generated' ? '✨ Generated by AI' : '📷 Uploaded'}
+                {media.type === 'video' ? '🎬 Attached Video' : '📷 Attached Image'}
               </span>
-              {media.visualStyle && (
-                <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-primary/90 text-primary-foreground backdrop-blur-md">
-                  {media.visualStyle} Style
+              {media.fileSizeMb && (
+                <span className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-background/90 text-foreground border border-border/60 backdrop-blur-md">
+                  {media.fileSizeMb} MB
                 </span>
               )}
               {media.aspectRatio && (
@@ -309,25 +238,16 @@ export function MediaCreativeSection({
               )}
             </div>
 
-            {/* Hover Actions Bar */}
+            {/* Actions Bar */}
             <div className="absolute bottom-3 right-3 flex items-center gap-2 bg-background/90 backdrop-blur-md border border-border p-1.5 rounded-xl shadow-md">
               <Button
                 type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => (media.type === 'video' ? videoInputRef.current?.click() : fileInputRef.current?.click())}
                 className="h-8 px-2.5 text-xs font-bold gap-1 text-foreground hover:bg-muted"
               >
                 <Upload className="h-3.5 w-3.5" /> Replace
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsAiPanelOpen(true)}
-                className="h-8 px-2.5 text-xs font-bold gap-1 text-primary hover:bg-primary/10"
-              >
-                <Sparkles className="h-3.5 w-3.5" /> Generate New
               </Button>
               <Button
                 type="button"
@@ -356,7 +276,7 @@ export function MediaCreativeSection({
           )}
         </div>
       ) : (
-        /* DROPZONE & BUTTONS */
+        /* NO MEDIA ATTACHED - UPLOAD DROPZONE */
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -368,25 +288,25 @@ export function MediaCreativeSection({
               : 'border-border bg-background/60 hover:border-primary/40'
           )}
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground mb-3">
-            <Upload className="h-6 w-6 text-primary" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-2.5">
+            <Upload className="h-5 w-5 text-primary" />
           </div>
 
           <p className="text-xs font-bold text-foreground">
-            Drag and drop your image or video here
+            No image or video attached yet
           </p>
-          <p className="text-[11px] text-muted-foreground mt-0.5 max-w-sm">
-            Supports JPEG, PNG, WebP up to 15MB · MP4 videos up to 250MB
+          <p className="text-[11px] text-muted-foreground mt-0.5 max-w-md">
+            Copy the generated prompt below to create your asset in OpenAI (DALL-E 3 / Sora), then upload it here.
           </p>
 
-          {/* Action Buttons Row */}
-          <div className="flex flex-wrap items-center justify-center gap-2.5 mt-4">
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
             <Button
               type="button"
               variant="outline"
               size="sm"
+              disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
-              className="h-9 px-3.5 text-xs font-bold rounded-xl gap-1.5 border-border hover:border-primary/40"
+              className="h-8 px-3 text-xs font-bold rounded-xl gap-1.5 border-border hover:border-primary/40"
             >
               <ImageIcon className="h-3.5 w-3.5 text-sky-500" /> Upload Image
             </Button>
@@ -395,138 +315,11 @@ export function MediaCreativeSection({
               type="button"
               variant="outline"
               size="sm"
+              disabled={isUploading}
               onClick={() => videoInputRef.current?.click()}
-              className="h-9 px-3.5 text-xs font-bold rounded-xl gap-1.5 border-border hover:border-primary/40"
+              className="h-8 px-3 text-xs font-bold rounded-xl gap-1.5 border-border hover:border-primary/40"
             >
               <VideoIcon className="h-3.5 w-3.5 text-purple-500" /> Upload Video
-            </Button>
-
-            <span className="text-xs font-bold text-muted-foreground">OR</span>
-
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
-              className="h-9 px-4 text-xs font-black rounded-xl gap-1.5 bg-gradient-to-r from-primary to-purple-600 text-primary-foreground shadow-sm hover:opacity-95"
-            >
-              <Sparkles className="h-3.5 w-3.5 stroke-[2.5]" /> Generate with AI
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* AI CREATIVE GENERATION PANEL */}
-      {isAiPanelOpen && (
-        <div className="rounded-2xl border border-primary/30 bg-gradient-to-b from-primary/5 via-card to-card p-4 space-y-4 shadow-xs animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center justify-between pb-2 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4 text-primary" />
-              <span className="text-xs font-black uppercase tracking-wider text-foreground">
-                AI Creative Generator
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsAiPanelOpen(false)}
-              className="p-1 rounded-lg text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Prompt input */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-foreground">
-                What should the image be about?
-              </label>
-              {postTopic && (
-                <button
-                  type="button"
-                  onClick={() => setCustomPrompt(postTopic)}
-                  className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1"
-                >
-                  <Sparkles className="h-3 w-3" /> Use my post topic automatically
-                </button>
-              )}
-            </div>
-            <Input
-              value={customPrompt}
-              onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder={postTopic ? `e.g. ${postTopic}` : 'e.g. Modern business CRM and automated growth dashboard'}
-              className="h-9 text-xs rounded-xl"
-            />
-          </div>
-
-          {/* Visual Style Selector */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground">Visual Style</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {VISUAL_STYLES.map((st) => (
-                <button
-                  key={st.id}
-                  type="button"
-                  onClick={() => setSelectedStyle(st.id)}
-                  className={cn(
-                    'flex flex-col items-start p-2.5 rounded-xl border text-left transition-all',
-                    selectedStyle === st.id
-                      ? 'border-primary bg-primary/10 text-primary shadow-xs'
-                      : 'border-border bg-background/80 text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  <span className="text-xs font-black text-foreground flex items-center justify-between w-full">
-                    {st.label}
-                    {selectedStyle === st.id && <Check className="h-3 w-3 text-primary stroke-[3]" />}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
-                    {st.desc}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Format & Dimensions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-foreground">Target Format</label>
-              <div className="p-2.5 rounded-xl border border-border bg-background text-xs font-semibold text-foreground flex items-center justify-between">
-                <span>{activeFormat} ({formatRecommendation.dimension})</span>
-                <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                  Auto for {targetPlatforms[0] || 'LinkedIn'}
-                </span>
-              </div>
-              <p className="text-[10px] text-muted-foreground">{formatRecommendation.hint}</p>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-foreground">Additional Instructions (Optional)</label>
-              <Input
-                value={additionalInstructions}
-                onChange={(e) => setAdditionalInstructions(e.target.value)}
-                placeholder="e.g. Vibrant blue background, no people, high contrast"
-                className="h-9 text-xs rounded-xl"
-              />
-            </div>
-          </div>
-
-          {/* Generate Button */}
-          <div className="flex justify-end pt-2">
-            <Button
-              type="button"
-              onClick={handleGenerateAiCreative}
-              disabled={isGenerating}
-              className="h-9 px-4 text-xs font-black rounded-xl bg-primary text-primary-foreground gap-1.5 shadow-sm"
-            >
-              {isGenerating ? (
-                <>
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Synthesizing Creative...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-3.5 w-3.5" /> Generate Image
-                </>
-              )}
             </Button>
           </div>
         </div>

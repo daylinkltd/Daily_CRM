@@ -171,6 +171,16 @@ details AS (
                 THEN 'present'
               ELSE '-- MISSING --' END,
          'A session can never be marked as having answered its code.'
+  UNION ALL
+  SELECT '127', 'image_prompt & video_prompt on marketing_posts',
+         CASE WHEN to_regclass('public.marketing_posts') IS NULL
+                THEN '-- MISSING (run 126 first) --'
+              WHEN EXISTS (
+                SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'marketing_posts' AND column_name = 'image_prompt')
+                THEN 'present'
+              ELSE '-- MISSING --' END,
+         'Creative prompts and versions cannot be persisted with marketing posts.'
 )
 SELECT status, migration, check_name, impact
   FROM (SELECT * FROM objects UNION ALL SELECT * FROM details) all_checks

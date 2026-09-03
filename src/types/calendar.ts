@@ -174,8 +174,15 @@ export interface SocialPost {
   mediaUrls?: string[];
   mediaType?: 'image' | 'video';
   mediaSource?: 'UPLOADED' | 'AI_GENERATED' | 'STOCK';
+  shortCaption?: string;
+  cta?: string;
   hashtags?: string[];
   keywords?: string[];
+  image_prompt?: string;
+  video_prompt?: string;
+  image_prompt_version?: number;
+  video_prompt_version?: number;
+  objective?: string;
   mentions?: string[];
   link?: string;
   altText?: string;

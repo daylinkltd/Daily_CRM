@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { generateMarketingContent } from '@/lib/marketing/ai-generator';
+import { generateMarketingContent, BrandContext } from '@/lib/marketing/ai-generator';
 
 export async function POST(request: Request) {
   try {
@@ -15,49 +15,103 @@ export async function POST(request: Request) {
     const {
       topic,
       contentType = 'social',
-      platforms = ['linkedin', 'instagram', 'x'],
+      platforms = ['instagram', 'linkedin', 'x'],
       targetAudience,
       tone,
+      objective,
       campaignName,
       productOrService,
       websiteUrl,
       preferredLanguage,
       templateId,
       brandVoice,
+      imageStyle,
+      videoStyle,
       visualStyle,
       additionalCreativeInstructions,
       regenTarget,
       existingCaption,
       existingTitle,
+      existingImagePrompt,
+      existingVideoPrompt,
+      existingHashtags,
+      existingKeywords,
+      existingCta,
+      imagePromptVersion,
+      videoPromptVersion,
       uploadedMediaUrl,
       workspaceId,
+      customBrandContext,
     } = body;
 
     if (!topic || typeof topic !== 'string' || topic.trim().length === 0) {
       return NextResponse.json({ error: 'Topic is required to generate marketing content.' }, { status: 400 });
     }
 
+    // 1. Fetch Multi-Tenant Brand Context from Database if workspaceId is provided
+    let brandContext: BrandContext = customBrandContext || {};
+    if (workspaceId) {
+      try {
+        const { data: mSettings } = await supabase
+          .from('marketing_settings')
+          .select('*')
+          .eq('workspace_id', workspaceId)
+          .maybeSingle();
+
+        const { data: workspace } = await supabase
+          .from('workspaces')
+          .select('name, branding')
+          .eq('id', workspaceId)
+          .maybeSingle();
+
+        brandContext = {
+          businessName: workspace?.name || brandContext.businessName,
+          brandVoice: mSettings?.ai_brand_voice || brandContext.brandVoice,
+          brandColors: workspace?.branding?.primaryColor ? `Primary ${workspace.branding.primaryColor}` : brandContext.brandColors,
+          website: websiteUrl || brandContext.website,
+          productsOrServices: productOrService || brandContext.productsOrServices,
+          targetAudience: targetAudience || brandContext.targetAudience,
+          campaign: campaignName || brandContext.campaign,
+          ...brandContext,
+        };
+      } catch (err) {
+        console.warn('[MarketingGenerateAPI] Non-blocking brand context lookup error:', err);
+      }
+    }
+
+    // 2. Generate Structured Content & Production-Ready Prompts
     const generated = await generateMarketingContent({
       topic,
       contentType,
       platforms,
       targetAudience,
       tone,
+      objective,
       campaignName,
       productOrService,
       websiteUrl,
       preferredLanguage,
       templateId,
       brandVoice,
+      imageStyle,
+      videoStyle,
       visualStyle,
+      brandContext,
       additionalCreativeInstructions,
       regenTarget,
       existingCaption,
       existingTitle,
+      existingImagePrompt,
+      existingVideoPrompt,
+      existingHashtags,
+      existingKeywords,
+      existingCta,
+      imagePromptVersion,
+      videoPromptVersion,
       uploadedMediaUrl,
     });
 
-    // Traceable logging into marketing_generations if workspaceId is present
+    // 3. Traceable logging into marketing_generations if workspaceId is present
     if (workspaceId && generated.generation_id) {
       try {
         await supabase.from('marketing_generations').insert({
@@ -66,9 +120,13 @@ export async function POST(request: Request) {
           created_by: user.id,
           original_input: topic,
           structured_intent: generated.structured_intent || {},
-          prompt_version: 'v2.0',
+          prompt_version: 'v3.0_creative_prompts',
           generated_content: (generated.mode === 'blog' ? generated.blog : generated.social) || {},
-          generated_media: generated.social?.image_url ? { url: generated.social.image_url, prompt: generated.social.image_prompt } : {},
+          generated_media: {
+            image_prompt: generated.mode === 'blog' ? generated.blog?.image_prompt : generated.social?.image_prompt,
+            video_prompt: generated.mode === 'blog' ? generated.blog?.video_prompt : generated.social?.video_prompt,
+            uploaded_url: uploadedMediaUrl || null,
+          },
         });
       } catch (logErr) {
         console.warn('[MarketingGenerateAPI] Non-blocking generation log error:', logErr);
@@ -79,7 +137,7 @@ export async function POST(request: Request) {
   } catch (err: any) {
     console.error('[MarketingGenerateAPI] Error:', err);
     return NextResponse.json(
-      { error: err.message || 'Failed to generate marketing content.' },
+      { error: err.message || 'Content generation failed. Please try again.' },
       { status: 500 }
     );
   }

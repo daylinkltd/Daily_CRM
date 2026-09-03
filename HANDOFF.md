@@ -232,14 +232,16 @@ they should run instead — don't imply you verified it.
 ## 9. Open work
 
 ### Ready to do
-1. **Paste migration 126 (`supabase/migrations/126_marketing_hub.sql`) & 111 (`supabase/migrations/111_marketing_buffer_integrations.sql`).**
-   Sets up multi-tenant Buffer integration RLS, `marketing_generations`, and `marketing_media` tables.
-2. **Marketing Hub Completed**:
+1. **Paste migration 127 (`supabase/migrations/127_marketing_creative_prompts.sql`), 126 (`supabase/migrations/126_marketing_hub.sql`) & 111 (`supabase/migrations/111_marketing_buffer_integrations.sql`).**
+   Sets up multi-tenant Buffer integration RLS, `marketing_generations`, `marketing_media`, and `marketing_posts` creative prompt columns (`image_prompt`, `video_prompt`, `image_prompt_version`, `video_prompt_version`, `objective`).
+2. **Marketing Hub & Creative Prompts Completed**:
+   - Structured AI Content Generation producing: Social copy, caption, short description, hashtags, keywords, CTA, detailed Image Generation Prompt, and detailed Video Generation Prompt.
+   - Zero fake/placeholder image generation — prompt-only creation for external OpenAI (DALL-E 3 / Sora) workflows with user media upload (Replace/Remove).
+   - Independent prompt regeneration (Image Prompt with 9 visual styles, Video Prompt with 8 video styles) preserving other fields.
+   - Platform-aware aspect ratios and multi-tenant brand context integration.
    - OAuth 2.0 PKCE Buffer integration with AES-256-GCM token encryption and zero frontend credential leakage.
-   - Dynamic channel loading & multi-tenant isolation.
-   - Centralized approval governance (`ApprovalGovernance`) with Admin precedence, blocking non-admin creators from self-approving.
-   - Dedicated persistent media upload API (`/api/marketing/upload-media`) and single source of truth media previews.
-   - 777/777 unit tests passing across 65 test suites.
+   - Centralized approval governance (`ApprovalGovernance`) with Admin precedence.
+   - 781/781 unit tests passing across 65 test suites, `next build` clean.
 3. **Paste migration 125.** Nothing else in this section depends on it, but the
    module picker is inert until it runs.
 4. **GST Phase 0 remnants** — all agreed, none started:
