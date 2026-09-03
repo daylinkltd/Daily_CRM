@@ -103,7 +103,15 @@ export function InstagramPreview({
           </button>
         </div>
 
-        <p className="text-xs font-black text-foreground">{liked ? '1,429 likes' : '1,428 likes'}</p>
+        {post.status === 'published' && post.analytics?.likes ? (
+          <p className="text-xs font-black text-foreground">{post.analytics.likes} likes</p>
+        ) : (
+          <div className="flex items-center gap-1.5 py-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              Platform Preview
+            </span>
+          </div>
+        )}
 
         {/* Caption */}
         <div className="text-xs text-foreground leading-relaxed">
@@ -125,8 +133,8 @@ export function InstagramPreview({
         )}
 
         <div className="flex items-center justify-between text-[10px] text-muted-foreground uppercase pt-1">
-          <span>{post.date || 'Just now'}</span>
-          <span>View all 42 comments</span>
+          <span>{post.date || 'Scheduled Date'}</span>
+          <span>{post.status === 'published' ? 'Live on Instagram' : 'Ready for Approval'}</span>
         </div>
       </div>
     </div>
@@ -204,15 +212,19 @@ export function LinkedInPreview({
 
       {/* Reactions Bar */}
       <div className="px-4 py-2 flex items-center justify-between border-b border-border/40 text-[10px] text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <div className="flex -space-x-1">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-white text-[8px]">👍</span>
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white text-[8px]">👏</span>
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[8px]">❤️</span>
+        {post.status === 'published' && post.analytics ? (
+          <>
+            <div className="flex items-center gap-1">
+              <span className="font-semibold">{post.analytics.likes || 0} reactions</span>
+            </div>
+            <span>{post.analytics.comments || 0} comments • {post.analytics.shares || 0} reposts</span>
+          </>
+        ) : (
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">LinkedIn Platform Preview</span>
+            <span className="text-[10px] text-muted-foreground">{post.status === 'approved' ? 'Approved & Ready' : 'Pending Review'}</span>
           </div>
-          <span className="font-semibold ml-1">348</span>
-        </div>
-        <span>24 comments • 18 reposts</span>
+        )}
       </div>
 
       {/* Action Buttons */}

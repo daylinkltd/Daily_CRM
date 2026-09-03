@@ -35,6 +35,7 @@ const STATUS_TABS: (PostStatus | 'all')[] = [
   'approved',
   'scheduled',
   'published',
+  'failed',
   'changes_requested',
   'rejected',
 ];

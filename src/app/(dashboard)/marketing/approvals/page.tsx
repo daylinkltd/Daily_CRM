@@ -125,7 +125,7 @@ export default function MarketingApprovalsPage() {
         onApprove={handleApprove}
         onRequestChanges={handleRequestChanges}
         onReject={handleReject}
-        onReassign={store.reassignApprover}
+        onUpdatePost={store.updateSocialPost}
       />
 
       <PostHistoryDrawer post={historyPost} onClose={() => setHistoryPost(null)} />

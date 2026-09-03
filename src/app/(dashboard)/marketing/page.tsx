@@ -38,6 +38,7 @@ import {
   Users,
   Compass,
   Trash2,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -83,6 +84,18 @@ export default function MarketingDashboardPage() {
     || campaigns.reduce((s, c) => s + (c.metrics?.hotLeads || 0), 0);
   const totalOpps = campaigns.reduce((s, c) => s + (c.metrics?.opportunities || 0), 0);
   const totalRevenue = campaigns.reduce((s, c) => s + (c.metrics?.revenue || 0), 0);
+
+  const totalFailed = (store.socialPosts || []).filter((p) => p.status === 'failed').length;
+  const totalContent = (store.socialPosts || []).length + (store.blogPosts || []).length;
+
+  const contentKpis = [
+    { label: 'Total Content', value: totalContent, icon: Layers, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
+    { label: 'Drafts', value: drafts.length, icon: FileEdit, color: 'text-zinc-500 bg-zinc-500/10 border-zinc-500/20' },
+    { label: 'Pending Approval', value: pending.length, icon: Clock, color: 'text-amber-500 bg-amber-500/10 border-amber-500/20' },
+    { label: 'Scheduled', value: scheduled.length, icon: Calendar, color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
+    { label: 'Published', value: published.length, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' },
+    { label: 'Failed & Retry', value: totalFailed, icon: X, color: 'text-rose-500 bg-rose-500/10 border-rose-500/20' },
+  ];
 
   const kpis = [
     { label: 'Total Leads Generated', value: totalLeads, change: totalLeads > 0 ? `${totalLeads} tracked` : '0 tracked', trend: totalLeads > 0 ? 'up' : 'neutral', icon: Flame, color: 'text-amber-500 bg-amber-500/10 border-amber-500/20' },
@@ -164,7 +177,39 @@ export default function MarketingDashboardPage() {
       {/* SECTION 1: PROMINENT CONVERSATIONAL AI ASSISTANT HERO */}
       <AIConversationalAssistant />
 
-      {/* SECTION 2: MARKETING -> CRM ATTRIBUTION KPIS */}
+      {/* SECTION 2: CONTENT WORKFLOW LIFECYCLE STATS */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Layers className="h-4 w-4 text-purple-600" />
+            <h3 className="text-sm font-black text-foreground">Content Workflow Lifecycle</h3>
+          </div>
+          <Link href="/marketing/content" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+            View Content Library <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {contentKpis.map((k) => {
+            const Icon = k.icon;
+            return (
+              <div key={k.label} className="rounded-2xl border border-border bg-card p-4 flex flex-col justify-between gap-2 shadow-sm hover:border-primary/30 transition-all">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground truncate">{k.label}</span>
+                  <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg border shrink-0', k.color)}>
+                    <Icon className="h-3.5 w-3.5" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xl sm:text-2xl font-black text-foreground">{k.value}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* SECTION 3: MARKETING -> CRM ATTRIBUTION KPIS */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -524,6 +569,7 @@ export default function MarketingDashboardPage() {
         onRequestChanges={store.requestChanges}
         onReject={store.rejectPost}
         onReassign={store.reassignApprover}
+        onUpdatePost={store.updateSocialPost}
       />
 
       {/* Simulator Modal */}

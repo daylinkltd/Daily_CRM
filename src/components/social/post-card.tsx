@@ -31,6 +31,8 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, onView, onEdit, onDuplicate, onDelete, onReview, className }: PostCardProps) {
+  const [imageError, setImageError] = React.useState(false);
+
   return (
     <div
       className={cn(
@@ -40,15 +42,19 @@ export function PostCard({ post, onView, onEdit, onDuplicate, onDelete, onReview
     >
       {/* Thumbnail */}
       <div className="relative w-full h-40 bg-muted overflow-hidden">
-        {post.mediaUrl ? (
+        {post.mediaUrl && !imageError ? (
           <img
             src={post.mediaUrl}
             alt={post.title}
+            onError={() => setImageError(true)}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/15">
-            <span className="text-3xl opacity-30">📷</span>
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 text-muted-foreground">
+            <span className="text-2xl mb-1 opacity-60">📷</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              {post.category || 'Creative Asset'}
+            </span>
           </div>
         )}
         {/* Status overlay */}

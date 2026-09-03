@@ -38,6 +38,21 @@ export const STATUS_CONFIG: Record<PostStatus, { label: string; className: strin
     className: 'bg-rose-500/12 text-rose-700 dark:text-rose-400 border-rose-500/20',
     dotClass: 'bg-rose-500',
   },
+  failed: {
+    label: 'Failed',
+    className: 'bg-rose-600/15 text-rose-800 dark:text-rose-300 border-rose-600/30',
+    dotClass: 'bg-rose-600',
+  },
+  publishing: {
+    label: 'Publishing...',
+    className: 'bg-indigo-500/12 text-indigo-700 dark:text-indigo-400 border-indigo-500/20',
+    dotClass: 'bg-indigo-500',
+  },
+  ai_generated: {
+    label: 'AI Generated',
+    className: 'bg-purple-500/12 text-purple-700 dark:text-purple-400 border-purple-500/20',
+    dotClass: 'bg-purple-500',
+  },
 };
 
 interface StatusBadgeProps {

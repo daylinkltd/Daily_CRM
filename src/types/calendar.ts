@@ -10,11 +10,14 @@ export type SocialPlatform =
 
 export type PostStatus =
   | 'draft'
+  | 'ai_generated'
   | 'pending_approval'
   | 'changes_requested'
   | 'approved'
   | 'scheduled'
+  | 'publishing'
   | 'published'
+  | 'failed'
   | 'rejected';
 
 export type ContentType =
@@ -24,7 +27,11 @@ export type ContentType =
   | 'video'
   | 'carousel'
   | 'short'
-  | 'article';
+  | 'article'
+  | 'promo'
+  | 'announcement'
+  | 'educational'
+  | 'event';
 
 export type CRMActivityType =
   | 'meeting'
@@ -71,6 +78,7 @@ export interface AuditHistoryItem {
     | 'approved'
     | 'scheduled'
     | 'published'
+    | 'failed'
     | 'rejected'
     | 'rescheduled'
     | 'reassigned';
@@ -165,7 +173,9 @@ export interface SocialPost {
   mediaUrl?: string;
   mediaUrls?: string[];
   mediaType?: 'image' | 'video';
+  mediaSource?: 'UPLOADED' | 'AI_GENERATED' | 'STOCK';
   hashtags?: string[];
+  keywords?: string[];
   mentions?: string[];
   link?: string;
   altText?: string;
@@ -178,6 +188,11 @@ export interface SocialPost {
   creatorAvatar?: string;
   approverId?: string;
   approverName?: string;
+  assignedApproverId?: string;
+  assignedApproverName?: string;
+  rejection_reason?: string;
+  approval_notes?: string;
+  failure_reason?: string;
 
   // CRM Linkages
   crmContactId?: string;

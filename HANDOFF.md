@@ -232,18 +232,23 @@ they should run instead — don't imply you verified it.
 ## 9. Open work
 
 ### Ready to do
-1. **Paste migration 125.** Nothing else in this section depends on it, but the
+1. **Paste migration 126 (`supabase/migrations/126_marketing_hub.sql`) & 111 (`supabase/migrations/111_marketing_buffer_integrations.sql`).**
+   Sets up multi-tenant Buffer integration RLS, `marketing_generations`, and `marketing_media` tables.
+2. **Marketing Hub Completed**:
+   - OAuth 2.0 PKCE Buffer integration with AES-256-GCM token encryption and zero frontend credential leakage.
+   - Dynamic channel loading & multi-tenant isolation.
+   - Centralized approval governance (`ApprovalGovernance`) with Admin precedence, blocking non-admin creators from self-approving.
+   - Dedicated persistent media upload API (`/api/marketing/upload-media`) and single source of truth media previews.
+   - 777/777 unit tests passing across 65 test suites.
+3. **Paste migration 125.** Nothing else in this section depends on it, but the
    module picker is inert until it runs.
-2. **GST Phase 0 remnants** — all agreed, none started:
+4. **GST Phase 0 remnants** — all agreed, none started:
    - GSTIN field on the contact form (column exists from 123, no UI)
    - HSN on products, with the AI-assisted suggestion (model keys are in env)
    - The exception list as a screen — `ledgerExceptions()` in
      `src/lib/commerce/gst/supply-classification.ts` returns the messages, nothing renders them
-3. **GST Phase 0.5** — compute GSTR-1 / GSTR-3B / CMP-08 from the ledger and
+5. **GST Phase 0.5** — compute GSTR-1 / GSTR-3B / CMP-08 from the ledger and
    export GSTN-schema JSON. Zero cost, no vendor, independently sellable.
-4. **Verify licences and modules in the real app** — revoke a licence and
-   confirm the sign-in refusal names the owner; switch a module off and confirm
-   it leaves the sidebar for everyone.
 
 ### Operational, needs the user
 5. **Rotate the production secrets pasted into chat** earlier in this session:

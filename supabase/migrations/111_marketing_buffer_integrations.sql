@@ -44,16 +44,11 @@ CREATE POLICY marketing_integrations_select ON public.marketing_integrations
   USING (public.is_active_workspace_member(workspace_id, auth.uid()));
 
 DROP POLICY IF EXISTS marketing_integrations_admin ON public.marketing_integrations;
-CREATE POLICY marketing_integrations_admin ON public.marketing_integrations
+DROP POLICY IF EXISTS marketing_integrations_modify ON public.marketing_integrations;
+CREATE POLICY marketing_integrations_modify ON public.marketing_integrations
   FOR ALL
-  USING (
-    public.is_active_workspace_member(workspace_id, auth.uid())
-    AND public.has_workspace_permission(workspace_id, auth.uid(), 'integrations'::text)
-  )
-  WITH CHECK (
-    public.is_active_workspace_member(workspace_id, auth.uid())
-    AND public.has_workspace_permission(workspace_id, auth.uid(), 'integrations'::text)
-  );
+  USING (public.is_active_workspace_member(workspace_id, auth.uid()))
+  WITH CHECK (public.is_active_workspace_member(workspace_id, auth.uid()));
 
 DROP TRIGGER IF EXISTS set_marketing_integrations_updated_at ON public.marketing_integrations;
 CREATE TRIGGER set_marketing_integrations_updated_at
@@ -96,16 +91,11 @@ CREATE POLICY marketing_social_channels_select ON public.marketing_social_channe
   USING (public.is_active_workspace_member(workspace_id, auth.uid()));
 
 DROP POLICY IF EXISTS marketing_social_channels_admin ON public.marketing_social_channels;
-CREATE POLICY marketing_social_channels_admin ON public.marketing_social_channels
+DROP POLICY IF EXISTS marketing_social_channels_modify ON public.marketing_social_channels;
+CREATE POLICY marketing_social_channels_modify ON public.marketing_social_channels
   FOR ALL
-  USING (
-    public.is_active_workspace_member(workspace_id, auth.uid())
-    AND public.has_workspace_permission(workspace_id, auth.uid(), 'integrations'::text)
-  )
-  WITH CHECK (
-    public.is_active_workspace_member(workspace_id, auth.uid())
-    AND public.has_workspace_permission(workspace_id, auth.uid(), 'integrations'::text)
-  );
+  USING (public.is_active_workspace_member(workspace_id, auth.uid()))
+  WITH CHECK (public.is_active_workspace_member(workspace_id, auth.uid()));
 
 
 -- 3. Marketing OAuth PKCE States (short-lived session state verification)

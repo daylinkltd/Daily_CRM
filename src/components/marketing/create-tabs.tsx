@@ -1,632 +1,859 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCalendarStore } from '@/lib/calendar/store';
-import { SocialComposerForm } from '@/components/social/social-composer-form';
-import { AIContentAssistant } from '@/components/marketing/ai-content-assistant';
-import type { SocialPost, BlogPost, Campaign, ContentIdea, PostStatus, SocialPlatform } from '@/types/calendar';
+import { useWorkspace } from '@/hooks/use-workspace';
+import { SOCIAL_TEMPLATES, BLOG_TEMPLATES, ContentTemplate } from '@/lib/marketing/template-library';
+import { evaluateBlogSEO } from '@/lib/marketing/seo-evaluator';
+import { SocialPlatformPreview } from '@/components/social/platform-previews';
+import type { SocialPost, BlogPost, PostStatus, SocialPlatform } from '@/types/calendar';
 import { SOCIAL_PLATFORM_ICONS } from '@/components/calendar/social-icons';
 import {
+  Sparkles,
   Share2,
   BookOpen,
-  Target,
-  Lightbulb,
-  Sparkles,
-  Calendar,
-  Layers,
-  Image as ImageIcon,
-  Link2,
-  Tag,
-  Users,
-  DollarSign,
-  Plus,
   Send,
+  Save,
+  CheckCircle2,
+  RefreshCw,
+  Copy,
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon,
+  Tag,
+  Hash,
+  Clock,
+  Layers,
+  Flame,
+  Lightbulb,
+  Edit3,
+  Calendar as CalendarIcon,
+  Globe,
+  SlidersHorizontal,
+  ArrowRight,
+  AlertCircle,
+  HelpCircle,
   Check,
+  Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { NativeSelect } from "@/components/ui/native-select";
+import { NativeSelect } from '@/components/ui/native-select';
+import { MediaCreativeSection, type MediaCreativeData } from '@/components/marketing/media-creative-section';
 
-const ALL_PLATFORMS: SocialPlatform[] = [
-  'instagram',
-  'facebook',
-  'linkedin',
-  'x',
-  'tiktok',
-  'youtube',
-  'threads',
-  'pinterest',
+const CONTENT_TYPES = [
+  { id: 'social', label: 'Social Post', icon: Share2, desc: 'Optimized post for social feeds' },
+  { id: 'blog', label: 'Blog Article', icon: BookOpen, desc: 'Long-form SEO thought leadership' },
+  { id: 'promo', label: 'Promotional Post', icon: Flame, desc: 'Direct value proposition & conversions' },
+  { id: 'product_service', label: 'Product / Feature', icon: Layers, desc: 'Feature highlight or product showcase' },
+  { id: 'announcement', label: 'Announcement', icon: Zap, desc: 'Company milestone, event, or release' },
+  { id: 'educational', label: 'Educational Post', icon: Lightbulb, desc: 'Tutorial, tips, or industry breakdown' },
 ];
+
+const PLATFORMS: Array<{ id: SocialPlatform; label: string; icon: any }> = [
+  { id: 'instagram', label: 'Instagram', icon: SOCIAL_PLATFORM_ICONS.instagram.icon },
+  { id: 'linkedin', label: 'LinkedIn', icon: SOCIAL_PLATFORM_ICONS.linkedin.icon },
+  { id: 'x', label: 'X (Twitter)', icon: SOCIAL_PLATFORM_ICONS.x.icon },
+  { id: 'facebook', label: 'Facebook', icon: SOCIAL_PLATFORM_ICONS.facebook.icon },
+  { id: 'tiktok', label: 'TikTok', icon: SOCIAL_PLATFORM_ICONS.tiktok.icon },
+  { id: 'youtube', label: 'YouTube', icon: SOCIAL_PLATFORM_ICONS.youtube.icon },
+  { id: 'threads', label: 'Threads', icon: SOCIAL_PLATFORM_ICONS.threads.icon },
+];
+
+const AUTOSAVE_KEY = 'dailybuz_marketing_draft_creation_v2';
 
 export function CreateWorkspaceTabs() {
   const router = useRouter();
   const store = useCalendarStore();
-  const [activeTab, setActiveTab] = useState<'social' | 'blog' | 'campaign' | 'idea'>('social');
+  const { activeWorkspace } = useWorkspace();
 
-  // Blog Creation State
-  const [blogTitle, setBlogTitle] = useState('');
-  const [blogSlug, setBlogSlug] = useState('');
-  const [blogExcerpt, setBlogExcerpt] = useState('');
-  const [blogContent, setBlogContent] = useState('');
-  const [blogCategory, setBlogCategory] = useState('Productivity');
-  const [blogFeaturedImage, setBlogFeaturedImage] = useState(
-    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80'
-  );
-  const [blogTags, setBlogTags] = useState('SaaS, Growth, Automation');
-  const [blogCampaignId, setBlogCampaignId] = useState('');
-  const [blogDate, setBlogDate] = useState('2026-08-28');
-  const [blogSeoTitle, setBlogSeoTitle] = useState('');
-  const [blogSeoDescription, setBlogSeoDescription] = useState('');
-  const [blogKeywords, setBlogKeywords] = useState('crm, business os, whatsapp api');
+  // Core Inputs
+  const [contentType, setContentType] = useState<string>('social');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>(['linkedin', 'instagram', 'x']);
+  const [topicPrompt, setTopicPrompt] = useState<string>('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
 
-  // Campaign Creation State
-  const [campName, setCampName] = useState('');
-  const [campDescription, setCampDescription] = useState('');
-  const [campObjective, setCampObjective] = useState('');
-  const [campStartDate, setCampStartDate] = useState('2026-09-01');
-  const [campEndDate, setCampEndDate] = useState('2026-09-30');
-  const [campPlatforms, setCampPlatforms] = useState<SocialPlatform[]>(['linkedin', 'x', 'instagram']);
-  const [campBudget, setCampBudget] = useState(10000);
+  // Advanced Collapsible Options
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+  const [targetAudience, setTargetAudience] = useState<string>('');
+  const [tone, setTone] = useState<'engaging' | 'professional' | 'concise' | 'creative' | 'educational'>('engaging');
+  const [campaignName, setCampaignName] = useState<string>('');
+  const [productOrService, setProductOrService] = useState<string>('');
+  const [websiteUrl, setWebsiteUrl] = useState<string>('');
+  const [preferredLanguage, setPreferredLanguage] = useState<string>('English');
+  const [mediaUrl, setMediaUrl] = useState<string>('');
+  const [mediaCreative, setMediaCreative] = useState<MediaCreativeData | null>(null);
+  const [scheduleDate, setScheduleDate] = useState<string>('');
+  const [scheduleTime, setScheduleTime] = useState<string>('10:30');
 
-  // Content Idea Creation State
-  const [ideaTitle, setIdeaTitle] = useState('');
-  const [ideaNotes, setIdeaNotes] = useState('');
-  const [ideaPlatforms, setIdeaPlatforms] = useState<SocialPlatform[]>(['linkedin', 'instagram']);
-  const [ideaTags, setIdeaTags] = useState('Growth, Tutorial');
-  const [ideaCampaignId, setIdeaCampaignId] = useState('');
+  // Generation & Review State
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isRegeneratingHashtags, setIsRegeneratingHashtags] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
-  // Handle Social Post Save
-  const handleSocialSave = (postData: Partial<SocialPost>, action: PostStatus | 'publish_now') => {
-    if (action === 'publish_now') {
-      const payload = { ...postData, status: 'approved' as PostStatus };
-      store.createSocialPost(payload);
-      router.push('/marketing/published');
+  // Generated Content Fields (Editable by user/admin)
+  const [generatedTitle, setGeneratedTitle] = useState<string>('');
+  const [generatedCaption, setGeneratedCaption] = useState<string>('');
+  const [generatedCta, setGeneratedCta] = useState<string>('');
+  const [generatedHashtags, setGeneratedHashtags] = useState<string[]>([]);
+  const [generatedKeywords, setGeneratedKeywords] = useState<string[]>([]);
+  const [trendingAngle, setTrendingAngle] = useState<{ headline: string; context: string } | null>(null);
+  const [creativeSuggestion, setCreativeSuggestion] = useState<any | null>(null);
+  const [suggestedTime, setSuggestedTime] = useState<any | null>(null);
+
+  // Blog Specific Generated Fields
+  const [blogSlug, setBlogSlug] = useState<string>('');
+  const [blogSeoTitle, setBlogSeoTitle] = useState<string>('');
+  const [blogSeoDescription, setBlogSeoDescription] = useState<string>('');
+  const [blogPrimaryKw, setBlogPrimaryKw] = useState<string>('');
+  const [blogHeadings, setBlogHeadings] = useState<Array<{ level: number; text: string }>>([]);
+  const [blogFaq, setBlogFaq] = useState<Array<{ question: string; answer: string }>>([]);
+  const [blogContent, setBlogContent] = useState<string>('');
+
+  const [activePreviewPlatform, setActivePreviewPlatform] = useState<SocialPlatform>('linkedin');
+  const [isGenerated, setIsGenerated] = useState<boolean>(false);
+  const [editingMode, setEditingMode] = useState<boolean>(false);
+
+  // Load Autosaved draft on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(AUTOSAVE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.topicPrompt) setTopicPrompt(data.topicPrompt);
+        if (data.contentType) setContentType(data.contentType);
+        if (data.selectedPlatforms) setSelectedPlatforms(data.selectedPlatforms);
+        if (data.generatedTitle) setGeneratedTitle(data.generatedTitle);
+        if (data.generatedCaption) setGeneratedCaption(data.generatedCaption);
+        if (data.generatedHashtags) setGeneratedHashtags(data.generatedHashtags);
+        if (data.generatedKeywords) setGeneratedKeywords(data.generatedKeywords);
+        if (data.mediaCreative) setMediaCreative(data.mediaCreative);
+        if (data.isGenerated) setIsGenerated(true);
+      }
+    } catch {}
+  }, []);
+
+  // Autosave to localStorage on changes
+  useEffect(() => {
+    if (topicPrompt || generatedCaption || mediaCreative) {
+      try {
+        localStorage.setItem(
+          AUTOSAVE_KEY,
+          JSON.stringify({
+            topicPrompt,
+            contentType,
+            selectedPlatforms,
+            generatedTitle,
+            generatedCaption,
+            generatedHashtags,
+            generatedKeywords,
+            mediaCreative,
+            isGenerated,
+            updatedAt: Date.now(),
+          })
+        );
+      } catch {}
+    }
+  }, [topicPrompt, contentType, selectedPlatforms, generatedTitle, generatedCaption, generatedHashtags, generatedKeywords, mediaCreative, isGenerated]);
+
+  const togglePlatform = (p: SocialPlatform) => {
+    if (selectedPlatforms.includes(p)) {
+      if (selectedPlatforms.length > 1) {
+        setSelectedPlatforms(selectedPlatforms.filter((x) => x !== p));
+      } else {
+        toast.info('At least one target platform must remain selected.');
+      }
     } else {
-      const targetStatus: PostStatus = action;
-      store.createSocialPost({ ...postData, status: targetStatus });
-      if (targetStatus === 'draft') router.push('/marketing/content');
-      else if (targetStatus === 'pending_approval') router.push('/marketing/approvals');
-      else if (targetStatus === 'scheduled') router.push('/marketing/calendar');
-      else router.push('/marketing/content');
+      setSelectedPlatforms([...selectedPlatforms, p]);
     }
   };
 
-  // Handle Blog Post Save
-  const handleBlogSave = (status: PostStatus) => {
-    if (!blogTitle.trim()) {
-      toast.error('Please enter a blog post title.');
+  // Handle Template Selection
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    const tmpl = [...SOCIAL_TEMPLATES, ...BLOG_TEMPLATES].find((t) => t.id === templateId);
+    if (tmpl) {
+      setTone(tmpl.defaultTone as any);
+      if (!topicPrompt) {
+        setTopicPrompt(`Promote our ${tmpl.name.toLowerCase()} with clear problem-solution framing`);
+      }
+      toast.success(`Applied "${tmpl.name}" blueprint`);
+    }
+  };
+
+  // Run Full AI Generation
+  const handleGenerateContent = async () => {
+    if (!topicPrompt.trim()) {
+      toast.error('Please enter what you want to post about.');
       return;
     }
 
-    const payload: Partial<BlogPost> = {
-      title: blogTitle,
-      slug: blogSlug || blogTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      excerpt: blogExcerpt,
-      content: blogContent,
-      summary: blogExcerpt || 'Blog post article summary.',
-      featuredImage: blogFeaturedImage,
-      postCategory: blogCategory,
-      tags: blogTags.split(',').map((t) => t.trim()).filter(Boolean),
-      seoTitle: blogSeoTitle || blogTitle,
-      seoDescription: blogSeoDescription || blogExcerpt,
-      keywords: blogKeywords.split(',').map((k) => k.trim()).filter(Boolean),
-      campaignId: blogCampaignId || undefined,
-      campaignName: store.campaigns.find((c) => c.id === blogCampaignId)?.name,
-      date: blogDate || undefined,
-      time: '09:00',
-      status,
-    };
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/marketing/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: topicPrompt.trim(),
+          contentType,
+          platforms: selectedPlatforms,
+          targetAudience,
+          tone,
+          campaignName,
+          productOrService,
+          websiteUrl,
+          preferredLanguage,
+          templateId: selectedTemplateId,
+          uploadedMediaUrl: mediaCreative?.source === 'uploaded' ? mediaCreative.url : undefined,
+        }),
+      });
 
-    store.createBlogPost(payload);
-    router.push('/marketing/blog');
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Content generation failed');
+      }
+
+      if (data.mode === 'blog' && data.blog) {
+        setGeneratedTitle(data.blog.title);
+        setBlogSlug(data.blog.slug);
+        setBlogSeoTitle(data.blog.seoTitle);
+        setBlogSeoDescription(data.blog.seoDescription);
+        setBlogPrimaryKw(data.blog.primaryKeyword);
+        setBlogHeadings(data.blog.headings || []);
+        setBlogFaq(data.blog.faqSchema || []);
+        setBlogContent(data.blog.content);
+        setGeneratedKeywords(data.blog.tags || []);
+        setGeneratedHashtags(data.blog.tags.map((t: string) => `#${t.replace(/\s+/g, '')}`));
+
+        if (mediaCreative?.source !== 'uploaded' && data.blog.image_url) {
+          setMediaCreative({
+            url: data.blog.image_url,
+            type: 'image',
+            source: 'ai_generated',
+            prompt: data.blog.image_prompt,
+            altText: data.blog.imageAltText,
+          });
+        }
+      } else if (data.social) {
+        setGeneratedTitle(data.social.title);
+        setGeneratedCaption(data.social.caption);
+        setGeneratedCta(data.social.cta);
+        setGeneratedHashtags(data.social.hashtags);
+        setGeneratedKeywords(data.social.keywords);
+        setTrendingAngle(data.social.trendingAngle);
+        setCreativeSuggestion(data.social.creativeSuggestion);
+        setSuggestedTime(data.social.suggestedPostingTime);
+
+        // If user has NOT uploaded manual media, attach the AI generated image creative:
+        if (mediaCreative?.source !== 'uploaded' && data.social.image_url) {
+          setMediaCreative({
+            url: data.social.image_url,
+            type: 'image',
+            source: 'ai_generated',
+            prompt: data.social.image_prompt,
+            altText: data.social.image_alt_text,
+            visualStyle: data.social.creativeSuggestion?.visualStyle,
+            aspectRatio: data.social.creativeSuggestion?.aspectRatio,
+          });
+        }
+      }
+
+      setIsGenerated(true);
+      setEditingMode(false);
+      toast.success('Complete marketing post generated successfully!');
+    } catch (err: any) {
+      toast.error(err.message || 'Generation failed. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  // Handle Campaign Save
-  const handleCampaignSave = (status: 'draft' | 'active') => {
-    if (!campName.trim()) {
-      toast.error('Please enter a campaign name.');
+  // Granular Regeneration: Regenerate ONLY Hashtags & Keywords without overwriting caption
+  const handleRegenerateHashtagsOnly = async () => {
+    setIsRegeneratingHashtags(true);
+    try {
+      const res = await fetch('/api/marketing/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: topicPrompt.trim() || generatedTitle,
+          contentType,
+          platforms: selectedPlatforms,
+          regenTarget: 'hashtags_only',
+          existingCaption: generatedCaption,
+          existingTitle: generatedTitle,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.social) {
+        setGeneratedHashtags(data.social.hashtags);
+        setGeneratedKeywords(data.social.keywords);
+        if (data.social.trendingAngle) setTrendingAngle(data.social.trendingAngle);
+        toast.success('Regenerated hashtags & keywords! Caption remained unchanged.');
+      }
+    } catch {
+      toast.error('Could not refresh hashtags.');
+    } finally {
+      setIsRegeneratingHashtags(false);
+    }
+  };
+
+  // Save as Draft or Submit for Approval
+  const handleSavePost = async (targetStatus: PostStatus) => {
+    if (!generatedTitle && !topicPrompt) {
+      toast.error('Please enter a title or topic.');
       return;
     }
 
-    const payload: Partial<Campaign> = {
-      name: campName,
-      description: campDescription,
-      objective: campObjective,
-      startDate: campStartDate,
-      endDate: campEndDate,
-      platforms: campPlatforms,
-      budget: Number(campBudget) || 5000,
-      status,
-    };
+    setIsSaving(true);
+    const finalTitle = generatedTitle.trim() || topicPrompt.trim();
+    const finalCaption = generatedCaption.trim() || topicPrompt.trim();
+    const finalMediaUrl = mediaCreative?.url || mediaUrl || undefined;
 
-    store.createCampaign(payload);
-    router.push('/marketing/content');
+    try {
+      if (contentType === 'blog') {
+        const blogPayload: Partial<BlogPost> = {
+          title: finalTitle,
+          slug: blogSlug || finalTitle.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+          content: blogContent,
+          excerpt: blogSeoDescription || finalCaption.slice(0, 150),
+          summary: blogSeoDescription || finalCaption.slice(0, 150),
+          seoTitle: blogSeoTitle || finalTitle,
+          seoDescription: blogSeoDescription || finalCaption.slice(0, 150),
+          keywords: generatedKeywords,
+          tags: generatedKeywords,
+          featuredImage: finalMediaUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80',
+          status: targetStatus,
+          date: scheduleDate || new Date().toISOString().split('T')[0],
+          time: scheduleTime || '10:30',
+        };
+
+        store.createBlogPost(blogPayload);
+        localStorage.removeItem(AUTOSAVE_KEY);
+        toast.success(targetStatus === 'draft' ? 'Blog saved as Draft!' : 'Blog submitted for approval!');
+        router.push(targetStatus === 'draft' ? '/marketing/blog' : '/marketing/approvals');
+      } else {
+        const postPayload: Partial<SocialPost> = {
+          title: finalTitle,
+          defaultCaption: finalCaption,
+          channels: selectedPlatforms,
+          hashtags: generatedHashtags,
+          keywords: generatedKeywords,
+          mediaUrl: finalMediaUrl,
+          mediaType: mediaCreative?.type || 'image',
+          status: targetStatus,
+          date: scheduleDate || undefined,
+          time: scheduleTime || undefined,
+          altText: mediaCreative?.altText || creativeSuggestion?.description || undefined,
+        };
+
+        store.createSocialPost(postPayload);
+        localStorage.removeItem(AUTOSAVE_KEY);
+
+        if (targetStatus === 'draft') {
+          toast.success('Post saved to Drafts!');
+          router.push('/marketing/content');
+        } else if (targetStatus === 'pending_approval') {
+          toast.success('Post submitted for Admin Approval!');
+          router.push('/marketing/approvals');
+        } else {
+          toast.success('Post saved!');
+          router.push('/marketing/content');
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error saving content');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // Handle Idea Save
-  const handleIdeaSave = () => {
-    if (!ideaTitle.trim()) {
-      toast.error('Please enter a content idea title.');
-      return;
-    }
-
-    const payload: Partial<ContentIdea> = {
-      title: ideaTitle,
-      notes: ideaNotes,
-      platforms: ideaPlatforms,
-      tags: ideaTags.split(',').map((t) => t.trim()).filter(Boolean),
-      campaignId: ideaCampaignId || undefined,
-      campaignName: store.campaigns.find((c) => c.id === ideaCampaignId)?.name,
-    };
-
-    store.createContentIdea(payload);
-    router.push('/marketing/content');
-  };
-
-  const toggleCampPlatform = (p: SocialPlatform) => {
-    if (campPlatforms.includes(p)) {
-      if (campPlatforms.length > 1) setCampPlatforms(campPlatforms.filter((x) => x !== p));
-    } else {
-      setCampPlatforms([...campPlatforms, p]);
-    }
-  };
-
-  const toggleIdeaPlatform = (p: SocialPlatform) => {
-    if (ideaPlatforms.includes(p)) {
-      if (ideaPlatforms.length > 1) setIdeaPlatforms(ideaPlatforms.filter((x) => x !== p));
-    } else {
-      setIdeaPlatforms([...ideaPlatforms, p]);
-    }
+  // Construct mock post for live platform preview
+  const previewPostObject: SocialPost = {
+    id: 'preview_draft',
+    category: 'social',
+    title: generatedTitle || topicPrompt || 'Post Preview',
+    channels: selectedPlatforms,
+    defaultCaption: generatedCaption
+      ? `${generatedCaption}\n\n${generatedHashtags.join(' ')}`
+      : 'Your AI generated caption and hashtags will appear here...',
+    mediaUrl: mediaCreative?.url || mediaUrl || undefined,
+    mediaType: mediaCreative?.type || 'image',
+    altText: mediaCreative?.altText || creativeSuggestion?.description,
+    status: 'draft',
+    creatorId: store.currentUser.id,
+    creatorName: store.currentUser.name,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    auditHistory: [],
   };
 
   return (
-    <div className="space-y-6">
-      {/* Tab Switcher Header */}
-      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto">
-        <button
-          type="button"
-          onClick={() => setActiveTab('social')}
-          className={cn(
-            'flex items-center gap-2 px-4 py-2 text-xs font-extrabold rounded-xl border transition-all shrink-0',
-            activeTab === 'social'
-              ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-              : 'border-border bg-card text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <Share2 className="h-4 w-4" /> Social Post
-        </button>
+    <div className="space-y-8 max-w-6xl mx-auto pb-16">
+      {/* Top Creation Header Card */}
+      <div className="rounded-3xl border border-border bg-card p-6 md:p-8 shadow-xs relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('blog')}
-          className={cn(
-            'flex items-center gap-2 px-4 py-2 text-xs font-extrabold rounded-xl border transition-all shrink-0',
-            activeTab === 'blog'
-              ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
-              : 'border-border bg-card text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <BookOpen className="h-4 w-4" /> Blog Article
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('campaign')}
-          className={cn(
-            'flex items-center gap-2 px-4 py-2 text-xs font-extrabold rounded-xl border transition-all shrink-0',
-            activeTab === 'campaign'
-              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-              : 'border-border bg-card text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <Target className="h-4 w-4" /> Campaign
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('idea')}
-          className={cn(
-            'flex items-center gap-2 px-4 py-2 text-xs font-extrabold rounded-xl border transition-all shrink-0',
-            activeTab === 'idea'
-              ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-              : 'border-border bg-card text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <Lightbulb className="h-4 w-4" /> Content Idea
-        </button>
-      </div>
-
-      {/* 1. SOCIAL POST COMPOSER TAB */}
-      {activeTab === 'social' && (
-        <div className="space-y-4">
-          <AIContentAssistant
-            onApplyCaption={(cap) => {}}
-            onApplyHashtags={(hash) => {}}
-          />
-          <SocialComposerForm
-            initialPost={null}
-            currentUserRole={store.currentUser.role}
-            currentUserId={store.currentUser.id}
-            onSave={handleSocialSave}
-            onCancel={() => router.push('/marketing/content')}
-            isFullPage={true}
-          />
-        </div>
-      )}
-
-      {/* 2. BLOG ARTICLE CREATOR TAB */}
-      {activeTab === 'blog' && (
-        <div className="max-w-4xl mx-auto rounded-3xl border border-border bg-card p-6 space-y-5 shadow-sm">
+        <div className="space-y-6 relative z-10">
+          {/* Step 1: Content Type Selector */}
           <div>
-            <h2 className="text-base font-black text-foreground">Create Blog Article</h2>
-            <p className="text-xs text-muted-foreground">Draft SEO-optimized articles published on your company blog.</p>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
+              <Layers className="h-3.5 w-3.5 text-primary" /> 1. Select Content Type
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+              {CONTENT_TYPES.map((type) => {
+                const Icon = type.icon;
+                const active = contentType === type.id;
+                return (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => setContentType(type.id)}
+                    className={cn(
+                      'flex flex-col items-center text-center p-3.5 rounded-2xl border transition-all duration-200',
+                      active
+                        ? 'border-primary bg-primary/10 text-primary shadow-xs ring-1 ring-primary/30 font-bold'
+                        : 'border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    <Icon className={cn('h-5 w-5 mb-1.5', active ? 'text-primary' : 'text-muted-foreground')} />
+                    <span className="text-xs">{type.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Article Title *</label>
-                <Input
-                  placeholder="e.g. 5 Signs Your Business Has Outgrown Spreadsheet Trackers"
-                  value={blogTitle}
-                  onChange={(e) => setBlogTitle(e.target.value)}
-                  className="h-10 rounded-xl text-xs font-bold"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">URL Slug</label>
-                <Input
-                  placeholder="e.g. 5-signs-outgrown-spreadsheets"
-                  value={blogSlug}
-                  onChange={(e) => setBlogSlug(e.target.value)}
-                  className="h-10 rounded-xl text-xs font-mono"
-                />
+          {/* Step 2: Platform Selector (if social post) */}
+          {contentType !== 'blog' && (
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-3">
+                <Share2 className="h-3.5 w-3.5 text-primary" /> 2. Target Platforms
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {PLATFORMS.map((p) => {
+                  const Icon = p.icon;
+                  const active = selectedPlatforms.includes(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => togglePlatform(p.id)}
+                      className={cn(
+                        'flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all',
+                        active
+                          ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                          : 'border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted'
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{p.label}</span>
+                      {active && <Check className="h-3 w-3 stroke-[3]" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Category</label>
+          {/* Step 3: Primary Idea / Topic Input */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" /> 3. What do you want to post about?
+              </label>
+              {/* Template Blueprint Selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground font-medium">Blueprint:</span>
                 <NativeSelect
-                  value={blogCategory}
-                  onChange={(e) => setBlogCategory(e.target.value)}
-                  className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
+                  value={selectedTemplateId}
+                  onChange={(e) => handleTemplateSelect(e.target.value)}
+                  className="h-8 text-xs py-0 pl-2 pr-7 rounded-lg border-border"
                 >
-                  <option value="Productivity">Productivity</option>
-                  <option value="CRM & Sales">CRM & Sales</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Case Studies">Case Studies</option>
-                  <option value="Announcements">Announcements</option>
+                  <option value="">Custom Concept</option>
+                  <optgroup label="Social Templates">
+                    {SOCIAL_TEMPLATES.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Blog Templates">
+                    {BLOG_TEMPLATES.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </optgroup>
                 </NativeSelect>
               </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Link Campaign</label>
-                <NativeSelect
-                  value={blogCampaignId}
-                  onChange={(e) => setBlogCampaignId(e.target.value)}
-                  className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
-                >
-                  <option value="">None / Standalone Article</option>
-                  {store.campaigns.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </NativeSelect>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Target Publish Date</label>
-                <Input
-                  type="date"
-                  value={blogDate}
-                  onChange={(e) => setBlogDate(e.target.value)}
-                  className="h-10 rounded-xl text-xs font-mono"
-                />
-              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Featured Image URL</label>
-              <Input
-                placeholder="https://images.unsplash.com/..."
-                value={blogFeaturedImage}
-                onChange={(e) => setBlogFeaturedImage(e.target.value)}
-                className="h-10 rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Excerpt (Summary)</label>
-              <Textarea
-                rows={2}
-                placeholder="Short 2-3 sentence overview for blog listings..."
-                value={blogExcerpt}
-                onChange={(e) => setBlogExcerpt(e.target.value)}
-                className="rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Article Content (Markdown supported)</label>
-              <Textarea
-                rows={8}
-                placeholder="Write your article body here..."
-                value={blogContent}
-                onChange={(e) => setBlogContent(e.target.value)}
-                className="rounded-xl text-xs font-mono leading-relaxed"
-              />
-            </div>
-
-            {/* SEO Section */}
-            <div className="rounded-2xl border border-border bg-muted/20 p-4 space-y-3">
-              <span className="text-xs font-black uppercase tracking-wider text-foreground">SEO & Metadata</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Input
-                  placeholder="Meta SEO Title"
-                  value={blogSeoTitle}
-                  onChange={(e) => setBlogSeoTitle(e.target.value)}
-                  className="h-9 rounded-xl text-xs"
-                />
-                <Input
-                  placeholder="Keywords (comma separated)"
-                  value={blogKeywords}
-                  onChange={(e) => setBlogKeywords(e.target.value)}
-                  className="h-9 rounded-xl text-xs"
-                />
-              </div>
-              <Input
-                placeholder="Meta SEO Description"
-                value={blogSeoDescription}
-                onChange={(e) => setBlogSeoDescription(e.target.value)}
-                className="h-9 rounded-xl text-xs"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleBlogSave('draft')}
-              className="h-10 rounded-xl text-xs font-bold"
-            >
-              Save Draft
-            </Button>
-            <Button
-              type="button"
-              onClick={() => handleBlogSave('pending_approval')}
-              className="h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold"
-            >
-              Submit for Approval
-            </Button>
-            <Button
-              type="button"
-              onClick={() => handleBlogSave('scheduled')}
-              className="h-10 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold"
-            >
-              Schedule Publication
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* 3. CAMPAIGN CREATOR TAB */}
-      {activeTab === 'campaign' && (
-        <div className="max-w-3xl mx-auto rounded-3xl border border-border bg-card p-6 space-y-5 shadow-sm">
-          <div>
-            <h2 className="text-base font-black text-foreground">Create Marketing Campaign</h2>
-            <p className="text-xs text-muted-foreground">Unify social posts, blog articles, and budget tracking under a single campaign goal.</p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Campaign Name *</label>
-              <Input
-                placeholder="e.g. Q4 Global Brand & SaaS Pipeline Sprint"
-                value={campName}
-                onChange={(e) => setCampName(e.target.value)}
-                className="h-10 rounded-xl text-xs font-bold"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Objective</label>
-              <Input
-                placeholder="e.g. Drive 250 enterprise conversions and increase social reach by 35%"
-                value={campObjective}
-                onChange={(e) => setCampObjective(e.target.value)}
-                className="h-10 rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Description & Strategy</label>
+            <div className="relative">
               <Textarea
                 rows={3}
-                placeholder="Outline the core thesis, target audience, and key deliverables..."
-                value={campDescription}
-                onChange={(e) => setCampDescription(e.target.value)}
-                className="rounded-xl text-xs"
+                value={topicPrompt}
+                onChange={(e) => setTopicPrompt(e.target.value)}
+                placeholder={
+                  contentType === 'blog'
+                    ? 'e.g. How to automate customer WhatsApp support and pipeline tracking in 2026'
+                    : 'e.g. Create an engaging post announcing our new instant GST invoicing engine with zero setup time'
+                }
+                className="w-full rounded-2xl border-border bg-background/80 focus:bg-background text-sm p-4 resize-none transition-all focus:ring-2 focus:ring-primary/20"
               />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Start Date</label>
-                <Input
-                  type="date"
-                  value={campStartDate}
-                  onChange={(e) => setCampStartDate(e.target.value)}
-                  className="h-9 rounded-xl text-xs font-mono"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">End Date</label>
-                <Input
-                  type="date"
-                  value={campEndDate}
-                  onChange={(e) => setCampEndDate(e.target.value)}
-                  className="h-9 rounded-xl text-xs font-mono"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Budget ($)</label>
-                <Input
-                  type="number"
-                  value={campBudget}
-                  onChange={(e) => setCampBudget(Number(e.target.value))}
-                  className="h-9 rounded-xl text-xs font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Target Channels */}
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-bold text-foreground block">Target Channels</label>
-              <div className="flex flex-wrap gap-2">
-                {ALL_PLATFORMS.map((p) => {
-                  const meta = SOCIAL_PLATFORM_ICONS[p];
-                  const Icon = meta?.icon;
-                  const isSelected = campPlatforms.includes(p);
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => toggleCampPlatform(p)}
-                      className={cn(
-                        'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all capitalize',
-                        isSelected ? `${meta?.color} border-primary shadow-xs` : 'border-border bg-background text-muted-foreground'
-                      )}
-                    >
-                      {Icon && <Icon className="h-3.5 w-3.5" />}
-                      <span>{meta?.label}</span>
-                      {isSelected && <Check className="h-3 w-3 ml-0.5" />}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+          {/* DEDICATED MEDIA / CREATIVE SECTION */}
+          <MediaCreativeSection
+            media={mediaCreative}
+            postTopic={topicPrompt}
+            targetPlatforms={selectedPlatforms}
+            targetAudience={targetAudience}
+            onChange={setMediaCreative}
+          />
+
+          {/* Advanced Options Accordion */}
+          <div className="border border-border/80 rounded-2xl bg-muted/20 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+                Advanced Options (Audience, Tone, Campaign, Media, Schedule)
+              </span>
+              {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+
+            {showAdvanced && (
+              <div className="p-4 pt-2 border-t border-border grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-card/50">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Target Audience</label>
+                  <Input
+                    placeholder="e.g. B2B Founders, Sales Leads, Retail Owners"
+                    value={targetAudience}
+                    onChange={(e) => setTargetAudience(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Tone of Voice</label>
+                  <NativeSelect
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value as any)}
+                    className="h-9 text-xs rounded-xl"
+                  >
+                    <option value="engaging">Engaging & Conversational</option>
+                    <option value="professional">Professional & Authoritative</option>
+                    <option value="concise">Concise & Direct</option>
+                    <option value="creative">Creative & Inspiring</option>
+                    <option value="educational">Educational & Structured</option>
+                  </NativeSelect>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Campaign Linkage</label>
+                  <Input
+                    placeholder="e.g. Q3 Growth Sprint"
+                    value={campaignName}
+                    onChange={(e) => setCampaignName(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Product / Service</label>
+                  <Input
+                    placeholder="e.g. DailyBiz WhatsApp CRM"
+                    value={productOrService}
+                    onChange={(e) => setProductOrService(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Target Website URL</label>
+                  <Input
+                    placeholder="https://dailybiz.in/crm"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Media Image URL</label>
+                  <Input
+                    placeholder="https://... (Image or video link)"
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Scheduled Date (Optional)</label>
+                  <Input
+                    type="date"
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Scheduled Time</label>
+                  <Input
+                    type="time"
+                    value={scheduleTime}
+                    onChange={(e) => setScheduleTime(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Language</label>
+                  <Input
+                    placeholder="English"
+                    value={preferredLanguage}
+                    onChange={(e) => setPreferredLanguage(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Primary Action Button: GENERATE CONTENT */}
+          <div className="flex items-center justify-end gap-3 pt-2">
             <Button
               type="button"
-              variant="outline"
-              onClick={() => handleCampaignSave('draft')}
-              className="h-10 rounded-xl text-xs font-bold"
+              size="lg"
+              disabled={isGenerating || !topicPrompt.trim()}
+              onClick={handleGenerateContent}
+              className="h-12 px-6 rounded-2xl bg-gradient-to-r from-primary via-purple-600 to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl transition-all gap-2"
             >
-              Save Draft Campaign
-            </Button>
-            <Button
-              type="button"
-              onClick={() => handleCampaignSave('active')}
-              className="h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold"
-            >
-              Launch Active Campaign
+              {isGenerating ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>Synthesizing Post...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  <span>GENERATE CONTENT</span>
+                </>
+              )}
             </Button>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* 4. CONTENT IDEA CREATOR TAB */}
-      {activeTab === 'idea' && (
-        <div className="max-w-2xl mx-auto rounded-3xl border border-border bg-card p-6 space-y-5 shadow-sm">
-          <div>
-            <h2 className="text-base font-black text-foreground">Save Content Idea</h2>
-            <p className="text-xs text-muted-foreground">Capture inspiration and rough drafts for future marketing content.</p>
+      {/* Generated Content Preview & Editor Section */}
+      {isGenerated && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              <h2 className="text-lg font-bold text-foreground">Generated Content & Preview</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingMode(!editingMode)}
+                className="h-8 text-xs font-semibold rounded-xl gap-1.5"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                {editingMode ? 'Done Editing' : 'Edit Fields'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isRegeneratingHashtags}
+                onClick={handleRegenerateHashtagsOnly}
+                className="h-8 text-xs font-semibold rounded-xl gap-1.5 text-primary border-primary/30"
+              >
+                <RefreshCw className={cn('h-3.5 w-3.5', isRegeneratingHashtags && 'animate-spin')} />
+                Regenerate Hashtags
+              </Button>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Idea Title *</label>
-              <Input
-                placeholder="e.g. 3 Quick Hacks to Cut CRM Response Times in Half"
-                value={ideaTitle}
-                onChange={(e) => setIdeaTitle(e.target.value)}
-                className="h-10 rounded-xl text-xs font-bold"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground">Notes & Key Bullet Points</label>
-              <Textarea
-                rows={4}
-                placeholder="Jot down rough copy ideas, hooks, or reference URLs..."
-                value={ideaNotes}
-                onChange={(e) => setIdeaNotes(e.target.value)}
-                className="rounded-xl text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Tags (comma separated)</label>
-                <Input
-                  placeholder="Tutorial, SaaS, WhatsApp"
-                  value={ideaTags}
-                  onChange={(e) => setIdeaTags(e.target.value)}
-                  className="h-9 rounded-xl text-xs"
-                />
+          {/* Main Grid: Left Editor/Details, Right Live Preview */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column (7 cols): Content Details & Granular Edits */}
+            <div className="lg:col-span-7 space-y-5">
+              {/* Post Title */}
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Post Title</label>
+                {editingMode ? (
+                  <Input
+                    value={generatedTitle}
+                    onChange={(e) => setGeneratedTitle(e.target.value)}
+                    className="text-sm font-semibold rounded-xl"
+                  />
+                ) : (
+                  <p className="text-base font-bold text-foreground">{generatedTitle}</p>
+                )}
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Assign Campaign</label>
-                <NativeSelect
-                  value={ideaCampaignId}
-                  onChange={(e) => setIdeaCampaignId(e.target.value)}
-                  className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground"
-                >
-                  <option value="">None / General</option>
-                  {store.campaigns.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </NativeSelect>
+              {/* Caption / Body */}
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    {contentType === 'blog' ? 'Blog Article Content' : 'Main Caption / Description'}
+                  </label>
+                  <span className="text-[11px] text-muted-foreground">
+                    {generatedCaption.length} chars • {generatedCaption.split(/\s+/).filter(Boolean).length} words
+                  </span>
+                </div>
+                {editingMode || contentType === 'blog' ? (
+                  <Textarea
+                    rows={contentType === 'blog' ? 14 : 7}
+                    value={contentType === 'blog' ? blogContent : generatedCaption}
+                    onChange={(e) => contentType === 'blog' ? setBlogContent(e.target.value) : setGeneratedCaption(e.target.value)}
+                    className="text-xs leading-relaxed rounded-xl font-mono"
+                  />
+                ) : (
+                  <p className="text-xs leading-relaxed whitespace-pre-line text-foreground/90 font-medium">
+                    {generatedCaption}
+                  </p>
+                )}
+              </div>
+
+              {/* CTA & AI Suggestions */}
+              {generatedCta && (
+                <div className="rounded-2xl border border-border bg-card p-4 space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Call to Action (CTA)</label>
+                  {editingMode ? (
+                    <Input
+                      value={generatedCta}
+                      onChange={(e) => setGeneratedCta(e.target.value)}
+                      className="text-xs rounded-xl"
+                    />
+                  ) : (
+                    <p className="text-xs font-bold text-primary">{generatedCta}</p>
+                  )}
+                </div>
+              )}
+
+              {/* AI Suggestions Box (Trending Angle, Keywords, Hashtags) */}
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5" /> AI Suggestions & Contextual Enrichment
+                  </span>
+                </div>
+
+                {trendingAngle && (
+                  <div className="text-xs space-y-1">
+                    <span className="font-bold text-muted-foreground">Trending Angle:</span>
+                    <p className="text-foreground font-semibold">{trendingAngle.headline}</p>
+                    <p className="text-muted-foreground text-[11px]">{trendingAngle.context}</p>
+                  </div>
+                )}
+
+                {/* Keywords */}
+                {generatedKeywords.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold text-muted-foreground">Keywords:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {generatedKeywords.map((kw, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-md bg-background border border-border text-[11px] font-medium text-foreground">
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Hashtags */}
+                {generatedHashtags.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold text-muted-foreground">Hashtags:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {generatedHashtags.map((tag, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-bold">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {creativeSuggestion && (
+                  <div className="text-xs space-y-1 pt-1 border-t border-primary/10">
+                    <span className="font-bold text-muted-foreground">Creative / Visual Suggestion:</span>
+                    <p className="text-foreground/90 text-[11px]">{creativeSuggestion.description}</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Target Channels */}
-            <div className="space-y-2 pt-1">
-              <label className="text-xs font-bold text-foreground block">Target Channels</label>
-              <div className="flex flex-wrap gap-2">
-                {ALL_PLATFORMS.map((p) => {
-                  const meta = SOCIAL_PLATFORM_ICONS[p];
-                  const Icon = meta?.icon;
-                  const isSelected = ideaPlatforms.includes(p);
-                  return (
-                    <button
-                      key={p}
+            {/* Right Column (5 cols): Live Platform Preview & Submission */}
+            <div className="lg:col-span-5 space-y-5">
+              <div className="rounded-3xl border border-border bg-card p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Platform Preview</span>
+                  <div className="flex gap-1">
+                    {selectedPlatforms.map((p) => {
+                      const meta = SOCIAL_PLATFORM_ICONS[p];
+                      const Icon = meta?.icon || Share2;
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => setActivePreviewPlatform(p)}
+                          className={cn(
+                            'p-1.5 rounded-lg border transition-all',
+                            activePreviewPlatform === p
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border text-muted-foreground hover:text-foreground'
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="border border-border/80 rounded-2xl overflow-hidden bg-background">
+                  <SocialPlatformPreview post={previewPostObject} selectedPlatform={activePreviewPlatform} onPlatformChange={setActivePreviewPlatform} />
+                </div>
+
+                {/* Posting Schedule Details */}
+                {suggestedTime && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/40 text-xs text-muted-foreground">
+                    <Clock className="h-4 w-4 text-primary shrink-0" />
+                    <span>
+                      Recommended Post Time: <strong className="text-foreground">{suggestedTime.dayOfWeek} at {suggestedTime.time}</strong>
+                    </span>
+                  </div>
+                )}
+
+                {/* Action CTA Buttons */}
+                <div className="pt-3 border-t border-border space-y-2">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <Button
                       type="button"
-                      onClick={() => toggleIdeaPlatform(p)}
-                      className={cn(
-                        'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all capitalize',
-                        isSelected ? `${meta?.color} border-primary shadow-xs` : 'border-border bg-background text-muted-foreground'
-                      )}
+                      variant="outline"
+                      disabled={isSaving}
+                      onClick={() => handleSavePost('draft')}
+                      className="h-10 text-xs font-bold rounded-xl gap-1.5"
                     >
-                      {Icon && <Icon className="h-3.5 w-3.5" />}
-                      <span>{meta?.label}</span>
-                      {isSelected && <Check className="h-3 w-3 ml-0.5" />}
-                    </button>
-                  );
-                })}
+                      <Save className="h-3.5 w-3.5" /> Save Draft
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => handleSavePost('pending_approval')}
+                      className="h-10 text-xs font-bold rounded-xl bg-primary text-primary-foreground gap-1.5 shadow-md hover:shadow-lg"
+                    >
+                      <Send className="h-3.5 w-3.5" /> Submit for Approval
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-            <Button
-              type="button"
-              onClick={handleIdeaSave}
-              className="h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold gap-1.5"
-            >
-              <Lightbulb className="h-4 w-4" /> Save Content Idea
-            </Button>
           </div>
         </div>
       )}
