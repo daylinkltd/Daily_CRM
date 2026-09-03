@@ -134,10 +134,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(generated);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[MarketingGenerateAPI] Error:', err);
+    const msg = err instanceof Error ? err.message : 'Content generation failed. Please try again.';
     return NextResponse.json(
-      { error: err.message || 'Content generation failed. Please try again.' },
+      { error: msg },
       { status: 500 }
     );
   }

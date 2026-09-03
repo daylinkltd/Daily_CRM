@@ -10,20 +10,14 @@ import {
   Hash,
   Lightbulb,
   Layers,
-  ArrowRight,
-  Zap,
-  AlignLeft,
   Briefcase,
   Smile,
   Minimize2,
   Maximize2,
-  SlidersHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import type { SocialPlatform, PlatformContentOverride } from '@/types/calendar';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface AIAssistantProps {
@@ -68,42 +62,49 @@ export function AIContentAssistant({
     // Simulate smart generative AI response
     await new Promise((r) => setTimeout(r, 650));
 
-    const topic = topicPrompt.trim() || 'Daily CRM omnichannel business growth';
+    const topic = topicPrompt.trim() || currentCaption || 'our new collection';
 
     if (action === 'generate') {
-      const result = `Supercharge your team's workflow with modern omnichannel CRM! 🚀 Unify customer conversations, streamline pipelines, and boost deal velocity in one intuitive workspace. Start your 14-day free trial today.`;
+      const result = `Discover ${topic}! ✨ Crafted with care and designed to deliver exceptional quality. Explore our collection and experience the difference today.`;
       setGeneratedOutput(result);
     } else if (action === 'rewrite') {
-      const result = `Reimagining the way high-growth businesses manage customer pipelines. Experience seamless collaboration and automated messaging with Daily CRM.`;
+      const result = `Elevate your experience with ${topic}. Thoughtfully curated for those who value authenticity, craftsmanship, and lasting delight.`;
       setGeneratedOutput(result);
     } else if (action === 'professional') {
-      const result = `Enterprise operational efficiency demands synchronized customer touchpoints. Daily CRM unifies communication pipelines, financial ledgers, and team workload analytics into a single authoritative workspace.`;
+      const result = `Excellence in every detail. Introducing ${topic} — designed to meet the highest standards of quality and performance. Learn more about our approach.`;
       setGeneratedOutput(result);
     } else if (action === 'engaging') {
-      const result = `Still juggling 5 different tabs for WhatsApp, emails, and client deals? 🤯 Stop the chaos! Discover how Daily CRM keeps your whole business in sync effortlessly. 👇 Drop a comment with your biggest workflow headache!`;
+      const result = `Ready to upgrade your routine with ${topic}? ✨ Tag someone who needs this, or drop a comment below with your favorite feature! 👇`;
       setGeneratedOutput(result);
     } else if (action === 'shorten') {
-      const result = `Unify WhatsApp, sales pipelines, and customer journeys with Daily CRM. ⚡ Try it free today!`;
+      const result = `Experience ${topic}. ✨ Crafted with care, loved by all. Shop now! 🚀`;
       setGeneratedOutput(result);
     } else if (action === 'expand') {
-      const result = `Managing customer relationships shouldn't feel like fighting disconnected systems. Daily CRM bridges the gap between sales conversations, quotation generation, and automated pipeline updates. When your marketing and sales teams operate in one shared workspace, conversion rates rise and response times drop. Ready to scale?`;
+      const result = `When it comes to ${topic}, quality and attention to detail make all the difference. From handpicked materials to mindful craftsmanship, every piece is designed to bring warmth, satisfaction, and lasting value into your world. Ready to explore? Tap the link to discover more.`;
       setGeneratedOutput(result);
     } else if (action === 'hashtags') {
-      const result = `#DailyCRM #OmnichannelMarketing #SalesPipeline #B2BGrowth #SaaS #ProductivityTools #WhatsAppBusiness #BusinessAutomation`;
+      const cleanTags = topic
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .split(/\s+/)
+        .filter((w) => w.length > 2)
+        .map((w) => `#${w.charAt(0).toUpperCase() + w.slice(1)}`)
+        .slice(0, 6);
+      const result = [...cleanTags, '#QualityFirst', '#BrandSpotlight', '#MustHave'].join(' ');
       setGeneratedOutput(result);
     } else if (action === 'ideas') {
-      const result = `💡 1. "Behind the Scenes: How our team scaled 10x customer conversations"\n💡 2. "5 Spreadsheet Mistakes costing your sales team 10 hours a week"\n💡 3. "Customer Spotlight: How Acme Logistics cut dispatch times by 42%"\n💡 4. "Sneak Peek: Automating invoice follow-ups via WhatsApp API"`;
+      const result = `💡 1. "Behind the Scenes: The craftsmanship and care behind ${topic}"\n💡 2. "Customer Spotlight: How ${topic} transformed their daily routine"\n💡 3. "5 Reasons why people love ${topic}"\n💡 4. "Unboxing & Styling Guide for ${topic}"`;
       setGeneratedOutput(result);
     } else if (action === 'variations') {
       const variations: Record<string, string> = {
-        linkedin: `Scaling customer relationships requires unified communications. Daily CRM brings WhatsApp, sales pipelines, and finance ledgers into one executive dashboard. Let's discuss your team's workflow.`,
-        x: `Stop tab-switching! Daily CRM brings WhatsApp, pipelines & automations into one real-time workspace. 💬⚡ #DailyCRM`,
-        instagram: `Your complete business workspace in one app! ✨ Keep your team aligned and customers delighted. Link in bio for 14-day free trial! 🚀 #Growth #CRM`,
-        youtube: `Daily CRM Walkthrough: How to automate pipelines, manage leads across WhatsApp, and sync team tasks in under 10 minutes.`,
-        facebook: `Transform how your business connects with customers! Daily CRM connects WhatsApp, pipelines, and billing in one easy dashboard.`,
-        tiktok: `POV: You just replaced 5 messy apps with 1 clean CRM workspace. 🔥 #tech #productivity #entrepreneur`,
-        threads: `Unpopular opinion: You don't need 10 different SaaS tools to run a high-performing sales team. You just need one unified CRM. Thoughts? 💬`,
-        pinterest: `Top productivity workflows for high-growth businesses. Save this pin for your workspace toolkit! 📌`,
+        linkedin: `Quality and purposeful design define ${topic}. Learn more about our commitment to excellence and customer satisfaction.`,
+        x: `Discover ${topic} ✨ Exceptional quality crafted with care. Explore today 🚀`,
+        instagram: `Elevate your everyday with ${topic}! ✨ Link in bio to shop the collection! 👆`,
+        youtube: `Complete Spotlight: Discover what makes ${topic} special and how to get the most value.`,
+        facebook: `Looking for ${topic}? Experience premium craftsmanship and exceptional quality today.`,
+        tiktok: `POV: You just discovered ${topic} and your life just got 10x better 🔥 #fyp #trending`,
+        threads: `Have you tried ${topic} yet? What is your favorite feature? Let's discuss! 💬`,
+        pinterest: `Inspiration guide for ${topic}. Save this pin for your wishlist! 📌`,
       };
       setGeneratedVariations(variations);
       setGeneratedOutput(`Generated ${selectedPlatforms.length} tailored platform variations.`);

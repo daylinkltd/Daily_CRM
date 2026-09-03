@@ -31,6 +31,12 @@ export interface PostPreviewProps {
   className?: string;
 }
 
+function normalizeHashtags(tags: unknown): string[] {
+  if (Array.isArray(tags)) return tags.map((t) => (typeof t === 'string' ? t : String(t)));
+  if (typeof tags === 'string' && tags.trim()) return tags.split(/\s+/).filter(Boolean);
+  return [];
+}
+
 export function InstagramPreview({
   post,
   override,
@@ -42,7 +48,7 @@ export function InstagramPreview({
   const caption = override?.caption || post.defaultCaption || 'Write your caption...';
   const media = override?.mediaUrl || post.mediaUrl;
   const firstComment = override?.firstComment || post.firstComment;
-  const hashtags = override?.hashtags || post.hashtags || [];
+  const hashtags = normalizeHashtags(override?.hashtags ?? post.hashtags);
 
   return (
     <div className="mx-auto w-full max-w-[380px] rounded-3xl border border-border bg-card shadow-xl overflow-hidden font-sans">
@@ -151,7 +157,7 @@ export function LinkedInPreview({
   const caption = override?.caption || post.defaultCaption || 'Write your professional LinkedIn post...';
   const media = override?.mediaUrl || post.mediaUrl;
   const link = override?.link || post.link;
-  const hashtags = override?.hashtags || post.hashtags || [];
+  const hashtags = normalizeHashtags(override?.hashtags ?? post.hashtags);
 
   return (
     <div className="mx-auto w-full max-w-[420px] rounded-2xl border border-border bg-card shadow-xl overflow-hidden font-sans">
@@ -255,7 +261,7 @@ export function XPreview({
 }) {
   const caption = override?.caption || post.defaultCaption || 'What is happening?!';
   const media = override?.mediaUrl || post.mediaUrl;
-  const hashtags = override?.hashtags || post.hashtags || [];
+  const hashtags = normalizeHashtags(override?.hashtags ?? post.hashtags);
 
   return (
     <div className="mx-auto w-full max-w-[400px] rounded-2xl border border-border bg-card shadow-xl p-4 font-sans space-y-3">
@@ -563,7 +569,7 @@ export function PinterestPreview({
 }) {
   const caption = override?.caption || post.defaultCaption || 'Inspiration for modern CRM workflows and workspace productivity.';
   const media = override?.mediaUrl || post.mediaUrl;
-  const link = override?.link || post.link || 'dailybuz.com';
+  const link = String(override?.link || post.link || 'dailybuz.com');
 
   return (
     <div className="mx-auto w-full max-w-[340px] rounded-3xl border border-border bg-card shadow-xl overflow-hidden font-sans group">
@@ -619,9 +625,12 @@ export function SocialPlatformPreview({
   onPlatformChange,
   className,
 }: PostPreviewProps) {
-  const [internalPlatform, setInternalPlatform] = useState<SocialPlatform>(selectedPlatform);
+  const safePlatforms = Array.isArray(availablePlatforms) && availablePlatforms.length > 0
+    ? availablePlatforms
+    : (['instagram', 'linkedin', 'x'] as SocialPlatform[]);
+  const [internalPlatform, setInternalPlatform] = useState<SocialPlatform>(selectedPlatform || safePlatforms[0] || 'instagram');
 
-  const currentPlatform = onPlatformChange ? selectedPlatform : internalPlatform;
+  const currentPlatform = (onPlatformChange ? selectedPlatform : internalPlatform) || 'instagram';
   const handlePlatformSelect = (p: SocialPlatform) => {
     if (onPlatformChange) {
       onPlatformChange(p);
@@ -630,7 +639,7 @@ export function SocialPlatformPreview({
     }
   };
 
-  const override = post.platformOverrides?.[currentPlatform];
+  const override = post?.platformOverrides?.[currentPlatform];
 
   return (
     <div className={cn('flex flex-col h-full rounded-2xl border border-border bg-muted/10 p-4 space-y-4', className)}>
@@ -645,7 +654,7 @@ export function SocialPlatformPreview({
 
         {/* Platform tabs */}
         <div className="flex items-center gap-1 bg-background border border-border rounded-xl p-1 shadow-sm overflow-x-auto max-w-[260px]">
-          {availablePlatforms.map((p) => {
+          {safePlatforms.map((p) => {
             const meta = SOCIAL_PLATFORM_ICONS[p];
             if (!meta) return null;
             const Icon = meta.icon;

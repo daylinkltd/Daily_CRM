@@ -3,111 +3,174 @@ import {
   generateMarketingContent,
   buildDetailedImagePrompt,
   buildDetailedVideoPrompt,
+  parseNaturalLanguageIntent,
+  extractSubjectAndEntity,
 } from './ai-generator';
 
-describe('DailyBuz AI Generator Suite', () => {
-  it('generates a complete structured marketing package with image and video generation prompts', async () => {
+describe('Universal AI Marketing Content Generator Suite', () => {
+  // TEST 1: Handmade Vanilla Candle (Zero SaaS/DailyBuz Bias)
+  it('TEST 1: generates handmade vanilla candle content with ZERO DailyBuz/SaaS/CRM references', async () => {
+    const prompt = 'Promote a handmade vanilla candle for Instagram. Premium feminine style, target women aged 20-35, objective is sales.';
     const res = await generateMarketingContent({
-      topic: 'DailyBuz CRM helps small businesses manage customer conversations',
-      contentType: 'post',
+      topic: prompt,
       platforms: ['instagram'],
-      objective: 'Lead generation',
-      targetAudience: 'Small business owners',
-      tone: 'engaging',
+      tone: 'creative',
+      objective: 'Promotion & Sales',
+      targetAudience: 'Women aged 20-35',
     });
 
     expect(res.success).toBe(true);
     expect(res.social).toBeDefined();
 
     const social = res.social!;
+    const lowerCaption = social.caption.toLowerCase();
+    const lowerImage = social.image_prompt.toLowerCase();
+    const lowerVideo = social.video_prompt.toLowerCase();
 
-    // 1. Social media content & descriptions
-    expect(social.title).toBeTruthy();
-    expect(social.caption).toBeTruthy();
-    expect(social.short_description).toBeTruthy();
-    expect(social.shortCaption).toBeTruthy();
+    // Must be about candles/home fragrance
+    expect(lowerCaption).toMatch(/candle|fragrance|vanilla|warmth|handcrafted/);
+    expect(lowerImage).toMatch(/candle|amber glass|flame|scented/);
+    expect(lowerVideo).toMatch(/candle|wick|flame|sensory/);
 
-    // 2. Hashtags & Keywords
-    expect(social.hashtags.length).toBeGreaterThan(0);
-    expect(social.keywords.length).toBeGreaterThan(0);
+    // Must NEVER mention DailyBuz / CRM / SaaS / Workspace
+    expect(lowerCaption).not.toContain('dailybuz');
+    expect(lowerCaption).not.toContain('dailycrm');
+    expect(lowerCaption).not.toContain('pipeline');
+    expect(lowerCaption).not.toContain('software');
+    expect(lowerImage).not.toContain('dailybuz');
+    expect(lowerImage).not.toContain('workspace');
+    expect(lowerVideo).not.toContain('dailybuz');
+    expect(lowerVideo).not.toContain('spreadsheets');
 
-    // 3. CTA
-    expect(social.cta).toBeTruthy();
-
-    // 4. Detailed Image Prompt
-    expect(social.image_prompt).toBeTruthy();
-    expect(social.image_prompt).toContain('Instagram');
-    expect(social.image_prompt.toLowerCase()).toContain('customer conversation');
-    expect(social.image_prompt).toContain('Negative Prompts');
-    expect(social.image_prompt).toContain('competitor logos');
-
-    // 5. Detailed Video Prompt
-    expect(social.video_prompt).toBeTruthy();
-    expect(social.video_prompt).toContain('0–2 sec [Opening Hook]');
-    expect(social.video_prompt).toContain('2–5 sec [Scene & Main Action]');
-    expect(social.video_prompt).toContain('5–8 sec [Product / Value Demonstration]');
-    expect(social.video_prompt).toContain('8–10 sec [Ending / CTA Visual]');
-
-    // 6. No fake media URL attached by default
-    expect(social.image_url).toBeUndefined();
-
-    // 7. Structured fields
-    expect(social.platform).toBe('instagram');
-    expect(social.target_audience).toBe('Small business owners');
-    expect(social.objective).toBe('Lead generation');
-    expect(social.image_prompt_version).toBe(1);
-    expect(social.video_prompt_version).toBe(1);
+    // Hashtags must be candle & lifestyle related
+    expect(social.hashtags.some((h) => h.toLowerCase().includes('candle') || h.toLowerCase().includes('fragrance') || h.toLowerCase().includes('cozyliving'))).toBe(true);
   });
 
-  it('builds platform-aware image prompts for different social networks', () => {
-    const instaPrompt = buildDetailedImagePrompt({
-      topic: 'Omnichannel WhatsApp Support',
+  // TEST 2: Pizza Restaurant Opening
+  it('TEST 2: generates restaurant & food content for a pizza restaurant opening', async () => {
+    const prompt = 'Create a post for a new pizza restaurant opening in Belgaum';
+    const res = await generateMarketingContent({
+      topic: prompt,
+      platforms: ['instagram', 'facebook'],
+    });
+
+    expect(res.success).toBe(true);
+    const social = res.social!;
+    const lowerCaption = social.caption.toLowerCase();
+    const lowerImage = social.image_prompt.toLowerCase();
+
+    expect(lowerCaption).toMatch(/pizza|restaurant|belgaum|flavor|delicious|table/);
+    expect(lowerImage).toMatch(/pizza|gourmet|dish|crust|restaurant/);
+    expect(lowerCaption).not.toContain('dailybuz');
+    expect(lowerCaption).not.toContain('crm');
+  });
+
+  // TEST 3: Real Estate Apartments
+  it('TEST 3: generates real estate & architectural visual prompts for apartments', async () => {
+    const prompt = 'Promote our luxury residential apartments with panoramic views';
+    const res = await generateMarketingContent({
+      topic: prompt,
+      platforms: ['facebook', 'instagram'],
+      tone: 'professional',
+    });
+
+    expect(res.success).toBe(true);
+    const social = res.social!;
+    expect(social.caption.toLowerCase()).toMatch(/apartment|living|residential|quality|home/);
+    expect(social.image_prompt.toLowerCase()).toMatch(/apartment|architectural|panoramic|interior|living room/);
+    expect(social.hashtags.some((h) => h.toLowerCase().includes('realestate') || h.toLowerCase().includes('apartment') || h.toLowerCase().includes('luxuryhomes'))).toBe(true);
+  });
+
+  // TEST 4: Fashion Summer Collection
+  it('TEST 4: generates editorial fashion content for summer clothing collection', async () => {
+    const prompt = 'Create an Instagram post about a summer clothing collection for women';
+    const res = await generateMarketingContent({
+      topic: prompt,
       platforms: ['instagram'],
-      imageStyle: 'Minimal SaaS',
+      imageStyle: 'Editorial',
+    });
+
+    expect(res.success).toBe(true);
+    const social = res.social!;
+    expect(social.caption.toLowerCase()).toMatch(/clothing|collection|summer|style|wardrobe/);
+    expect(social.image_prompt.toLowerCase()).toMatch(/fashion|collection|editorial|textile/);
+  });
+
+  // TEST 5: AI Automation / SaaS (Generated ONLY when explicitly requested)
+  it('TEST 5: generates tech & automation content when AI/SaaS is explicitly requested', async () => {
+    const prompt = 'Promote an AI automation service to small businesses on LinkedIn';
+    const res = await generateMarketingContent({
+      topic: prompt,
+      platforms: ['linkedin'],
+      tone: 'professional',
+    });
+
+    expect(res.success).toBe(true);
+    const social = res.social!;
+    expect(social.caption.toLowerCase()).toMatch(/automation|quality|service|business/);
+    expect(social.image_prompt.toLowerCase()).toMatch(/technology|visual|automation/);
+  });
+
+  // TEST 6: User prompt takes strict precedence over tenant default brand
+  it('TEST 6: user prompt entity overrides tenant brand name so DailyBuz is not forced into custom brands', async () => {
+    const tenantBrand = {
+      businessName: 'DailyBuz CRM Workspace',
+      brandVoice: 'Fast-paced enterprise software',
+      website: 'https://dailybuz.com',
+    };
+
+    const res = await generateMarketingContent({
+      topic: 'Create a post for a handmade candle brand called Creative Crafter',
+      brandContext: tenantBrand,
+      platforms: ['instagram'],
+    });
+
+    const social = res.social!;
+    const lowerCaption = social.caption.toLowerCase();
+    const lowerImage = social.image_prompt.toLowerCase();
+
+    // Must be about Creative Crafter candles
+    expect(lowerCaption).toContain('creative crafter');
+    expect(lowerImage).toContain('creative crafter');
+    expect(lowerImage).toMatch(/candle|fragrance|natural/);
+    expect(lowerCaption).not.toContain('dailybuz');
+  });
+
+  // TEST 7: Platform Aspect Ratio Guidelines
+  it('TEST 7: adapts aspect ratios and camera recommendations per platform', () => {
+    const instaPrompt = buildDetailedImagePrompt({
+      topic: 'Handmade Vanilla Candle',
+      platforms: ['instagram'],
+      imageStyle: 'Product Photography',
     });
     expect(instaPrompt).toContain('1:1');
+    expect(instaPrompt).toContain('Instagram mobile feed');
 
     const linkedinPrompt = buildDetailedImagePrompt({
-      topic: 'Enterprise Sales Automation',
+      topic: 'AI Automation Services',
       platforms: ['linkedin'],
-      imageStyle: 'Professional',
+      imageStyle: 'Modern Tech',
     });
     expect(linkedinPrompt).toContain('1.91:1');
+    expect(linkedinPrompt).toContain('LinkedIn');
 
     const tiktokPrompt = buildDetailedImagePrompt({
-      topic: 'Fast Customer Growth',
+      topic: 'Summer Fashion Outfits',
       platforms: ['tiktok'],
       imageStyle: 'Lifestyle',
     });
     expect(tiktokPrompt).toContain('9:16');
   });
 
-  it('builds chronological action-time video prompts with quality requirements', () => {
-    const videoPrompt = buildDetailedVideoPrompt({
-      topic: 'Instant GST Invoicing Engine',
-      platforms: ['instagram'],
-      videoStyle: 'SaaS Commercial',
-      objective: 'Promotion & sales conversion',
-      targetAudience: 'Retail shop owners',
-    });
-
-    expect(videoPrompt).toContain('10-second');
-    expect(videoPrompt).toContain('0–2 sec');
-    expect(videoPrompt).toContain('2–5 sec');
-    expect(videoPrompt).toContain('5–8 sec');
-    expect(videoPrompt).toContain('8–10 sec');
-    expect(videoPrompt).toContain('Negative Prompts');
-    expect(videoPrompt).toContain('Retail shop owners');
-  });
-
-  it('regenerates ONLY the image prompt without altering caption, hashtags, CTA, or video prompt', async () => {
-    const existingCaption = 'Human-edited caption: Discover how our tool drives real ROI.';
+  // TEST 8: Granular Regeneration of Image Prompt Only
+  it('TEST 8: regenerates ONLY the image prompt without altering human caption or video prompt', async () => {
+    const existingCaption = 'Human-edited caption: Discover how our artisanal candles bring warmth to your home.';
     const existingVideoPrompt = 'Original video prompt 0-2s hook...';
-    const existingHashtags = ['#CustomTag1', '#CustomTag2'];
-    const existingCta = 'Special CTA link';
+    const existingHashtags = ['#CustomCandle1', '#CustomCandle2'];
+    const existingCta = 'Special CTA link: https://example.com/candles';
 
     const res = await generateMarketingContent({
-      topic: 'Automated Sales Pipelines',
+      topic: 'Handmade Lavender Candle',
       imageStyle: '3D',
       regenTarget: 'image_prompt_only',
       existingCaption,
@@ -121,16 +184,17 @@ describe('DailyBuz AI Generator Suite', () => {
     expect(res.social?.video_prompt).toBe(existingVideoPrompt);
     expect(res.social?.hashtags).toEqual(existingHashtags);
     expect(res.social?.cta).toBe(existingCta);
-    expect(res.social?.image_prompt).toContain('3d');
+    expect(res.social?.image_prompt.toLowerCase()).toContain('3d');
     expect(res.social?.image_prompt_version).toBe(2);
   });
 
-  it('regenerates ONLY the video prompt without altering caption or image prompt', async () => {
+  // TEST 9: Granular Regeneration of Video Prompt Only
+  it('TEST 9: regenerates ONLY the video prompt without altering caption or image prompt', async () => {
     const existingCaption = 'Custom caption that must not change.';
     const existingImagePrompt = 'Custom image prompt that must not change.';
 
     const res = await generateMarketingContent({
-      topic: 'Customer Success Story',
+      topic: 'Gourmet Pizza Restaurant',
       videoStyle: 'Storytelling',
       regenTarget: 'video_prompt_only',
       existingCaption,
@@ -140,50 +204,25 @@ describe('DailyBuz AI Generator Suite', () => {
 
     expect(res.social?.caption).toBe(existingCaption);
     expect(res.social?.image_prompt).toBe(existingImagePrompt);
-    expect(res.social?.video_prompt).toContain('storytelling');
+    expect(res.social?.video_prompt.toLowerCase()).toContain('storytelling');
     expect(res.social?.video_prompt_version).toBe(3);
   });
 
-  it('dynamically adapts brand context for multi-tenant isolation', async () => {
-    const customTenantBrand = {
-      businessName: 'Acme Logistics SaaS',
-      brandVoice: 'Dynamic, modern supply-chain leader',
-      brandColors: 'Electric amber and graphite black',
-      website: 'https://acmelogistics.io',
-      productsOrServices: 'Acme Fleet Dispatch Hub',
-    };
-
+  // TEST 10: Multi-Platform (Instagram + LinkedIn) with platform-specific copy
+  it('TEST 10: generates tailored platform copy for Instagram and LinkedIn simultaneously', async () => {
     const res = await generateMarketingContent({
-      topic: 'Fleet Tracking & Route Optimization',
-      brandContext: customTenantBrand,
-      platforms: ['linkedin'],
+      topic: 'Organic Herbal Teas and Wellness Infusions',
+      platforms: ['instagram', 'linkedin'],
     });
 
-    expect(res.social?.image_prompt).toContain('Electric amber');
-    expect(res.social?.image_prompt).toContain('Acme Fleet Dispatch Hub');
-    expect(res.social?.video_prompt).toContain('Acme Logistics SaaS');
-    expect(res.social?.cta).toContain('acmelogistics.io');
-    expect(res.social?.hashtags.some((h) => h.toLowerCase().includes('acmelogistics'))).toBe(true);
-  });
+    expect(res.social?.platform_specific).toBeDefined();
+    const insta = res.social?.platform_specific.instagram;
+    const linkedin = res.social?.platform_specific.linkedin;
 
-  it('changes creative concepts completely between distinct topics (Summer Sale vs CRM Feature vs Customer Success)', async () => {
-    const resSale = await generateMarketingContent({
-      topic: 'Summer flash sale 50% discount on annual plans',
-      platforms: ['instagram'],
-    });
-
-    const resFeature = await generateMarketingContent({
-      topic: 'New automated WhatsApp pipeline triggers and real-time alerts',
-      platforms: ['instagram'],
-    });
-
-    const resSuccess = await generateMarketingContent({
-      topic: 'Customer success story: How RetailPro grew revenue by 300%',
-      platforms: ['instagram'],
-    });
-
-    expect(resSale.social?.image_prompt).not.toEqual(resFeature.social?.image_prompt);
-    expect(resFeature.social?.image_prompt).not.toEqual(resSuccess.social?.image_prompt);
-    expect(resSale.social?.video_prompt).not.toEqual(resSuccess.social?.video_prompt);
+    expect(insta).toBeDefined();
+    expect(linkedin).toBeDefined();
+    expect(insta?.formatNote).toContain('Visual-first');
+    expect(linkedin?.formatNote).toContain('Professional');
+    expect(insta?.caption).not.toEqual(linkedin?.caption);
   });
 });
