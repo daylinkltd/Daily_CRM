@@ -22,16 +22,47 @@ export type PostStatus =
 
 export type ContentType =
   | 'post'
+  | 'social'
+  | 'blog'
+  | 'article'
+  | 'promo'
+  | 'product_service'
+  | 'announcement'
+  | 'educational'
+  | 'case_study'
+  | 'testimonial'
+  | 'behind_the_scenes'
+  | 'industry_insights'
+  | 'interactive_poll'
+  | 'tips_tricks'
+  | 'event'
+  | 'meme_humor'
+  | 'comparison'
+  | 'ugc_spotlight'
+  | 'seasonal_holiday'
+  | 'newsletter_digest'
   | 'reel'
   | 'story'
   | 'video'
   | 'carousel'
-  | 'short'
-  | 'article'
-  | 'promo'
-  | 'announcement'
+  | 'short';
+
+export type ToneType =
+  | 'creative'
+  | 'engaging'
+  | 'professional'
+  | 'concise'
   | 'educational'
-  | 'event';
+  | 'bold'
+  | 'witty'
+  | 'empathetic'
+  | 'urgent'
+  | 'inspirational'
+  | 'technical'
+  | 'casual'
+  | 'storytelling'
+  | 'luxurious'
+  | 'contrarian';
 
 export type CRMActivityType =
   | 'meeting'

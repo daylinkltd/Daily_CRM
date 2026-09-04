@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       topic,
+      generationMode,
       contentType = 'social',
       platforms = ['instagram', 'linkedin', 'x'],
       targetAudience,
@@ -42,10 +43,17 @@ export async function POST(request: Request) {
       uploadedMediaUrl,
       workspaceId,
       customBrandContext,
+      referenceArticles,
+      primaryKeyword,
     } = body;
 
     if (!topic || typeof topic !== 'string' || topic.trim().length === 0) {
-      return NextResponse.json({ error: 'Topic is required to generate marketing content.' }, { status: 400 });
+      return NextResponse.json({
+        success: false,
+        stage: 'query_generation',
+        error_code: 'TOPIC_REQUIRED',
+        error: 'Topic is required to generate marketing content.',
+      }, { status: 400 });
     }
 
     // 1. Fetch Multi-Tenant Brand Context from Database if workspaceId is provided
@@ -82,6 +90,7 @@ export async function POST(request: Request) {
     // 2. Generate Structured Content & Production-Ready Prompts
     const generated = await generateMarketingContent({
       topic,
+      generationMode,
       contentType,
       platforms,
       targetAudience,
@@ -109,7 +118,13 @@ export async function POST(request: Request) {
       imagePromptVersion,
       videoPromptVersion,
       uploadedMediaUrl,
+      referenceArticles,
+      primaryKeyword,
     });
+
+    if (!generated.success) {
+      return NextResponse.json(generated, { status: 422 });
+    }
 
     // 3. Traceable logging into marketing_generations if workspaceId is present
     if (workspaceId && generated.generation_id) {
@@ -138,7 +153,12 @@ export async function POST(request: Request) {
     console.error('[MarketingGenerateAPI] Error:', err);
     const msg = err instanceof Error ? err.message : 'Content generation failed. Please try again.';
     return NextResponse.json(
-      { error: msg },
+      {
+        success: false,
+        stage: 'llm_generation',
+        error_code: 'INTERNAL_GENERATION_ERROR',
+        error: msg,
+      },
       { status: 500 }
     );
   }

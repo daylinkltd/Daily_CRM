@@ -1,3 +1,5 @@
+import type { ToneType } from '@/types/calendar';
+
 export interface ContentTemplate {
   id: string;
   category: 'social' | 'blog';
@@ -14,7 +16,7 @@ export interface ContentTemplate {
     suggestedCta: string;
     defaultHashtagSeed: string[];
   };
-  defaultTone: 'engaging' | 'professional' | 'concise' | 'creative' | 'educational';
+  defaultTone: ToneType;
 }
 
 export const SOCIAL_TEMPLATES: ContentTemplate[] = [

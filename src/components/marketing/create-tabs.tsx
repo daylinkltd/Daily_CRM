@@ -6,7 +6,7 @@ import { useCalendarStore } from '@/lib/calendar/store';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { SOCIAL_TEMPLATES, BLOG_TEMPLATES } from '@/lib/marketing/template-library';
 import { SocialPlatformPreview } from '@/components/social/platform-previews';
-import type { SocialPost, BlogPost, PostStatus, SocialPlatform } from '@/types/calendar';
+import type { SocialPost, BlogPost, PostStatus, SocialPlatform, ToneType, ContentType as SchemaContentType } from '@/types/calendar';
 import { SOCIAL_PLATFORM_ICONS } from '@/components/calendar/social-icons';
 import {
   Sparkles,
@@ -36,22 +36,86 @@ import {
   History,
   ArrowUpRight,
   Info,
+  Award,
+  Quote,
+  Camera,
+  TrendingUp,
+  MessageSquare,
+  Calendar,
+  Smile,
+  Scale,
+  Users,
+  Gift,
+  Mail,
+  Paperclip,
+  UploadCloud,
+  FileCheck,
+  AlertTriangle,
+  ShieldCheck,
+  Terminal,
+  X,
+  PlusCircle,
+  Globe,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { NativeSelect } from '@/components/ui/native-select';
 import { MediaCreativeSection, type MediaCreativeData } from '@/components/marketing/media-creative-section';
+import { evaluateBlogSEO, type SEOReadinessReport } from '@/lib/marketing/seo-evaluator';
+import type { ReferenceArticle, GenerationTraceContext, RelevanceValidationResult } from '@/lib/marketing/attachment-processor';
+import type { WebResearchSource } from '@/lib/marketing/web-researcher';
 
-const CONTENT_TYPES = [
-  { id: 'social', label: 'Social Post', icon: Share2, desc: 'Engaging post for social feeds' },
-  { id: 'blog', label: 'Blog Article', icon: BookOpen, desc: 'Long-form SEO thought leadership' },
-  { id: 'promo', label: 'Promotion / Offer', icon: Flame, desc: 'Direct value proposition & sales' },
-  { id: 'product_service', label: 'Product / Feature', icon: Layers, desc: 'Product spotlight or showcase' },
-  { id: 'announcement', label: 'Announcement', icon: Zap, desc: 'Milestone, opening, or launch' },
-  { id: 'educational', label: 'Educational', icon: Lightbulb, desc: 'Tips, guide, or tutorial' },
+
+export const CONTENT_TYPES = [
+  { id: 'social', label: 'Social Post', icon: Share2, desc: 'Engaging post for multi-channel social feeds' },
+  { id: 'blog', label: 'Blog Article', icon: BookOpen, desc: 'Long-form SEO thought leadership and articles' },
+  { id: 'promo', label: 'Promotion / Offer', icon: Flame, desc: 'Special discounts, coupons & sales offers' },
+  { id: 'product_service', label: 'Product / Feature', icon: Layers, desc: 'Spotlight new releases, products or services' },
+  { id: 'announcement', label: 'Announcement', icon: Zap, desc: 'Company milestones, openings & press releases' },
+  { id: 'educational', label: 'Educational / How-To', icon: Lightbulb, desc: 'Actionable guides, tutorials & breakdowns' },
+  { id: 'case_study', label: 'Case Study / Success Story', icon: Award, desc: 'Customer transformation, proof & ROI results' },
+  { id: 'testimonial', label: 'Testimonial & Social Proof', icon: Quote, desc: 'Customer reviews, ratings & feedback' },
+  { id: 'behind_the_scenes', label: 'Behind the Scenes', icon: Camera, desc: 'Team culture, workplace & making-of' },
+  { id: 'industry_insights', label: 'Industry News & Insights', icon: TrendingUp, desc: 'Market analysis, trends & expert commentary' },
+  { id: 'interactive_poll', label: 'Poll / Question / Interactive', icon: MessageSquare, desc: 'High-engagement discussion & questions' },
+  { id: 'tips_tricks', label: 'Tips & Tricks / Quick Hack', icon: Sparkles, desc: 'Bite-sized hacks and practical shortcuts' },
+  { id: 'event', label: 'Event / Webinar / Launch', icon: Calendar, desc: 'Live event invites, summits & webinar promos' },
+  { id: 'meme_humor', label: 'Meme & Humor / Viral', icon: Smile, desc: 'Relatable trending humor & cultural memes' },
+  { id: 'comparison', label: 'Product Comparison / Vs', icon: Scale, desc: 'Feature breakdowns vs alternative approaches' },
+  { id: 'ugc_spotlight', label: 'User-Generated Content (UGC)', icon: Users, desc: 'Community spotlight, reposts & stories' },
+  { id: 'seasonal_holiday', label: 'Holiday & Seasonal Greetings', icon: Gift, desc: 'Festive celebrations & holiday wishes' },
+  { id: 'newsletter_digest', label: 'Newsletter / Weekly Digest', icon: Mail, desc: 'Curated weekly roundup & top takeaways' },
+];
+
+export const TONE_OPTIONS: Array<{ id: ToneType; label: string; desc: string }> = [
+  { id: 'creative', label: 'Premium & Creative', desc: 'Aesthetic, imaginative, and refined' },
+  { id: 'engaging', label: 'Engaging & Conversational', desc: 'Friendly, relatable, and interactive' },
+  { id: 'professional', label: 'Professional & Authoritative', desc: 'Executive, credible, and industry-leading' },
+  { id: 'concise', label: 'Concise & Direct', desc: 'Punchy, clear, and high-impact' },
+  { id: 'educational', label: 'Educational & Structured', desc: 'Informative, analytical, and step-by-step' },
+  { id: 'bold', label: 'Bold & Visionary', desc: 'Disruptive, ambitious, and fearless' },
+  { id: 'witty', label: 'Witty & Humorous', desc: 'Clever, playful, and entertaining' },
+  { id: 'empathetic', label: 'Empathetic & Caring', desc: 'Warm, human-centric, and heartfelt' },
+  { id: 'urgent', label: 'Urgent & Action-Oriented (FOMO)', desc: 'High-energy, compelling, and limited-time' },
+  { id: 'inspirational', label: 'Inspirational & Motivational', desc: 'Uplifting, empowering, and passionate' },
+  { id: 'technical', label: 'Technical & Analytical', desc: 'Data-driven, precise, and deep-dive' },
+  { id: 'casual', label: 'Casual & Relatable', desc: 'Authentic, laid-back, and modern' },
+  { id: 'storytelling', label: 'Storytelling & Narrative', desc: 'Emotive story arc, suspense, and journey' },
+  { id: 'luxurious', label: 'Sophisticated & Luxurious', desc: 'High-end, bespoke, and timeless elegance' },
+  { id: 'contrarian', label: 'Provocative & Contrarian', desc: 'Challenging conventional norms & debate' },
 ];
 
 const PLATFORMS: Array<{ id: SocialPlatform; label: string; icon: React.ComponentType<{ className?: string }> }> = [
@@ -66,33 +130,47 @@ const PLATFORMS: Array<{ id: SocialPlatform; label: string; icon: React.Componen
 
 const IMAGE_STYLES = [
   'Product Photography',
-  'Cinematic',
-  'Lifestyle',
-  'Editorial',
-  '3D',
-  'Illustration',
-  'Minimalist',
+  'Cinematic & Dramatic',
+  'Lifestyle & Authentic',
+  'Editorial & High-Fashion',
+  '3D Render & Isometric',
+  'Modern Tech & SaaS UI',
+  'Minimalist & Clean',
   'Premium Commercial',
-  'Modern Tech',
+  'Flat Lay & Overhead',
+  'Hyper-Realistic Macro',
+  'Vector Illustration & Graphic',
+  'Vintage & Retro Film',
+  'Abstract & Gradient Art',
+  'Infographic & Data Visual',
 ];
 
 const VIDEO_STYLES = [
-  'Cinematic',
-  'Product Showcase',
-  'UGC-style',
-  'Storytelling',
-  'Fast-paced Social',
-  'Minimal Premium',
-  'Explainer',
+  'Cinematic & Moody',
+  'Product Showcase & Demo',
+  'UGC / Creator-style',
+  'Storytelling & Mini-Doc',
+  'Fast-Paced Social / TikTok / Reel',
+  'Minimalist & Luxury Commercial',
+  'Explainer & Motion Graphic',
+  'Behind the Scenes & Vlog',
+  '3D Product Animation',
+  'Customer Testimonial & Interview',
+  'Dynamic Kinetic Typography',
+  'Tutorial & Screen Walkthrough',
 ];
 
 const OBJECTIVES = [
   'Promotion & Sales',
-  'Brand Awareness',
-  'Product Launch',
-  'Lead Generation',
-  'Customer Education',
-  'Community Engagement',
+  'Brand Awareness & Reach',
+  'Product / Feature Launch',
+  'Lead Generation & Signups',
+  'Customer Education & Trust',
+  'Community Engagement & Virality',
+  'Website Traffic & Link Clicks',
+  'Event & Webinar Registrations',
+  'Customer Retention & Loyalty',
+  'Employer Branding & Recruitment',
 ];
 
 const QUICK_INSPIRATIONS = [
@@ -105,8 +183,7 @@ const QUICK_INSPIRATIONS = [
 
 const AUTOSAVE_KEY = 'dailybuz_universal_marketing_draft_v4';
 
-type ResultTab = 'content' | 'image_prompt' | 'video_prompt' | 'preview';
-type ToneType = 'engaging' | 'professional' | 'concise' | 'creative' | 'educational';
+type ResultTab = 'content' | 'image_prompt' | 'video_prompt' | 'preview' | 'sources';
 
 interface GenerationHistoryItem {
   id: string;
@@ -178,12 +255,86 @@ export function CreateWorkspaceTabs() {
   const [blogSeoDescription, setBlogSeoDescription] = useState<string>('');
   const [blogContent, setBlogContent] = useState<string>('');
 
+  // Attachment-First Context Grounding & Live Web Research State
+  const [referenceArticles, setReferenceArticles] = useState<ReferenceArticle[]>([]);
+  const [researchSources, setResearchSources] = useState<WebResearchSource[]>([]);
+  const [primaryKeyword, setPrimaryKeyword] = useState<string>('');
+  const [traceContext, setTraceContext] = useState<GenerationTraceContext | null>(null);
+  const [relevanceResult, setRelevanceResult] = useState<RelevanceValidationResult | null>(null);
+  const [showTraceModal, setShowTraceModal] = useState<boolean>(false);
+  const [showAddTextModal, setShowAddTextModal] = useState<boolean>(false);
+  const [pastedDocTitle, setPastedDocTitle] = useState<string>('');
+  const [pastedDocContent, setPastedDocContent] = useState<string>('');
+
   // UI State
+  const [generationMode, setGenerationMode] = useState<'web_research' | 'ai_generate'>('web_research');
+  const [searchErrorState, setSearchErrorState] = useState<{ topic: string; message: string } | null>(null);
   const [activeResultTab, setActiveResultTab] = useState<ResultTab>('content');
   const [activePreviewPlatform, setActivePreviewPlatform] = useState<SocialPlatform>('instagram');
   const [isGenerated, setIsGenerated] = useState<boolean>(false);
   const [editingMode, setEditingMode] = useState<boolean>(false);
   const [sessionHistory, setSessionHistory] = useState<GenerationHistoryItem[]>([]);
+
+  // File Upload and Text Paste Handlers for Reference Articles
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result;
+        if (typeof text === 'string') {
+          if (!text.trim()) {
+            toast.warning(`File "${file.name}" is empty and could not be processed for grounding.`);
+            return;
+          }
+          setReferenceArticles((prev) => [
+            ...prev,
+            {
+              id: `ref_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              name: file.name,
+              content: text,
+              type: file.type || 'text/plain',
+              size: file.size,
+            },
+          ]);
+          toast.success(`Attached "${file.name}" as primary source of truth!`);
+        }
+      };
+      reader.onerror = () => {
+        toast.error(`Could not read file "${file.name}". Please ensure it is a text-based document.`);
+      };
+      reader.readAsText(file);
+    });
+    e.target.value = '';
+  };
+
+  const handleAddPastedArticle = () => {
+    if (!pastedDocContent.trim()) {
+      toast.error('Please paste document or article text.');
+      return;
+    }
+    const docName = pastedDocTitle.trim() || `Pasted Source (${referenceArticles.length + 1})`;
+    setReferenceArticles((prev) => [
+      ...prev,
+      {
+        id: `ref_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        name: docName,
+        content: pastedDocContent.trim(),
+        type: 'text/plain',
+      },
+    ]);
+    setPastedDocTitle('');
+    setPastedDocContent('');
+    setShowAddTextModal(false);
+    toast.success(`Added reference source "${docName}".`);
+  };
+
+  const handleRemoveArticle = (id?: string) => {
+    setReferenceArticles((prev) => prev.filter((a) => a.id !== id));
+    toast.info('Removed reference attachment.');
+  };
 
   // Load Autosaved draft on mount
   useEffect(() => {
@@ -298,21 +449,26 @@ export function CreateWorkspaceTabs() {
   };
 
   // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // MAIN AI GENERATION (Triggers only on click)
   // --------------------------------------------------------------------------
-  const handleGenerateContent = async () => {
-    if (!topicPrompt.trim()) {
+  const handleGenerateContent = async (overrideMode?: 'web_research' | 'ai_generate') => {
+    if (!topicPrompt.trim() && referenceArticles.length === 0) {
       toast.error('Please enter what you want to create.');
       return;
     }
 
+    const activeMode = overrideMode || (referenceArticles.length > 0 ? 'from_sources' : generationMode);
     setIsGenerating(true);
+    setSearchErrorState(null);
+
     try {
       const res = await fetch('/api/marketing/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          topic: topicPrompt.trim(),
+          topic: topicPrompt.trim() || 'Reference Content',
+          generationMode: activeMode,
           contentType,
           platforms: selectedPlatforms,
           targetAudience,
@@ -327,12 +483,34 @@ export function CreateWorkspaceTabs() {
           templateId: selectedTemplateId,
           workspaceId: activeWorkspace?.id,
           uploadedMediaUrl: mediaCreative?.source === 'uploaded' ? mediaCreative.url : undefined,
+          referenceArticles: referenceArticles.length > 0 ? referenceArticles : undefined,
+          primaryKeyword: primaryKeyword.trim() || undefined,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Content generation failed. Please try again.');
+        if (data.stage === 'search' || data.error_code === 'SEARCH_PROVIDER_UNAVAILABLE') {
+          setSearchErrorState({
+            topic: topicPrompt.trim(),
+            message: data.error || data.message || "Web research is currently unavailable for this topic.",
+          });
+          return;
+        }
+        throw new Error(data.error || data.message || 'Content generation failed. Please try again.');
+      }
+
+      // Capture Trace Context & Relevance & Web Research Sources
+      const currentTrace = data.traceContext || data.blog?.traceContext || data.social?.traceContext || null;
+      const currentRelevance = data.relevance || data.blog?.relevance || data.social?.relevance || null;
+      const currentSources: WebResearchSource[] = data.researchSources || data.blog?.researchSources || data.social?.researchSources || data.webResearch?.sources || [];
+      setTraceContext(currentTrace);
+      setRelevanceResult(currentRelevance);
+      setResearchSources(currentSources);
+      setSearchErrorState(null);
+
+      if (currentTrace?.warnings && currentTrace.warnings.length > 0) {
+        currentTrace.warnings.forEach((w: string) => toast.warning(w));
       }
 
       if (data.mode === 'blog' && data.blog) {
@@ -732,6 +910,21 @@ export function CreateWorkspaceTabs() {
     auditHistory: [],
   };
 
+  // Live SEO Evaluation for generated blog article
+  const liveSeoReport: SEOReadinessReport | null = (contentType === 'blog' && (generatedTitle || blogContent || generatedCaption))
+    ? evaluateBlogSEO({
+        title: generatedTitle,
+        seoTitle: blogSeoTitle || generatedTitle,
+        seoDescription: blogSeoDescription || generatedCaption.slice(0, 160),
+        slug: blogSlug || generatedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        content: blogContent || generatedCaption,
+        primaryKeyword: primaryKeyword.trim() || (generatedKeywords?.[0] || ''),
+        secondaryKeywords: generatedKeywords?.slice(1) || [],
+        featuredImage: mediaCreative?.url || undefined,
+        altText: blogSeoTitle || generatedTitle,
+      })
+    : null;
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* 2-Panel Layout: Composer on Left (5 cols), Results on Right (7 cols) */}
@@ -761,6 +954,81 @@ export function CreateWorkspaceTabs() {
                 Multi-Platform
               </span>
             </div>
+
+            {/* Mode Selector for Blog Content */}
+            {contentType === 'blog' && (
+              <div className="space-y-1.5">
+                <div className="grid grid-cols-2 gap-2 p-1 bg-muted/30 rounded-2xl border border-border">
+                  <button
+                    type="button"
+                    onClick={() => { setGenerationMode('web_research'); setSearchErrorState(null); }}
+                    className={cn(
+                      'flex items-center justify-center gap-2 py-1.5 px-3 rounded-xl text-xs font-bold transition-all',
+                      generationMode === 'web_research'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    <span>Web Research</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setGenerationMode('ai_generate'); setSearchErrorState(null); }}
+                    className={cn(
+                      'flex items-center justify-center gap-2 py-1.5 px-3 rounded-xl text-xs font-bold transition-all',
+                      generationMode === 'ai_generate'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>AI Generate</span>
+                  </button>
+                </div>
+                <p className="text-[10px] text-muted-foreground px-1">
+                  {generationMode === 'web_research'
+                    ? '🌐 Searches live global news & authoritative sources for real-time citations.'
+                    : '⚡ Fast direct generation from domain intelligence (100% offline capable).'}
+                </p>
+              </div>
+            )}
+
+            {/* Search Provider Error Banner with Fallback Actions (Step 9) */}
+            {searchErrorState && (
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <p className="font-bold">{searchErrorState.message}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      You can retry live web research or immediately generate the article using AI Generate mode.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleGenerateContent('web_research')}
+                    disabled={isGenerating}
+                    className="h-7 text-xs rounded-xl border-amber-500/40 text-amber-800 dark:text-amber-200"
+                  >
+                    <RefreshCw className={cn("h-3 w-3 mr-1", isGenerating && "animate-spin")} />
+                    Retry Research
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleGenerateContent('ai_generate')}
+                    disabled={isGenerating}
+                    className="h-7 text-xs font-bold rounded-xl bg-primary text-primary-foreground"
+                  >
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Generate Without Research
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Prompt Textarea */}
             <div className="space-y-2">
@@ -796,6 +1064,105 @@ export function CreateWorkspaceTabs() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Reference Articles / Attachments (Attachment-First Grounding) */}
+            <div className="space-y-2.5 pt-2 border-t border-border/70">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Paperclip className="h-3.5 w-3.5 text-primary" />
+                  <label className="text-xs font-bold text-foreground">
+                    Reference Articles / Attachments
+                  </label>
+                  {referenceArticles.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-primary/10 text-primary font-bold">
+                      {referenceArticles.length} attached
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <label className="cursor-pointer text-[11px] font-bold text-primary hover:text-primary/80 flex items-center gap-1 px-2 py-0.5 rounded-lg hover:bg-primary/10 transition-colors">
+                    <UploadCloud className="h-3 w-3" /> Upload Files
+                    <input
+                      type="file"
+                      multiple
+                      accept=".txt,.md,.markdown,.json,.csv,.pdf,.doc,.docx"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddTextModal(true)}
+                    className="text-[11px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 px-2 py-0.5 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <PlusCircle className="h-3 w-3" /> Paste Text
+                  </button>
+                </div>
+              </div>
+
+              {referenceArticles.length === 0 ? (
+                <div className="p-3 rounded-2xl border border-dashed border-border/80 bg-muted/10 text-center space-y-1">
+                  <p className="text-[11px] text-muted-foreground">
+                    Attach source articles or notes to ground AI generation strictly in facts, entities & data.
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/70">
+                    Supports .txt, .md, .doc, .docx, .pdf, or pasted text
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] flex items-center gap-1.5 font-medium">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                    <span>Attachment-First Active: Content will strictly reflect source facts & prevent topic drift.</span>
+                  </div>
+                  <div className="max-h-36 overflow-y-auto space-y-1 pr-0.5">
+                    {referenceArticles.map((art) => (
+                      <div
+                        key={art.id}
+                        className="flex items-center justify-between p-2 rounded-xl border border-border bg-card text-xs group hover:border-primary/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 truncate pr-2">
+                          <FileCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+                          <div className="truncate">
+                            <p className="font-semibold text-foreground text-[11px] truncate">{art.name}</p>
+                            <p className="text-[9px] text-muted-foreground">
+                              {art.content.length} chars • ~{art.content.split(/\s+/).filter(Boolean).length} words
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveArticle(art.id)}
+                          className="text-muted-foreground hover:text-rose-500 p-1 rounded-lg hover:bg-rose-500/10 transition-colors"
+                          title="Remove attachment"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Primary SEO Keyword (Keyword as constraint, NOT topic) */}
+            <div className="space-y-1.5 pt-2 border-t border-border/70">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Tag className="h-3.5 w-3.5 text-primary" /> Primary SEO Keyword (Optional)
+                </label>
+                <span className="text-[10px] text-muted-foreground">SEO Constraint</span>
+              </div>
+              <Input
+                placeholder="e.g. Nepal Disaster Response, Organic Lavender Candle, Cloud CRM"
+                value={primaryKeyword}
+                onChange={(e) => setPrimaryKeyword(e.target.value)}
+                className="h-9 text-xs rounded-xl bg-background border-border"
+              />
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                Guides SEO title, slug, and meta optimization without hijacking the attachment’s factual subject.
+              </p>
             </div>
 
             {/* Platform Selector */}
@@ -834,43 +1201,62 @@ export function CreateWorkspaceTabs() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border/60">
               <div>
                 <label className="text-xs font-bold text-foreground block mb-1">Content Type</label>
-                <NativeSelect
-                  value={contentType}
-                  onChange={(e) => setContentType(e.target.value)}
-                  className="h-9 text-xs rounded-xl"
-                >
-                  {CONTENT_TYPES.map((t) => (
-                    <option key={t.id} value={t.id}>{t.label}</option>
-                  ))}
-                </NativeSelect>
+                <Select value={contentType} onValueChange={(val) => { if (val) setContentType(val); }}>
+                  <SelectTrigger className="h-9 text-xs rounded-xl bg-background border-border">
+                    <SelectValue placeholder="Select content type" />
+                  </SelectTrigger>
+                  <SelectContent searchable={true} searchPlaceholder="Search content types...">
+                    {CONTENT_TYPES.map((t) => {
+                      const Icon = t.icon;
+                      return (
+                        <SelectItem key={t.id} value={t.id}>
+                          <div className="flex items-center gap-2 py-0.5">
+                            <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <div className="flex flex-col text-left">
+                              <span className="font-medium text-foreground text-xs">{t.label}</span>
+                              <span className="text-[10px] text-muted-foreground">{t.desc}</span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-xs font-bold text-foreground block mb-1">Tone of Voice</label>
-                <NativeSelect
-                  value={tone}
-                  onChange={(e) => setTone(e.target.value as ToneType)}
-                  className="h-9 text-xs rounded-xl"
-                >
-                  <option value="creative">Premium & Creative</option>
-                  <option value="engaging">Engaging & Conversational</option>
-                  <option value="professional">Professional & Authoritative</option>
-                  <option value="concise">Concise & Direct</option>
-                  <option value="educational">Educational & Structured</option>
-                </NativeSelect>
+                <Select value={tone} onValueChange={(val) => { if (val) setTone(val as ToneType); }}>
+                  <SelectTrigger className="h-9 text-xs rounded-xl bg-background border-border">
+                    <SelectValue placeholder="Select tone" />
+                  </SelectTrigger>
+                  <SelectContent searchable={true} searchPlaceholder="Search tones...">
+                    {TONE_OPTIONS.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        <div className="flex flex-col text-left py-0.5">
+                          <span className="font-medium text-foreground text-xs">{t.label}</span>
+                          <span className="text-[10px] text-muted-foreground">{t.desc}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="sm:col-span-2">
                 <label className="text-xs font-bold text-foreground block mb-1">Marketing Objective</label>
-                <NativeSelect
-                  value={objective}
-                  onChange={(e) => setObjective(e.target.value)}
-                  className="h-9 text-xs rounded-xl"
-                >
-                  {OBJECTIVES.map((obj) => (
-                    <option key={obj} value={obj}>{obj}</option>
-                  ))}
-                </NativeSelect>
+                <Select value={objective} onValueChange={(val) => { if (val) setObjective(val); }}>
+                  <SelectTrigger className="h-9 text-xs rounded-xl bg-background border-border">
+                    <SelectValue placeholder="Select objective" />
+                  </SelectTrigger>
+                  <SelectContent searchable={true} searchPlaceholder="Search objectives...">
+                    {OBJECTIVES.map((obj) => (
+                      <SelectItem key={obj} value={obj}>
+                        <span className="text-xs">{obj}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -892,23 +1278,33 @@ export function CreateWorkspaceTabs() {
                 <div className="p-3.5 pt-2 border-t border-border/60 space-y-3 bg-card/60">
                   <div>
                     <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Concept Blueprint (Optional)</label>
-                    <NativeSelect
-                      value={selectedTemplateId}
-                      onChange={(e) => handleTemplateSelect(e.target.value)}
-                      className="h-8 text-xs rounded-xl"
+                    <Select
+                      value={selectedTemplateId || 'custom'}
+                      onValueChange={(val) => { handleTemplateSelect(val === 'custom' ? '' : (val || '')); }}
                     >
-                      <option value="">Custom Concept</option>
-                      <optgroup label="Social Templates">
-                        {SOCIAL_TEMPLATES.map((t) => (
-                          <option key={t.id} value={t.id}>{t.name}</option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="Blog Templates">
-                        {BLOG_TEMPLATES.map((t) => (
-                          <option key={t.id} value={t.id}>{t.name}</option>
-                        ))}
-                      </optgroup>
-                    </NativeSelect>
+                      <SelectTrigger className="h-8 text-xs rounded-xl bg-background border-border">
+                        <SelectValue placeholder="Custom Concept" />
+                      </SelectTrigger>
+                      <SelectContent searchable={true} searchPlaceholder="Search blueprints...">
+                        <SelectItem value="custom">Custom Concept</SelectItem>
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] uppercase font-bold text-muted-foreground px-2 py-1">Social Templates</SelectLabel>
+                          {SOCIAL_TEMPLATES.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              <span className="text-xs">{t.name}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] uppercase font-bold text-muted-foreground px-2 py-1">Blog Templates</SelectLabel>
+                          {BLOG_TEMPLATES.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              <span className="text-xs">{t.name}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
@@ -924,28 +1320,34 @@ export function CreateWorkspaceTabs() {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Image Prompt Style</label>
-                      <NativeSelect
-                        value={imageStyle}
-                        onChange={(e) => setImageStyle(e.target.value)}
-                        className="h-8 text-xs rounded-xl"
-                      >
-                        {IMAGE_STYLES.map((st) => (
-                          <option key={st} value={st}>{st}</option>
-                        ))}
-                      </NativeSelect>
+                      <Select value={imageStyle} onValueChange={(val) => { if (val) setImageStyle(val); }}>
+                        <SelectTrigger className="h-8 text-xs rounded-xl bg-background border-border">
+                          <SelectValue placeholder="Select image style" />
+                        </SelectTrigger>
+                        <SelectContent searchable={true} searchPlaceholder="Search styles...">
+                          {IMAGE_STYLES.map((st) => (
+                            <SelectItem key={st} value={st}>
+                              <span className="text-xs">{st}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div>
                       <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Video Prompt Style</label>
-                      <NativeSelect
-                        value={videoStyle}
-                        onChange={(e) => setVideoStyle(e.target.value)}
-                        className="h-8 text-xs rounded-xl"
-                      >
-                        {VIDEO_STYLES.map((st) => (
-                          <option key={st} value={st}>{st}</option>
-                        ))}
-                      </NativeSelect>
+                      <Select value={videoStyle} onValueChange={(val) => { if (val) setVideoStyle(val); }}>
+                        <SelectTrigger className="h-8 text-xs rounded-xl bg-background border-border">
+                          <SelectValue placeholder="Select video style" />
+                        </SelectTrigger>
+                        <SelectContent searchable={true} searchPlaceholder="Search video styles...">
+                          {VIDEO_STYLES.map((st) => (
+                            <SelectItem key={st} value={st}>
+                              <span className="text-xs">{st}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
@@ -998,7 +1400,7 @@ export function CreateWorkspaceTabs() {
               type="button"
               size="lg"
               disabled={isGenerating || !topicPrompt.trim()}
-              onClick={handleGenerateContent}
+              onClick={() => handleGenerateContent()}
               className="w-full h-12 rounded-2xl bg-gradient-to-r from-primary via-purple-600 to-indigo-600 hover:opacity-95 text-white font-bold shadow-md hover:shadow-lg transition-all gap-2"
             >
               {isGenerating ? (
@@ -1142,7 +1544,34 @@ export function CreateWorkspaceTabs() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  {relevanceResult && (
+                    <Badge
+                      className={cn(
+                        'text-xs font-bold gap-1 px-2.5 py-1',
+                        relevanceResult.score >= 70
+                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                          : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                      )}
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      <span>{relevanceResult.score}% Grounded</span>
+                    </Badge>
+                  )}
+
+                  {traceContext && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTraceModal(true)}
+                      className="h-8 text-xs font-semibold rounded-xl gap-1.5 border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10"
+                    >
+                      <Terminal className="h-3.5 w-3.5" />
+                      <span>Trace (Dev)</span>
+                    </Button>
+                  )}
+
                   <Button
                     type="button"
                     variant="outline"
@@ -1219,6 +1648,22 @@ export function CreateWorkspaceTabs() {
                   <Eye className="h-3.5 w-3.5 text-emerald-500" />
                   <span>Live Preview</span>
                 </button>
+
+                {researchSources.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveResultTab('sources')}
+                    className={cn(
+                      'flex-1 min-w-[120px] flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all',
+                      activeResultTab === 'sources'
+                        ? 'bg-card text-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    <Globe className="h-3.5 w-3.5 text-emerald-500" />
+                    <span>Research Sources ({researchSources.length})</span>
+                  </button>
+                )}
               </div>
 
               {/* ========================================================== */}
@@ -1432,6 +1877,66 @@ export function CreateWorkspaceTabs() {
                       </div>
                     )}
                   </div>
+
+                  {/* Real-time SEO Readiness Checklist & Audit (Blog Mode) */}
+                    {contentType === 'blog' && liveSeoReport && (
+                      <div className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-xs">
+                        <div className="flex items-center justify-between border-b border-border/80 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-purple-600" />
+                            <div>
+                              <h4 className="text-xs font-bold text-foreground">Live SEO Readiness Audit</h4>
+                              <p className="text-[10px] text-muted-foreground">Evaluating final generated article against SEO standards</p>
+                            </div>
+                          </div>
+                          <Badge
+                            className={cn(
+                              'text-xs font-bold px-2.5 py-0.5',
+                              liveSeoReport.grade === 'Good'
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-amber-500 text-white'
+                            )}
+                          >
+                            {liveSeoReport.score}% — {liveSeoReport.grade}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] p-2 rounded-xl bg-muted/40">
+                          <div>
+                            <span className="text-muted-foreground block text-[9px] uppercase font-bold">Word Count</span>
+                            <span className="font-semibold text-foreground">{liveSeoReport.wordCount} words</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground block text-[9px] uppercase font-bold">Reading Time</span>
+                            <span className="font-semibold text-foreground">~{liveSeoReport.readingTimeMinutes} mins</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground block text-[9px] uppercase font-bold">Keyword Used</span>
+                            <span className="font-semibold text-foreground truncate block">{primaryKeyword || generatedKeywords[0] || 'Auto-detected'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground block text-[9px] uppercase font-bold">URL Slug</span>
+                            <span className="font-semibold text-foreground truncate block">/{blogSlug || 'article-slug'}</span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                          {liveSeoReport.checks.map((chk) => (
+                            <div key={chk.id} className="p-2.5 rounded-xl border border-border/70 bg-background text-xs space-y-0.5">
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-foreground text-[11px]">{chk.label}</span>
+                                {chk.passed ? (
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                ) : (
+                                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                                )}
+                              </div>
+                              <p className="text-[10px] text-muted-foreground">{chk.feedback}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                 </div>
               )}
 
@@ -1456,16 +1961,19 @@ export function CreateWorkspaceTabs() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground font-medium">Style:</span>
-                      <NativeSelect
-                        value={imageStyle}
-                        onChange={(e) => setImageStyle(e.target.value)}
-                        className="h-7 text-xs py-0 pl-2 pr-6 rounded-lg border-border bg-background"
-                      >
-                        {IMAGE_STYLES.map((st) => (
-                          <option key={st} value={st}>{st}</option>
-                        ))}
-                      </NativeSelect>
+                      <span className="text-[10px] text-muted-foreground font-medium shrink-0">Style:</span>
+                      <Select value={imageStyle} onValueChange={(val) => { if (val) setImageStyle(val); }}>
+                        <SelectTrigger className="h-7 text-xs rounded-lg border-border bg-background min-w-[140px]">
+                          <SelectValue placeholder="Select style" />
+                        </SelectTrigger>
+                        <SelectContent searchable={true} searchPlaceholder="Search styles...">
+                          {IMAGE_STYLES.map((st) => (
+                            <SelectItem key={st} value={st}>
+                              <span className="text-xs">{st}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
@@ -1530,16 +2038,19 @@ export function CreateWorkspaceTabs() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground font-medium">Style:</span>
-                      <NativeSelect
-                        value={videoStyle}
-                        onChange={(e) => setVideoStyle(e.target.value)}
-                        className="h-7 text-xs py-0 pl-2 pr-6 rounded-lg border-border bg-background"
-                      >
-                        {VIDEO_STYLES.map((st) => (
-                          <option key={st} value={st}>{st}</option>
-                        ))}
-                      </NativeSelect>
+                      <span className="text-[10px] text-muted-foreground font-medium shrink-0">Style:</span>
+                      <Select value={videoStyle} onValueChange={(val) => { if (val) setVideoStyle(val); }}>
+                        <SelectTrigger className="h-7 text-xs rounded-lg border-border bg-background min-w-[140px]">
+                          <SelectValue placeholder="Select style" />
+                        </SelectTrigger>
+                        <SelectContent searchable={true} searchPlaceholder="Search styles...">
+                          {VIDEO_STYLES.map((st) => (
+                            <SelectItem key={st} value={st}>
+                              <span className="text-xs">{st}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
@@ -1633,6 +2144,62 @@ export function CreateWorkspaceTabs() {
                 </div>
               )}
 
+              {/* ========================================================== */}
+              {/* TAB 5: RESEARCH SOURCES                                   */}
+              {/* ========================================================== */}
+              {activeResultTab === 'sources' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-emerald-500" /> Real Web Research Sources
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Live authoritative publications and wire dispatches used to ground this content in real-time facts.
+                      </p>
+                    </div>
+                    <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs font-bold">
+                      {researchSources.length} Verified Sources
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {researchSources.map((src) => (
+                      <div
+                        key={src.id}
+                        className="rounded-2xl border border-border bg-card p-4 space-y-2.5 shadow-xs flex flex-col justify-between hover:border-emerald-500/40 transition-colors"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-black text-foreground uppercase tracking-wider bg-muted/60 px-2 py-0.5 rounded-md">
+                              {src.source}
+                            </span>
+                            <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                              {src.relevanceScore}% Relevance
+                            </Badge>
+                          </div>
+                          <h5 className="text-xs font-bold text-foreground line-clamp-2">{src.title}</h5>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{src.snippet}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-border text-[10px] text-muted-foreground">
+                          <span>{src.publishedDate}</span>
+                          <a
+                            href={src.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline font-bold flex items-center gap-1"
+                          >
+                            <span>View Article</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Attached Media Creative Section */}
               <MediaCreativeSection
                 media={mediaCreative}
@@ -1673,6 +2240,221 @@ export function CreateWorkspaceTabs() {
 
         </div>
       </div>
+
+      {/* Add Pasted Text Attachment Modal */}
+      {showAddTextModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <Paperclip className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold text-foreground">Add Reference Document Text</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddTextModal(false)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                  Document / Article Name (Optional)
+                </label>
+                <Input
+                  placeholder="e.g. Nepal Flood Emergency Relief Brief 2026"
+                  value={pastedDocTitle}
+                  onChange={(e) => setPastedDocTitle(e.target.value)}
+                  className="text-xs rounded-xl"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                  Source Content / Facts / Notes <span className="text-rose-500">*</span>
+                </label>
+                <Textarea
+                  rows={8}
+                  placeholder="Paste article, emergency brief, factsheet, product specs, or research notes..."
+                  value={pastedDocContent}
+                  onChange={(e) => setPastedDocContent(e.target.value)}
+                  className="text-xs font-mono leading-relaxed rounded-xl resize-y"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddTextModal(false)}
+                className="h-9 text-xs rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleAddPastedArticle}
+                disabled={!pastedDocContent.trim()}
+                className="h-9 text-xs font-bold rounded-xl bg-primary text-primary-foreground gap-1.5"
+              >
+                <FileCheck className="h-3.5 w-3.5" />
+                Add Source of Truth
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Developer Trace / Grounding Inspector Modal */}
+      {showTraceModal && traceContext && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-3xl border border-purple-500/40 bg-card p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <Terminal className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">AI Grounding & Pipeline Trace Inspector</h3>
+                  <p className="text-[10px] text-muted-foreground">Development verification for context grounding & semantic relevance</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTraceModal(false)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              {/* Grounding Status Card */}
+              <div className="p-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 block">Grounding Confidence</span>
+                  <span className="text-sm font-bold text-foreground">{traceContext.groundingConfidence}</span>
+                </div>
+                <Badge className={cn('text-xs font-bold', traceContext.relevancePassed ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white')}>
+                  {traceContext.relevanceScore}% Relevance
+                </Badge>
+              </div>
+
+              {/* Live Web Research Report (Requirement 19 Debug Panel) */}
+              {traceContext.webResearchReport && (
+                <div className="p-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <Globe className="h-3.5 w-3.5" /> Live Web Research Pipeline Active
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {traceContext.webResearchReport.sourcesSelected} of {traceContext.webResearchReport.sourcesFound} sources used
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-muted-foreground">Search Queries Generated:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {traceContext.webResearchReport.searchQueries.map((q, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-md bg-background border border-border text-[10px] font-mono">
+                          {q}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-muted-foreground">Top Authoritative Sources Selected:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {traceContext.webResearchReport.topSources.map((s, i) => (
+                        <span key={i} className="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Source Documents */}
+              <div className="p-3 rounded-2xl border border-border bg-muted/20 space-y-1.5">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                  {traceContext.hasWebResearch ? 'Live Researched Web Sources' : 'Attached Source Articles'} ({traceContext.attachedArticleNames.length})
+                </span>
+                {traceContext.attachedArticleNames.length > 0 ? (
+                  <ul className="list-disc list-inside text-[11px] text-foreground font-medium space-y-0.5">
+                    {traceContext.attachedArticleNames.map((name, i) => (
+                      <li key={i}>{name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground italic">No reference articles attached (Keyword-only fallback mode)</p>
+                )}
+              </div>
+
+              {/* Extracted Topic & Entities */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 rounded-2xl border border-border bg-muted/20 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">Extracted Core Subject</span>
+                  <p className="font-semibold text-foreground text-[11px]">{traceContext.extractedTopic}</p>
+                </div>
+
+                <div className="p-3 rounded-2xl border border-border bg-muted/20 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">SEO Keyword Constraint</span>
+                  <p className="font-semibold text-foreground text-[11px]">{traceContext.primaryKeywordUsed || '(None)'}</p>
+                </div>
+              </div>
+
+              {/* Key Facts Extracted */}
+              {traceContext.keyFactsExtracted && traceContext.keyFactsExtracted.length > 0 && (
+                <div className="p-3 rounded-2xl border border-border bg-muted/20 space-y-1.5">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">Extracted Numerical Facts & Protocols ({traceContext.keyFactsExtracted.length})</span>
+                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                    {traceContext.keyFactsExtracted.map((f, i) => (
+                      <span key={i} className="px-2 py-0.5 rounded-md bg-background border border-border text-[10px] font-mono">
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Matched Entities & Terminology */}
+              <div className="p-3 rounded-2xl border border-border bg-muted/20 space-y-1.5">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground">Semantic Overlap Verification</span>
+                <div className="flex flex-wrap gap-1">
+                  {traceContext.matchedEntities.map((ent, i) => (
+                    <span key={i} className="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                      ✓ {ent}
+                    </span>
+                  ))}
+                  {traceContext.matchedTerminology.map((term, i) => (
+                    <span key={i} className="px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-primary text-[10px] font-medium">
+                      ✓ {term}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Regeneration Stats */}
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+                <span>Self-Correction Regeneration Loops: <strong className="text-foreground">{traceContext.regenerationAttempts}</strong></span>
+                <span>Final Output Title: <strong className="text-foreground">{traceContext.generatedTopic}</strong></span>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-border">
+              <Button size="sm" onClick={() => setShowTraceModal(false)} className="h-8 text-xs rounded-xl">
+                Close Trace
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+
