@@ -171,6 +171,13 @@ details AS (
                 THEN 'present'
               ELSE '-- MISSING --' END,
          'A session can never be marked as having answered its code.'
+  UNION ALL
+  SELECT '126', 'employee_profiles has 70+ master fields',
+         CASE WHEN EXISTS (
+           SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'employee_profiles' AND column_name = 'date_of_birth')
+         THEN 'present' ELSE '-- MISSING --' END,
+         'Personal, family, nominee, education, previous experience, and document fields are missing from employee master.'
 )
 SELECT status, migration, check_name, impact
   FROM (SELECT * FROM objects UNION ALL SELECT * FROM details) all_checks

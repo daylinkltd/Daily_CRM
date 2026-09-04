@@ -70,13 +70,12 @@ rebase before pushing; prefer staging your own paths.
 ## 3. Verified database state
 
 Applied: **100–124** (confirmed by preflight 2026-09-02).
-Pending: **125** (`supabase/migrations/125_workspace_module_selection.sql`) — until it runs,
-the onboarding module picker saves nothing, silently.
-
-Single-device sign-in and email 2FA are now genuinely live. Before 100 was
-applied, `register_session` errored on every call and the guard treated that
-as "unknown" and let requests through — enforcement had been failing open
-for months without a symptom.
+Pending user execution in Supabase SQL Editor:
+- **053** (`supabase/migrations/053_hr_exit_management.sql`) — Exit Management, 5-stage clearance matrix & F&F settlement.
+- **054** (`supabase/migrations/054_hr_headcount_budgeting.sql`) — Headcount Budgeting & Manpower Requisitions.
+- **055** (`supabase/migrations/055_hr_statutory_payroll.sql`) — Effective-Dated Statutory Payroll Rules.
+- **125** (`supabase/migrations/125_workspace_module_selection.sql`) — Workspace module picker selection.
+- **126** (`supabase/migrations/126_comprehensive_employee_master_fields.sql`) — Comprehensive 70+ Employee Master profile fields across 7 lifecycle sections.
 
 ---
 
