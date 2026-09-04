@@ -761,6 +761,7 @@ export function buildDetailedImagePrompt(params: {
   }
 
   promptLines.push(`Negative Prompts (Things to avoid): No visible competitor logos, no distorted or misspelled text, no messy cluttered background, no unnatural artifacts or extra limbs, no harsh overexposure, no watermarks.`);
+  promptLines.push(`Guardrails: Original artistic depiction, no third-party copyrighted characters, no trademarked brand symbols, no real-person celebrity depictions.`);
 
   return promptLines.join(' ');
 }

@@ -275,6 +275,40 @@ export function CreateWorkspaceTabs() {
   const [editingMode, setEditingMode] = useState<boolean>(false);
   const [sessionHistory, setSessionHistory] = useState<GenerationHistoryItem[]>([]);
 
+  // AI Video Generation State
+  const [videoGenState, setVideoGenState] = useState<'IDLE' | 'VALIDATING' | 'SUBMITTING' | 'GENERATING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'>('IDLE');
+  const [videoGenProgress, setVideoGenProgress] = useState<number>(0);
+  const [videoAspectRatio, setVideoAspectRatio] = useState<'16:9' | '9:16' | '1:1' | '4:5'>('16:9');
+  const [videoDuration, setVideoDuration] = useState<'5s' | '10s' | '15s' | '30s'>('10s');
+  const [generatedVideo, setGeneratedVideo] = useState<{
+    id: string;
+    video_url: string;
+    thumbnail_url: string;
+    title: string;
+    duration: string;
+    aspectRatio: string;
+  } | null>(null);
+  const [videoGenError, setVideoGenError] = useState<{
+    message: string;
+    code: string;
+    suggestedAction: string;
+  } | null>(null);
+
+  // AI Image Generation State
+  const [imageGenState, setImageGenState] = useState<'IDLE' | 'GENERATING' | 'COMPLETED' | 'FAILED'>('IDLE');
+  const [generatedImage, setGeneratedImage] = useState<{
+    id: string;
+    url: string;
+    title: string;
+    style: string;
+    prompt: string;
+  } | null>(null);
+  const [imageGenError, setImageGenError] = useState<{
+    message: string;
+    code: string;
+    suggestedAction: string;
+  } | null>(null);
+
   // File Upload and Text Paste Handlers for Reference Articles
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -663,6 +697,165 @@ export function CreateWorkspaceTabs() {
     } finally {
       setIsRegeneratingVideoPrompt(false);
     }
+  };
+
+  const handleGenerateAIVideo = async () => {
+    if (!videoPrompt || videoPrompt.trim().length < 5) {
+      toast.error('Please enter a descriptive video prompt (at least 5 characters).');
+      return;
+    }
+
+    setVideoGenError(null);
+    setVideoGenState('VALIDATING');
+    setVideoGenProgress(15);
+
+    try {
+      setVideoGenState('SUBMITTING');
+      setVideoGenProgress(30);
+
+      const res = await fetch('/api/marketing/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: videoPrompt.trim(),
+          title: generatedTitle || topicPrompt || 'AI Video Creative',
+          style: videoStyle,
+          aspectRatio: videoAspectRatio,
+          duration: videoDuration,
+        }),
+      });
+
+      setVideoGenState('GENERATING');
+      setVideoGenProgress(65);
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setVideoGenState('FAILED');
+        setVideoGenError({
+          message: data.message || "Video generation couldn't be completed.",
+          code: data.code || 'PROVIDER_REJECTED',
+          suggestedAction: data.suggestedAction || 'edit_prompt',
+        });
+        toast.error(data.message || 'Video generation failed.');
+        return;
+      }
+
+      setVideoGenState('PROCESSING');
+      setVideoGenProgress(90);
+
+      setGeneratedVideo({
+        id: data.id,
+        video_url: data.video_url,
+        thumbnail_url: data.thumbnail_url,
+        title: data.title,
+        duration: data.duration,
+        aspectRatio: data.aspectRatio,
+      });
+
+      setVideoGenState('COMPLETED');
+      setVideoGenProgress(100);
+      toast.success('AI Video generated successfully!');
+    } catch (err: any) {
+      setVideoGenState('FAILED');
+      setVideoGenError({
+        message: 'Connection to the video generation service failed.',
+        code: 'NETWORK_ERROR',
+        suggestedAction: 'try_again',
+      });
+      toast.error('Connection to the video generation service failed.');
+    }
+  };
+
+  const handleSaveVideoToContentLibrary = () => {
+    if (!generatedVideo) return;
+    store.createSocialPost({
+      title: generatedVideo.title || generatedTitle || 'AI Video Post',
+      defaultCaption: generatedCaption || `Watch: ${topicPrompt || 'New Video Feature'}`,
+      contentType: 'video',
+      channels: selectedPlatforms && selectedPlatforms.length > 0 ? selectedPlatforms : ['instagram', 'tiktok', 'youtube'],
+      status: 'draft',
+      mediaUrl: generatedVideo.video_url,
+      mediaType: 'video',
+      mediaSource: 'AI_GENERATED',
+      video_prompt: videoPrompt,
+      video_prompt_version: videoPromptVersion,
+      objective: objective,
+    });
+    toast.success('Saved video to Marketing Content Library!');
+  };
+
+  const handleGenerateAIImage = async () => {
+    if (!imagePrompt || imagePrompt.trim().length < 5) {
+      toast.error('Please enter a descriptive image prompt (at least 5 characters).');
+      return;
+    }
+
+    setImageGenError(null);
+    setImageGenState('GENERATING');
+
+    try {
+      const res = await fetch('/api/marketing/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: imagePrompt.trim(),
+          title: generatedTitle || topicPrompt || 'AI Image Creative',
+          style: imageStyle,
+          platform: selectedPlatforms[0] || 'instagram',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setImageGenState('FAILED');
+        setImageGenError({
+          message: data.message || "Image generation couldn't be completed.",
+          code: data.code || 'PROVIDER_REJECTED',
+          suggestedAction: data.suggestedAction || 'edit_prompt',
+        });
+        toast.error(data.message || 'Image generation failed.');
+        return;
+      }
+
+      setImageGenState('COMPLETED');
+      setGeneratedImage({
+        id: data.image?.id || `img_${Date.now()}`,
+        url: data.media?.url || data.image?.url,
+        title: data.image?.title || generatedTitle || 'AI Image Asset',
+        style: data.media?.visualStyle || imageStyle,
+        prompt: imagePrompt,
+      });
+
+      toast.success('AI Image generated successfully!');
+    } catch (err: any) {
+      setImageGenState('FAILED');
+      setImageGenError({
+        message: 'Connection to the image generation service failed.',
+        code: 'NETWORK_ERROR',
+        suggestedAction: 'try_again',
+      });
+      toast.error('Connection to the image generation service failed.');
+    }
+  };
+
+  const handleSaveImageToContentLibrary = () => {
+    if (!generatedImage) return;
+    store.createSocialPost({
+      title: generatedImage.title || generatedTitle || 'AI Image Post',
+      defaultCaption: generatedCaption || `Highlight: ${topicPrompt || 'New Featured Creative'}`,
+      contentType: 'announcement',
+      channels: selectedPlatforms && selectedPlatforms.length > 0 ? selectedPlatforms : ['instagram', 'linkedin'],
+      status: 'draft',
+      mediaUrl: generatedImage.url,
+      mediaType: 'image',
+      mediaSource: 'AI_GENERATED',
+      image_prompt: imagePrompt,
+      image_prompt_version: imagePromptVersion,
+      objective: objective,
+    });
+    toast.success('Saved image to Marketing Content Library!');
   };
 
   const handleRegenerateHashtagsOnly = async () => {
@@ -1941,7 +2134,7 @@ export function CreateWorkspaceTabs() {
               )}
 
               {/* ========================================================== */}
-              {/* TAB 2: IMAGE GENERATION PROMPT                             */}
+              {/* TAB 2: IMAGE GENERATION PROMPT & AI GENERATOR             */}
               {/* ========================================================== */}
               {activeResultTab === 'image_prompt' && (
                 <div className="rounded-3xl border border-sky-500/30 bg-sky-500/5 p-5 space-y-4 shadow-xs">
@@ -1951,11 +2144,14 @@ export function CreateWorkspaceTabs() {
                         <ImageIcon className="h-4 w-4" />
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                          Image Generation Prompt
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                          Image Generation Prompt & Engine
+                          <span className="text-[10px] text-sky-600 font-black bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                            v{imagePromptVersion}
+                          </span>
                         </h4>
                         <p className="text-[10px] text-muted-foreground">
-                          Copy and paste into OpenAI DALL-E 3 or Midjourney to create visual assets
+                          Direct generation or copy into OpenAI DALL-E 3 or Midjourney
                         </p>
                       </div>
                     </div>
@@ -1978,6 +2174,7 @@ export function CreateWorkspaceTabs() {
                   </div>
 
                   <Textarea
+                    id="marketing-image-prompt-input"
                     rows={8}
                     value={imagePrompt}
                     onChange={(e) => setImagePrompt(e.target.value)}
@@ -1985,13 +2182,115 @@ export function CreateWorkspaceTabs() {
                     className="text-xs leading-relaxed rounded-2xl bg-background border-border font-mono p-3.5 resize-y focus:ring-2 focus:ring-sky-500/20"
                   />
 
+                  {/* Generation Progress State Card */}
+                  {imageGenState === 'GENERATING' && (
+                    <div className="p-4 rounded-2xl border border-sky-500/30 bg-sky-500/10 space-y-2.5 animate-in fade-in duration-300">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold flex items-center gap-2 text-sky-700 dark:text-sky-300">
+                          <RefreshCw className="h-4 w-4 animate-spin text-sky-600" />
+                          Synthesizing image visual assets...
+                        </span>
+                        <span className="font-mono text-[10px] font-black uppercase tracking-wider text-sky-600 bg-sky-500/20 px-2 py-0.5 rounded-md">
+                          GENERATING
+                        </span>
+                      </div>
+                      <div className="w-full bg-sky-200/60 dark:bg-sky-950 rounded-full h-2 overflow-hidden">
+                        <div className="bg-gradient-to-r from-sky-500 to-indigo-600 h-2 rounded-full w-2/3 animate-pulse" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error / Guardrails Refusal Card */}
+                  {imageGenState === 'FAILED' && imageGenError && (
+                    <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 space-y-3 animate-in fade-in duration-300">
+                      <div className="flex items-start gap-2.5">
+                        <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                          <h5 className="text-xs font-bold text-rose-700 dark:text-rose-300">
+                            Image generation couldn't be completed.
+                          </h5>
+                          <p className="text-xs text-rose-600 dark:text-rose-400">
+                            {imageGenError.message}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 pt-1">
+                        <Button
+                          size="sm"
+                          type="button"
+                          onClick={handleGenerateAIImage}
+                          className="h-8 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white"
+                        >
+                          Try Again
+                        </Button>
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const el = document.getElementById('marketing-image-prompt-input');
+                            el?.focus();
+                          }}
+                          className="h-8 text-xs font-bold rounded-xl border-rose-500/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
+                        >
+                          Edit Prompt
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Completed Image Player Preview */}
+                  {imageGenState === 'COMPLETED' && generatedImage && (
+                    <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 space-y-3 animate-in fade-in duration-300">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Image ready
+                        </span>
+                        <span className="text-[11px] text-muted-foreground font-semibold">
+                          {generatedImage.style}
+                        </span>
+                      </div>
+                      <div className="rounded-xl overflow-hidden border border-border bg-black/20 max-h-[300px] flex items-center justify-center">
+                        <img
+                          src={generatedImage.url}
+                          alt={generatedImage.title}
+                          className="w-full h-auto max-h-[300px] object-contain rounded-lg"
+                        />
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        <div className="text-[11px] text-muted-foreground truncate max-w-xs">
+                          {generatedImage.title}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                            onClick={handleGenerateAIImage}
+                            className="h-8 text-xs font-bold rounded-xl border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+                          >
+                            Regenerate Image
+                          </Button>
+                          <Button
+                            size="sm"
+                            type="button"
+                            onClick={handleSaveImageToContentLibrary}
+                            className="h-8 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm"
+                          >
+                            <Save className="h-3.5 w-3.5" /> Save to Content Library
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       <Info className="h-3.5 w-3.5 text-sky-500" />
                       <span>Optimized for {selectedPlatforms[0] || 'Instagram'} aspect ratios</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -2001,16 +2300,27 @@ export function CreateWorkspaceTabs() {
                         className="h-9 px-3 text-xs font-bold rounded-xl gap-1.5 border-sky-500/40 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10"
                       >
                         <RefreshCw className={cn('h-3.5 w-3.5', isRegeneratingImagePrompt && 'animate-spin')} />
-                        Regenerate Image Prompt
+                        Regenerate Prompt
                       </Button>
 
                       <Button
                         type="button"
                         size="sm"
                         onClick={() => copyToClipboard(imagePrompt, 'Image Prompt')}
-                        className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5 bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
+                        className="h-9 px-3.5 text-xs font-bold rounded-xl gap-1.5 bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
                       >
-                        <Copy className="h-3.5 w-3.5" /> Copy Image Prompt
+                        <Copy className="h-3.5 w-3.5" /> Copy Prompt
+                      </Button>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={imageGenState === 'GENERATING' || !imagePrompt.trim()}
+                        onClick={handleGenerateAIImage}
+                        className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5 bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 text-white shadow-sm hover:opacity-95"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {imageGenState === 'COMPLETED' ? 'Regenerate Image' : 'Generate AI Image'}
                       </Button>
                     </div>
                   </div>
@@ -2018,7 +2328,7 @@ export function CreateWorkspaceTabs() {
               )}
 
               {/* ========================================================== */}
-              {/* TAB 3: VIDEO GENERATION PROMPT                             */}
+              {/* TAB 3: VIDEO GENERATION PROMPT & AI GENERATOR             */}
               {/* ========================================================== */}
               {activeResultTab === 'video_prompt' && (
                 <div className="rounded-3xl border border-purple-500/30 bg-purple-500/5 p-5 space-y-4 shadow-xs">
@@ -2028,19 +2338,22 @@ export function CreateWorkspaceTabs() {
                         <VideoIcon className="h-4 w-4" />
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                          Video Generation Prompt
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                          Video Generation Prompt & Engine
+                          <span className="text-[10px] text-purple-600 font-black bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                            v{videoPromptVersion}
+                          </span>
                         </h4>
                         <p className="text-[10px] text-muted-foreground">
-                          Copy and paste into OpenAI Sora, Runway Gen-3, or Kling
+                          Direct generation or copy into OpenAI Sora, Runway Gen-3, or Kling
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground font-medium shrink-0">Style:</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Video Style */}
                       <Select value={videoStyle} onValueChange={(val) => { if (val) setVideoStyle(val); }}>
-                        <SelectTrigger className="h-7 text-xs rounded-lg border-border bg-background min-w-[140px]">
+                        <SelectTrigger className="h-7 text-xs rounded-lg border-border bg-background min-w-[130px]">
                           <SelectValue placeholder="Select style" />
                         </SelectTrigger>
                         <SelectContent searchable={true} searchPlaceholder="Search styles...">
@@ -2051,24 +2364,161 @@ export function CreateWorkspaceTabs() {
                           ))}
                         </SelectContent>
                       </Select>
+
+                      {/* Aspect Ratio */}
+                      <Select value={videoAspectRatio} onValueChange={(val: any) => { if (val) setVideoAspectRatio(val); }}>
+                        <SelectTrigger className="h-7 text-xs rounded-lg border-border bg-background min-w-[120px]">
+                          <SelectValue placeholder="Ratio" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="16:9">16:9 Landscape</SelectItem>
+                          <SelectItem value="9:16">9:16 Reel / TikTok</SelectItem>
+                          <SelectItem value="1:1">1:1 Square</SelectItem>
+                          <SelectItem value="4:5">4:5 Portrait</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {/* Duration */}
+                      <Select value={videoDuration} onValueChange={(val: any) => { if (val) setVideoDuration(val); }}>
+                        <SelectTrigger className="h-7 text-xs rounded-lg border-border bg-background min-w-[80px]">
+                          <SelectValue placeholder="Duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5s">5s</SelectItem>
+                          <SelectItem value="10s">10s</SelectItem>
+                          <SelectItem value="15s">15s</SelectItem>
+                          <SelectItem value="30s">30s</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
                   <Textarea
-                    rows={9}
+                    id="marketing-video-prompt-input"
+                    rows={8}
                     value={videoPrompt}
                     onChange={(e) => setVideoPrompt(e.target.value)}
                     placeholder="Chronological action and time breakdown for video models..."
                     className="text-xs leading-relaxed rounded-2xl bg-background border-border font-mono p-3.5 resize-y focus:ring-2 focus:ring-purple-500/20"
                   />
 
+                  {/* Generation Progress State Card */}
+                  {['VALIDATING', 'SUBMITTING', 'GENERATING', 'PROCESSING'].includes(videoGenState) && (
+                    <div className="p-4 rounded-2xl border border-purple-500/30 bg-purple-500/10 space-y-2.5 animate-in fade-in duration-300">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                          <RefreshCw className="h-4 w-4 animate-spin text-purple-600" />
+                          Generating your video... This may take a little while.
+                        </span>
+                        <span className="font-mono text-[10px] font-black uppercase tracking-wider text-purple-600 bg-purple-500/20 px-2 py-0.5 rounded-md">
+                          {videoGenState}
+                        </span>
+                      </div>
+                      <div className="w-full bg-purple-200/60 dark:bg-purple-950 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-purple-600 via-indigo-600 to-primary h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${videoGenProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Synthesizing prompt physics, motion trajectories, and visual lighting...
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Error / Refusal Card */}
+                  {videoGenState === 'FAILED' && videoGenError && (
+                    <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 space-y-3 animate-in fade-in duration-300">
+                      <div className="flex items-start gap-2.5">
+                        <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                          <h5 className="text-xs font-bold text-rose-700 dark:text-rose-300">
+                            Video generation couldn't be completed.
+                          </h5>
+                          <p className="text-xs text-rose-600 dark:text-rose-400">
+                            {videoGenError.message}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 pt-1">
+                        <Button
+                          size="sm"
+                          type="button"
+                          onClick={handleGenerateAIVideo}
+                          className="h-8 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white"
+                        >
+                          Try Again
+                        </Button>
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const el = document.getElementById('marketing-video-prompt-input');
+                            el?.focus();
+                          }}
+                          className="h-8 text-xs font-bold rounded-xl border-rose-500/30 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
+                        >
+                          Edit Prompt
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Completed Video Player Preview */}
+                  {videoGenState === 'COMPLETED' && generatedVideo && (
+                    <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 space-y-3 animate-in fade-in duration-300">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Video ready
+                        </span>
+                        <span className="text-[11px] text-muted-foreground font-semibold">
+                          {generatedVideo.duration} • {generatedVideo.aspectRatio}
+                        </span>
+                      </div>
+                      <div className="rounded-xl overflow-hidden border border-border bg-black aspect-video max-h-[300px] flex items-center justify-center">
+                        <video
+                          src={generatedVideo.video_url}
+                          poster={generatedVideo.thumbnail_url}
+                          controls
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        <div className="text-[11px] text-muted-foreground truncate max-w-xs">
+                          {generatedVideo.title}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                            onClick={handleGenerateAIVideo}
+                            className="h-8 text-xs font-bold rounded-xl border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+                          >
+                            Regenerate Video
+                          </Button>
+                          <Button
+                            size="sm"
+                            type="button"
+                            onClick={handleSaveVideoToContentLibrary}
+                            className="h-8 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm"
+                          >
+                            <Save className="h-3.5 w-3.5" /> Save to Content Library
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer Actions */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       <Clock className="h-3.5 w-3.5 text-purple-500" />
-                      <span>Chronological 0–10s sequence with hook, action & CTA</span>
+                      <span>Chronological 0–{videoDuration} sequence with hook, action & CTA</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -2085,9 +2535,20 @@ export function CreateWorkspaceTabs() {
                         type="button"
                         size="sm"
                         onClick={() => copyToClipboard(videoPrompt, 'Video Prompt')}
-                        className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5 bg-purple-600 hover:bg-purple-700 text-white shadow-sm"
+                        className="h-9 px-3.5 text-xs font-bold rounded-xl gap-1.5 bg-purple-600 hover:bg-purple-700 text-white shadow-sm"
                       >
-                        <Copy className="h-3.5 w-3.5" /> Copy Video Prompt
+                        <Copy className="h-3.5 w-3.5" /> Copy Prompt
+                      </Button>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={['VALIDATING', 'SUBMITTING', 'GENERATING', 'PROCESSING'].includes(videoGenState) || !videoPrompt.trim()}
+                        onClick={handleGenerateAIVideo}
+                        className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-primary text-white shadow-sm hover:opacity-95"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {videoGenState === 'COMPLETED' ? 'Regenerate Video' : 'Generate AI Video'}
                       </Button>
                     </div>
                   </div>
