@@ -284,6 +284,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/hr-dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "people_view" },
       { href: "/employees", label: "Employees", icon: Users, permission: "people_view" },
+      { href: "/employee-onboarding", label: "Onboarding", icon: CheckSquare, permission: "people_view" },
       { href: "/recruitment", label: "Recruitment", icon: Briefcase, permission: "people_manage" },
       { href: "/policies", label: "Policies & Compliance", icon: ShieldCheck, permission: "people_view" },
       { href: "/handbook", label: "Employee Handbook", icon: BookOpen, permission: "people_view" },
@@ -299,6 +300,7 @@ const navGroups: NavGroup[] = [
       { href: "/expenses", label: "Expenses", icon: Receipt, permission: "people_view" },
       { href: "/performance", label: "Performance", icon: TrendingUp, permission: "people_manage" },
       { href: "/requests", label: "Requests", icon: FileCheck, permission: "people_view" },
+      { href: "/exits", label: "Exit & F&F Settlement", icon: LogOut, permission: "people_view" },
       { href: "/assets", label: "Assets", icon: Laptop, permission: "people_manage" },
       { href: "/documents", label: "Official Documents", icon: FileText },
       { href: "/departments", label: "Departments", icon: Building, permission: "people_manage" },
