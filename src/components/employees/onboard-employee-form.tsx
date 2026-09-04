@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, Briefcase, User, Users, Landmark } from 'lucide-react';
+import { Loader2, Briefcase, User, Users, Landmark, GraduationCap } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { RichTextArea } from "@/components/ui/rich-textarea";
 
@@ -88,7 +88,18 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
   const [esiNomineeRelation, setEsiNomineeRelation] = useState('');
   const [esiNomineeShare, setEsiNomineeShare] = useState('100');
 
-  // Form State - 4. Bank, Statutory & Salary Breakdown
+  // Form State - 4. Education & Experience
+  const [highestQualification, setHighestQualification] = useState('');
+  const [degreeName, setDegreeName] = useState('');
+  const [instituteUniversity, setInstituteUniversity] = useState('');
+  const [yearOfPassing, setYearOfPassing] = useState('');
+  const [cgpaPercentage, setCgpaPercentage] = useState('');
+  const [totalExperienceYears, setTotalExperienceYears] = useState('0');
+  const [prevCompany, setPrevCompany] = useState('');
+  const [prevDesignation, setPrevDesignation] = useState('');
+  const [prevDuration, setPrevDuration] = useState('');
+
+  // Form State - 5. Bank, Statutory & Salary Breakdown
   const [bankName, setBankName] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [bankIfscCode, setBankIfscCode] = useState('');
@@ -271,6 +282,21 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
           esi_nominee_relation: esiNomineeRelation.trim() || null,
           esi_nominee_share_pct: Number(esiNomineeShare) || 100,
 
+          // Education & Experience
+          highest_qualification: highestQualification.trim() || null,
+          total_experience_years: Number(totalExperienceYears) || 0,
+          education_details: degreeName ? [{
+            degree: degreeName.trim(),
+            institute: instituteUniversity.trim(),
+            year: yearOfPassing.trim(),
+            score: cgpaPercentage.trim(),
+          }] : null,
+          previous_work_history: prevCompany ? [{
+            company: prevCompany.trim(),
+            designation: prevDesignation.trim(),
+            duration: prevDuration.trim(),
+          }] : null,
+
           // Bank & Statutory
           bank_name: bankName.trim() || null,
           bank_account_number: bankAccountNumber.trim() || null,
@@ -329,11 +355,12 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <Tabs defaultValue="employment" className="w-full">
-              <TabsList className="grid grid-cols-4 w-full bg-muted/60 text-xs">
+              <TabsList className="grid grid-cols-5 w-full bg-muted/60 text-xs">
                 <TabsTrigger value="employment" className="text-xs gap-1"><Briefcase className="size-3.5" /> 1. Employment</TabsTrigger>
                 <TabsTrigger value="personal" className="text-xs gap-1"><User className="size-3.5" /> 2. Personal</TabsTrigger>
                 <TabsTrigger value="family" className="text-xs gap-1"><Users className="size-3.5" /> 3. Family & Nominee</TabsTrigger>
-                <TabsTrigger value="bank" className="text-xs gap-1"><Landmark className="size-3.5" /> 4. Bank & Statutory</TabsTrigger>
+                <TabsTrigger value="education" className="text-xs gap-1"><GraduationCap className="size-3.5" /> 4. Edu & Exp</TabsTrigger>
+                <TabsTrigger value="bank" className="text-xs gap-1"><Landmark className="size-3.5" /> 5. Bank & Statutory</TabsTrigger>
               </TabsList>
 
               {/* Tab 1: Core & Employment */}
@@ -536,7 +563,60 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
                 </div>
               </TabsContent>
 
-              {/* Tab 4: Bank, Statutory & Salary Breakdown */}
+              {/* Tab 4: Education & Prior Experience */}
+              <TabsContent value="education" className="space-y-3 pt-3">
+                <div className="space-y-2">
+                  <Label className="font-bold text-xs text-primary">Educational Qualification</Label>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Highest Qualification</Label>
+                      <Input value={highestQualification} onChange={(e) => setHighestQualification(e.target.value)} placeholder="e.g. B.Tech Computer Science / MBA" className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Degree / Specialization</Label>
+                      <Input value={degreeName} onChange={(e) => setDegreeName(e.target.value)} placeholder="e.g. Bachelor of Technology" className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Institute / University</Label>
+                      <Input value={instituteUniversity} onChange={(e) => setInstituteUniversity(e.target.value)} placeholder="e.g. Delhi University / IIT" className="h-8 text-xs" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Year of Passing</Label>
+                        <Input value={yearOfPassing} onChange={(e) => setYearOfPassing(e.target.value)} placeholder="2022" className="h-8 text-xs" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">CGPA / Percentage</Label>
+                        <Input value={cgpaPercentage} onChange={(e) => setCgpaPercentage(e.target.value)} placeholder="8.5 / 85%" className="h-8 text-xs" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-border space-y-2">
+                  <Label className="font-bold text-xs text-primary">Prior Work Experience</Label>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Total Experience (Years)</Label>
+                      <Input type="number" value={totalExperienceYears} onChange={(e) => setTotalExperienceYears(e.target.value)} placeholder="3" className="h-8 text-xs font-bold" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Last Employer / Company</Label>
+                      <Input value={prevCompany} onChange={(e) => setPrevCompany(e.target.value)} placeholder="e.g. Acme Tech Solutions" className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Previous Designation</Label>
+                      <Input value={prevDesignation} onChange={(e) => setPrevDesignation(e.target.value)} placeholder="e.g. Senior Software Engineer" className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Duration & Details</Label>
+                      <Input value={prevDuration} onChange={(e) => setPrevDuration(e.target.value)} placeholder="e.g. Jan 2021 - Aug 2023" className="h-8 text-xs" />
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* Tab 5: Bank, Statutory & Salary Breakdown */}
               <TabsContent value="bank" className="space-y-3 pt-3">
                 <div className="grid grid-cols-4 gap-2 text-xs">
                   <div className="space-y-1">
