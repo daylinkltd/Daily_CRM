@@ -13,7 +13,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, Save, User, Users, Landmark, GraduationCap, Briefcase, Calendar, ShieldCheck, MapPin, Phone, Mail } from 'lucide-react';
+import { Loader2, Save, User, Users, Landmark, GraduationCap, Briefcase, Calendar, ShieldCheck, MapPin, Phone, Mail, Plus, Trash2 } from 'lucide-react';
 import { useMemberDirectory } from '@/hooks/use-member-directory';
 import { RichTextArea } from "@/components/ui/rich-textarea";
 
@@ -69,6 +69,9 @@ export function EmployeeProfileOverview({
     father_name: employee.father_name || '',
     mother_name: employee.mother_name || '',
     spouse_name: employee.spouse_name || '',
+    family_details: Array.isArray(employee.family_details) && employee.family_details.length > 0 
+      ? employee.family_details 
+      : [{ name: '', relation: 'Spouse', dob: '', phone: '', isDependant: true }],
     pf_nominee_name: employee.pf_nominee_name || '',
     pf_nominee_relation: employee.pf_nominee_relation || '',
     pf_nominee_dob: employee.pf_nominee_dob || '',
@@ -380,6 +383,113 @@ export function EmployeeProfileOverview({
               <div className="space-y-1.5">
                 <Label className="text-xs">Spouse's Name</Label>
                 <Input value={formData.spouse_name} onChange={(e) => handleChange('spouse_name', e.target.value)} disabled={!canEdit} className="h-9" />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-border space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-foreground text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
+                  <Users className="size-3.5" /> Additional Family Members & Dependants
+                </h4>
+                {canEdit && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-[11px] gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                    onClick={() => {
+                      const updated = [...formData.family_details, { name: '', relation: 'Child', dob: '', phone: '', isDependant: true }];
+                      handleChange('family_details', updated);
+                    }}
+                  >
+                    <Plus className="size-3" /> Add Family Member
+                  </Button>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                {formData.family_details.map((member: any, idx: number) => (
+                  <div key={idx} className="grid grid-cols-12 gap-2 bg-muted/20 p-2.5 rounded-lg items-center text-xs">
+                    <div className="col-span-3">
+                      <Label className="text-[10px] text-muted-foreground block mb-0.5">Full Name</Label>
+                      <Input
+                        placeholder="Member Name"
+                        value={member.name}
+                        disabled={!canEdit}
+                        onChange={(e) => {
+                          const updated = [...formData.family_details];
+                          updated[idx].name = e.target.value;
+                          handleChange('family_details', updated);
+                        }}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <Label className="text-[10px] text-muted-foreground block mb-0.5">Relationship</Label>
+                      <Select
+                        disabled={!canEdit}
+                        value={member.relation}
+                        onValueChange={(val) => {
+                          const updated = [...formData.family_details];
+                          updated[idx].relation = val;
+                          handleChange('family_details', updated);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Relation" /></SelectTrigger>
+                        <SelectContent>
+                          {['Spouse', 'Father', 'Mother', 'Son', 'Daughter', 'Brother', 'Sister', 'Other'].map(r => (
+                            <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-3">
+                      <Label className="text-[10px] text-muted-foreground block mb-0.5">Date of Birth</Label>
+                      <Input
+                        type="date"
+                        value={member.dob || ''}
+                        disabled={!canEdit}
+                        onChange={(e) => {
+                          const updated = [...formData.family_details];
+                          updated[idx].dob = e.target.value;
+                          handleChange('family_details', updated);
+                        }}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-[10px] text-muted-foreground block mb-0.5">Phone Number</Label>
+                      <Input
+                        placeholder="Phone"
+                        value={member.phone || ''}
+                        disabled={!canEdit}
+                        onChange={(e) => {
+                          const updated = [...formData.family_details];
+                          updated[idx].phone = e.target.value;
+                          handleChange('family_details', updated);
+                        }}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    {canEdit && (
+                      <div className="col-span-1 flex justify-end pt-4">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 text-destructive hover:bg-destructive/10"
+                          disabled={formData.family_details.length <= 1 && idx === 0}
+                          onClick={() => {
+                            const updated = formData.family_details.filter((_: any, i: number) => i !== idx);
+                            handleChange('family_details', updated);
+                          }}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 

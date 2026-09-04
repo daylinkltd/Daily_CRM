@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, Briefcase, User, Users, Landmark, GraduationCap } from 'lucide-react';
+import { Loader2, Briefcase, User, Users, Landmark, GraduationCap, Plus, Trash2 } from 'lucide-react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { RichTextArea } from "@/components/ui/rich-textarea";
 
@@ -81,6 +81,9 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
   const [fatherName, setFatherName] = useState('');
   const [motherName, setMotherName] = useState('');
   const [spouseName, setSpouseName] = useState('');
+  const [familyMembers, setFamilyMembers] = useState<{ name: string; relation: string; dob?: string; phone?: string; isDependant?: boolean }[]>([
+    { name: '', relation: 'Spouse', dob: '', phone: '', isDependant: true }
+  ]);
   const [pfNomineeName, setPfNomineeName] = useState('');
   const [pfNomineeRelation, setPfNomineeRelation] = useState('');
   const [pfNomineeShare, setPfNomineeShare] = useState('100');
@@ -275,6 +278,7 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
           father_name: fatherName.trim() || null,
           mother_name: motherName.trim() || null,
           spouse_name: spouseName.trim() || null,
+          family_details: familyMembers.filter(m => m.name.trim()).length > 0 ? familyMembers.filter(m => m.name.trim()) : null,
           pf_nominee_name: pfNomineeName.trim() || null,
           pf_nominee_relation: pfNomineeRelation.trim() || null,
           pf_nominee_share_pct: Number(pfNomineeShare) || 100,
@@ -541,6 +545,97 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
                   <div className="space-y-1.5">
                     <Label className="text-xs">Spouse's Name</Label>
                     <Input value={spouseName} onChange={(e) => setSpouseName(e.target.value)} className="h-9 text-xs" />
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-border space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-bold text-xs text-primary flex items-center gap-1.5">
+                      <Users className="size-3.5" /> Additional Family Members / Dependants
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[11px] gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                      onClick={() => setFamilyMembers([...familyMembers, { name: '', relation: 'Child', dob: '', phone: '', isDependant: true }])}
+                    >
+                      <Plus className="size-3" /> Add Family Member
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                    {familyMembers.map((member, idx) => (
+                      <div key={idx} className="grid grid-cols-12 gap-2 bg-muted/30 p-2 rounded-md items-center text-xs">
+                        <div className="col-span-3">
+                          <Input
+                            placeholder="Member Name"
+                            value={member.name}
+                            onChange={(e) => {
+                              const updated = [...familyMembers];
+                              updated[idx].name = e.target.value;
+                              setFamilyMembers(updated);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <Select
+                            value={member.relation}
+                            onValueChange={(val) => {
+                              const updated = [...familyMembers];
+                              updated[idx].relation = val;
+                              setFamilyMembers(updated);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Relation" /></SelectTrigger>
+                            <SelectContent>
+                              {['Spouse', 'Father', 'Mother', 'Son', 'Daughter', 'Brother', 'Sister', 'Other'].map(r => (
+                                <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="col-span-3">
+                          <Input
+                            type="date"
+                            value={member.dob || ''}
+                            onChange={(e) => {
+                              const updated = [...familyMembers];
+                              updated[idx].dob = e.target.value;
+                              setFamilyMembers(updated);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <Input
+                            placeholder="Phone Number"
+                            value={member.phone || ''}
+                            onChange={(e) => {
+                              const updated = [...familyMembers];
+                              updated[idx].phone = e.target.value;
+                              setFamilyMembers(updated);
+                            }}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="col-span-1 flex justify-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 text-destructive hover:bg-destructive/10"
+                            disabled={familyMembers.length <= 1 && idx === 0}
+                            onClick={() => {
+                              setFamilyMembers(familyMembers.filter((_, i) => i !== idx));
+                            }}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
