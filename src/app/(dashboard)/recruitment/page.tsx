@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { createClient } from '@/lib/supabase/client';
@@ -328,6 +329,16 @@ export default function RecruitmentPage() {
         action={
           canManage && (
             <div className="flex items-center gap-2">
+              <Link href="/recruitment/budgeting">
+                <Button variant="outline" size="sm" className="bg-card font-medium text-xs gap-1.5 border-border">
+                  <Users className="size-4 text-blue-500" /> Headcount Budgeting
+                </Button>
+              </Link>
+              <Link href="/recruitment/interviews">
+                <Button variant="outline" size="sm" className="bg-card font-medium text-xs gap-1.5 border-border">
+                  <UserCheck className="size-4 text-purple-500" /> Interviews & Scorecards
+                </Button>
+              </Link>
               <Button variant="outline" size="sm" onClick={() => setCandModalOpen(true)} className="bg-card font-medium text-xs gap-1.5 border-border">
                 <UserCheck className="size-4 text-emerald-500" /> Add Candidate
               </Button>

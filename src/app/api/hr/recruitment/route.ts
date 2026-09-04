@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: Request) {
   try {
@@ -121,8 +122,10 @@ export async function POST(request: Request) {
 
     if (action === 'CONVERT_TO_EMPLOYEE') {
       const { applicationId } = body;
+      const admin = createAdminClient();
+
       // Fetch application with candidate & job
-      const { data: appRow } = await supabase
+      const { data: appRow } = await admin
         .from('hr_job_applications')
         .select('*, candidate:hr_candidates(*), job:hr_recruitment_jobs(*)')
         .eq('id', applicationId)
@@ -133,16 +136,33 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Candidate application not found' }, { status: 404 });
       }
 
+      // Idempotency Guard: Check if employee already exists for this application
+      const { data: existingEmp } = await admin
+        .from('hr_employees')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .eq('application_id', applicationId)
+        .maybeSingle();
+
+      if (existingEmp) {
+        return NextResponse.json({
+          employee: existingEmp,
+          message: `Candidate already onboarded as ${existingEmp.employee_code}`,
+          alreadyExists: true,
+        });
+      }
+
       const cand = appRow.candidate;
       const job = appRow.job;
 
       // Generate next Employee Code (e.g. EMP-1042)
       const empCode = `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      const { data: emp, error: empErr } = await supabase
+      const { data: emp, error: empErr } = await admin
         .from('hr_employees')
         .insert({
           workspace_id: workspaceId,
+          application_id: applicationId,
           employee_code: empCode,
           department_id: job?.department_id || null,
           joining_date: appRow.offered_doj || job?.expected_doj || new Date().toISOString().split('T')[0],
@@ -157,7 +177,7 @@ export async function POST(request: Request) {
       }
 
       // Update application stage to HIRED
-      await supabase
+      await admin
         .from('hr_job_applications')
         .update({ stage: 'HIRED', stage_changed_at: new Date().toISOString() })
         .eq('id', applicationId);

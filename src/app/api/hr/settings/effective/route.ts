@@ -1,67 +1,125 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
-    const memberId = searchParams.get('memberId');
-    const settingType = searchParams.get('settingType');
+    const effectiveDate = searchParams.get('effectiveDate') || new Date().toISOString().split('T')[0];
 
-    if (!workspaceId || !settingType) {
-      return NextResponse.json({ error: 'workspaceId and settingType are required' }, { status: 400 });
+    if (!workspaceId) {
+      return NextResponse.json({ error: 'workspaceId is required' }, { status: 400 });
     }
 
-    // 1. Fetch employee profile details to get department_id and designation_id if memberId is passed
-    let departmentId: string | null = null;
-    let designationId: string | null = null;
+    const admin = createAdminClient();
 
-    if (memberId) {
-      const { data: profile } = await supabase
-        .from('employee_profiles')
-        .select('department_id, designation_id')
-        .eq('workspace_member_id', memberId)
-        .maybeSingle();
-
-      if (profile) {
-        departmentId = profile.department_id;
-        designationId = profile.designation_id;
-      }
-    }
-
-    // 2. Fetch all matching setting rows for this settingType in the workspace
-    const { data: allSettings, error } = await supabase
-      .from('hr_operational_settings')
+    let { data: rules, error } = await admin
+      .from('hr_statutory_rules')
       .select('*')
       .eq('workspace_id', workspaceId)
-      .eq('setting_type', settingType);
+      .lte('effective_from', effectiveDate)
+      .eq('is_active', true)
+      .order('effective_from', { ascending: false });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const settingsList = allSettings || [];
+    // Seed CA-compliant default statutory rules if none exist yet for this workspace
+    if (!rules || rules.length === 0) {
+      const defaultRules = [
+        {
+          workspace_id: workspaceId,
+          rule_type: 'PF',
+          rule_name: 'Provident Fund (PF Standard)',
+          employee_rate: 12,
+          employer_rate: 12,
+          wage_ceiling: 15000,
+          min_threshold: 0,
+          effective_from: '2026-01-01',
+          is_active: true,
+        },
+        {
+          workspace_id: workspaceId,
+          rule_type: 'ESI',
+          rule_name: 'Employee State Insurance (ESI)',
+          employee_rate: 0.75,
+          employer_rate: 3.25,
+          wage_ceiling: 21000,
+          min_threshold: 0,
+          effective_from: '2026-01-01',
+          is_active: true,
+        },
+        {
+          workspace_id: workspaceId,
+          rule_type: 'PT',
+          rule_name: 'Professional Tax (PT Slab)',
+          employee_rate: 0,
+          employer_rate: 0,
+          wage_ceiling: 0,
+          min_threshold: 15000,
+          effective_from: '2026-01-01',
+          is_active: true,
+        },
+        {
+          workspace_id: workspaceId,
+          rule_type: 'TDS',
+          rule_name: 'Income Tax TDS (New Regime)',
+          employee_rate: 0,
+          employer_rate: 0,
+          wage_ceiling: 700000,
+          min_threshold: 300000,
+          effective_from: '2026-01-01',
+          is_active: true,
+        },
+      ];
 
-    // 3. Fallback resolution chain: Member Override > Designation Override > Department Override > Workspace Default
-    const memberSetting = memberId ? settingsList.find(s => s.scope_type === 'MEMBER' && s.scope_id === memberId) : null;
-    const designationSetting = designationId ? settingsList.find(s => s.scope_type === 'DESIGNATION' && s.scope_id === designationId) : null;
-    const departmentSetting = departmentId ? settingsList.find(s => s.scope_type === 'DEPARTMENT' && s.scope_id === departmentId) : null;
-    const defaultSetting = settingsList.find(s => s.scope_type === 'WORKSPACE_DEFAULT');
+      const { data: seeded } = await admin
+        .from('hr_statutory_rules')
+        .insert(defaultRules)
+        .select('*');
 
-    const resolved = memberSetting || designationSetting || departmentSetting || defaultSetting || null;
+      rules = seeded || [];
+    }
 
-    return NextResponse.json({
-      resolvedScope: resolved ? resolved.scope_type : 'NONE',
-      resolvedScopeId: resolved ? resolved.scope_id : null,
-      settingsJson: resolved ? resolved.settings_json : {},
-      resolutionChain: {
-        member: memberSetting ? memberSetting.settings_json : null,
-        designation: designationSetting ? designationSetting.settings_json : null,
-        department: departmentSetting ? departmentSetting.settings_json : null,
-        workspaceDefault: defaultSetting ? defaultSetting.settings_json : null
-      }
-    });
+    return NextResponse.json({ rules: rules || [] });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { workspaceId, ruleType, ruleName, employeeRate, employerRate, wageCeiling, minThreshold, effectiveFrom } = body;
+
+    if (!workspaceId || !ruleType || !ruleName) {
+      return NextResponse.json({ error: 'workspaceId, ruleType, and ruleName are required' }, { status: 400 });
+    }
+
+    const admin = createAdminClient();
+
+    const { data: ruleRow, error } = await admin
+      .from('hr_statutory_rules')
+      .insert({
+        workspace_id: workspaceId,
+        rule_type: ruleType,
+        rule_name: ruleName,
+        employee_rate: employeeRate ? Number(employeeRate) : 0,
+        employer_rate: employerRate ? Number(employerRate) : 0,
+        wage_ceiling: wageCeiling ? Number(wageCeiling) : 0,
+        min_threshold: minThreshold ? Number(minThreshold) : 0,
+        effective_from: effectiveFrom || new Date().toISOString().split('T')[0],
+        is_active: true,
+      })
+      .select('*')
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ rule: ruleRow });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
