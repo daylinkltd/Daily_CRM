@@ -6,14 +6,15 @@ import {
 } from './image-service';
 
 describe('AI Image Generation & Guardrails Suite', () => {
-  it('TEST 1: sanitizes high-risk trademark words to prevent OpenAI guardrails rejection', () => {
-    const raw = 'Create a commercial photo of a Rolex watch on a marble desk with a Nike sports bag';
+  it('TEST 1: sanitizes HTML/rich-text formatting and whitespace while preserving authentic intent without trick evasion', () => {
+    const raw = '<div><p>Create a sports graphic for Lionel Messi stats and trophies</p></div>\n\n\t   ';
     const sanitized = sanitizePromptForGuardrails(raw);
 
-    expect(sanitized).not.toMatch(/\brolex\b/i);
-    expect(sanitized).not.toMatch(/\bnike\b/i);
-    expect(sanitized).toContain('bespoke luxury handcrafted timepiece');
-    expect(sanitized).toContain('premium athletic performance footwear');
+    expect(sanitized).toBe('Create a sports graphic for Lionel Messi stats and trophies');
+    expect(sanitized).not.toContain('<div>');
+    expect(sanitized).not.toContain('<p>');
+    // Authentic user terms preserved (no evasion tricks)
+    expect(sanitized).toContain('Lionel Messi');
   });
 
   it('TEST 2: converts raw OpenAI guardrails refusal into friendly application error', () => {

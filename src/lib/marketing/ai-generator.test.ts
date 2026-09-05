@@ -18,6 +18,7 @@ import {
   resolveBrandIdentity,
   parseDynamicCreativeIntent,
   resolveVideoIntent,
+  resolveCreativeIntent,
 } from './ai-generator';
 
 describe('Universal AI Marketing Content Generator Suite', () => {
@@ -1523,6 +1524,7 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
         topic: 'weekend pizza offer',
         brandContext: tenantContext,
         selectedAssets: [pizzaLogoAsset],
+        cta: 'Order Now',
       });
 
       // Assert Brand and Creative Type
@@ -1534,7 +1536,7 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       // Assert Culinary Creative Direction
       expect(prompt).toContain('CREATIVE DIRECTION:\nCreate a mouth-watering artisanal culinary visual asset');
       expect(prompt).toContain('VISUAL STYLE:\nArtisanal Culinary Photography.');
-      expect(prompt).toContain('CTA:\n"Order Now"');
+      expect(prompt).toContain('CALL TO ACTION:\nOrder Now');
 
       // STRICT NEGATIVE ASSERTIONS: Must NEVER contain Daylink, CRM, SaaS, AI Automation
       const lower = prompt.toLowerCase();
@@ -1578,6 +1580,7 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
         topic: '2BHK apartment launch poster',
         brandContext: tenantContext,
         selectedAssets: [reLogoAsset],
+        cta: 'Schedule a Tour',
       });
 
       expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM PROPERTY LAUNCH POSTER FOR XYZ PROPERTIES.');
@@ -1585,7 +1588,7 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       expect(prompt).toContain('CREATIVE TYPE:\nProperty Launch Poster');
       expect(prompt).toContain('CREATIVE DIRECTION:\nCreate a breathtaking architectural visual asset');
       expect(prompt).toContain('VISUAL STYLE:\nLuxury Architectural Photography.');
-      expect(prompt).toContain('CTA:\n"Schedule a Tour"');
+      expect(prompt).toContain('CALL TO ACTION:\nSchedule a Tour');
 
       // Zero Daylink / SaaS
       const lower = prompt.toLowerCase();
@@ -1627,13 +1630,14 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
         topic: 'summer collection poster',
         brandContext: tenantContext,
         selectedAssets: [fashionLogoAsset],
+        cta: 'Shop the Collection',
       });
 
       expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM PRODUCT COLLECTION POSTER FOR ABC FASHION STUDIO.');
       expect(prompt).toContain('BRAND:\nABC Fashion Studio');
       expect(prompt).toContain('CREATIVE DIRECTION:\nCreate a high-fashion editorial visual asset');
       expect(prompt).toContain('VISUAL STYLE:\nHigh-Fashion Editorial Lookbook.');
-      expect(prompt).toContain('CTA:\n"Shop the Collection"');
+      expect(prompt).toContain('CALL TO ACTION:\nShop the Collection');
 
       // Zero Daylink / SaaS
       const lower = prompt.toLowerCase();
@@ -1944,6 +1948,232 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       expect(prompt).toContain('Do not redesign, recreate, recolor, distort, stretch, modify, replace, or invent the logo.');
       expect(prompt).not.toContain('/uploads/');
       expect(prompt).not.toContain('localhost');
+    });
+  });
+
+  // =========================================================================
+  // SHARED INTENT RESOLVER & MULTI-TENANT GUARDRAILS INTEGRATION SUITE
+  // =========================================================================
+  describe('Shared Creative Intent Resolver & Guardrails Suite', () => {
+    // 1. "messi stats and trophies"
+    it('INTENT TEST 1: "messi stats and trophies" resolves as Sports Info with ZERO marketing defaults', () => {
+      const input = 'messi stats and trophies';
+      const intent = resolveCreativeIntent(input, null, { platform: 'instagram' });
+
+      expect(intent.subject.toLowerCase()).toContain('messi');
+      expect(intent.creativeType).toBe('Sports Information / Achievement Graphic');
+      expect(intent.objective).toBe('Informational / Sports Showcase');
+      expect(intent.audience).toBeNull();
+      expect(intent.brandContext).toBeNull();
+      expect(intent.factualRequirements).toBe(true);
+      expect(intent.isThirdPartyOrCelebrity).toBe(true);
+
+      const prompt = buildDetailedImagePrompt({
+        topic: input,
+        platforms: ['instagram'],
+      });
+
+      // Assertions on the generated image prompt
+      expect(prompt).toContain('SPORTS INFORMATION / ACHIEVEMENT GRAPHIC');
+      expect(prompt).toMatch(/Lionel Messi|Messi/i);
+      expect(prompt).toMatch(/stats|trophies|achievements/i);
+
+      // Must NOT contain forbidden hardcoded marketing defaults
+      expect(prompt).not.toContain('CREATE A PREMIUM INSTAGRAM MARKETING CREATIVE');
+      expect(prompt).not.toContain('Lead Generation & Signups');
+      expect(prompt).not.toContain('Discerning customers, passionate enthusiasts, quality-focused buyers');
+      expect(prompt).not.toContain('Discover more and experience...');
+      expect(prompt).not.toContain('Daylink');
+      expect(prompt).not.toContain('Shop Now');
+      expect(prompt).not.toContain('Sign up today');
+    });
+
+    // 2. "create an internship poster"
+    it('INTENT TEST 2: "create an internship poster" resolves as Internship / Recruitment Poster', () => {
+      const input = 'create an internship poster';
+      const tenant = { businessName: 'Apex Innovations' };
+      const intent = resolveCreativeIntent(input, tenant, { platform: 'linkedin' });
+
+      expect(intent.creativeType).toBe('Internship / Recruitment Poster');
+      expect(intent.objective).toBe('Recruitment / Hiring');
+      expect(intent.brandContext?.businessName).toBe('Apex Innovations');
+
+      const prompt = buildDetailedImagePrompt({
+        topic: input,
+        platforms: ['linkedin'],
+        brandContext: tenant,
+      });
+
+      expect(prompt).toContain('INTERNSHIP / RECRUITMENT POSTER');
+      expect(prompt).toContain('Apex Innovations');
+      expect(prompt).not.toContain('Lead Generation & Signups');
+      expect(prompt).not.toContain('Discerning customers, passionate enthusiasts, quality-focused buyers');
+      expect(prompt).not.toContain('Daylink');
+    });
+
+    // 3. "promote our restaurant's new pizza"
+    it('INTENT TEST 3: "promote our restaurant\'s new pizza" resolves as Culinary Promotional Poster', () => {
+      const input = "promote our restaurant's new pizza";
+      const tenant = { businessName: 'Bella Napoli Trattoria' };
+      const intent = resolveCreativeIntent(input, tenant, { platform: 'instagram' });
+
+      expect(intent.creativeType).toBe('Culinary Promotional Poster');
+      expect(intent.objective).toBe('Promotion & Sales');
+      expect(intent.brandContext?.businessName).toBe('Bella Napoli Trattoria');
+
+      const prompt = buildDetailedImagePrompt({
+        topic: input,
+        platforms: ['instagram'],
+        brandContext: tenant,
+      });
+
+      expect(prompt).toContain('CULINARY PROMOTIONAL POSTER');
+      expect(prompt).toContain('Bella Napoli Trattoria');
+      expect(prompt.toLowerCase()).toMatch(/pizza|crust|cheese|culinary/);
+      expect(prompt).not.toContain('Daylink');
+      expect(prompt).not.toContain('Discerning customers, passionate enthusiasts, quality-focused buyers');
+    });
+
+    // 4. "announce our office holiday"
+    it('INTENT TEST 4: "announce our office holiday" resolves as Office Holiday Announcement Poster', () => {
+      const input = 'announce our office holiday';
+      const tenant = { businessName: 'CloudScale Technologies' };
+      const intent = resolveCreativeIntent(input, tenant, { platform: 'linkedin' });
+
+      expect(intent.creativeType).toBe('Office Holiday Announcement Poster');
+      expect(intent.objective).toBe('Internal Announcement / Greeting');
+      expect(intent.audience).toBeNull(); // No customer audience for internal announcement
+
+      const prompt = buildDetailedImagePrompt({
+        topic: input,
+        platforms: ['linkedin'],
+        brandContext: tenant,
+      });
+
+      expect(prompt).toContain('OFFICE HOLIDAY ANNOUNCEMENT POSTER');
+      expect(prompt).toContain('CloudScale Technologies');
+      expect(prompt).not.toContain('Lead Generation & Signups');
+      expect(prompt).not.toContain('Discerning customers, passionate enthusiasts, quality-focused buyers');
+      expect(prompt).not.toContain('Daylink');
+      expect(prompt).not.toContain('Shop Now');
+    });
+
+    // 5. "create a SaaS product feature graphic"
+    it('INTENT TEST 5: "create a SaaS product feature graphic" resolves as SaaS Product Feature Graphic', () => {
+      const input = 'create a SaaS product feature graphic';
+      const tenant = { businessName: 'DataPulse Analytics' };
+      const intent = resolveCreativeIntent(input, tenant, { platform: 'twitter' });
+
+      expect(intent.creativeType).toBe('SaaS Product Feature Graphic');
+      expect(intent.objective).toBe('Product Feature Showcase');
+      expect(intent.brandContext?.businessName).toBe('DataPulse Analytics');
+
+      const prompt = buildDetailedImagePrompt({
+        topic: input,
+        platforms: ['twitter'],
+        brandContext: tenant,
+      });
+
+      expect(prompt).toContain('SAAS PRODUCT FEATURE GRAPHIC');
+      expect(prompt).toContain('DataPulse Analytics');
+      expect(prompt).not.toContain('Daylink');
+      expect(prompt).not.toContain('Discerning customers, passionate enthusiasts, quality-focused buyers');
+    });
+
+    // 6. "make an educational post about cybersecurity"
+    it('INTENT TEST 6: "make an educational post about cybersecurity" resolves as Educational Infographic', () => {
+      const input = 'make an educational post about cybersecurity';
+      const intent = resolveCreativeIntent(input, null, { platform: 'linkedin' });
+
+      expect(intent.creativeType).toBe('Educational Infographic');
+      expect(intent.objective).toBe('Educational / Awareness');
+      expect(intent.brandContext).toBeNull();
+
+      const prompt = buildDetailedImagePrompt({
+        topic: input,
+        platforms: ['linkedin'],
+      });
+
+      expect(prompt).toContain('EDUCATIONAL INFOGRAPHIC');
+      expect(prompt.toLowerCase()).toMatch(/cybersecurity|security|data|infographic/);
+      expect(prompt).not.toContain('Lead Generation & Signups');
+      expect(prompt).not.toContain('Discerning customers, passionate enthusiasts, quality-focused buyers');
+      expect(prompt).not.toContain('Daylink');
+      expect(prompt).not.toContain('Buy Now');
+    });
+
+    // 7. "create a real-estate property poster"
+    it('INTENT TEST 7: "create a real-estate property poster" resolves as Real Estate Poster', () => {
+      const input = 'create a real-estate property poster';
+      const tenant = { businessName: 'Skyline Luxury Living' };
+      const intent = resolveCreativeIntent(input, tenant, { platform: 'instagram' });
+
+      expect(intent.creativeType).toBe('Real Estate Poster');
+      expect(intent.objective).toBe('Property Showcase & Inquiries');
+      expect(intent.brandContext?.businessName).toBe('Skyline Luxury Living');
+
+      const prompt = buildDetailedImagePrompt({
+        topic: input,
+        platforms: ['instagram'],
+        brandContext: tenant,
+      });
+
+      expect(prompt).toContain('REAL ESTATE POSTER');
+      expect(prompt).toContain('Skyline Luxury Living');
+      expect(prompt.toLowerCase()).toMatch(/property|architecture|residence|interior|facade/);
+      expect(prompt).not.toContain('Daylink');
+      expect(prompt).not.toContain('Discerning customers, passionate enthusiasts, quality-focused buyers');
+    });
+
+    // 8. Multi-tenant cross-isolation test (Tenant A vs Tenant B)
+    it('INTENT TEST 8: ensures Tenant A brand NEVER leaks into Tenant B prompts', () => {
+      const tenantA = {
+        businessName: 'Daylink Tech Labs',
+        brandVoice: 'Fast-paced enterprise tech',
+      };
+      const tenantB = {
+        businessName: 'Mama Mia Pizzeria',
+        brandVoice: 'Warm authentic Italian dining',
+      };
+
+      const promptA = buildDetailedImagePrompt({
+        topic: 'announce our office holiday',
+        brandContext: tenantA,
+        platforms: ['linkedin'],
+      });
+
+      const promptB = buildDetailedImagePrompt({
+        topic: 'announce our office holiday',
+        brandContext: tenantB,
+        platforms: ['instagram'],
+      });
+
+      // Tenant A Prompt assertions
+      expect(promptA).toContain('Daylink Tech Labs');
+      expect(promptA).not.toContain('Mama Mia Pizzeria');
+      expect(promptA).not.toContain('pizza');
+
+      // Tenant B Prompt assertions
+      expect(promptB).toContain('Mama Mia Pizzeria');
+      expect(promptB).not.toContain('Daylink Tech Labs');
+      expect(promptB).not.toContain('Daylink');
+    });
+
+    // 9. Pre-flight QA validation test
+    it('INTENT TEST 9: validates and rejects hardcoded defaults or unrequested marketing artifacts', () => {
+      const badPromptWithMarketingDefaults = `
+        CREATE A PREMIUM INSTAGRAM MARKETING CREATIVE
+        Subject: Messi stats
+        Objective: Lead Generation & Signups
+        Target Audience: Discerning customers, passionate enthusiasts, quality-focused buyers
+        CTA: Discover more and experience...
+      `;
+
+      const qaResult = validateCreativePromptQA(badPromptWithMarketingDefaults, {
+        topic: 'messi stats and trophies',
+      });
+
+      expect(qaResult.reasons?.some((r: string) => r.toLowerCase().includes('hardcoded marketing default'))).toBe(true);
     });
   });
 });

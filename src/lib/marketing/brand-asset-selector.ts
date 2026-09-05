@@ -29,8 +29,8 @@ export interface SelectedAssetReference {
   sub_category?: string;
   public_url: string;
   description?: string;
-  usageInstruction: string;
-  relevanceScore: number;
+  usageInstruction?: string;
+  relevanceScore?: number;
 }
 
 export interface BrandProfileData {

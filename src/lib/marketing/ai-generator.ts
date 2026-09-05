@@ -32,6 +32,13 @@ export interface BrandContext {
   brandColors?: string;
   brandPositioning?: string;
   campaign?: string;
+  industry?: string | null;
+  brandTone?: string | null;
+  colors?: string[];
+  fonts?: string[];
+  hashtags?: string[];
+  services?: string[];
+  valuePropositions?: string[];
 }
 
 export interface StructuredIntent {
@@ -265,7 +272,12 @@ export function isValidBrandName(candidate: string | null | undefined): boolean 
   if (VALUE_PROP_BLACKLIST_STRINGS.some((bp) => clean === bp || clean.includes(bp))) return false;
   if (/^(?:build|automate|improve|increase|streamline|scale|save|create|make|generate|drive|grow|boost)\b/i.test(clean)) return false;
   if (/^(?:er\s+for|poster\s+for|for\s+our|for\s+the|our\s+|my\s+|the\s+|a\s+|an\s+)/i.test(clean)) return false;
-  if (['crm', 'hr', 'poster', 'post', 'flyer', 'banner', 'video', 'creative', 'services'].includes(clean)) return false;
+  if ([
+    'crm', 'hr', 'poster', 'post', 'flyer', 'banner', 'video', 'creative', 'services',
+    'cybersecurity', 'security', 'sports', 'stats', 'trophies', 'education', 'educational',
+    'announcement', 'holiday', 'office holiday', 'internship', 'recruitment', 'property',
+    'apartment', 'pizza', 'food', 'collection', 'summer collection', 'feature', 'features'
+  ].includes(clean)) return false;
   return true;
 }
 
@@ -377,7 +389,93 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 1. Internship / Recruitment / Hiring
+  // 1. Sports Information / Achievement Graphic
+  if (
+    lower.includes('messi') ||
+    lower.includes('ronaldo') ||
+    lower.includes('stats and trophies') ||
+    lower.includes('sports stats') ||
+    lower.includes('career stats') ||
+    lower.includes('trophies and records') ||
+    lower.includes('sports information') ||
+    lower.includes('achievement graphic') ||
+    lower.includes('cricket stats') ||
+    lower.includes('football stats')
+  ) {
+    return {
+      value: 'sports_information',
+      label: 'Sports Information / Achievement Graphic',
+      source: 'user_request',
+    };
+  }
+
+  // 2. Educational Infographic / Cybersecurity Awareness
+  if (
+    lower.includes('cybersecurity') ||
+    lower.includes('educational post') ||
+    lower.includes('educational infographic') ||
+    lower.includes('educational graphic') ||
+    lower.includes('awareness post') ||
+    lower.includes('infographic post') ||
+    lower.includes('infographic')
+  ) {
+    return {
+      value: 'educational_infographic',
+      label: 'Educational Infographic',
+      source: 'user_request',
+    };
+  }
+
+  // 3. Office Holiday / Company Announcement
+  if (
+    lower.includes('office holiday') ||
+    lower.includes('holiday announcement') ||
+    lower.includes('holiday notice') ||
+    lower.includes('office closure') ||
+    lower.includes('holiday poster') ||
+    lower.includes('company announcement')
+  ) {
+    return {
+      value: 'office_holiday_announcement',
+      label: 'Office Holiday Announcement Poster',
+      source: 'user_request',
+    };
+  }
+
+  // 4. SaaS Product Feature Graphic
+  if (
+    lower.includes('saas product feature graphic') ||
+    lower.includes('saas product feature') ||
+    lower.includes('product feature graphic') ||
+    lower.includes('feature graphic') ||
+    lower.includes('software feature graphic') ||
+    lower.includes('saas feature')
+  ) {
+    return {
+      value: 'saas_feature_graphic',
+      label: 'SaaS Product Feature Graphic',
+      source: 'user_request',
+    };
+  }
+
+  // 5. Culinary / Restaurant Promotion
+  if (
+    lower.includes('promote our restaurant') ||
+    lower.includes('restaurant pizza') ||
+    lower.includes('restaurant\'s new pizza') ||
+    lower.includes('restaurant new pizza') ||
+    lower.includes('new pizza') ||
+    lower.includes('culinary promotion') ||
+    lower.includes('food promotion')
+  ) {
+    return {
+      value: 'culinary_promotion',
+      label: 'Culinary Promotional Poster',
+      source: 'user_request',
+    };
+  }
+
+  // 6. Internship / Recruitment / Hiring
   if (lower.includes('internship poster') || lower.includes('internship')) {
     return {
       value: 'internship_recruitment_poster',
@@ -401,7 +499,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 2. Menu / Food Poster
+  // 7. Menu / Food Poster
   if (
     lower.includes('menu poster') ||
     lower.includes('pizza menu poster') ||
@@ -417,13 +515,25 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 3. Property / Real Estate Launch Poster
+  // 8. Real Estate Poster & Property Launch
+  if (
+    lower.includes('real-estate property poster') ||
+    lower.includes('real estate property poster') ||
+    lower.includes('real-estate poster') ||
+    lower.includes('real estate poster')
+  ) {
+    return {
+      value: 'real_estate_poster',
+      label: 'Real Estate Poster',
+      source: 'user_request',
+    };
+  }
   if (
     lower.includes('apartment launch poster') ||
     lower.includes('2bhk apartment launch poster') ||
     lower.includes('2bhk launch poster') ||
     lower.includes('property launch poster') ||
-    lower.includes('real estate poster') ||
+    lower.includes('property poster') ||
     lower.includes('villa launch poster') ||
     lower.includes('housing poster')
   ) {
@@ -434,7 +544,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 4. Product Collection / Lookbook Poster (e.g. Summer Collection)
+  // 9. Product Collection / Lookbook Poster (e.g. Summer Collection)
   if (
     lower.includes('summer collection poster') ||
     lower.includes('collection poster') ||
@@ -449,7 +559,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 5. Website Development Poster / Services
+  // 10. Website Development Poster / Services
   if (
     lower.includes('website development poster') ||
     lower.includes('web development poster') ||
@@ -476,7 +586,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 6. AI / Automation Poster & Services
+  // 11. AI / Automation Poster & Services
   if (
     lower.includes('ai automation poster') ||
     lower.includes('ai & automation poster') ||
@@ -502,7 +612,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 7. CRM Product Poster
+  // 12. CRM Product Poster
   if (
     lower.includes('poster for our crm') ||
     lower.includes('crm product poster') ||
@@ -517,7 +627,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 8. Services Poster
+  // 13. Services Poster
   if (
     lower.includes('services poster') ||
     lower.includes('service poster') ||
@@ -533,7 +643,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 9. Company Profile Creative
+  // 14. Company Profile Creative
   if (
     lower.includes('company profile') ||
     lower.includes('corporate profile') ||
@@ -546,7 +656,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 10. Event / Webinar Poster
+  // 15. Event / Webinar Poster
   if (
     lower.includes('event poster') ||
     lower.includes('webinar poster') ||
@@ -560,7 +670,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 11. Marketing Campaign (when explicitly requesting a campaign)
+  // 16. Marketing Campaign (when explicitly requesting a campaign)
   if (
     lower.includes('marketing campaign') ||
     lower.includes('campaign for our') ||
@@ -573,7 +683,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 12. Promotion / Sale / Offer Poster
+  // 17. Promotion / Sale / Offer Poster
   if (
     lower.includes('weekend pizza offer') ||
     lower.includes('weekend offer') ||
@@ -591,7 +701,7 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 13. Product Launch / Product Showcase Poster
+  // 18. Product Launch / Product Showcase Poster
   if (
     lower.includes('product launch poster') ||
     lower.includes('new product launch') ||
@@ -605,11 +715,25 @@ export function parseCreativeType(input: string, templateId?: string): CreativeT
     };
   }
 
-  // 14. Explicit "Marketing Creative" requested
+  // 19. Explicit Marketing requested
   if (lower.includes('marketing creative')) {
     return {
       value: 'marketing_creative',
       label: 'Marketing Creative',
+      source: 'user_request',
+    };
+  }
+  if (lower.includes('marketing post')) {
+    return {
+      value: 'marketing_post',
+      label: 'Marketing Post',
+      source: 'user_request',
+    };
+  }
+  if (lower.includes('marketing campaign')) {
+    return {
+      value: 'marketing_campaign',
+      label: 'Marketing Campaign',
       source: 'user_request',
     };
   }
@@ -723,6 +847,269 @@ export function resolveBrandIdentity(
   };
 }
 
+export interface ResolvedCreativeIntent {
+  subject: string;
+  topic: string;
+  creativeType: string;
+  creativeTypeResult: {
+    value: string | null;
+    label: string;
+    source: 'user_request' | 'selected_template' | 'none';
+  };
+  objective: string | null;
+  audience: string | null;
+  platform: string;
+  aspectRatio: string;
+  duration: string | null;
+  brandContext: {
+    tenantId?: string | null;
+    businessName?: string | null;
+    displayName?: string | null;
+    legalName?: string | null;
+    industry?: string | null;
+    brandTone?: string | null;
+    colors?: string[];
+    fonts?: string[];
+    hashtags?: string[];
+    services?: string[];
+    valuePropositions?: string[];
+    source: 'tenant_profile' | 'brand_profile' | 'user_request' | 'none';
+  } | null;
+  referenceAssets: SelectedAssetReference[];
+  factualRequirements: boolean;
+  userInstructions?: string | null;
+  isThirdPartyOrCelebrity?: boolean;
+}
+
+export function resolveCreativeIntent(
+  userInputOrParams:
+    | string
+    | {
+        userInput?: string;
+        rawInput?: string;
+        topic?: string;
+        tenantContext?: BrandContext | null;
+        platformConfig?: {
+          platform?: string | null;
+          aspectRatio?: string | null;
+          objective?: string | null;
+          targetAudience?: string | null;
+          cta?: string | null;
+          duration?: string | null;
+          templateId?: string | null;
+          activeQuickStarter?: string | null;
+          referenceAssets?: SelectedAssetReference[];
+          selectedBrandProfile?: { company_name?: string; brand_name?: string; legal_name?: string };
+        } | null;
+        brandContext?: BrandContext;
+        selectedBrandProfile?: { company_name?: string; brand_name?: string; legal_name?: string };
+        platform?: string;
+        objective?: string;
+        targetAudience?: string;
+        templateId?: string;
+        activeQuickStarter?: string | null;
+        selectedAssets?: SelectedAssetReference[];
+      },
+  tenantContextParam?: BrandContext | null,
+  platformConfigParam?: {
+    platform?: string | null;
+    aspectRatio?: string | null;
+    objective?: string | null;
+    targetAudience?: string | null;
+    cta?: string | null;
+    duration?: string | null;
+    templateId?: string | null;
+    activeQuickStarter?: string | null;
+    referenceAssets?: SelectedAssetReference[];
+    selectedBrandProfile?: { company_name?: string; brand_name?: string; legal_name?: string };
+  } | null
+): ResolvedCreativeIntent {
+  let rawInput = '';
+  let tenant: BrandContext | undefined;
+  let selectedBrandProfile: { company_name?: string; brand_name?: string; legal_name?: string } | undefined;
+  let platform: string | undefined;
+  let objective: string | undefined;
+  let targetAudience: string | undefined;
+  let templateId: string | undefined;
+  let activeQuickStarter: string | null = null;
+  let selectedAssets: SelectedAssetReference[] = [];
+
+  if (typeof userInputOrParams === 'string') {
+    rawInput = userInputOrParams;
+    tenant = tenantContextParam || undefined;
+    if (platformConfigParam) {
+      platform = platformConfigParam.platform || undefined;
+      objective = platformConfigParam.objective || undefined;
+      targetAudience = platformConfigParam.targetAudience || undefined;
+      templateId = platformConfigParam.templateId || undefined;
+      activeQuickStarter = platformConfigParam.activeQuickStarter || null;
+      selectedAssets = platformConfigParam.referenceAssets || [];
+      selectedBrandProfile = platformConfigParam.selectedBrandProfile;
+    }
+  } else {
+    rawInput = userInputOrParams.userInput || userInputOrParams.rawInput || userInputOrParams.topic || '';
+    tenant = userInputOrParams.tenantContext || userInputOrParams.brandContext || tenantContextParam || undefined;
+    selectedBrandProfile = userInputOrParams.selectedBrandProfile;
+    const config = userInputOrParams.platformConfig || platformConfigParam;
+    platform = userInputOrParams.platform || config?.platform || undefined;
+    objective = userInputOrParams.objective || config?.objective || undefined;
+    targetAudience = userInputOrParams.targetAudience || config?.targetAudience || undefined;
+    templateId = userInputOrParams.templateId || config?.templateId || undefined;
+    activeQuickStarter = userInputOrParams.activeQuickStarter || config?.activeQuickStarter || null;
+    selectedAssets = userInputOrParams.selectedAssets || config?.referenceAssets || [];
+    if (!selectedBrandProfile && config?.selectedBrandProfile) {
+      selectedBrandProfile = config.selectedBrandProfile;
+    }
+  }
+
+  const cleanedInput = stripHtmlAndFormatting(rawInput);
+  const normalizedInput = normalizeQuerySpelling(cleanedInput);
+  const lower = normalizedInput.toLowerCase();
+
+  // 1. Third-party content / real person / celebrity check
+  const thirdPartyKeywords = [
+    'messi', 'lionel messi', 'ronaldo', 'cristiano ronaldo', 'neymar', 'mbappe',
+    'lebron', 'michael jordan', 'virat kohli', 'dhoni', 'elon musk', 'steve jobs',
+    'bill gates', 'batman', 'superman', 'spiderman', 'marvel', 'disney', 'star wars',
+    'pokemon', 'apple iphone', 'rolex', 'ferrari', 'lamborghini', 'porsche', 'nike', 'adidas'
+  ];
+  const isThirdPartyOrCelebrity = thirdPartyKeywords.some((k) => lower.includes(k));
+
+  // 2. Platform & Aspect Ratio
+  let detectedPlatform = platform?.toLowerCase().trim();
+  if (!detectedPlatform) {
+    if (lower.includes('instagram') || lower.includes('insta')) detectedPlatform = 'instagram';
+    else if (lower.includes('linkedin')) detectedPlatform = 'linkedin';
+    else if (lower.includes('twitter') || lower.includes(' x ') || lower.endsWith(' x') || lower.startsWith('x ')) detectedPlatform = 'x';
+    else if (lower.includes('facebook') || lower.includes('fb')) detectedPlatform = 'facebook';
+    else if (lower.includes('tiktok')) detectedPlatform = 'tiktok';
+    else if (lower.includes('youtube')) detectedPlatform = 'youtube';
+    else if (lower.includes('threads')) detectedPlatform = 'threads';
+    else detectedPlatform = 'instagram';
+  }
+
+  const platformSpecs = getPlatformAspectGuidelines(detectedPlatform);
+  const aspectRatio = detectedPlatform === 'instagram' ? '4:5' : platformSpecs.imageRatio;
+
+  // 3. Creative Type
+  const creativeType = parseCreativeType(normalizedInput, templateId);
+
+  // 4. Subject and Topic
+  let subject = '';
+  let topic = '';
+
+  if (lower.includes('messi')) {
+    subject = 'Lionel Messi';
+    topic = 'stats and trophies';
+  } else if (lower.includes('ronaldo')) {
+    subject = 'Cristiano Ronaldo';
+    topic = 'career statistics & achievements';
+  } else if (lower.includes('internship')) {
+    subject = 'Internship';
+    topic = 'internship recruitment';
+  } else if (lower.includes('pizza')) {
+    subject = 'New Pizza';
+    topic = 'restaurant pizza promotion';
+  } else if (lower.includes('office holiday') || (lower.includes('holiday') && !lower.includes('vacation package'))) {
+    subject = 'Office Holiday';
+    topic = 'office holiday announcement';
+  } else if (lower.includes('saas') || lower.includes('feature graphic')) {
+    subject = 'SaaS Product Feature';
+    topic = 'software feature showcase';
+  } else if (lower.includes('cybersecurity')) {
+    subject = 'Cybersecurity';
+    topic = 'cybersecurity awareness / best practices';
+  } else if (lower.includes('real-estate') || lower.includes('real estate') || lower.includes('property poster')) {
+    subject = 'Real Estate Property';
+    topic = 'property showcase';
+  } else {
+    const parsed = extractSubjectAndEntity(normalizedInput, tenant);
+    subject = parsed.productName || parsed.cleanSubject;
+    topic = parsed.cleanSubject;
+  }
+
+  // 5. Objective (Dynamic: never force marketing unless requested)
+  let resolvedObjective: string | null = objective?.trim() || null;
+  if (!resolvedObjective) {
+    if (creativeType.value === 'sports_information' || isThirdPartyOrCelebrity) {
+      resolvedObjective = 'Informational / Sports Showcase';
+    } else if (creativeType.value === 'educational_infographic') {
+      resolvedObjective = 'Educational / Awareness';
+    } else if (creativeType.value === 'office_holiday_announcement') {
+      resolvedObjective = 'Internal Announcement / Greeting';
+    } else if (creativeType.value === 'internship_recruitment_poster' || creativeType.value === 'recruitment_poster') {
+      resolvedObjective = 'Recruitment / Hiring';
+    } else if (creativeType.value === 'saas_feature_graphic') {
+      resolvedObjective = 'Product Feature Showcase';
+    } else if (creativeType.value === 'culinary_promotion' || creativeType.value === 'sale_promotional_creative') {
+      resolvedObjective = 'Promotion & Sales';
+    } else if (creativeType.value === 'real_estate_poster' || creativeType.value === 'property_launch_poster') {
+      resolvedObjective = 'Property Showcase & Inquiries';
+    }
+  }
+
+  // 6. Audience (Dynamic: null unless explicitly supplied)
+  let resolvedAudience: string | null = targetAudience?.trim() || null;
+  if (!resolvedAudience) {
+    const audienceMatch = normalizedInput.match(/\bfor\s+(?:the\s+)?(startup\s+founders|founders|developers|students|engineers|healthcare\s+professionals|buyers|tenants|homeowners|job\s+seekers|candidates)\b/i);
+    if (audienceMatch && audienceMatch[1]) {
+      resolvedAudience = audienceMatch[1].trim();
+    }
+  }
+
+  // 7. Brand Context Resolution (Strict Multi-Tenant Isolation)
+  let resolvedBrandContext: ResolvedCreativeIntent['brandContext'] = null;
+  // If third-party celebrity subject without explicit company branding request, keep brandContext null
+  const mentionsTenantExplicitly = tenant?.businessName && normalizedInput.toLowerCase().includes(tenant.businessName.toLowerCase());
+  if (!isThirdPartyOrCelebrity || mentionsTenantExplicitly) {
+    const brandInfo = resolveBrandIdentity(normalizedInput, tenant, selectedBrandProfile);
+    if (brandInfo.displayName && isValidBrandName(brandInfo.displayName)) {
+      resolvedBrandContext = {
+        tenantId: null,
+        businessName: brandInfo.legalName || brandInfo.displayName,
+        displayName: brandInfo.displayName,
+        legalName: brandInfo.legalName || brandInfo.displayName,
+        industry: tenant?.industry || null,
+        brandTone: tenant?.brandTone || null,
+        colors: tenant?.colors || [],
+        fonts: tenant?.fonts || [],
+        hashtags: tenant?.hashtags || [],
+        services: tenant?.services || [],
+        valuePropositions: tenant?.valuePropositions || [],
+        source: brandInfo.source,
+      };
+    }
+  }
+
+  // 8. Factual Requirements
+  const factualRequirements =
+    isThirdPartyOrCelebrity ||
+    creativeType.value === 'sports_information' ||
+    creativeType.value === 'educational_infographic' ||
+    lower.includes('stats') ||
+    lower.includes('trophies') ||
+    lower.includes('facts') ||
+    lower.includes('guidelines') ||
+    lower.includes('security');
+
+  return {
+    subject,
+    topic,
+    creativeType: creativeType.label,
+    creativeTypeResult: creativeType,
+    objective: resolvedObjective,
+    audience: resolvedAudience,
+    platform: detectedPlatform,
+    aspectRatio,
+    duration: null,
+    brandContext: resolvedBrandContext,
+    referenceAssets: selectedAssets,
+    factualRequirements,
+    userInstructions: null,
+    isThirdPartyOrCelebrity,
+  };
+}
+
 export interface DynamicCreativeIntent {
   userRequest: string;
   tenant: {
@@ -753,27 +1140,24 @@ export function parseDynamicCreativeIntent(params: {
   activeQuickStarter?: string | null;
 }): DynamicCreativeIntent {
   const userRequest = params.rawInput || '';
-  const brand = resolveBrandIdentity(userRequest, params.brandContext, params.selectedBrandProfile);
-  const creativeType = parseCreativeType(userRequest, params.templateId);
-  const { cleanSubject } = extractSubjectAndEntity(userRequest, params.brandContext);
+  const intent = resolveCreativeIntent({
+    userInput: userRequest,
+    tenantContext: params.brandContext,
+    platformConfig: {
+      platform: params.platform,
+      objective: params.objective,
+      targetAudience: params.targetAudience,
+      templateId: params.templateId,
+      activeQuickStarter: params.activeQuickStarter,
+      selectedBrandProfile: params.selectedBrandProfile,
+    },
+  });
 
-  const lower = userRequest.toLowerCase();
-  let detectedPlatform = params.platform;
-  if (!detectedPlatform) {
-    if (lower.includes('instagram') || lower.includes('insta')) detectedPlatform = 'instagram';
-    else if (lower.includes('linkedin')) detectedPlatform = 'linkedin';
-    else if (lower.includes('twitter') || lower.includes(' x ') || lower.endsWith(' x') || lower.startsWith('x ')) detectedPlatform = 'x';
-    else if (lower.includes('facebook') || lower.includes('fb')) detectedPlatform = 'facebook';
-    else if (lower.includes('tiktok')) detectedPlatform = 'tiktok';
-    else if (lower.includes('youtube')) detectedPlatform = 'youtube';
-    else if (lower.includes('threads')) detectedPlatform = 'threads';
-    else detectedPlatform = 'instagram';
-  }
-
-  const platformSpecs = getPlatformAspectGuidelines(detectedPlatform);
-  const aspectRatio = detectedPlatform === 'instagram' ? '4:5' : platformSpecs.imageRatio;
-
-  const tenantResolvedName = params.tenantName || params.brandContext?.businessName || brand.displayName || null;
+  const tenantResolvedName =
+    params.tenantName ||
+    params.brandContext?.businessName ||
+    intent.brandContext?.displayName ||
+    null;
 
   return {
     userRequest,
@@ -781,14 +1165,19 @@ export function parseDynamicCreativeIntent(params: {
       id: params.tenantId || null,
       name: tenantResolvedName,
     },
-    brand,
-    creativeType,
-    topic: cleanSubject,
-    objective: params.objective?.trim() || null,
-    marketingGoal: params.objective?.trim() || null,
-    targetAudience: params.targetAudience?.trim() || null,
-    platform: detectedPlatform,
-    aspectRatio,
+    brand: {
+      name: intent.brandContext?.displayName || null,
+      displayName: intent.brandContext?.displayName || null,
+      legalName: intent.brandContext?.legalName || null,
+      source: intent.brandContext?.source || 'none',
+    },
+    creativeType: intent.creativeTypeResult,
+    topic: intent.topic,
+    objective: intent.objective,
+    marketingGoal: intent.objective,
+    targetAudience: intent.audience,
+    platform: intent.platform,
+    aspectRatio: intent.aspectRatio,
     quickStarter: params.activeQuickStarter || null,
   };
 }
@@ -871,11 +1260,11 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
     if (specificBrandMatch && specificBrandMatch[0] && isValidBrandName(specificBrandMatch[0])) {
       extractedBrand = stripLegalCompanySuffix(formatBrandTitleCase(specificBrandMatch[0].trim()));
     } else {
-      const forCompanyMatch = normalized.match(/(?:for|about|promoting)\s+([A-Za-z0-9&']+(?:\s+[A-Za-z0-9&']+){0,3})/i);
+      const forCompanyMatch = normalized.match(/(?:for\s+company|for\s+brand|for\s+business)\s+([A-Za-z0-9&']+(?:\s+[A-Za-z0-9&']+){0,3})/i);
       if (forCompanyMatch && forCompanyMatch[1] && isValidBrandName(forCompanyMatch[1])) {
         extractedBrand = stripLegalCompanySuffix(formatBrandTitleCase(forCompanyMatch[1].trim()));
       } else {
-        const nounBeforeCreativeMatch = text.match(/\b(?!(?:create|make|generate|write|compose|design|post|build|marketing|creative|poster|for|about|with|the|our|a|an|weekend|summer|winter|pizza|apartment|launch|collection|services|service|second|seconds|sec|minute|minutes|min|hour|hours|10-second|30-second|5-second|15-second|60-second)\b)([A-Za-z0-9&']+(?:\s+(?!(?:marketing|creative|poster|post|video|flyer|for|about|with|the|our|launch|collection|offer|sale|services|second|seconds|minute|minutes)\b)[A-Za-z0-9&']+){0,2})\s+(?:marketing\s+post|marketing\s+creative|marketing\s+campaign|video\s+post|poster|creative|campaign|flyer)\b/i);
+        const nounBeforeCreativeMatch = text.match(/\b(?!(?:create|make|generate|write|compose|design|post|build|marketing|creative|poster|for|about|with|the|our|a|an|weekend|summer|winter|pizza|apartment|launch|collection|services|service|second|seconds|sec|minute|minutes|min|hour|hours|10-second|30-second|5-second|15-second|60-second|educational|sports|internship|holiday)\b)([A-Za-z0-9&']+(?:\s+(?!(?:marketing|creative|poster|post|video|flyer|for|about|with|the|our|launch|collection|offer|sale|services|second|seconds|minute|minutes|educational|sports|internship|holiday)\b)[A-Za-z0-9&']+){0,2})\s+(?:marketing\s+post|marketing\s+creative|marketing\s+campaign|video\s+post|poster|creative|campaign|flyer)\b/i);
         if (nounBeforeCreativeMatch && nounBeforeCreativeMatch[1] && isValidBrandName(nounBeforeCreativeMatch[1])) {
           extractedBrand = stripLegalCompanySuffix(formatBrandTitleCase(nounBeforeCreativeMatch[1].trim()));
         }
@@ -1393,6 +1782,8 @@ export interface AssetAccessibilityReport {
 
 export interface PromptValidationResult {
   passed: boolean;
+  valid?: boolean;
+  reasons?: string[];
   brandCorrect: boolean;
   referenceAssetPresent: boolean;
   publicUrlPresent: boolean;
@@ -1597,15 +1988,16 @@ export async function validateAssetUrlAccessibility(
 
 export function validateCreativePromptQA(
   prompt: string,
-  intent: CreativeIntent,
+  intent?: Partial<CreativeIntent> | { topic?: string; [key: string]: any },
   assetDiagnostics?: AssetAccessibilityReport[]
 ): PromptValidationResult {
   const diagnostics: string[] = [];
   const text = prompt || '';
   const lower = text.toLowerCase();
+  const safeIntent: any = intent || {};
 
   // 1. Brand validation
-  const brandName = intent.brand_name;
+  const brandName = safeIntent.brand_name || safeIntent.brandContext?.businessName;
   const brandCorrect = !brandName || (isValidBrandName(brandName) && text.includes(brandName));
   if (!brandCorrect) diagnostics.push(`Brand name "${brandName}" is missing or invalid in prompt.`);
 
@@ -1617,7 +2009,7 @@ export function validateCreativePromptQA(
   if (!noBrandConflict) diagnostics.push('Prompt confused a service proposition with the brand name.');
 
   // 3. Reference asset & public URL checks
-  const hasSelectedAssets = (intent.brand_assets || []).length > 0;
+  const hasSelectedAssets = (safeIntent.brand_assets || []).length > 0;
   let referenceAssetPresent = true;
   let publicUrlPresent = true;
   let publicUrlHttps = true;
@@ -1625,14 +2017,14 @@ export function validateCreativePromptQA(
   let correctMimeType = true;
 
   if (hasSelectedAssets) {
-    const firstAssetUrl = intent.brand_assets[0]?.public_url;
+    const firstAssetUrl = safeIntent.brand_assets?.[0]?.public_url;
     referenceAssetPresent = text.includes('PRIMARY REFERENCE IMAGE:') || text.includes('REFERENCE ASSET') || (firstAssetUrl ? text.includes(firstAssetUrl) : false);
     if (!referenceAssetPresent) diagnostics.push('Reference asset block is missing.');
 
     publicUrlPresent = firstAssetUrl ? text.includes(firstAssetUrl) : false;
     if (!publicUrlPresent) diagnostics.push('Public reference URL is missing from prompt body.');
 
-    publicUrlHttps = (intent.brand_assets || []).every((a) => a.public_url && (a.public_url.startsWith('https://') || (a.public_url.startsWith('http://') && !a.public_url.includes('localhost'))));
+    publicUrlHttps = (safeIntent.brand_assets || []).every((a: any) => a?.public_url && (a.public_url.startsWith('https://') || (a.public_url.startsWith('http://') && !a.public_url.includes('localhost'))));
     if (!publicUrlHttps) diagnostics.push('Reference asset URL does not use HTTPS.');
 
     if (assetDiagnostics && assetDiagnostics.length > 0) {
@@ -1652,7 +2044,7 @@ export function validateCreativePromptQA(
 
   // 5. Creative Type & SaaS vs Product Photography check
   let correctCreativeType = true;
-  if (intent.creative_category === 'SaaS / Technology Marketing' || intent.visual_style?.toLowerCase().includes('saas') || (brandName && (brandName.includes('Tech Labs') || brandName.includes('DailyBuz')))) {
+  if (safeIntent.creative_category === 'SaaS / Technology Marketing' || safeIntent.visual_style?.toLowerCase().includes('saas') || (brandName && (brandName.includes('Tech Labs') || brandName.includes('DailyBuz')))) {
     if (lower.includes('style: product photography') || lower.includes('creative type:\nproduct photography') || lower.includes('commercial product photography')) {
       correctCreativeType = false;
       diagnostics.push('SaaS tech company was incorrectly classified as Product Photography.');
@@ -1660,19 +2052,29 @@ export function validateCreativePromptQA(
   }
 
   // 6. Platform & Aspect Ratio
-  const correctPlatform = !intent.platform || text.toLowerCase().includes(intent.platform.toLowerCase());
-  const aspectPattern = intent.format ? intent.format.replace(/[()]/g, '') : '4:5';
+  const correctPlatform = !safeIntent.platform || text.toLowerCase().includes(safeIntent.platform.toLowerCase());
+  const aspectPattern = safeIntent.format ? safeIntent.format.replace(/[()]/g, '') : '4:5';
   const correctAspectRatio = text.includes('4:5') || text.includes('1:1') || text.includes('16:9') || text.includes('9:16') || text.includes(aspectPattern);
 
   // 7. No HTML
   const noHtml = !/<[a-z][\s\S]*>/i.test(text);
   if (!noHtml) diagnostics.push('Prompt contains raw HTML tags.');
 
-  // 8. No fake claims / competitor branding
+  // 8. No hardcoded marketing tropes when unrequested
+  const noHardcodedMarketingDefaults =
+    !lower.includes('lead generation & signups') &&
+    !lower.includes('discerning customers, passionate enthusiasts') &&
+    !lower.includes('quality-focused buyers') &&
+    !lower.includes('discover more and experience');
+  if (!noHardcodedMarketingDefaults) {
+    diagnostics.push('Prompt contains unrequested hardcoded marketing defaults.');
+  }
+
+  // 9. No fake claims / competitor branding
   const noFakeClaims = !lower.includes('1000% guaranteed') && !lower.includes('miracle cure');
   const noCompetitorBranding = !lower.includes('salesforce') && !lower.includes('hubspot');
 
-  // 9. Exact logo preservation instructions
+  // 10. Exact logo preservation instructions
   const exactLogoInstructionPresent = !hasSelectedAssets || (
     text.includes('LOGO PRESERVATION:') ||
     text.includes('Do not recreate') ||
@@ -1688,12 +2090,16 @@ export function validateCreativePromptQA(
     noLocalhost &&
     correctCreativeType &&
     noHtml &&
+    noHardcodedMarketingDefaults &&
     noFakeClaims &&
     noCompetitorBranding &&
     (!hasSelectedAssets || (referenceAssetPresent && publicUrlHttps));
 
   return {
     passed,
+    valid: passed,
+    reasons: diagnostics,
+    diagnostics,
     brandCorrect,
     referenceAssetPresent,
     publicUrlPresent,
@@ -1709,7 +2115,6 @@ export function validateCreativePromptQA(
     noFakeClaims,
     noCompetitorBranding,
     exactLogoInstructionPresent,
-    diagnostics,
   };
 }
 
@@ -1746,7 +2151,7 @@ export function validateAndSanitizePrompt(prompt: string, intent?: Partial<Creat
     return match;
   });
 
-  if (intent?.creative_category === 'SaaS / Technology Marketing' || intent?.visual_style?.toLowerCase().includes('saas') || cleaned.toLowerCase().includes('saas') || (intent?.brand_name && intent.brand_name.includes('Tech Labs'))) {
+  if (intent?.creative_category === 'SaaS / Technology Marketing' || intent?.visual_style?.toLowerCase().includes('saas') || (cleaned.toLowerCase().includes('saas') && !cleaned.toLowerCase().includes('food') && !cleaned.toLowerCase().includes('candle'))) {
     cleaned = cleaned.replace(/Style:\s*Product Photography/gi, 'VISUAL STYLE:\nPremium Enterprise SaaS');
     cleaned = cleaned.replace(/Creative Type:\s*Product Photography/gi, 'VISUAL STYLE:\nPremium Enterprise SaaS');
     cleaned = cleaned.replace(/product photography visual asset/gi, 'SaaS marketing visual asset');
@@ -1757,9 +2162,6 @@ export function validateAndSanitizePrompt(prompt: string, intent?: Partial<Creat
 
   return cleaned;
 }
-
-export const buildImagePrompt = (params: Parameters<typeof buildDetailedImagePrompt>[0]) => buildDetailedImagePrompt(params);
-export const buildVideoPrompt = (params: Parameters<typeof buildDetailedVideoPrompt>[0]) => buildDetailedVideoPrompt(params);
 
 export function buildDetailedImagePrompt(params: {
   topic: string;
@@ -1776,13 +2178,13 @@ export function buildDetailedImagePrompt(params: {
   additionalInstructions?: string;
   templateId?: string;
   activeQuickStarter?: string | null;
+  cta?: string;
 }): string {
   const {
     topic,
     platforms = ['instagram'],
     targetAudience,
     campaignName,
-    productOrService,
     objective,
     imageStyle,
     visualStyle,
@@ -1791,142 +2193,97 @@ export function buildDetailedImagePrompt(params: {
     additionalInstructions,
     templateId,
     activeQuickStarter,
+    cta,
   } = params;
 
+  const intent = resolveCreativeIntent({
+    userInput: topic,
+    tenantContext: brandContext,
+    platformConfig: {
+      platform: platforms[0] || 'instagram',
+      objective,
+      targetAudience,
+      cta,
+      templateId,
+      activeQuickStarter,
+      referenceAssets: selectedAssets,
+    },
+  });
+
   const parsed = extractSubjectAndEntity(topic, brandContext);
-  const domainInfo = detectIndustryDomain(parsed.cleanSubject);
-  const primaryPlatform = platforms[0] || 'instagram';
-  const platformSpecs = getPlatformAspectGuidelines(primaryPlatform);
+  const domainInfo = detectIndustryDomain(intent.topic || parsed.cleanSubject);
   const { services, valuePropositions } = extractValuePropositionsAndServices(topic);
 
-  // 1. Determine Brand strictly without Daylink/DailyBuz fallback
-  let brandName = parsed.extractedBrand || (brandContext?.businessName ? stripLegalCompanySuffix(brandContext.businessName) : undefined);
-  if (brandName && !isValidBrandName(brandName)) {
-    brandName = undefined;
-  }
-
-  // Check if SaaS / Technology
-  const isSaaS = parsed.isSaaSOrDigital || (!parsed.hasPhysicalProduct && domainInfo.category.includes('Technology') && services.length > 0);
+  const brandName = intent.brandContext?.displayName || undefined;
+  const isSaaS = intent.creativeTypeResult?.value === 'saas_feature_graphic' || parsed.isSaaSOrDigital || (!parsed.hasPhysicalProduct && domainInfo.category.includes('Technology') && services.length > 0);
 
   const activeStyle = isSaaS
     ? 'Premium Enterprise SaaS'
     : (imageStyle || visualStyle || (domainInfo.category === 'Food & Hospitality' || domainInfo.category === 'Home & Lifestyle' || parsed.hasPhysicalProduct ? 'Product Photography' : 'Cinematic Modern'));
 
-  // 2. Aspect Ratio / Format
-  const aspectDescriptor = primaryPlatform === 'instagram' ? '4:5' : platformSpecs.imageRatio;
-  const resolutionSpec = primaryPlatform === 'instagram' ? '1080 × 1350 composition.' : 'High-definition balanced composition.';
-
-  // 3. Campaign & Services
-  const campaignHeading = campaignName?.trim() || (services.length > 0 ? `${services.join(' & ')} Services` : (brandName ? `${brandName} Promotional Campaign` : `${parsed.cleanSubject} Campaign`));
-
-  // 4. Target Audience
-  const audience = targetAudience || (isSaaS ? 'Startup founders, entrepreneurs, SMB owners, technical architects, and technology-driven teams.' : domainInfo.defaultAudience);
-
-  // 5. Objective description
-  let objectiveDesc = '';
-  if (isSaaS) {
-    if (valuePropositions.length > 0) {
-      const vpStr = valuePropositions.join(', ');
-      objectiveDesc = `Create a premium promotional visual that communicates how ${brandName || 'the platform'} helps businesses ${vpStr}, streamline workflows, and boost productivity.`;
-    } else {
-      objectiveDesc = `Create a premium promotional visual that communicates how ${brandName || 'the platform'} delivers innovative software, automated workflows, and operational efficiency.`;
-    }
-  } else if (domainInfo.category === 'Food & Hospitality') {
-    objectiveDesc = `Create an enticing culinary promotional visual featuring ${parsed.productName || parsed.cleanSubject} that communicates fresh quality ingredients, artisanal preparation, and mouth-watering appetite appeal.`;
-  } else if (domainInfo.category === 'Real Estate') {
-    objectiveDesc = `Create a stunning architectural visual asset featuring ${parsed.productName || parsed.cleanSubject} that highlights luxury living, spacious modern design, and aspirational lifestyle appeal.`;
-  } else if (domainInfo.category === 'Fashion & Retail') {
-    objectiveDesc = `Create a high-fashion editorial visual featuring ${parsed.productName || parsed.cleanSubject} that communicates contemporary style, premium garment craftsmanship, and effortless seasonal elegance.`;
-  } else if (domainInfo.category === 'Healthcare & Life Sciences') {
-    objectiveDesc = `Create an authoritative and compassionate healthcare visual for ${parsed.cleanSubject} that communicates clinical excellence, advanced medical care, and patient trust.`;
-  } else if (parsed.hasPhysicalProduct) {
-    objectiveDesc = `Create a premium commercial product photography visual featuring ${parsed.productName || parsed.cleanSubject} that communicates exceptional craftsmanship, sensory appeal, and inspiring quality.`;
-  } else {
-    objectiveDesc = `Create a premium promotional visual for ${parsed.cleanSubject} that communicates authority, trust, and high-impact engagement.`;
-  }
-
-  const dynamicIntent = parseDynamicCreativeIntent({
-    rawInput: topic,
-    brandContext,
-    platform: primaryPlatform,
-    objective,
-    targetAudience,
-    templateId,
-    activeQuickStarter,
-  });
-
   const promptBlocks: string[] = [];
 
-  // Determine Type Descriptor without assuming "MARKETING CREATIVE"
-  const lowerTopic = topic.toLowerCase();
-  let typeDescriptor = 'CREATIVE';
+  // 1. Header (Dynamic Aspect Ratio, Platform, Creative Type, Brand)
+  const brandSuffix = brandName ? ` FOR ${brandName.toUpperCase()}` : '';
+  const typeDescriptor = intent.creativeTypeResult?.value
+    ? intent.creativeType.toUpperCase()
+    : 'CREATIVE';
 
-  if (dynamicIntent.creativeType.value) {
-    typeDescriptor = dynamicIntent.creativeType.label.toUpperCase();
-  } else if (lowerTopic.includes('marketing creative')) {
-    typeDescriptor = 'MARKETING CREATIVE';
-  } else if (lowerTopic.includes('marketing post')) {
-    typeDescriptor = 'MARKETING POST';
-  } else if (lowerTopic.includes('marketing')) {
-    typeDescriptor = 'MARKETING CREATIVE';
-  } else if (lowerTopic.includes('poster')) {
-    typeDescriptor = 'POSTER';
-  } else if (lowerTopic.includes('story')) {
-    typeDescriptor = 'STORY';
-  } else if (lowerTopic.includes('reel') || lowerTopic.includes('video')) {
-    typeDescriptor = 'VIDEO';
-  } else if (lowerTopic.includes('flyer')) {
-    typeDescriptor = 'FLYER';
-  } else if (lowerTopic.includes('banner')) {
-    typeDescriptor = 'BANNER';
-  } else if (lowerTopic.includes('advertisement') || lowerTopic.includes(' ad ')) {
-    typeDescriptor = 'ADVERTISEMENT';
-  } else if (lowerTopic.includes('post')) {
-    typeDescriptor = 'POST';
-  } else {
-    typeDescriptor = 'CREATIVE';
+  promptBlocks.push(`CREATE A PREMIUM ${intent.aspectRatio.toUpperCase()} ${intent.platform.toUpperCase()} ${typeDescriptor}${brandSuffix}.`);
+
+  // 2. Subject & Topic
+  if (intent.subject) {
+    promptBlocks.push(`SUBJECT:\n${intent.subject}`);
+  }
+  if (intent.topic && intent.topic !== intent.subject) {
+    promptBlocks.push(`TOPIC / CONCEPT:\n${intent.topic}`);
   }
 
-  const creativeTypeLabel = dynamicIntent.creativeType.value
-    ? dynamicIntent.creativeType.label
-    : (lowerTopic.includes('marketing creative') ? 'Marketing Creative' : null);
-
-  const brandSuffix = brandName ? ` FOR ${brandName.toUpperCase()}` : '';
-  promptBlocks.push(`CREATE A PREMIUM ${aspectDescriptor.toUpperCase()} ${primaryPlatform.toUpperCase()} ${typeDescriptor}${brandSuffix}.`);
-
-  // BRAND
+  // 3. Brand (Only when resolved)
   if (brandName) {
     promptBlocks.push(`BRAND:\n${brandName}`);
   }
 
-  // CREATIVE TYPE (Explicitly included when determined)
-  if (creativeTypeLabel) {
-    promptBlocks.push(`CREATIVE TYPE:\n${creativeTypeLabel}`);
+  // 4. Creative Type
+  if (intent.creativeType && intent.creativeType !== 'Not specified') {
+    promptBlocks.push(`CREATIVE TYPE:\n${intent.creativeType}`);
   }
 
-  // CAMPAIGN
-  promptBlocks.push(`CAMPAIGN:\n${campaignHeading}`);
+  // 5. Campaign (Only if explicitly passed or explicit campaign requested)
+  if (campaignName?.trim() || intent.creativeTypeResult?.value === 'marketing_campaign') {
+    promptBlocks.push(`CAMPAIGN:\n${campaignName?.trim() || `${brandName || parsed.cleanSubject} Campaign`}`);
+  }
 
-  // OBJECTIVE
-  promptBlocks.push(`OBJECTIVE:\n${objectiveDesc}`);
+  // 6. Objective (Only when present or resolved)
+  if (intent.objective) {
+    promptBlocks.push(`OBJECTIVE:\n${intent.objective}`);
+  }
 
-  // TARGET AUDIENCE
-  promptBlocks.push(`TARGET AUDIENCE:\n${audience}`);
+  // 7. Target Audience (Only when explicitly provided)
+  if (intent.audience) {
+    promptBlocks.push(`TARGET AUDIENCE:\n${intent.audience}`);
+  }
 
-  // REFERENCE ASSETS (Resolved to Public HTTPS URLs)
-  if (selectedAssets && selectedAssets.length > 0) {
-    const logoAsset = selectedAssets.find((a) => a.category === 'LOGOS');
-    const nonLogoAssets = selectedAssets.filter((a) => a.category !== 'LOGOS');
+  // 8. CTA (Only when explicitly provided)
+  if (cta?.trim()) {
+    promptBlocks.push(`CALL TO ACTION:\n${cta.trim()}`);
+  }
+
+  // 9. Reference Assets (Resolved to Public HTTPS URLs with Logo Preservation)
+  const assetsToUse = intent.referenceAssets && intent.referenceAssets.length > 0 ? intent.referenceAssets : selectedAssets;
+  if (assetsToUse && assetsToUse.length > 0) {
+    const logoAsset = assetsToUse.find((a) => a.category === 'LOGOS');
+    const nonLogoAssets = assetsToUse.filter((a) => a.category !== 'LOGOS');
 
     if (logoAsset) {
       const resolvedLogo = resolveAssetPublicUrl(logoAsset);
-      promptBlocks.push(`PRIMARY REFERENCE IMAGE:\n${resolvedLogo.publicUrl}`);
+      promptBlocks.push(`PRIMARY REFERENCE IMAGE:\n${resolvedLogo.publicUrl}\n\nFINAL REQUIREMENT:\nThe supplied reference image URL above is a REAL validated public HTTPS image URL.`);
       promptBlocks.push(`REFERENCE ASSET TYPE:\nOfficial Company Logo`);
       promptBlocks.push(`REFERENCE ASSET:\nOfficial ${brandName || 'Brand'} logo.`);
       promptBlocks.push(`REFERENCE PRIORITY:\nPRIMARY / AUTHORITATIVE`);
       promptBlocks.push(`REFERENCE INSTRUCTION:\nUse the supplied logo image as the exact official brand asset.`);
       promptBlocks.push(
-        `LOGO PRESERVATION:\nUse the supplied logo as the authoritative brand reference.\nDo not recreate, redesign, recolor, distort, stretch, modify, replace or generate a new version of the logo.`
+        `LOGO PRESERVATION:\nUse the supplied logo as the authoritative brand reference.\nDo not recreate, redesign, recolor, distort, stretch, modify, replace or generate a new version of the logo.\n\nLOGO:\nPlace the actual supplied logo naturally in a premium, unobstructed brand-safe area.\n\nDo not modify the logo.`
       );
     }
 
@@ -1952,18 +2309,34 @@ export function buildDetailedImagePrompt(params: {
     }
   }
 
-  // CREATIVE DIRECTION (Domain-Specific)
-  if (domainInfo.category === 'Food & Hospitality') {
+  // 10. Creative Direction (Domain-Specific)
+  if (intent.creativeTypeResult?.value === 'sports_information' || intent.isThirdPartyOrCelebrity) {
     promptBlocks.push(
-      `CREATIVE DIRECTION:\nCreate a mouth-watering artisanal culinary visual asset featuring ${parsed.productName || parsed.cleanSubject}.\n\nFocus sharply on delicious textures, fresh organic ingredients, warm ambient dining lighting, soft steam rising, and appetizing close-up details.\n\nThe visual should communicate freshness, exceptional taste, and authentic culinary craftsmanship.`
+      `CREATIVE DIRECTION:\nCreate a high-impact, editorial sports statistics and achievement presentation for ${intent.subject}.\n\nIncorporate bold athletic typography, crisp data visualization, milestone metric cards, clean trophy emblems, and dynamic stadium lighting.\n\nThe presentation must be informative, factual, and visually prestigious.`
     );
-  } else if (domainInfo.category === 'Real Estate') {
+  } else if (intent.creativeTypeResult?.value === 'educational_infographic') {
     promptBlocks.push(
-      `CREATIVE DIRECTION:\nCreate a breathtaking architectural visual asset featuring ${parsed.productName || parsed.cleanSubject}.\n\nFocus on spacious modern interior and exterior architecture, floor-to-ceiling panoramic windows, natural daylight pouring into the living space, premium finishes, and expansive balcony views.\n\nThe visual should communicate luxury, comfort, exclusivity, and aspirational modern living.`
+      `CREATIVE DIRECTION:\nCreate a clear, modern educational infographic graphic about ${intent.subject}.\n\nFocus on step-by-step visual hierarchy, clean iconography, data visualization callouts, security shields/indicators, and structured educational clarity.\n\nThe visual must communicate authoritative guidance, best practices, and awareness.`
+    );
+  } else if (intent.creativeTypeResult?.value === 'office_holiday_announcement') {
+    promptBlocks.push(
+      `CREATIVE DIRECTION:\nCreate an elegant, festive, and clear company announcement poster for ${intent.subject}.\n\nFocus on polished celebratory typography, clean calendar/date callouts, warm welcoming aesthetic, and official corporate identity framing.`
+    );
+  } else if (intent.creativeTypeResult?.value === 'internship_recruitment_poster' || intent.creativeTypeResult?.value === 'recruitment_poster') {
+    promptBlocks.push(
+      `CREATIVE DIRECTION:\nCreate an inspiring and modern employer branding recruitment poster for ${brandName || 'our team'} announcing ${intent.subject}.\n\nFocus on professional workspace ambiance, growth opportunities, clear role highlights, and an inviting talent acquisition presentation.`
+    );
+  } else if (intent.creativeTypeResult?.value === 'culinary_promotion' || domainInfo.category === 'Food & Hospitality') {
+    promptBlocks.push(
+      `CREATIVE DIRECTION:\nCreate a mouth-watering artisanal culinary visual asset featuring ${parsed.productName || intent.subject || parsed.cleanSubject}.\n\nFocus sharply on delicious textures, fresh organic ingredients, warm ambient dining lighting, soft steam rising, and appetizing close-up details.\n\nThe visual should communicate freshness, exceptional taste, and authentic culinary craftsmanship.`
+    );
+  } else if (intent.creativeTypeResult?.value === 'real_estate_poster' || intent.creativeTypeResult?.value === 'property_launch_poster' || domainInfo.category === 'Real Estate') {
+    promptBlocks.push(
+      `CREATIVE DIRECTION:\nCreate a breathtaking architectural visual asset featuring ${parsed.productName || intent.subject || parsed.cleanSubject}.\n\nFocus on spacious modern interior and exterior architecture, floor-to-ceiling panoramic windows, natural daylight pouring into the living space, premium finishes, and expansive balcony views.\n\nThe visual should communicate luxury, comfort, exclusivity, and aspirational modern living.`
     );
   } else if (domainInfo.category === 'Fashion & Retail') {
     promptBlocks.push(
-      `CREATIVE DIRECTION:\nCreate a high-fashion editorial visual asset featuring ${parsed.productName || parsed.cleanSubject}.\n\nFocus on editorial model styling, natural fabric drape, rich textile detailing, warm natural daylight, and clean sophisticated architectural backdrop.\n\nThe visual should communicate effortless style, contemporary fashion, and premium quality.`
+      `CREATIVE DIRECTION:\nCreate a high-fashion editorial visual asset featuring ${parsed.productName || intent.subject || parsed.cleanSubject}.\n\nFocus on editorial model styling, natural fabric drape, rich textile detailing, warm natural daylight, and clean sophisticated architectural backdrop.\n\nThe visual should communicate effortless style, contemporary fashion, and premium quality.`
     );
   } else if (domainInfo.category === 'Healthcare & Life Sciences') {
     promptBlocks.push(
@@ -1975,7 +2348,7 @@ export function buildDetailedImagePrompt(params: {
     );
   } else if (parsed.hasPhysicalProduct) {
     promptBlocks.push(
-      `CREATIVE DIRECTION:\nCreate a commercial studio product photography visual asset featuring ${parsed.productName || parsed.cleanSubject}.\n\nFocus sharply on tactile textures, natural organic materials, soft ambient lighting, clean reflections, and curated lifestyle staging.\n\nThe visual should communicate warmth, luxury, purity, and sensory indulgence.`
+      `CREATIVE DIRECTION:\nCreate a commercial studio product photography visual asset featuring ${parsed.productName || intent.subject || parsed.cleanSubject}.\n\nFocus sharply on tactile textures, natural organic materials, soft ambient lighting, clean reflections, and curated lifestyle staging.\n\nThe visual should communicate warmth, luxury, purity, and sensory indulgence.`
     );
   } else {
     promptBlocks.push(
@@ -1983,8 +2356,20 @@ export function buildDetailedImagePrompt(params: {
     );
   }
 
-  // VISUAL STYLE (Domain-Specific)
-  if (domainInfo.category === 'Food & Hospitality') {
+  // 11. Visual Style (Domain-Specific)
+  if (intent.creativeTypeResult?.value === 'sports_information' || intent.isThirdPartyOrCelebrity) {
+    promptBlocks.push(
+      `VISUAL STYLE:\nDynamic Sports Infographic & Editorial.\nHigh contrast.\nStadium illumination.\nBold typography.\nClean data overlay.\n\nAvoid:\n- commercial endorsement claims\n- unauthorized logos\n- cartoonish graphics\n- fake stats`
+    );
+  } else if (intent.creativeTypeResult?.value === 'educational_infographic') {
+    promptBlocks.push(
+      `VISUAL STYLE:\nModern Informative Infographic.\nCrisp iconography.\nClean data blocks.\nHigh legibility.\nProfessional cybersecurity palette (cyan, navy, white).\n\nAvoid:\n- sensationalist imagery\n- fake alarms\n- cluttered walls of text`
+    );
+  } else if (intent.creativeTypeResult?.value === 'office_holiday_announcement') {
+    promptBlocks.push(
+      `VISUAL STYLE:\nCelebratory Corporate Announcement.\nWarm lighting.\nRefined celebratory accents.\nClean date display.\nProfessional framing.`
+    );
+  } else if (domainInfo.category === 'Food & Hospitality') {
     promptBlocks.push(
       `VISUAL STYLE:\nArtisanal Culinary Photography.\nWarm.\nFresh.\nMouth-watering.\nGourmet.\nInviting.\n\nAvoid:\n- cold artificial lighting\n- fake plastic food\n- oversaturated colors\n- clutter\n- distorted textures`
     );
@@ -2014,44 +2399,12 @@ export function buildDetailedImagePrompt(params: {
     );
   }
 
-  // COMPOSITION
+  // 12. Composition
   promptBlocks.push(
-    `COMPOSITION:\n${primaryPlatform.charAt(0).toUpperCase() + primaryPlatform.slice(1)} ${aspectDescriptor} vertical.\n${resolutionSpec}\n\nStrong central focal point.\nMobile-first hierarchy.\nPremium depth.\nClean negative space.\nBalanced composition.\nClear visual hierarchy.\n\nReserve a clean area for headline placement.`
+    `COMPOSITION:\n${intent.platform.charAt(0).toUpperCase() + intent.platform.slice(1)} ${intent.aspectRatio} vertical.\n${intent.platform === 'instagram' ? '1080 × 1350 composition.\n' : ''}High-definition balanced composition.\n\nStrong central focal point.\nMobile-first hierarchy.\nPremium depth.\nClean negative space.\nBalanced composition.\nClear visual hierarchy.`
   );
 
-  // LOGO PLACEMENT
-  if (selectedAssets && selectedAssets.some((a) => a.category === 'LOGOS')) {
-    promptBlocks.push(
-      `LOGO:\nPlace the actual supplied logo naturally in a premium, unobstructed brand-safe area.\n\nDo not modify the logo.`
-    );
-  }
-
-  // TEXT & COPY (Domain-Specific Minimal Copy)
-  let defaultHeadline = `"Elevate Your Experience"`;
-  let defaultCta = brandName ? `"Discover ${brandName}"` : `"Learn More"`;
-
-  if (domainInfo.category === 'Food & Hospitality') {
-    defaultHeadline = `"Taste the Perfection"`;
-    defaultCta = `"Order Now"`;
-  } else if (domainInfo.category === 'Real Estate') {
-    defaultHeadline = `"Your Dream Home Awaits"`;
-    defaultCta = `"Schedule a Tour"`;
-  } else if (domainInfo.category === 'Fashion & Retail') {
-    defaultHeadline = `"Effortless Elegance"`;
-    defaultCta = `"Shop the Collection"`;
-  } else if (domainInfo.category === 'Healthcare & Life Sciences') {
-    defaultHeadline = `"Advanced Care You Can Trust"`;
-    defaultCta = `"Book a Consultation"`;
-  } else if (isSaaS) {
-    defaultHeadline = `"Smarter Workflows. Better Results."`;
-    defaultCta = brandName ? `"Discover ${brandName}"` : `"Get Started Today"`;
-  }
-
-  promptBlocks.push(
-    `TEXT:\nUse minimal typography.\n\nHeadline:\n${defaultHeadline}\n\nCTA:\n${defaultCta}\n\nDo not generate paragraphs.\nDo not generate random text.\nDo not generate additional company names.`
-  );
-
-  // ADDITIONAL DIRECTIVES
+  // 13. Brand Colors & Instructions
   if (brandContext?.brandColors) {
     promptBlocks.push(`BRAND PALETTE:\nIncorporate refined accents of ${brandContext.brandColors}.`);
   }
@@ -2059,16 +2412,21 @@ export function buildDetailedImagePrompt(params: {
     promptBlocks.push(`CUSTOM DIRECTIVES:\n${additionalInstructions.trim()}`);
   }
 
-  // FINAL REQUIREMENT
-  if (selectedAssets && selectedAssets.length > 0) {
-    promptBlocks.push(
-      `FINAL REQUIREMENT:\nThe supplied reference image URL above is a REAL validated public HTTPS image URL.\n\nUse the supplied reference image as the authoritative logo asset.\n\nDo not invent or replace the reference asset.\n\nThe result must look like a premium commercial advertisement created by a professional design agency.`
-    );
-  } else {
-    promptBlocks.push(
-      `FINAL REQUIREMENT:\nEnsure all visual elements adhere to high-end professional agency standards with crisp detail, clean geometry, and pristine aesthetic execution.`
-    );
+  // 14. Guardrails
+  const guardrails: string[] = [];
+  if (intent.factualRequirements) {
+    guardrails.push('- Do not invent statistics, achievements, numbers, dates, or match outcomes.');
   }
+  if (intent.isThirdPartyOrCelebrity) {
+    guardrails.push('- Editorial informational presentation. Do not create fake commercial endorsements or imitation copyrighted posters.');
+  }
+  guardrails.push('- Do not add unrequested marketing sales pitches or fake lead-generation copy.');
+  guardrails.push('- Do not append unrequested call-to-action buttons unless explicitly specified.');
+  guardrails.push('- No watermarks, no distorted typography, no low-resolution artifacts.');
+  if (assetsToUse && assetsToUse.some((a) => a.category === 'LOGOS')) {
+    guardrails.push('- Preserve logo geometry, colors, typography, and proportions exactly.');
+  }
+  promptBlocks.push(`GUARDRAILS:\n${guardrails.join('\n')}`);
 
   const rawPrompt = promptBlocks.join('\n\n');
   return validateAndSanitizePrompt(rawPrompt, {

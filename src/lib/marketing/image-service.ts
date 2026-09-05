@@ -222,30 +222,14 @@ export function mapImageProviderErrorToApplicationError(
 }
 
 // --------------------------------------------------------------------------
-// 4. Pre-Flight Prompt Sanitizer to Avoid Triggering Guardrails
+// 4. Pre-Flight Prompt Sanitizer & Normalizer
 // --------------------------------------------------------------------------
 export function sanitizePromptForGuardrails(prompt: string): string {
-  let clean = prompt.trim();
-
-  // Replace high-risk brand trademarks with generic luxury / commercial terms
-  const trademarkReplacements: [RegExp, string][] = [
-    [/\brolex\b/gi, 'bespoke luxury handcrafted timepiece'],
-    [/\bferrari\b/gi, 'high-performance aerodynamic Italian sports car'],
-    [/\blamborghini\b/gi, 'exotic sharp-edged high-performance supercar'],
-    [/\bporsche\b/gi, 'precision German sports car'],
-    [/\bnike(?:\s+shoes|\s+sneakers|\s+apparel)?\b/gi, 'premium athletic performance footwear'],
-    [/\badidas\b/gi, 'designer athletic streetwear'],
-    [/\bapple\s+iphone\b/gi, 'ultra-sleek flagship smartphone'],
-    [/\bgucci\b/gi, 'haute couture luxury fashion garment'],
-    [/\bchanel\b/gi, 'timeless luxury perfume and apparel'],
-    [/\bcristiano\s+ronaldo\b/gi, 'world-class professional soccer athlete'],
-    [/\blionel\s+messi\b/gi, 'championship soccer player celebrating victory'],
-  ];
-
-  for (const [regex, replacement] of trademarkReplacements) {
-    clean = clean.replace(regex, replacement);
-  }
-
+  if (!prompt) return '';
+  // Strip HTML / rich-text tags and control characters
+  let clean = prompt.replace(/<[^>]*>/g, ' ');
+  // Normalize whitespace and newlines
+  clean = clean.replace(/\s+/g, ' ').trim();
   return clean;
 }
 
