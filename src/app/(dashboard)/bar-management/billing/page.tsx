@@ -89,7 +89,7 @@ export default function RestaurantTableBillingPage() {
         try {
           const foodList = JSON.parse(savedFood);
           foodList.forEach((dish: any) => {
-            if (dish.name && dish.basePrice) {
+            if (dish.name && dish.basePrice && dish.isAvailable !== false) {
               catalogMap[dish.name] = dish.basePrice;
             }
           });

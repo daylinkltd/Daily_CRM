@@ -13,19 +13,34 @@ export async function GET(request: NextRequest) {
 
     const admin = createAdminClient();
 
-    // Get active open shift for current user
-    const { data: openShift } = await admin
+    // Resolve workspace member ID for foreign key requirement
+    const { data: memberRecord } = await admin
+      .from("workspace_members")
+      .select("id")
+      .eq("workspace_id", ctx.accountId)
+      .eq("user_id", ctx.userId)
+      .limit(1)
+      .maybeSingle();
+
+    if (!memberRecord?.id) {
+      return NextResponse.json({ shift: null });
+    }
+
+    // Get open shift and shift history for workspace
+    const { data: allShifts } = await admin
       .from("bar_shifts")
       .select("*")
       .eq("workspace_id", ctx.accountId)
-      .eq("bartender_member_id", ctx.userId)
-      .eq("status", "OPEN")
       .order("opened_at", { ascending: false })
-      .maybeSingle();
+      .limit(50);
 
-    return NextResponse.json({ shift: openShift || null });
+    const openShift = (allShifts || []).find(
+      (s: any) => s.status === "OPEN" && s.bartender_member_id === memberRecord.id
+    ) || null;
+
+    return NextResponse.json({ shift: openShift, shifts: allShifts || [] });
   } catch (err: any) {
-    return NextResponse.json({ shift: null });
+    return NextResponse.json({ shift: null, shifts: [] });
   }
 }
 
@@ -40,6 +55,18 @@ export async function POST(request: NextRequest) {
 
     const admin = createAdminClient();
 
+    const { data: memberRecord } = await admin
+      .from("workspace_members")
+      .select("id")
+      .eq("workspace_id", ctx.accountId)
+      .eq("user_id", ctx.userId)
+      .limit(1)
+      .maybeSingle();
+
+    if (!memberRecord?.id) {
+      return NextResponse.json({ error: "Workspace member profile not found" }, { status: 404 });
+    }
+
     const body = await request.json().catch(() => null);
     const action = body?.action || "OPEN"; // OPEN or CLOSE
 
@@ -50,7 +77,7 @@ export async function POST(request: NextRequest) {
         .from("bar_shifts")
         .insert({
           workspace_id: ctx.accountId,
-          bartender_member_id: ctx.userId,
+          bartender_member_id: memberRecord.id,
           starting_cash_float: startingFloat,
           status: "OPEN",
         })

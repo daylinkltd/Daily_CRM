@@ -100,16 +100,22 @@ export default function BarPosPage() {
 
       // Format Food Catalog items for POS
       const formattedFood = foodList.map((dish: any) => {
-        const pricesObj: Record<string, number> = {
-          PORTION: dish.basePrice || 250,
-          FULL: dish.basePrice || 250,
-        };
-        if (Array.isArray(dish.variants)) {
+        const pricesObj: Record<string, number> = {};
+
+        if (Array.isArray(dish.variants) && dish.variants.length > 0) {
           dish.variants.forEach((v: any) => {
-            const key = (v.name || 'PORTION').toUpperCase().replace(/\s+/g, '_');
-            pricesObj[key] = (dish.basePrice || 250) + (v.priceOffset || 0);
+            const rawName = (v.name || 'Standard Portion').trim();
+            const formattedName = rawName
+              .replace(/_/g, ' ')
+              .toLowerCase()
+              .replace(/\b\w/g, (c: string) => c.toUpperCase())
+              .replace(/Pcs/gi, 'pcs');
+            pricesObj[formattedName] = (dish.basePrice || 250) + (v.priceOffset || 0);
           });
+        } else {
+          pricesObj['Full Portion'] = dish.basePrice || 250;
         }
+
         return {
           id: `food_${dish.id}`,
           barcode: dish.barcode || `8901234560${dish.id}`,
@@ -118,7 +124,7 @@ export default function BarPosPage() {
           type: 'FOOD',
           dietary: dish.dietaryType || 'VEG',
           prices: pricesObj,
-          volumes: { PORTION: 0, FULL: 0 },
+          volumes: {},
           isAvailable: dish.isAvailable !== false,
         };
       });
@@ -168,6 +174,10 @@ export default function BarPosPage() {
   }, []);
 
   const addToCart = (item: any, portion: '30ML' | '60ML' | 'PINT' | 'BOTTLE' | 'CAN') => {
+    if (item.isAvailable === false) {
+      toast.error(`"${item.name}" is OUT OF STOCK in Food Catalog!`);
+      return;
+    }
     const price = item.prices[portion];
     const volume = item.volumes[portion] || 30;
     if (!price) return;
@@ -192,6 +202,11 @@ export default function BarPosPage() {
     );
 
     if (matched) {
+      if (matched.isAvailable === false) {
+        toast.error(`"${matched.name}" is OUT OF STOCK in Food Catalog!`);
+        setSearchQuery('');
+        return;
+      }
       // In Retail MRP Shop mode, barcode scan always defaults to BOTTLE / CAN full unit sale!
       const defaultPortion = isRetailShopMode
         ? (matched.prices['BOTTLE'] ? 'BOTTLE' : matched.prices['CAN'] ? 'CAN' : Object.keys(matched.prices)[0])
@@ -491,7 +506,7 @@ export default function BarPosPage() {
         </div>
 
         {/* Menu Items Grid */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 overflow-y-auto pr-1.5 pb-6">
+        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 overflow-y-auto pr-1.5 pb-6 items-start">
           {filteredItems.map((item) => {
             const availablePortions = Object.entries(item.prices).filter(([portion]) => {
               if (isRetailShopMode) {
@@ -501,54 +516,87 @@ export default function BarPosPage() {
             });
 
             const defaultPortion = availablePortions[0]?.[0] || Object.keys(item.prices)[0] || '30ML';
+            const isOutOfStock = item.isAvailable === false;
 
             return (
               <Card
                 key={item.id}
                 onClick={() => {
+                  if (isOutOfStock) {
+                    toast.error(`"${item.name}" is OUT OF STOCK in Food Catalog!`);
+                    return;
+                  }
                   addToCart(item, defaultPortion as any);
                   toast.success(`Added ${item.name} (${defaultPortion}) to bill`);
                 }}
-                className="bg-card border-border hover:border-primary cursor-pointer transition-all hover:scale-[1.01] flex flex-col justify-between p-3.5 shadow-xs h-auto min-h-[145px]"
+                className={`bg-card border transition-all flex flex-col justify-between p-3.5 shadow-xs rounded-xl relative overflow-hidden ${
+                  isOutOfStock
+                    ? 'opacity-60 cursor-not-allowed bg-muted/40 border-dashed border-red-500/40'
+                    : 'border-border/80 hover:border-primary/60 hover:shadow-md cursor-pointer group'
+                }`}
               >
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      {item.dietary && (
-                        <span
-                          className={`inline-flex items-center justify-center size-3.5 rounded-sm border ${
-                            item.dietary === 'VEG'
-                              ? 'border-emerald-600 text-emerald-600 bg-emerald-500/10'
-                              : 'border-red-600 text-red-600 bg-red-500/10'
-                          }`}
-                          title={item.dietary}
-                        >
-                          <span className={`size-1 rounded-full ${item.dietary === 'VEG' ? 'bg-emerald-600' : 'bg-red-600'}`} />
-                        </span>
-                      )}
-                      <h4 className="font-semibold text-sm leading-tight">{item.name}</h4>
-                    </div>
-                    <Badge variant="secondary" className="text-[10px] shrink-0">{item.category.replace('_', ' ')}</Badge>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-1.5">
+                    {item.dietary ? (
+                      <span
+                        className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
+                          item.dietary === 'VEG'
+                            ? 'border-emerald-600/30 text-emerald-600 bg-emerald-500/10'
+                            : 'border-red-600/30 text-red-600 bg-red-500/10'
+                        }`}
+                      >
+                        <span className={`size-1.5 rounded-full ${item.dietary === 'VEG' ? 'bg-emerald-600' : 'bg-red-600'}`} />
+                        {item.dietary}
+                      </span>
+                    ) : <span />}
+
+                    {isOutOfStock ? (
+                      <Badge variant="destructive" className="text-[9px] shrink-0 font-extrabold uppercase tracking-wider bg-red-600 text-white px-1.5 py-0.5">
+                        OUT OF STOCK
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-[9px] shrink-0 font-semibold px-1.5 py-0.5 bg-muted/80 text-muted-foreground uppercase">
+                        {item.category.replace(/_/g, ' ')}
+                      </Badge>
+                    )}
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground block mt-1">Barcode: {item.barcode}</span>
+
+                  <h4 className={`font-bold text-sm leading-snug break-words ${isOutOfStock ? 'line-through text-muted-foreground' : 'text-foreground group-hover:text-primary transition-colors'}`}>
+                    {item.name}
+                  </h4>
+
+                  <span className="text-[10px] font-mono text-muted-foreground/70 block">Barcode: {item.barcode}</span>
                 </div>
 
                 {/* Portion Buttons */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-border/50">
+                <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-2.5 border-t border-border/50">
                   {availablePortions.map(([portion, price]) => (
                     <Button
                       key={portion}
                       size="sm"
                       variant="outline"
+                      disabled={isOutOfStock}
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (isOutOfStock) {
+                          toast.error(`"${item.name}" is OUT OF STOCK in Food Catalog!`);
+                          return;
+                        }
                         addToCart(item, portion as any);
                         toast.success(`Added ${item.name} (${portion}) to bill`);
                       }}
-                      className="flex-1 text-xs py-1 h-auto flex flex-col items-center cursor-pointer hover:border-primary hover:bg-primary/10"
+                      className={`flex-1 min-w-[65px] text-xs py-1.5 px-2 h-auto flex flex-col items-center justify-center transition-all ${
+                        isOutOfStock
+                          ? 'opacity-50 cursor-not-allowed border-red-500/30'
+                          : 'cursor-pointer hover:border-primary hover:bg-primary/10 border-border/70'
+                      }`}
                     >
-                      <span className="font-bold text-[11px]">{portion}</span>
-                      <span className="text-[10px] text-muted-foreground">₹{String(price)}</span>
+                      <span className="font-semibold text-[10px] text-foreground text-center truncate max-w-full">
+                        {portion.replace(/_/g, ' ').replace(/Pcs/gi, 'pcs')}
+                      </span>
+                      <span className="text-[11px] font-mono font-bold text-primary">
+                        {isOutOfStock ? 'N/A' : `₹${String(price)}`}
+                      </span>
                     </Button>
                   ))}
                 </div>

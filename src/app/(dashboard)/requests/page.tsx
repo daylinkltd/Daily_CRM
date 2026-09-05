@@ -122,7 +122,14 @@ export default function EmployeeRequestsPage() {
         title="Employee Self-Service Requests"
         description="Submit and track HR requests for salary certificates, experience letters, bank account changes, and formal requests."
         action={
-          <IconAction label="New ESS Request" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground" />
+          <div className="flex items-center gap-2">
+            <a href="/requests/approvals">
+              <Button variant="outline" size="sm" className="bg-card font-medium text-xs gap-1.5 border-border">
+                <FileCheck className="size-4 text-purple-500" /> Multi-Stage Approvals
+              </Button>
+            </a>
+            <IconAction label="New ESS Request" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground" />
+          </div>
         }
       />
 
