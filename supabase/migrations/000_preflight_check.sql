@@ -68,7 +68,15 @@ WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
     ('124', 'function','assert_may_create_workspace',
        'Any member can create workspaces under the owner''s plan and seat pool.'),
     ('125', 'function','set_workspace_modules',
-       'Businesses cannot choose their modules; every sidebar shows all of them.')
+       'Businesses cannot choose their modules; every sidebar shows all of them.'),
+    ('126', 'table',   'marketing_posts',
+       'Social posts and marketing hub content storage is missing.'),
+    ('126', 'table',   'marketing_settings',
+       'Marketing brand voice and workspace defaults fail to persist.'),
+    ('130', 'table',   'marketing_brand_profiles',
+       'Tenant brand profile storage for Universal AI marketing is missing.'),
+    ('130', 'table',   'marketing_brand_assets',
+       'Tenant brand asset library for logos, products, and screenshots is missing.')
 ),
 objects AS (
   SELECT

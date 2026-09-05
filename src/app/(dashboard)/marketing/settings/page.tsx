@@ -20,11 +20,13 @@ import {
   RefreshCw,
   Trash2,
   Globe,
+  Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { NativeSelect } from "@/components/ui/native-select";
 import { RichTextArea } from "@/components/ui/rich-textarea";
+import { BrandSettingsSection } from '@/components/marketing/brand-settings-section';
 
 const PLATFORMS_LIST: SocialPlatform[] = [
   'instagram',
@@ -39,7 +41,7 @@ const PLATFORMS_LIST: SocialPlatform[] = [
 
 export default function MarketingSettingsPage() {
   const store = useCalendarStore();
-  const [activeTab, setActiveTab] = useState<'accounts' | 'publishing' | 'approvals' | 'ai'>('accounts');
+  const [activeTab, setActiveTab] = useState<'brand' | 'accounts' | 'publishing' | 'approvals' | 'ai'>('brand');
 
   // Form local state initialized from store.marketingSettings
   const [settings, setSettings] = useState<MarketingSettings>(store.marketingSettings);
@@ -73,11 +75,24 @@ export default function MarketingSettingsPage() {
     <div className="space-y-6 max-w-4xl">
       <PageHeader
         title="Marketing Settings"
-        description="Configure connected social channels, publishing rules, approval governance, and AI brand voice."
+        description="Configure brand profile, asset library, connected channels, publishing rules, and governance."
       />
 
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-border pb-2 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('brand')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 text-xs font-extrabold rounded-xl border transition-all shrink-0',
+            activeTab === 'brand'
+              ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+              : 'border-border bg-card text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Building2 className="h-4 w-4" /> Brand Profile & Assets
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('accounts')}
@@ -127,9 +142,14 @@ export default function MarketingSettingsPage() {
               : 'border-border bg-card text-muted-foreground hover:text-foreground'
           )}
         >
-          <Sparkles className="h-4 w-4" /> AI Assistant
+          <Sparkles className="h-4 w-4" /> AI Voice
         </button>
       </div>
+
+      {/* 0. BRAND PROFILE & ASSETS TAB */}
+      {activeTab === 'brand' && (
+        <BrandSettingsSection />
+      )}
 
       {/* 1. SOCIAL ACCOUNTS TAB (MULTI-TENANT BUFFER INTEGRATION) */}
       {activeTab === 'accounts' && (

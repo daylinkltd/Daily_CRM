@@ -16,6 +16,11 @@ import {
   type WebResearchSource,
   type QueryIntent,
 } from './web-researcher';
+import {
+  type BrandAsset,
+  type SelectedAssetReference,
+  selectRelevantBrandAssets,
+} from './brand-asset-selector';
 
 export interface BrandContext {
   businessName?: string;
@@ -73,6 +78,8 @@ export interface GenerateContentRequest {
   imagePromptVersion?: number;
   videoPromptVersion?: number;
   uploadedMediaUrl?: string;
+  brandAssets?: BrandAsset[];
+  selectedAssetIds?: string[];
   referenceArticles?: ReferenceArticle[] | Array<{ id?: string; name?: string; content?: string; type?: string; source?: string; size?: number }> | string[] | string;
   primaryKeyword?: string;
 }
@@ -102,6 +109,7 @@ export interface GeneratedSocialPost {
   video_prompt: string;
   image_prompt_version: number;
   video_prompt_version: number;
+  selected_assets?: SelectedAssetReference[];
   platform: string;
   content_type: string;
   target_audience: string;
@@ -162,6 +170,7 @@ export interface GeneratedBlogPost {
   video_prompt: string;
   image_prompt_version: number;
   video_prompt_version: number;
+  selected_assets?: SelectedAssetReference[];
   image_url?: string;
   socialSharingTitle: string;
   socialSharingDescription: string;
@@ -607,6 +616,7 @@ export function buildDetailedImagePrompt(params: {
   imageStyle?: string;
   visualStyle?: string;
   brandContext?: BrandContext;
+  selectedAssets?: SelectedAssetReference[];
   additionalInstructions?: string;
 }): string {
   const {
@@ -619,6 +629,7 @@ export function buildDetailedImagePrompt(params: {
     imageStyle,
     visualStyle,
     brandContext,
+    selectedAssets = [],
     additionalInstructions,
   } = params;
 
@@ -632,33 +643,63 @@ export function buildDetailedImagePrompt(params: {
   const audience = targetAudience || domainInfo.defaultAudience;
   const marketingGoal = objective || 'engagement and brand appeal';
 
-  let styleDetails = 'Commercial studio product photography, razor-sharp focus on the primary subject, authentic tactile textures, and subtle natural lighting';
+  let styleDetails = 'Commercial studio product photography, razor-sharp focus on the primary subject, authentic tactile textures, and soft natural lighting';
   if (activeStyle === 'Cinematic') {
     styleDetails = 'Cinematic 35mm film aesthetic, rich atmospheric depth, dramatic volumetric lighting, balanced shadows and highlights';
   }
 
-  const promptLines: string[] = [
-    `Create a premium ${activeStyle.toLowerCase()} visual asset for ${primaryPlatform.toUpperCase()} (${platformSpecs.imageRatio}) showcasing "${cleanSubject}".`,
-    `Subject & Core Concept: High-end visual representation of ${subjectName}. The visual must clearly communicate the marketing goal of "${marketingGoal}" for an audience of ${audience}.`,
-    `Scene & Environment: ${domainInfo.defaultVisualScene}. Centered on ${domainInfo.defaultVisualObject}.`,
-    `Composition & Camera: ${platformSpecs.imageRecommendation}. Eye-level or slight top-down three-quarters perspective with strong focal clarity on the central subject.`,
-    `Lighting & Aesthetic: ${styleDetails}. Color direction reflects clean, inviting, and premium tones.`,
+  const promptSections: string[] = [
+    `Create a premium ${activeStyle.toLowerCase()} visual asset featuring the ${cleanSubject} as the hero subject for ${primaryPlatform.toUpperCase()} (${platformSpecs.imageRatio}).`,
   ];
 
+  // Referenced Brand Assets (Real Accessible Public URLs)
+  if (selectedAssets && selectedAssets.length > 0) {
+    for (const asset of selectedAssets) {
+      if (asset.category === 'PRODUCTS') {
+        promptSections.push(`Use the provided product image as the primary product reference:\n${asset.public_url}`);
+      } else if (asset.category === 'LOGOS') {
+        promptSections.push(`Use the company's actual logo for subtle branding:\n${asset.public_url}`);
+      } else if (asset.category === 'UI_DIGITAL') {
+        promptSections.push(`Use this UI screenshot as the interface reference displayed on the device:\n${asset.public_url}`);
+      } else if (asset.category === 'PEOPLE') {
+        promptSections.push(`Use this portrait photo as the visual subject reference:\n${asset.public_url}`);
+      } else if (asset.category === 'OTHER') {
+        promptSections.push(`Use this brand asset as visual styling reference:\n${asset.public_url}`);
+      }
+    }
+  }
+
+  promptSections.push(
+    `Subject & Core Concept: High-end visual representation of ${subjectName}. The visual must clearly communicate the marketing goal of "${marketingGoal}" for an audience of ${audience}.`
+  );
+
+  promptSections.push(
+    `Scene & Environment: ${domainInfo.defaultVisualScene}. Centered prominently on ${domainInfo.defaultVisualObject}.`
+  );
+
+  promptSections.push(
+    `Composition & Camera: ${platformSpecs.imageRecommendation}. Place the subject prominently in the foreground with strong focal clarity and clean negative space for optional marketing copy.`
+  );
+
+  promptSections.push(
+    `Lighting & Aesthetic: ${styleDetails}. Color direction reflects clean, inviting, and premium tones.`
+  );
+
   if (brandContext?.brandColors) {
-    promptLines.push(`Brand Palette: Incorporate subtle accents of ${brandContext.brandColors}.`);
+    promptSections.push(`Brand Palette: Incorporate subtle accents of ${brandContext.brandColors}.`);
   }
   if (campaignName && campaignName.trim()) {
-    promptLines.push(`Campaign Theme: Aligned with the "${campaignName.trim()}" initiative.`);
+    promptSections.push(`Campaign Theme: Aligned with the "${campaignName.trim()}" initiative.`);
   }
   if (additionalInstructions && additionalInstructions.trim()) {
-    promptLines.push(`Custom Directives: ${additionalInstructions.trim()}`);
+    promptSections.push(`Custom Directives: ${additionalInstructions.trim()}`);
   }
 
-  promptLines.push(`Negative Prompts: No visible competitor logos, no distorted or misspelled text, no messy cluttered background, no watermarks.`);
-  promptLines.push(`Guardrails: Original artistic depiction, no copyrighted characters, no trademarked brand symbols.`);
+  promptSections.push(
+    `Keep the product shape, packaging, and branding faithful to the provided reference.\nDo not create competitor logos.\nDo not distort the product.\nDo not alter the company logo.\nNo watermarks.\nNo unnecessary text.`
+  );
 
-  return promptLines.join(' ');
+  return promptSections.join('\n\n');
 }
 
 export function buildDetailedVideoPrompt(params: {
@@ -671,6 +712,7 @@ export function buildDetailedVideoPrompt(params: {
   objective?: string;
   videoStyle?: string;
   brandContext?: BrandContext;
+  selectedAssets?: SelectedAssetReference[];
   additionalInstructions?: string;
 }): string {
   const {
@@ -682,6 +724,7 @@ export function buildDetailedVideoPrompt(params: {
     objective,
     videoStyle = 'Cinematic',
     brandContext,
+    selectedAssets = [],
     additionalInstructions,
   } = params;
 
@@ -694,30 +737,66 @@ export function buildDetailedVideoPrompt(params: {
   const audience = targetAudience || domainInfo.defaultAudience;
   const marketingGoal = objective || 'promotion and engagement';
 
-  const videoLines: string[] = [
-    `Create a 10-second ${videoStyle.toLowerCase()} marketing video for ${primaryPlatform.toUpperCase()} (${platformSpecs.videoRatio}).`,
-    `Concept & Objective: Showcase "${cleanSubject}" for ${audience} delivering on "${marketingGoal}".`,
-    `Visual Arc & Chronological Action Sequence:`,
-    `• 0–2 sec [Opening Hook]: ${domainInfo.defaultVideoHook}. Fast visual intrigue with high sensory appeal to capture attention immediately.`,
-    `• 2–5 sec [Scene & Main Action]: ${domainInfo.defaultVideoAction}. Camera glides smoothly to reveal the product in use with pristine environment styling.`,
-    `• 5–8 sec [Product / Value Demonstration]: Macro camera push-in highlighting exquisite details, premium quality, and emotional satisfaction of using ${subjectName}.`,
-    `• 8–10 sec [Ending / CTA Visual]: Camera gently pulls back to an artistic final hero frame showcasing ${subjectName} with clean negative space for the concluding call-to-action.`,
-    `Camera Movement & Transitions: Smooth gimbal movement, elegant depth transitions, and cinematic pacing.`,
-    `Lighting, Environment & Palette: Warm, natural ambient lighting highlighting authentic textures and rich colors.`,
+  const videoSections: string[] = [
+    `Create a 10-second ${videoStyle.toLowerCase()} ${primaryPlatform.toLowerCase() === 'youtube' ? 'horizontal 16:9' : 'vertical 9:16'} ${primaryPlatform.toUpperCase()} promotional video for "${cleanSubject}".`,
   ];
 
-  if (brandContext?.brandColors) {
-    videoLines.push(`Brand Tones: Featuring subtle accents of ${brandContext.brandColors}.`);
-  }
-  if (campaignName && campaignName.trim()) {
-    videoLines.push(`Campaign Context: Aligned with "${campaignName.trim()}".`);
-  }
-  if (additionalInstructions && additionalInstructions.trim()) {
-    videoLines.push(`Custom Directives: ${additionalInstructions.trim()}`);
+  // Referenced Brand Assets (Real Accessible Public URLs)
+  if (selectedAssets && selectedAssets.length > 0) {
+    const productAsset = selectedAssets.find((a) => a.category === 'PRODUCTS' || a.category === 'UI_DIGITAL');
+    const logoAsset = selectedAssets.find((a) => a.category === 'LOGOS');
+    const peopleAsset = selectedAssets.find((a) => a.category === 'PEOPLE');
+
+    if (productAsset) {
+      videoSections.push(`Use this product image as the primary visual reference:\n${productAsset.public_url}`);
+    }
+    if (peopleAsset) {
+      videoSections.push(`Use this portrait photo as the main subject reference:\n${peopleAsset.public_url}`);
+    }
+    if (logoAsset) {
+      videoSections.push(`Use the company logo in the final frame:\n${logoAsset.public_url}`);
+    }
   }
 
-  videoLines.push(`Negative Prompts: Avoid competitor branding, distorted elements, blurry frames, watermarks.`);
-  return videoLines.join(' ');
+  videoSections.push(
+    `Concept & Objective: Showcase "${cleanSubject}" for ${audience} delivering on "${marketingGoal}".`
+  );
+
+  videoSections.push(
+    `Scene 1 — 0–2 seconds:\nOpen with a close-up cinematic shot of ${subjectName} in a warm, elegant setting to capture attention immediately.`
+  );
+
+  videoSections.push(
+    `Scene 2 — 2–5 seconds:\nSlow camera movement around the subject while dynamic environmental lighting creates an atmospheric glow.`
+  );
+
+  videoSections.push(
+    `Scene 3 — 5–8 seconds:\nShow ${subjectName} in active use as part of a premium lifestyle / professional setting, highlighting exquisite details and value.`
+  );
+
+  videoSections.push(
+    `Scene 4 — 8–10 seconds:\nTransition to a clean branded final frame using the supplied logo, with space for a short call-to-action.`
+  );
+
+  videoSections.push(
+    `Cinematography & Styling: Soft cinematic lighting, smooth camera movement, premium commercial product photography, warm elegant atmosphere, and ${primaryPlatform}-first visual composition.`
+  );
+
+  if (brandContext?.brandColors) {
+    videoSections.push(`Brand Tones: Featuring subtle accents of ${brandContext.brandColors}.`);
+  }
+  if (campaignName && campaignName.trim()) {
+    videoSections.push(`Campaign Context: Aligned with "${campaignName.trim()}".`);
+  }
+  if (additionalInstructions && additionalInstructions.trim()) {
+    videoSections.push(`Custom Directives: ${additionalInstructions.trim()}`);
+  }
+
+  videoSections.push(
+    `Preserve the actual product appearance and supplied logo.\nDo not distort the packaging.\nNo competitor branding.\nNo watermarks.`
+  );
+
+  return videoSections.join('\n\n');
 }
 
 // --------------------------------------------------------------------------
@@ -762,6 +841,19 @@ export async function generateMarketingContent(
   const imagePromptVersion = (req.imagePromptVersion || 1) + (isImagePromptOnly ? 1 : 0);
   const videoPromptVersion = (req.videoPromptVersion || 1) + (isVideoPromptOnly ? 1 : 0);
 
+  // --------------------------------------------------------------------------
+  // AI BRAND ASSET SELECTION
+  // --------------------------------------------------------------------------
+  const selectedAssets = req.brandAssets && req.brandAssets.length > 0
+    ? selectRelevantBrandAssets({
+        topic: cleanSubject,
+        userRequest: rawInput,
+        contentType: req.contentType,
+        objective,
+        availableAssets: req.brandAssets,
+      })
+    : [];
+
   const generatedImagePrompt = (isVideoPromptOnly || isHashtagsOnly || isCaptionOnly) && req.existingImagePrompt
     ? req.existingImagePrompt
     : buildDetailedImagePrompt({
@@ -775,6 +867,7 @@ export async function generateMarketingContent(
         imageStyle,
         visualStyle: req.visualStyle,
         brandContext: req.brandContext,
+        selectedAssets,
         additionalInstructions: req.additionalCreativeInstructions,
       });
 
@@ -790,6 +883,7 @@ export async function generateMarketingContent(
         objective,
         videoStyle,
         brandContext: req.brandContext,
+        selectedAssets,
         additionalInstructions: req.additionalCreativeInstructions,
       });
 
@@ -1374,6 +1468,7 @@ export async function generateMarketingContent(
         video_prompt: generatedVideoPrompt,
         image_prompt_version: imagePromptVersion,
         video_prompt_version: videoPromptVersion,
+        selected_assets: selectedAssets.length > 0 ? selectedAssets : undefined,
         image_url: finalUploadedMediaUrl,
         socialSharingTitle: blogTitle,
         socialSharingDescription: seoDescription,
@@ -1503,6 +1598,7 @@ export async function generateMarketingContent(
     video_prompt: generatedVideoPrompt,
     image_prompt_version: imagePromptVersion,
     video_prompt_version: videoPromptVersion,
+    selected_assets: selectedAssets.length > 0 ? selectedAssets : undefined,
     platform: platformList[0] || 'instagram',
     content_type: req.contentType || 'post',
     target_audience: targetAudience,

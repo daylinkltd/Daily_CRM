@@ -56,29 +56,56 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    // 1. Fetch Multi-Tenant Brand Context from Database if workspaceId is provided
+    // 1. Fetch Multi-Tenant Brand Profile & Assets from Database if workspaceId is provided
     let brandContext: BrandContext = customBrandContext || {};
+    let brandAssets: any[] = body.brandAssets || [];
+
     if (workspaceId) {
       try {
-        const { data: mSettings } = await supabase
-          .from('marketing_settings')
-          .select('*')
-          .eq('workspace_id', workspaceId)
-          .maybeSingle();
+        const [profileRes, assetsRes, mSettingsRes, workspaceRes] = await Promise.all([
+          supabase
+            .from('marketing_brand_profiles')
+            .select('*')
+            .eq('workspace_id', workspaceId)
+            .maybeSingle(),
+          supabase
+            .from('marketing_brand_assets')
+            .select('*')
+            .eq('workspace_id', workspaceId)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('marketing_settings')
+            .select('*')
+            .eq('workspace_id', workspaceId)
+            .maybeSingle(),
+          supabase
+            .from('workspaces')
+            .select('name, branding')
+            .eq('id', workspaceId)
+            .maybeSingle(),
+        ]);
 
-        const { data: workspace } = await supabase
-          .from('workspaces')
-          .select('name, branding')
-          .eq('id', workspaceId)
-          .maybeSingle();
+        const brandProfile = profileRes.data;
+        if (assetsRes.data && assetsRes.data.length > 0) {
+          brandAssets = assetsRes.data;
+        }
+
+        const workspace = workspaceRes.data;
+        const mSettings = mSettingsRes.data;
+
+        // Construct tenant-specific brand context without hardcoding
+        const colors = brandProfile?.primary_color
+          ? `${brandProfile.primary_color}${brandProfile.secondary_color ? `, ${brandProfile.secondary_color}` : ''}`
+          : workspace?.branding?.primaryColor ? `Primary ${workspace.branding.primaryColor}` : undefined;
 
         brandContext = {
-          businessName: workspace?.name || brandContext.businessName,
-          brandVoice: mSettings?.ai_brand_voice || brandContext.brandVoice,
-          brandColors: workspace?.branding?.primaryColor ? `Primary ${workspace.branding.primaryColor}` : brandContext.brandColors,
-          website: websiteUrl || brandContext.website,
-          productsOrServices: productOrService || brandContext.productsOrServices,
-          targetAudience: targetAudience || brandContext.targetAudience,
+          businessName: brandProfile?.company_name || workspace?.name || brandContext.businessName,
+          brandDescription: brandProfile?.business_description || brandContext.brandDescription,
+          brandVoice: brandProfile?.brand_voice || mSettings?.ai_brand_voice || brandContext.brandVoice,
+          brandColors: colors || brandContext.brandColors,
+          website: brandProfile?.website || websiteUrl || brandContext.website,
+          productsOrServices: brandProfile?.business_description || productOrService || brandContext.productsOrServices,
+          targetAudience: brandProfile?.target_audience || targetAudience || brandContext.targetAudience,
           campaign: campaignName || brandContext.campaign,
           ...brandContext,
         };
@@ -118,6 +145,7 @@ export async function POST(request: Request) {
       imagePromptVersion,
       videoPromptVersion,
       uploadedMediaUrl,
+      brandAssets,
       referenceArticles,
       primaryKeyword,
     });

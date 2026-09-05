@@ -77,6 +77,7 @@ import { MediaCreativeSection, type MediaCreativeData } from '@/components/marke
 import { evaluateBlogSEO, type SEOReadinessReport } from '@/lib/marketing/seo-evaluator';
 import type { ReferenceArticle, GenerationTraceContext, RelevanceValidationResult } from '@/lib/marketing/attachment-processor';
 import type { WebResearchSource } from '@/lib/marketing/web-researcher';
+import type { SelectedAssetReference } from '@/lib/marketing/brand-asset-selector';
 
 
 export const CONTENT_TYPES = [
@@ -269,6 +270,7 @@ export function CreateWorkspaceTabs() {
   // UI State
   const [generationMode, setGenerationMode] = useState<'web_research' | 'ai_generate'>('web_research');
   const [searchErrorState, setSearchErrorState] = useState<{ topic: string; message: string } | null>(null);
+  const [selectedBrandAssets, setSelectedBrandAssets] = useState<SelectedAssetReference[]>([]);
   const [activeResultTab, setActiveResultTab] = useState<ResultTab>('content');
   const [activePreviewPlatform, setActivePreviewPlatform] = useState<SocialPlatform>('instagram');
   const [isGenerated, setIsGenerated] = useState<boolean>(false);
@@ -560,6 +562,7 @@ export function CreateWorkspaceTabs() {
         setVideoPrompt(data.blog.video_prompt || '');
         setImagePromptVersion(data.blog.image_prompt_version || 1);
         setVideoPromptVersion(data.blog.video_prompt_version || 1);
+        setSelectedBrandAssets(data.blog.selected_assets || []);
         setDetectedSubject(data.structured_intent?.detectedSubject || topicPrompt);
         setDetectedIndustry(data.structured_intent?.detectedIndustry || 'Article');
       } else if (data.social) {
@@ -573,6 +576,7 @@ export function CreateWorkspaceTabs() {
         setVideoPrompt(data.social.video_prompt || '');
         setImagePromptVersion(data.social.image_prompt_version || 1);
         setVideoPromptVersion(data.social.video_prompt_version || 1);
+        setSelectedBrandAssets(data.social.selected_assets || []);
         setDetectedSubject(data.social.detected_subject || data.structured_intent?.detectedSubject || topicPrompt);
         setDetectedIndustry(data.social.detected_industry || data.structured_intent?.detectedIndustry || 'General');
         setSuggestedTime(data.social.suggestedPostingTime || null);
@@ -2284,6 +2288,35 @@ export function CreateWorkspaceTabs() {
                     </div>
                   )}
 
+                  {/* REFERENCED BRAND ASSETS GALLERY */}
+                  {selectedBrandAssets.length > 0 && (
+                    <div className="pt-3 border-t border-sky-500/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5 text-sky-500" /> Referenced Brand Assets ({selectedBrandAssets.length})
+                        </h5>
+                        <span className="text-[10px] text-muted-foreground">Embedded as public references in prompt</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {selectedBrandAssets.map((asset) => (
+                          <div key={asset.id} className="flex items-start gap-2.5 p-2 rounded-xl border border-sky-500/20 bg-background/80">
+                            <div className="h-10 w-10 rounded-lg bg-muted/40 border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                              <img src={asset.public_url} alt={asset.name} className="h-full w-full object-contain" />
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-0.5">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-xs font-bold text-foreground truncate">{asset.name}</span>
+                                <Badge variant="secondary" className="text-[9px] px-1 py-0">{asset.category}</Badge>
+                              </div>
+                              <p className="text-[10px] text-sky-600 dark:text-sky-400 font-medium line-clamp-1">{asset.usageInstruction}</p>
+                              <p className="text-[9px] text-muted-foreground truncate font-mono">{asset.public_url}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       <Info className="h-3.5 w-3.5 text-sky-500" />
@@ -2300,7 +2333,7 @@ export function CreateWorkspaceTabs() {
                         className="h-9 px-3 text-xs font-bold rounded-xl gap-1.5 border-sky-500/40 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10"
                       >
                         <RefreshCw className={cn('h-3.5 w-3.5', isRegeneratingImagePrompt && 'animate-spin')} />
-                        Regenerate Prompt
+                        Regenerate Image Prompt
                       </Button>
 
                       <Button
@@ -2309,18 +2342,7 @@ export function CreateWorkspaceTabs() {
                         onClick={() => copyToClipboard(imagePrompt, 'Image Prompt')}
                         className="h-9 px-3.5 text-xs font-bold rounded-xl gap-1.5 bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
                       >
-                        <Copy className="h-3.5 w-3.5" /> Copy Prompt
-                      </Button>
-
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={imageGenState === 'GENERATING' || !imagePrompt.trim()}
-                        onClick={handleGenerateAIImage}
-                        className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5 bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 text-white shadow-sm hover:opacity-95"
-                      >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {imageGenState === 'COMPLETED' ? 'Regenerate Image' : 'Generate AI Image'}
+                        <Copy className="h-3.5 w-3.5" /> Copy Image Prompt
                       </Button>
                     </div>
                   </div>
@@ -2511,6 +2533,35 @@ export function CreateWorkspaceTabs() {
                     </div>
                   )}
 
+                  {/* REFERENCED BRAND ASSETS GALLERY */}
+                  {selectedBrandAssets.length > 0 && (
+                    <div className="pt-3 border-t border-purple-500/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5 text-purple-500" /> Referenced Brand Assets ({selectedBrandAssets.length})
+                        </h5>
+                        <span className="text-[10px] text-muted-foreground">Embedded as public references in prompt</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {selectedBrandAssets.map((asset) => (
+                          <div key={asset.id} className="flex items-start gap-2.5 p-2 rounded-xl border border-purple-500/20 bg-background/80">
+                            <div className="h-10 w-10 rounded-lg bg-muted/40 border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                              <img src={asset.public_url} alt={asset.name} className="h-full w-full object-contain" />
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-0.5">
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-xs font-bold text-foreground truncate">{asset.name}</span>
+                                <Badge variant="secondary" className="text-[9px] px-1 py-0">{asset.category}</Badge>
+                              </div>
+                              <p className="text-[10px] text-purple-600 dark:text-purple-400 font-medium line-clamp-1">{asset.usageInstruction}</p>
+                              <p className="text-[9px] text-muted-foreground truncate font-mono">{asset.public_url}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Footer Actions */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -2537,18 +2588,7 @@ export function CreateWorkspaceTabs() {
                         onClick={() => copyToClipboard(videoPrompt, 'Video Prompt')}
                         className="h-9 px-3.5 text-xs font-bold rounded-xl gap-1.5 bg-purple-600 hover:bg-purple-700 text-white shadow-sm"
                       >
-                        <Copy className="h-3.5 w-3.5" /> Copy Prompt
-                      </Button>
-
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={['VALIDATING', 'SUBMITTING', 'GENERATING', 'PROCESSING'].includes(videoGenState) || !videoPrompt.trim()}
-                        onClick={handleGenerateAIVideo}
-                        className="h-9 px-4 text-xs font-bold rounded-xl gap-1.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-primary text-white shadow-sm hover:opacity-95"
-                      >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {videoGenState === 'COMPLETED' ? 'Regenerate Video' : 'Generate AI Video'}
+                        <Copy className="h-3.5 w-3.5" /> Copy Video Prompt
                       </Button>
                     </div>
                   </div>

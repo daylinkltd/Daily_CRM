@@ -649,6 +649,215 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     expect(blog.content).toContain('Minimum Viable Product');
     expect(blog.content).not.toContain('compney');
   });
+
+  // TEST 26: Intelligent AI Brand Asset Selection & Filtering
+  it('TEST 26: selects relevant brand assets and filters out irrelevant ones', async () => {
+    const brandAssets = [
+      {
+        id: 'asset_logo',
+        name: 'Primary Brand Logo',
+        category: 'LOGOS' as const,
+        sub_category: 'Primary Logo',
+        public_url: 'https://cdn.example.com/tenant123/brand/logo.png',
+        description: 'Primary vector logo mark in white and gold',
+      },
+      {
+        id: 'asset_candle',
+        name: 'Vanilla Scented Candle',
+        category: 'PRODUCTS' as const,
+        sub_category: 'Product Photos',
+        public_url: 'https://cdn.example.com/tenant123/assets/vanilla-candle.png',
+        description: 'Main handmade vanilla scented candle with luxury label in studio lighting',
+      },
+      {
+        id: 'asset_app_ui',
+        name: 'Mobile App Dashboard Screen',
+        category: 'UI_DIGITAL' as const,
+        sub_category: 'App Screenshots',
+        public_url: 'https://cdn.example.com/tenant123/assets/app-ui.png',
+        description: 'Mobile application interface showing customer metrics',
+      },
+      {
+        id: 'asset_founder',
+        name: 'Founder Portrait',
+        category: 'PEOPLE' as const,
+        sub_category: 'Founder Photos',
+        public_url: 'https://cdn.example.com/tenant123/assets/founder-portrait.png',
+        description: 'Professional headshot of the company founder',
+      },
+    ];
+
+    // Case A: Product post for handmade candle
+    const candleRes = await generateMarketingContent({
+      topic: 'Create an Instagram post promoting our new vanilla scented candle',
+      platforms: ['instagram'],
+      brandAssets,
+    });
+
+    expect(candleRes.success).toBe(true);
+    const candleSocial = candleRes.social!;
+    expect(candleSocial.selected_assets).toBeDefined();
+    const candleSelectedIds = candleSocial.selected_assets!.map((a) => a.id);
+
+    expect(candleSelectedIds).toContain('asset_logo');
+    expect(candleSelectedIds).toContain('asset_candle');
+    expect(candleSelectedIds).not.toContain('asset_app_ui');
+    expect(candleSelectedIds).not.toContain('asset_founder');
+
+    // Case B: Founder Announcement post
+    const founderRes = await generateMarketingContent({
+      topic: 'Create a founder announcement post celebrating our milestone',
+      platforms: ['linkedin'],
+      brandAssets,
+    });
+
+    expect(founderRes.success).toBe(true);
+    const founderSelectedIds = founderRes.social!.selected_assets!.map((a) => a.id);
+    expect(founderSelectedIds).toContain('asset_logo');
+    expect(founderSelectedIds).toContain('asset_founder');
+    expect(founderSelectedIds).not.toContain('asset_candle');
+
+    // Case C: Mobile Application post
+    const appRes = await generateMarketingContent({
+      topic: 'Announcing the launch of our new mobile application',
+      platforms: ['instagram'],
+      brandAssets,
+    });
+
+    expect(appRes.success).toBe(true);
+    const appSelectedIds = appRes.social!.selected_assets!.map((a) => a.id);
+    expect(appSelectedIds).toContain('asset_logo');
+    expect(appSelectedIds).toContain('asset_app_ui');
+    expect(appSelectedIds).not.toContain('asset_candle');
+    expect(appSelectedIds).not.toContain('asset_founder');
+  });
+
+  // TEST 27: Public Asset URLs Referenced in Image and Video Prompts
+  it('TEST 27: builds image and video prompts referencing public asset URLs with explicit usage', async () => {
+    const brandAssets = [
+      {
+        id: 'logo_1',
+        name: 'Lumina Brand Logo',
+        category: 'LOGOS' as const,
+        public_url: 'https://storage.example.com/tenant123/assets/logo.png',
+      },
+      {
+        id: 'product_1',
+        name: 'Vanilla Scented Candle',
+        category: 'PRODUCTS' as const,
+        public_url: 'https://storage.example.com/tenant123/assets/vanilla-candle.png',
+      },
+    ];
+
+    const res = await generateMarketingContent({
+      topic: 'Create an Instagram post promoting our new vanilla scented candle',
+      platforms: ['instagram'],
+      brandAssets,
+    });
+
+    expect(res.success).toBe(true);
+    const social = res.social!;
+
+    // Image Prompt verification
+    expect(social.image_prompt).toContain('https://storage.example.com/tenant123/assets/vanilla-candle.png');
+    expect(social.image_prompt).toContain('https://storage.example.com/tenant123/assets/logo.png');
+    expect(social.image_prompt).toContain('Use the provided product image as the primary product reference:');
+    expect(social.image_prompt).toContain("Use the company's actual logo for subtle branding:");
+    expect(social.image_prompt).toContain('No watermarks');
+
+    // Video Prompt verification
+    expect(social.video_prompt).toContain('https://storage.example.com/tenant123/assets/vanilla-candle.png');
+    expect(social.video_prompt).toContain('https://storage.example.com/tenant123/assets/logo.png');
+    expect(social.video_prompt).toContain('Scene 1 — 0–2 seconds:');
+    expect(social.video_prompt).toContain('Scene 2 — 2–5 seconds:');
+    expect(social.video_prompt).toContain('Scene 3 — 5–8 seconds:');
+    expect(social.video_prompt).toContain('Scene 4 — 8–10 seconds:');
+  });
+
+  // TEST 28: Universal Generation Across 6 Distinct Industries (Zero DailyBuz / CRM Pollution)
+  it('TEST 28: verifies universal content across 6 industries with ZERO DailyBuz/CRM injection', async () => {
+    const testCases = [
+      {
+        industry: 'Candles',
+        prompt: 'Create an Instagram post for a premium handmade candle',
+        expectedTerms: ['candle', 'fragrance', 'handcrafted', 'flame'],
+      },
+      {
+        industry: 'AI Automation',
+        prompt: 'Create a LinkedIn post promoting an AI automation service for logistics',
+        expectedTerms: ['automation', 'logistics', 'efficiency', 'ai'],
+      },
+      {
+        industry: 'Pizza Restaurant',
+        prompt: 'Create an Instagram Reel announcing our new wood-fired pizza restaurant',
+        expectedTerms: ['pizza', 'restaurant', 'wood-fired', 'dough'],
+      },
+      {
+        industry: 'Sneakers',
+        prompt: 'Create a product launch post for a limited edition running sneaker',
+        expectedTerms: ['sneaker', 'running', 'footwear', 'cushion'],
+      },
+      {
+        industry: 'Real Estate',
+        prompt: 'Create a real estate advertisement for luxury waterfront apartments',
+        expectedTerms: ['waterfront', 'apartments', 'luxury', 'living'],
+      },
+      {
+        industry: 'Mobile App',
+        prompt: 'Create a post announcing our new mobile app for personal fitness tracking',
+        expectedTerms: ['fitness', 'mobile app', 'tracking', 'workout'],
+      },
+    ];
+
+    for (const tc of testCases) {
+      const res = await generateMarketingContent({
+        topic: tc.prompt,
+        platforms: ['instagram'],
+      });
+
+      expect(res.success).toBe(true);
+      const social = res.social!;
+      const fullText = `${social.caption} ${social.image_prompt} ${social.video_prompt}`.toLowerCase();
+
+      // Verify industry relevance
+      const hasExpected = tc.expectedTerms.some((term) => fullText.includes(term.toLowerCase()));
+      expect(hasExpected, `Industry ${tc.industry} missing terms: ${tc.expectedTerms.join(', ')}`).toBe(true);
+
+      // Verify NO DailyBuz / CRM leakage
+      expect(fullText).not.toContain('dailybuz');
+      expect(fullText).not.toContain('dailycrm');
+      if (tc.industry !== 'AI Automation') {
+        expect(fullText).not.toContain('sales pipeline');
+        expect(fullText).not.toContain('customer conversations');
+      }
+    }
+  });
+
+  // TEST 29: Independent Prompt Regeneration
+  it('TEST 29: regenerates ONLY image prompt when regenTarget is image_prompt_only', async () => {
+    const originalCaption = 'Original handmade candle caption that must remain untouched.';
+    const originalVideoPrompt = 'Original video script 0-10s that must remain untouched.';
+
+    const res = await generateMarketingContent({
+      topic: 'Create an Instagram post for our vanilla scented candle',
+      platforms: ['instagram'],
+      existingCaption: originalCaption,
+      existingVideoPrompt: originalVideoPrompt,
+      imagePromptVersion: 1,
+      regenTarget: 'image_prompt_only',
+    });
+
+    expect(res.success).toBe(true);
+    const social = res.social!;
+
+    // Caption and Video Prompt are preserved
+    expect(social.caption).toBe(originalCaption);
+    expect(social.video_prompt).toBe(originalVideoPrompt);
+
+    // Image prompt version is incremented
+    expect(social.image_prompt_version).toBe(2);
+    expect(social.image_prompt).toContain('vanilla scented candle');
+  });
 });
 
 
