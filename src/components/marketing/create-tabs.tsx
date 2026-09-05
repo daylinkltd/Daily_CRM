@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCalendarStore } from '@/lib/calendar/store';
 import { useWorkspace } from '@/hooks/use-workspace';
+import { parseDynamicCreativeIntent } from '@/lib/marketing/ai-generator';
 import { SOCIAL_TEMPLATES, BLOG_TEMPLATES } from '@/lib/marketing/template-library';
 import { SocialPlatformPreview } from '@/components/social/platform-previews';
 import type { SocialPost, BlogPost, PostStatus, SocialPlatform, ToneType, ContentType as SchemaContentType } from '@/types/calendar';
@@ -211,8 +212,9 @@ export function CreateWorkspaceTabs() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>(['instagram', 'linkedin', 'x']);
   const [topicPrompt, setTopicPrompt] = useState<string>('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
-  const [objective, setObjective] = useState<string>('Promotion & Sales');
+  const [objective, setObjective] = useState<string>('');
   const [tone, setTone] = useState<ToneType>('creative');
+  const [activeQuickStarter, setActiveQuickStarter] = useState<string | null>(null);
 
   // Collapsible Advanced Options
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
@@ -224,6 +226,19 @@ export function CreateWorkspaceTabs() {
   const [videoStyle, setVideoStyle] = useState<string>('Cinematic');
   const [additionalInstructions, setAdditionalInstructions] = useState<string>('');
   const [mediaCreative, setMediaCreative] = useState<MediaCreativeData | null>(null);
+
+  // Dynamic Intent derived automatically from current user request & context
+  const dynamicIntent = useMemo(() => {
+    return parseDynamicCreativeIntent({
+      rawInput: topicPrompt,
+      brandContext: activeWorkspace ? { businessName: activeWorkspace.name } : undefined,
+      platform: selectedPlatforms[0] || 'instagram',
+      objective: objective || undefined,
+      targetAudience: targetAudience || undefined,
+      templateId: selectedTemplateId || undefined,
+      activeQuickStarter,
+    });
+  }, [topicPrompt, activeWorkspace, selectedPlatforms, objective, targetAudience, selectedTemplateId, activeQuickStarter]);
 
   // Loading States
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -482,6 +497,7 @@ export function CreateWorkspaceTabs() {
   };
 
   const applyInspiration = (item: { label: string; prompt: string }) => {
+    setActiveQuickStarter(item.label);
     setTopicPrompt(item.prompt);
     toast.info(`Loaded prompt: ${item.label}`);
   };
@@ -1247,7 +1263,10 @@ export function CreateWorkspaceTabs() {
               <Textarea
                 rows={4}
                 value={topicPrompt}
-                onChange={(e) => setTopicPrompt(e.target.value)}
+                onChange={(e) => {
+                  setTopicPrompt(e.target.value);
+                  if (activeQuickStarter) setActiveQuickStarter(null);
+                }}
                 placeholder="e.g. Create an Instagram post promoting our new lavender candle collection for women aged 20–35. Make it premium and elegant."
                 className="w-full rounded-2xl border-border bg-background/90 text-xs p-3.5 resize-none transition-all focus:ring-2 focus:ring-primary/20 leading-relaxed font-medium"
               />
@@ -2390,11 +2409,16 @@ export function CreateWorkspaceTabs() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-foreground/90">
                           <div className="flex items-center justify-between p-1.5 rounded-lg bg-muted/30">
                             <span className="text-muted-foreground flex items-center gap-1.5"><Check className="h-3 w-3 text-emerald-500 shrink-0" /> Brand resolved</span>
-                            <span className="font-bold text-foreground">{(imagePrompt.includes('Daylink Tech Labs') ? 'Daylink Tech Labs' : (imagePrompt.match(/BRAND:\s*([^\n]+)/)?.[1] || activeWorkspace?.name || 'Daylink Tech Labs'))}</span>
+                            <div className="text-right">
+                              <span className="font-bold text-foreground block">{dynamicIntent.brand.name || 'Not specified'}</span>
+                              <span className="text-[10px] text-muted-foreground block font-normal">
+                                Source: {dynamicIntent.brand.source === 'tenant_profile' ? 'Tenant Brand Profile' : dynamicIntent.brand.source === 'user_request' ? 'User Request' : dynamicIntent.brand.source === 'brand_profile' ? 'Selected Brand Profile' : 'None'}
+                              </span>
+                            </div>
                           </div>
                           <div className="flex items-center justify-between p-1.5 rounded-lg bg-muted/30">
                             <span className="text-muted-foreground flex items-center gap-1.5"><Check className="h-3 w-3 text-emerald-500 shrink-0" /> Reference asset</span>
-                            <span className="font-bold text-foreground truncate max-w-[130px]">{selectedBrandAssets[0]?.name || (selectedBrandAssets.length > 0 ? 'Daylink Tech Labs Logo' : 'Official Brand Asset')}</span>
+                            <span className="font-bold text-foreground truncate max-w-[130px]">{selectedBrandAssets[0]?.name || (selectedBrandAssets.length > 0 ? (dynamicIntent.brand.name ? `${dynamicIntent.brand.name} Logo` : 'Brand Asset') : 'None')}</span>
                           </div>
                           <div className="flex items-center justify-between p-1.5 rounded-lg bg-muted/30">
                             <span className="text-muted-foreground flex items-center gap-1.5"><Check className="h-3 w-3 text-emerald-500 shrink-0" /> Public URL accessible</span>
@@ -2410,15 +2434,20 @@ export function CreateWorkspaceTabs() {
                           </div>
                           <div className="flex items-center justify-between p-1.5 rounded-lg bg-muted/30">
                             <span className="text-muted-foreground flex items-center gap-1.5"><Check className="h-3 w-3 text-emerald-500 shrink-0" /> Creative type</span>
-                            <span className="font-bold text-foreground">{imagePrompt.includes('SaaS') ? 'Premium Enterprise SaaS' : 'Premium Creative'}</span>
+                            <div className="text-right">
+                              <span className="font-bold text-foreground block">{dynamicIntent.creativeType.label}</span>
+                              <span className="text-[10px] text-muted-foreground block font-normal">
+                                Source: {dynamicIntent.creativeType.source === 'user_request' ? 'User Request' : dynamicIntent.creativeType.source === 'selected_template' ? 'Selected Template' : 'None / Not specified'}
+                              </span>
+                            </div>
                           </div>
                           <div className="flex items-center justify-between p-1.5 rounded-lg bg-muted/30">
                             <span className="text-muted-foreground flex items-center gap-1.5"><Check className="h-3 w-3 text-emerald-500 shrink-0" /> Platform & Aspect</span>
-                            <span className="font-bold text-foreground">{selectedPlatforms[0] || 'Instagram'} • 4:5</span>
+                            <span className="font-bold text-foreground">{dynamicIntent.platform.charAt(0).toUpperCase() + dynamicIntent.platform.slice(1)} • {dynamicIntent.aspectRatio}</span>
                           </div>
                           <div className="flex items-center justify-between p-1.5 rounded-lg bg-muted/30">
-                            <span className="text-muted-foreground flex items-center gap-1.5"><Check className="h-3 w-3 text-emerald-500 shrink-0" /> Prompt QA Pipeline</span>
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">Passed (15/15)</span>
+                            <span className="text-muted-foreground flex items-center gap-1.5"><Check className="h-3 w-3 text-emerald-500 shrink-0" /> Quick Starter</span>
+                            <span className="font-bold text-foreground">{dynamicIntent.quickStarter || 'None'}</span>
                           </div>
                         </div>
                       </div>

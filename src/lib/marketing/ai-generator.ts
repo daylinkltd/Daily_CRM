@@ -334,6 +334,367 @@ export interface CreativeIntent {
   restrictions: string[];
 }
 
+export function stripLegalCompanySuffix(name: string): string {
+  if (!name) return '';
+  return name
+    .replace(/,\s*(?:Private\s+Limited|Pvt\.?\s*Ltd\.?|Ltd\.?|Limited|LLC|Inc\.?|Corp\.?|Corporation|LLP)\b/gi, '')
+    .replace(/\s+(?:Private\s+Limited|Pvt\.?\s*Ltd\.?|Ltd\.?|Limited|LLC|Inc\.?|Corp\.?|Corporation|LLP)\b/gi, '')
+    .trim();
+}
+
+export function formatTemplateLabel(templateId: string): string {
+  if (!templateId) return 'Not specified';
+  return templateId
+    .split(/[-_]/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+export interface CreativeTypeResult {
+  value: string | null;
+  label: string;
+  source: 'user_request' | 'selected_template' | 'none';
+}
+
+export function parseCreativeType(input: string, templateId?: string): CreativeTypeResult {
+  const normalized = (input || '').trim();
+  const lower = normalized.toLowerCase();
+
+  if (!lower) {
+    if (templateId) {
+      return {
+        value: templateId,
+        label: formatTemplateLabel(templateId),
+        source: 'selected_template',
+      };
+    }
+    return {
+      value: null,
+      label: 'Not specified',
+      source: 'none',
+    };
+  }
+
+  // 1. Internship / Recruitment / Hiring
+  if (
+    lower.includes('internship poster') ||
+    lower.includes('recruitment poster') ||
+    lower.includes('hiring poster') ||
+    lower.includes('career poster') ||
+    lower.includes('job poster') ||
+    lower.includes('internship') ||
+    lower.includes('recruitment') ||
+    lower.includes('we are hiring') ||
+    lower.includes('hiring')
+  ) {
+    return {
+      value: 'internship_recruitment_poster',
+      label: 'Internship / Recruitment Poster',
+      source: 'user_request',
+    };
+  }
+
+  // 2. Website Development Poster / Services
+  if (
+    lower.includes('website development poster') ||
+    lower.includes('web development poster') ||
+    lower.includes('web design poster') ||
+    lower.includes('website design poster') ||
+    lower.includes('website poster')
+  ) {
+    return {
+      value: 'website_development_poster',
+      label: 'Website Development Poster',
+      source: 'user_request',
+    };
+  }
+  if (
+    lower.includes('website development services') ||
+    lower.includes('web development services') ||
+    lower.includes('website development') ||
+    lower.includes('web development')
+  ) {
+    return {
+      value: 'website_development_services',
+      label: 'Website Development Services',
+      source: 'user_request',
+    };
+  }
+
+  // 3. AI / Automation Poster & Services
+  if (
+    lower.includes('ai automation poster') ||
+    lower.includes('ai & automation poster') ||
+    lower.includes('automation poster') ||
+    lower.includes('ai poster')
+  ) {
+    return {
+      value: 'ai_automation_poster',
+      label: 'AI / Automation Poster',
+      source: 'user_request',
+    };
+  }
+  if (
+    lower.includes('ai automation services') ||
+    lower.includes('ai & automation services') ||
+    lower.includes('automation services') ||
+    lower.includes('ai services')
+  ) {
+    return {
+      value: 'ai_automation_services',
+      label: 'AI / Automation Services',
+      source: 'user_request',
+    };
+  }
+
+  // 4. CRM Product Poster
+  if (
+    lower.includes('poster for our crm') ||
+    lower.includes('crm product poster') ||
+    lower.includes('crm poster') ||
+    lower.includes('crm software poster') ||
+    lower.includes('crm creative')
+  ) {
+    return {
+      value: 'crm_product_poster',
+      label: 'CRM Product Poster',
+      source: 'user_request',
+    };
+  }
+
+  // 5. Services Poster
+  if (
+    lower.includes('services poster') ||
+    lower.includes('service poster') ||
+    lower.includes('services flyer') ||
+    lower.includes('services banner') ||
+    lower.includes('services creative')
+  ) {
+    return {
+      value: 'services_poster',
+      label: 'Services Poster',
+      source: 'user_request',
+    };
+  }
+
+  // 6. Company Profile
+  if (
+    lower.includes('company profile') ||
+    lower.includes('corporate profile') ||
+    lower.includes('business profile')
+  ) {
+    return {
+      value: 'company_profile_creative',
+      label: 'Company Profile Creative',
+      source: 'user_request',
+    };
+  }
+
+  // 7. Event / Webinar Poster
+  if (
+    lower.includes('event poster') ||
+    lower.includes('webinar poster') ||
+    lower.includes('workshop poster') ||
+    lower.includes('conference poster')
+  ) {
+    return {
+      value: 'event_poster',
+      label: 'Event Poster',
+      source: 'user_request',
+    };
+  }
+
+  // 8. Promotion / Offer Poster
+  if (
+    lower.includes('offer poster') ||
+    lower.includes('discount poster') ||
+    lower.includes('sale poster') ||
+    lower.includes('promotional poster')
+  ) {
+    return {
+      value: 'promotion_offer_poster',
+      label: 'Promotion / Offer Poster',
+      source: 'user_request',
+    };
+  }
+
+  // 9. Product Showcase Poster
+  if (
+    lower.includes('product poster') ||
+    lower.includes('product launch poster') ||
+    lower.includes('product showcase')
+  ) {
+    return {
+      value: 'product_showcase_poster',
+      label: 'Product Showcase Poster',
+      source: 'user_request',
+    };
+  }
+
+  // 10. Explicit "Marketing Creative" requested
+  if (lower.includes('marketing creative')) {
+    return {
+      value: 'marketing_creative',
+      label: 'Marketing Creative',
+      source: 'user_request',
+    };
+  }
+
+  // 11. Generic pattern: "<subject> poster"
+  const genericPosterMatch = lower.match(/\b([a-z0-9\s&/-]+?)\s+poster\b/i);
+  if (genericPosterMatch && genericPosterMatch[1]) {
+    const rawSubject = genericPosterMatch[1].trim();
+    const cleanedSubject = rawSubject
+      .replace(/^(?:make|create|generate|design|a|an|the|our|for)\s+/i, '')
+      .replace(/^(?:daylink tech labs|daylink|dailybuz crm|dailybuz)\s*/i, '')
+      .trim();
+
+    if (cleanedSubject.length > 2 && !['something', 'marketing', 'creative', 'post'].includes(cleanedSubject)) {
+      const words = cleanedSubject.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return {
+        value: `${cleanedSubject.replace(/\s+/g, '_').toLowerCase()}_poster`,
+        label: `${words} Poster`,
+        source: 'user_request',
+      };
+    }
+  }
+
+  // 12. Template fallback if specified
+  if (templateId) {
+    return {
+      value: templateId,
+      label: formatTemplateLabel(templateId),
+      source: 'selected_template',
+    };
+  }
+
+  // If ambiguous or not specified
+  return {
+    value: null,
+    label: 'Not specified',
+    source: 'none',
+  };
+}
+
+export interface ResolvedBrandInfo {
+  name: string | null;
+  displayName: string | null;
+  legalName?: string | null;
+  source: 'tenant_profile' | 'brand_profile' | 'user_request' | 'none';
+}
+
+export function resolveBrandIdentity(
+  input: string,
+  brandContext?: BrandContext,
+  selectedBrandProfile?: { company_name?: string; brand_name?: string; legal_name?: string }
+): ResolvedBrandInfo {
+  const normalized = (input || '').trim();
+  const lower = normalized.toLowerCase();
+
+  // 1. Check explicit brand in user request
+  const { extractedBrand } = extractSubjectAndEntity(normalized);
+  if (extractedBrand && isValidBrandName(extractedBrand)) {
+    const isExplicitLegal = lower.includes('private limited') || lower.includes('pvt ltd') || lower.includes(' llc') || lower.includes(' inc.');
+    const display = stripLegalCompanySuffix(extractedBrand);
+    return {
+      name: isExplicitLegal ? extractedBrand : display,
+      displayName: display,
+      legalName: extractedBrand,
+      source: 'user_request',
+    };
+  }
+
+  // 2. Check selected brand profile
+  if (selectedBrandProfile?.brand_name || selectedBrandProfile?.company_name) {
+    const raw = selectedBrandProfile.brand_name || selectedBrandProfile.company_name || '';
+    const legal = selectedBrandProfile.legal_name || selectedBrandProfile.company_name || raw;
+    const display = selectedBrandProfile.brand_name || stripLegalCompanySuffix(raw);
+    return {
+      name: display,
+      displayName: display,
+      legalName: legal,
+      source: 'brand_profile',
+    };
+  }
+
+  // 3. Check tenant workspace / company profile
+  if (brandContext?.businessName && isValidBrandName(brandContext.businessName)) {
+    const raw = brandContext.businessName;
+    const display = stripLegalCompanySuffix(raw);
+    return {
+      name: display,
+      displayName: display,
+      legalName: raw,
+      source: 'tenant_profile',
+    };
+  }
+
+  return {
+    name: null,
+    displayName: null,
+    legalName: null,
+    source: 'none',
+  };
+}
+
+export interface DynamicCreativeIntent {
+  rawRequest: string;
+  brand: ResolvedBrandInfo;
+  creativeType: CreativeTypeResult;
+  topic: string;
+  objective: string | null;
+  marketingGoal: string | null;
+  targetAudience: string | null;
+  platform: string;
+  aspectRatio: string;
+  quickStarter: string | null;
+}
+
+export function parseDynamicCreativeIntent(params: {
+  rawInput: string;
+  brandContext?: BrandContext;
+  selectedBrandProfile?: { company_name?: string; brand_name?: string; legal_name?: string };
+  platform?: string;
+  objective?: string;
+  targetAudience?: string;
+  templateId?: string;
+  activeQuickStarter?: string | null;
+}): DynamicCreativeIntent {
+  const rawRequest = params.rawInput || '';
+  const brand = resolveBrandIdentity(rawRequest, params.brandContext, params.selectedBrandProfile);
+  const creativeType = parseCreativeType(rawRequest, params.templateId);
+  const { cleanSubject } = extractSubjectAndEntity(rawRequest, params.brandContext);
+
+  const lower = rawRequest.toLowerCase();
+  let detectedPlatform = params.platform;
+  if (!detectedPlatform) {
+    if (lower.includes('instagram') || lower.includes('insta')) detectedPlatform = 'instagram';
+    else if (lower.includes('linkedin')) detectedPlatform = 'linkedin';
+    else if (lower.includes('twitter') || lower.includes(' x ') || lower.endsWith(' x') || lower.startsWith('x ')) detectedPlatform = 'x';
+    else if (lower.includes('facebook') || lower.includes('fb')) detectedPlatform = 'facebook';
+    else if (lower.includes('tiktok')) detectedPlatform = 'tiktok';
+    else if (lower.includes('youtube')) detectedPlatform = 'youtube';
+    else if (lower.includes('threads')) detectedPlatform = 'threads';
+    else detectedPlatform = 'instagram';
+  }
+
+  const platformSpecs = getPlatformAspectGuidelines(detectedPlatform);
+  const aspectRatio = detectedPlatform === 'instagram' ? '4:5' : platformSpecs.imageRatio;
+
+  return {
+    rawRequest,
+    brand,
+    creativeType,
+    topic: cleanSubject,
+    objective: params.objective?.trim() || null,
+    marketingGoal: params.objective?.trim() || null,
+    targetAudience: params.targetAudience?.trim() || null,
+    platform: detectedPlatform,
+    aspectRatio,
+    quickStarter: params.activeQuickStarter || null,
+  };
+}
+
 export function extractSubjectAndEntity(input: string, brandContext?: BrandContext): {
   cleanSubject: string;
   extractedBrand: string | null;
@@ -361,7 +722,8 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
   // 2. Remove conversational wrappers and command prefixes
   const commandPrefixes = [
     /^(?:i\s+want\s+to|i\s+would\s+like\s+to|we\s+want\s+to|we\s+need\s+to|please|can\s+you|help\s+me)\s+(?:create|make|generate|write|compose|design|post|build)\s+(?:a|an|the)?\s*(?:detailed|engaging|premium|high-end)?\s*/i,
-    /^(?:create|make|generate|write|compose|design|post|build)\s+(?:an?|the)?\s*(?:detailed|engaging|premium|high-end)?\s*(?:instagram|linkedin|twitter|x|facebook|tiktok|youtube|threads|social|blog)?\s*(?:post|ad|article|caption|content|reel|video|creative|update)?\s*(?:for|about|promoting|to promote|introducing|highlighting|showcasing)?\s*/i,
+    /^(?:create|make|generate|write|compose|design|post|build)\s+(?:an?|the)?\s*(?:detailed|engaging|premium|high-end)?\s*(?:instagram|linkedin|twitter|x|facebook|tiktok|youtube|threads|social|blog)?\s*(?:post|ad|article|caption|content|reel|video|creative|update|something\s+premium|something)?\s*(?:for|about|promoting|to promote|introducing|highlighting|showcasing)?\s*/i,
+    /^(?:something\s+premium\s+for|something\s+for)\s*/i,
     /^(?:promote|announcing|announce|showcase|introduce|launch)\s+(?:our|a|an|the|new)?\s*/i,
     /^(?:post|ad|article|caption)\s+(?:about|for|on)\s*/i,
   ];
@@ -479,6 +841,8 @@ export function extractCreativeIntent(
     selectedAssets?: SelectedAssetReference[];
     objective?: string;
     targetAudience?: string;
+    templateId?: string;
+    activeQuickStarter?: string | null;
   }
 ): CreativeIntent {
   const { cleanSubject, extractedBrand, isSaaSOrDigital, hasPhysicalProduct, productName } = extractSubjectAndEntity(input, params?.brandContext);
@@ -487,15 +851,16 @@ export function extractCreativeIntent(
   const platformSpecs = getPlatformAspectGuidelines(primaryPlatform);
   const { services, valuePropositions } = extractValuePropositionsAndServices(input);
 
-  const brand_name = extractedBrand || params?.brandContext?.businessName || 'Daylink Tech Labs';
-  const campaign_goal = params?.objective || 'Promotion & Sales';
+  const resolvedBrand = resolveBrandIdentity(input, params?.brandContext);
+  const brand_name = resolvedBrand.name || '';
+  const campaign_goal = params?.objective || '';
   const target_audience = params?.targetAudience
     ? [params.targetAudience]
     : [domainInfo.defaultAudience];
 
   const creative_category: CreativeIntent['creative_category'] = hasPhysicalProduct
     ? 'Commercial Product Photography'
-    : isSaaSOrDigital || brand_name.includes('Tech') || brand_name.includes('DailyBuz')
+    : isSaaSOrDigital || (brand_name && (brand_name.includes('Tech') || brand_name.includes('DailyBuz')))
     ? 'SaaS / Technology Marketing'
     : 'General Brand Campaign';
 
@@ -517,8 +882,8 @@ export function extractCreativeIntent(
     target_audience,
     platform: primaryPlatform,
     format: platformSpecs.imageRatio,
-    headline: 'Smarter Business. Powered by AI.',
-    cta: `Discover ${brand_name}`,
+    headline: '',
+    cta: brand_name ? `Discover ${brand_name}` : 'Learn More',
     creative_category,
     visual_style,
     brand_assets: (params?.selectedAssets || []).map((a) => ({
@@ -1250,7 +1615,7 @@ export function validateAndSanitizePrompt(prompt: string, intent?: Partial<Creat
 
   if (intent?.creative_category === 'SaaS / Technology Marketing' || intent?.visual_style?.toLowerCase().includes('saas') || cleaned.toLowerCase().includes('saas') || (intent?.brand_name && intent.brand_name.includes('Tech Labs'))) {
     cleaned = cleaned.replace(/Style:\s*Product Photography/gi, 'VISUAL STYLE:\nPremium Enterprise SaaS');
-    cleaned = cleaned.replace(/Creative Type:\s*Product Photography/gi, 'CREATIVE TYPE:\nPremium SaaS / Technology Marketing');
+    cleaned = cleaned.replace(/Creative Type:\s*Product Photography/gi, 'VISUAL STYLE:\nPremium Enterprise SaaS');
     cleaned = cleaned.replace(/product photography visual asset/gi, 'SaaS marketing visual asset');
   }
 
@@ -1274,6 +1639,8 @@ export function buildDetailedImagePrompt(params: {
   brandContext?: BrandContext;
   selectedAssets?: SelectedAssetReference[];
   additionalInstructions?: string;
+  templateId?: string;
+  activeQuickStarter?: string | null;
 }): string {
   const {
     topic,
@@ -1287,6 +1654,8 @@ export function buildDetailedImagePrompt(params: {
     brandContext,
     selectedAssets = [],
     additionalInstructions,
+    templateId,
+    activeQuickStarter,
   } = params;
 
   const parsed = extractSubjectAndEntity(topic, brandContext);
@@ -1339,15 +1708,63 @@ export function buildDetailedImagePrompt(params: {
     objectiveDesc = `Create a premium promotional visual for ${parsed.cleanSubject} that communicates authority, trust, and high-impact engagement.`;
   }
 
+  const dynamicIntent = parseDynamicCreativeIntent({
+    rawInput: topic,
+    brandContext,
+    platform: primaryPlatform,
+    objective,
+    targetAudience,
+    templateId,
+    activeQuickStarter,
+  });
+
   const promptBlocks: string[] = [];
 
-  // TITLE HEADER
+  // Determine Type Descriptor without assuming "MARKETING CREATIVE"
+  const lowerTopic = topic.toLowerCase();
+  let typeDescriptor = 'CREATIVE';
+
+  if (dynamicIntent.creativeType.value) {
+    typeDescriptor = dynamicIntent.creativeType.label.toUpperCase();
+  } else if (lowerTopic.includes('marketing creative')) {
+    typeDescriptor = 'MARKETING CREATIVE';
+  } else if (lowerTopic.includes('marketing post')) {
+    typeDescriptor = 'MARKETING POST';
+  } else if (lowerTopic.includes('marketing')) {
+    typeDescriptor = 'MARKETING CREATIVE';
+  } else if (lowerTopic.includes('poster')) {
+    typeDescriptor = 'POSTER';
+  } else if (lowerTopic.includes('story')) {
+    typeDescriptor = 'STORY';
+  } else if (lowerTopic.includes('reel') || lowerTopic.includes('video')) {
+    typeDescriptor = 'VIDEO';
+  } else if (lowerTopic.includes('flyer')) {
+    typeDescriptor = 'FLYER';
+  } else if (lowerTopic.includes('banner')) {
+    typeDescriptor = 'BANNER';
+  } else if (lowerTopic.includes('advertisement') || lowerTopic.includes(' ad ')) {
+    typeDescriptor = 'ADVERTISEMENT';
+  } else if (lowerTopic.includes('post')) {
+    typeDescriptor = 'POST';
+  } else {
+    typeDescriptor = 'CREATIVE';
+  }
+
+  const creativeTypeLabel = dynamicIntent.creativeType.value
+    ? dynamicIntent.creativeType.label
+    : (lowerTopic.includes('marketing creative') ? 'Marketing Creative' : null);
+
   const brandSuffix = brandName ? ` FOR ${brandName.toUpperCase()}` : '';
-  promptBlocks.push(`CREATE A PREMIUM ${aspectDescriptor.toUpperCase()} ${primaryPlatform.toUpperCase()} MARKETING CREATIVE${brandSuffix}.`);
+  promptBlocks.push(`CREATE A PREMIUM ${aspectDescriptor.toUpperCase()} ${primaryPlatform.toUpperCase()} ${typeDescriptor}${brandSuffix}.`);
 
   // BRAND
   if (brandName) {
     promptBlocks.push(`BRAND:\n${brandName}`);
+  }
+
+  // CREATIVE TYPE (Explicitly included when determined)
+  if (creativeTypeLabel) {
+    promptBlocks.push(`CREATIVE TYPE:\n${creativeTypeLabel}`);
   }
 
   // CAMPAIGN

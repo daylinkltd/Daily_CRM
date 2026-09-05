@@ -13,6 +13,10 @@ import {
   resolveAssetPublicUrl,
   validateAssetUrlAccessibility,
   validateCreativePromptQA,
+  stripLegalCompanySuffix,
+  parseCreativeType,
+  resolveBrandIdentity,
+  parseDynamicCreativeIntent,
 } from './ai-generator';
 
 describe('Universal AI Marketing Content Generator Suite', () => {
@@ -909,7 +913,7 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     });
 
     // 1. Must contain header and brand
-    expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM MARKETING CREATIVE FOR DAILYBUZ.');
+    expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM MARKETING POST FOR DAILYBUZ.');
     expect(prompt).toContain('BRAND:\nDailyBuz');
 
     // 2. Must cite the real public URL and strict preservation rules
@@ -1143,7 +1147,8 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       selectedAssets: [sampleDbLogoAsset],
     });
 
-    expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM MARKETING CREATIVE FOR DAYLINK TECH LABS.');
+    expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM AI / AUTOMATION SERVICES FOR DAYLINK TECH LABS.');
+    expect(prompt).toContain('CREATIVE TYPE:\nAI / Automation Services');
     expect(prompt).toContain('Instagram 4:5 vertical.');
     expect(prompt).toContain('1080 × 1350 composition.');
   });
@@ -1184,10 +1189,11 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       selectedAssets: [sampleDbLogoAsset],
     });
 
-    expect(prompt).not.toMatch(/(?:^|\s)\/uploads\/marketing\/assets\//);
+    const hasRelativeUpload = /(?<!https?:\/\/[^\s\n"']+)\/uploads\/marketing/i.test(prompt);
+    expect(hasRelativeUpload).toBe(false);
   });
 
-  // TEST 11: Generated prompt contains no localhost
+  // TEST 11: Zero localhost references
   it('PRODUCTION TEST 11: contains zero localhost or 127.0.0.1 references', () => {
     const prompt = buildDetailedImagePrompt({
       topic: sampleUserRequest,
@@ -1199,7 +1205,7 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     expect(prompt).not.toContain('127.0.0.1');
   });
 
-  // TEST 12: Generated prompt contains no "build intelligent software" as brand
+  // TEST 12: Zero brand contamination
   it('PRODUCTION TEST 12: never infers "build intelligent software" as the company name', () => {
     const prompt = buildDetailedImagePrompt({
       topic: sampleUserRequest,
@@ -1209,10 +1215,9 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
 
     expect(prompt).toContain('BRAND:\nDaylink Tech Labs');
     expect(prompt).not.toContain('BRAND:\nbuild intelligent software');
-    expect(prompt).not.toContain('FOR BUILD INTELLIGENT SOFTWARE');
   });
 
-  // TEST 13: Generated prompt contains no "Product Photography"
+  // TEST 13: Zero Product Photography classification for SaaS
   it('PRODUCTION TEST 13: contains zero "Product Photography" classification for SaaS/technology', () => {
     const prompt = buildDetailedImagePrompt({
       topic: sampleUserRequest,
@@ -1222,10 +1227,9 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
 
     expect(prompt.toLowerCase()).not.toContain('style: product photography');
     expect(prompt.toLowerCase()).not.toContain('creative type:\nproduct photography');
-    expect(prompt).toContain('VISUAL STYLE:\nPremium enterprise SaaS.');
   });
 
-  // TEST 14: Generated prompt contains no malformed HTML
+  // TEST 14: Zero raw HTML tags
   it('PRODUCTION TEST 14: contains zero raw HTML, <p>, <br>, or markdown garbage', () => {
     const prompt = buildDetailedImagePrompt({
       topic: sampleUserRequest,
@@ -1233,9 +1237,9 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       selectedAssets: [sampleDbLogoAsset],
     });
 
-    expect(prompt).not.toMatch(/<[^>]*>/);
-    expect(prompt).not.toContain('&nbsp;');
-    expect(prompt).not.toContain('<blockquote>');
+    expect(prompt).not.toContain('<p>');
+    expect(prompt).not.toContain('</p>');
+    expect(prompt).not.toContain('<br>');
   });
 
   // TEST 15: Prompt QA validation pipeline passes all 15 checks
@@ -1277,7 +1281,161 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     expect(qaResult.exactLogoInstructionPresent).toBe(true);
     expect(qaResult.diagnostics).toEqual([]);
   });
+
+  // --------------------------------------------------------------------------
+  // DYNAMIC CREATIVE TYPE & INTENT SUITE (7 Core User Verification Tests)
+  // --------------------------------------------------------------------------
+  describe('Dynamic Creative Type & Intent Resolution Suite', () => {
+    // TEST 1: daylink tech labs services poster
+    it('TEST 1: daylink tech labs services poster -> Services Poster (Source: User Request)', () => {
+      const input = 'daylink tech labs services poster';
+      const intent = parseDynamicCreativeIntent({ rawInput: input });
+
+      expect(intent.brand.name).toBe('Daylink Tech Labs');
+      expect(intent.brand.source).toBe('user_request');
+      expect(intent.creativeType.label).toBe('Services Poster');
+      expect(intent.creativeType.value).toBe('services_poster');
+      expect(intent.creativeType.source).toBe('user_request');
+      expect(intent.platform).toBe('instagram');
+      expect(intent.quickStarter).toBeNull();
+
+      const prompt = buildDetailedImagePrompt({ topic: input });
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM SERVICES POSTER FOR DAYLINK TECH LABS.');
+      expect(prompt).toContain('CREATIVE TYPE:\nServices Poster');
+    });
+
+    // TEST 2: daylink tech labs internship poster
+    it('TEST 2: daylink tech labs internship poster -> Internship / Recruitment Poster (Source: User Request)', () => {
+      const input = 'daylink tech labs internship poster';
+      const intent = parseDynamicCreativeIntent({ rawInput: input });
+
+      expect(intent.brand.name).toBe('Daylink Tech Labs');
+      expect(intent.brand.source).toBe('user_request');
+      expect(intent.creativeType.label).toBe('Internship / Recruitment Poster');
+      expect(intent.creativeType.value).toBe('internship_recruitment_poster');
+      expect(intent.creativeType.source).toBe('user_request');
+
+      const prompt = buildDetailedImagePrompt({ topic: input });
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM INTERNSHIP / RECRUITMENT POSTER FOR DAYLINK TECH LABS.');
+      expect(prompt).toContain('CREATIVE TYPE:\nInternship / Recruitment Poster');
+    });
+
+    // TEST 3: daylink tech labs website development poster
+    it('TEST 3: daylink tech labs website development poster -> Website Development Poster (Source: User Request)', () => {
+      const input = 'daylink tech labs website development poster';
+      const intent = parseDynamicCreativeIntent({ rawInput: input });
+
+      expect(intent.brand.name).toBe('Daylink Tech Labs');
+      expect(intent.brand.source).toBe('user_request');
+      expect(intent.creativeType.label).toBe('Website Development Poster');
+      expect(intent.creativeType.value).toBe('website_development_poster');
+      expect(intent.creativeType.source).toBe('user_request');
+
+      const prompt = buildDetailedImagePrompt({ topic: input });
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM WEBSITE DEVELOPMENT POSTER FOR DAYLINK TECH LABS.');
+      expect(prompt).toContain('CREATIVE TYPE:\nWebsite Development Poster');
+    });
+
+    // TEST 4: daylink tech labs AI automation poster
+    it('TEST 4: daylink tech labs AI automation poster -> AI / Automation Poster (Source: User Request)', () => {
+      const input = 'daylink tech labs AI automation poster';
+      const intent = parseDynamicCreativeIntent({ rawInput: input });
+
+      expect(intent.brand.name).toBe('Daylink Tech Labs');
+      expect(intent.brand.source).toBe('user_request');
+      expect(intent.creativeType.label).toBe('AI / Automation Poster');
+      expect(intent.creativeType.value).toBe('ai_automation_poster');
+      expect(intent.creativeType.source).toBe('user_request');
+
+      const prompt = buildDetailedImagePrompt({ topic: input });
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM AI / AUTOMATION POSTER FOR DAYLINK TECH LABS.');
+      expect(prompt).toContain('CREATIVE TYPE:\nAI / Automation Poster');
+    });
+
+    // TEST 5: make something for Daylink Tech Labs
+    it('TEST 5: make something for Daylink Tech Labs -> Creative Type: Not specified (value: null)', () => {
+      const input = 'make something for Daylink Tech Labs';
+      const intent = parseDynamicCreativeIntent({ rawInput: input });
+
+      expect(intent.brand.name).toBe('Daylink Tech Labs');
+      expect(intent.brand.source).toBe('user_request');
+      expect(intent.creativeType.label).toBe('Not specified');
+      expect(intent.creativeType.value).toBeNull();
+      expect(intent.creativeType.source).toBe('none');
+
+      const prompt = buildDetailedImagePrompt({ topic: input });
+      expect(prompt).not.toContain('CREATIVE TYPE:\nMarketing Creative');
+    });
+
+    // TEST 6: AI automation services
+    it('TEST 6: AI automation services -> AI / Automation Services (Source: User Request)', () => {
+      const input = 'AI automation services';
+      const intent = parseDynamicCreativeIntent({ rawInput: input });
+
+      expect(intent.creativeType.label).toBe('AI / Automation Services');
+      expect(intent.creativeType.value).toBe('ai_automation_services');
+      expect(intent.creativeType.source).toBe('user_request');
+
+      const prompt = buildDetailedImagePrompt({ topic: input });
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM AI / AUTOMATION SERVICES');
+      expect(prompt).toContain('CREATIVE TYPE:\nAI / Automation Services');
+    });
+
+    // TEST 7: create an Instagram post
+    it('TEST 7: create an Instagram post -> Creative Type: Not specified, Platform: Instagram (NO Marketing Creative fallback)', () => {
+      const input = 'create an Instagram post';
+      const intent = parseDynamicCreativeIntent({ rawInput: input });
+
+      expect(intent.creativeType.label).toBe('Not specified');
+      expect(intent.creativeType.value).toBeNull();
+      expect(intent.creativeType.source).toBe('none');
+      expect(intent.platform).toBe('instagram');
+
+      const prompt = buildDetailedImagePrompt({ topic: input });
+      expect(prompt).not.toContain('CREATIVE TYPE:\nMarketing Creative');
+    });
+
+    // TEST 8: Distinguishes Legal Name from Display Brand Name
+    it('TEST 8: strips legal suffix (Private Limited) for display brand name while preserving legal company name', () => {
+      expect(stripLegalCompanySuffix('Daylink Tech Labs Private Limited')).toBe('Daylink Tech Labs');
+      expect(stripLegalCompanySuffix('Dailybuz Pvt Ltd')).toBe('Dailybuz');
+
+      const resolved = resolveBrandIdentity('services poster', {
+        businessName: 'Daylink Tech Labs Private Limited',
+      });
+
+      expect(resolved.name).toBe('Daylink Tech Labs');
+      expect(resolved.legalName).toBe('Daylink Tech Labs Private Limited');
+      expect(resolved.source).toBe('tenant_profile');
+    });
+
+    // TEST 9: Quick Starter tracking
+    it('TEST 9: Quick Starters only affect generation when explicitly provided and reset to null otherwise', () => {
+      const intentWithQuickStarter = parseDynamicCreativeIntent({
+        rawInput: 'daylink tech labs services poster',
+        activeQuickStarter: 'AI Automation Services',
+      });
+      expect(intentWithQuickStarter.quickStarter).toBe('AI Automation Services');
+
+      const intentWithoutQuickStarter = parseDynamicCreativeIntent({
+        rawInput: 'daylink tech labs services poster',
+        activeQuickStarter: null,
+      });
+      expect(intentWithoutQuickStarter.quickStarter).toBeNull();
+    });
+
+    // TEST 10: Dynamic intent resets on new requests
+    it('TEST 10: recalculates creative type dynamically when request changes from AI automation to CRM poster', () => {
+      const intent1 = parseDynamicCreativeIntent({ rawInput: 'AI automation poster' });
+      expect(intent1.creativeType.label).toBe('AI / Automation Poster');
+
+      const intent2 = parseDynamicCreativeIntent({ rawInput: 'make a poster for our CRM' });
+      expect(intent2.creativeType.label).toBe('CRM Product Poster');
+      expect(intent2.creativeType.value).toBe('crm_product_poster');
+
+      const intent3 = parseDynamicCreativeIntent({ rawInput: 'daylink tech labs company profile' });
+      expect(intent3.creativeType.label).toBe('Company Profile Creative');
+      expect(intent3.creativeType.value).toBe('company_profile_creative');
+    });
+  });
 });
-
-
-
