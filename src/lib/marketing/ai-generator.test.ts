@@ -576,5 +576,79 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     expect(blog.researchSources!.length).toBeGreaterThanOrEqual(1);
     expect(blog.content.toLowerCase()).toMatch(/artificial intelligence|ai|business|automation/i);
   });
+
+  // TEST 24: "how to set up a tech compney" -> Normalizes spelling, produces 17-step practical guide, zero fake numbers
+  it('TEST 24: normalizes "how to set up a tech compney" into authoritative 17-step guide with zero fake metrics', async () => {
+    const rawInput = 'how to set up a tech compney';
+    const res = await generateMarketingContent({
+      contentType: 'blog',
+      topic: rawInput,
+      generationMode: 'ai_generate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.blog).toBeDefined();
+
+    const blog = res.blog!;
+
+    // 1. Normalized title without spelling errors
+    expect(blog.title).toBe('How to Set Up a Tech Company: A Practical Step-by-Step Guide');
+    expect(blog.title.toLowerCase()).not.toContain('compney');
+    expect(blog.slug).toContain('how-to-set-up-a-tech-company');
+
+    // 2. Structured 17-step headings
+    expect(blog.headings.length).toBeGreaterThanOrEqual(15);
+    const headingTexts = blog.headings.map((h) => h.text.toLowerCase()).join(' | ');
+
+    expect(headingTexts).toContain('problem');
+    expect(headingTexts).toContain('market validation');
+    expect(headingTexts).toContain('legal business structure');
+    expect(headingTexts).toContain('incorporation');
+    expect(headingTexts).toContain('founder agreements');
+    expect(headingTexts).toContain('banking');
+    expect(headingTexts).toContain('intellectual property');
+    expect(headingTexts).toContain('mvp');
+    expect(headingTexts).toContain('technology infrastructure');
+    expect(headingTexts).toContain('funding');
+    expect(headingTexts).toContain('hire');
+    expect(headingTexts).toContain('go-to-market');
+    expect(headingTexts).toContain('compliance');
+    expect(headingTexts).toContain('pitfalls');
+    expect(headingTexts).toContain('launch checklist');
+    expect(headingTexts).toContain('frequently asked questions');
+    expect(headingTexts).toContain('sources');
+
+    // 3. No fake metric dumps (e.g. "Key recorded data points & metrics: 26, 2025, 28, 039")
+    expect(blog.content).not.toMatch(/Key recorded data points & metrics:\s*\d+/);
+    expect(blog.content).not.toContain('Technological Breakthroughs & Core Drivers');
+    expect(blog.content).not.toContain('Governance & Strategic Response');
+    expect(blog.content).not.toContain('compney');
+
+    // 4. Practical content verification
+    expect(blog.content).toContain('Private Limited Company');
+    expect(blog.content).toContain('C-Corporation');
+    expect(blog.content).toContain('Minimum Viable Product');
+    expect(blog.content).toContain('Four-Year Vesting');
+  });
+
+  // TEST 25: "how to start a candle business" -> Step-by-step practical guide
+  it('TEST 25: generates practical how-to guide for "how to start a candle business"', async () => {
+    const rawInput = 'how to start a candle business';
+    const res = await generateMarketingContent({
+      contentType: 'blog',
+      topic: rawInput,
+      generationMode: 'ai_generate',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.blog).toBeDefined();
+
+    const blog = res.blog!;
+    expect(blog.title).toBe('How to Start a Candle Business: A Practical Step-by-Step Guide');
+    expect(blog.headings.length).toBeGreaterThanOrEqual(15);
+    expect(blog.content).toContain('Minimum Viable Product');
+    expect(blog.content).not.toContain('compney');
+  });
 });
+
 

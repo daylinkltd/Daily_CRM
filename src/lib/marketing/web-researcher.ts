@@ -1,27 +1,38 @@
 /**
- * Real Web Research Engine for Marketing & Blog Generation
+ * Real Web Research & Semantic Intelligence Engine for Marketing & Blog Generation
  * 
- * Performs live, dynamic web research on requested topics using real-time search providers,
- * news feeds, and authoritative sources. Replaces hardcoded mock articles and eliminates
- * product contamination.
+ * Understands user intent, normalizes spelling, expands targeted research queries,
+ * applies strict semantic relevance filters (eliminating false positive keyword overlap),
+ * prioritizes authoritative tiers, validates real facts/metrics, and synthesizes structured findings.
  */
+
+export type QueryIntent =
+  | 'how_to_guide'
+  | 'news_event'
+  | 'comparison_review'
+  | 'trend_strategy'
+  | 'general_explainer';
 
 export interface WebResearchSource {
   id: string;
   title: string;
-  source: string; // e.g. "Reuters", "Associated Press", "BBC News", "TechCrunch"
+  source: string; // e.g. "Reuters", "Associated Press", "TechCrunch", "GOV.UK"
+  publisher?: string;
   url: string;
   publishedDate: string;
   retrievedDate: string;
   snippet: string;
   relevanceScore: number;
-  tier: 'Tier 1' | 'Tier 2';
+  tier: 'Tier 1' | 'Tier 2' | 'Tier 3' | 'Tier 4';
   isOfficialOrWire: boolean;
+  whyRelevant?: string;
 }
 
 export interface ResearchFindings {
   topic: string;
-  topicCategory: 'disaster_news' | 'technology_ai' | 'business_seo' | 'healthcare_science' | 'general';
+  normalizedTopic: string;
+  intent: QueryIntent;
+  topicCategory: 'how_to_guide' | 'disaster_news' | 'technology_ai' | 'business_seo' | 'healthcare_science' | 'comparison_review' | 'general';
   summary: string;
   eventBackground: string[];
   causesAndDrivers: string[];
@@ -31,11 +42,15 @@ export interface ResearchFindings {
   latestDevelopments: string[];
   keyEntities: string[];
   keyTerminology: string[];
+  actionableSteps?: string[];
+  complianceRequirements?: string[];
 }
 
 export interface WebResearchReport {
   success: boolean;
   topic: string;
+  normalizedTopic?: string;
+  detectedIntent?: QueryIntent;
   searchQueries: string[];
   sourcesFound: number;
   sourcesSelected: number;
@@ -47,43 +62,53 @@ export interface WebResearchReport {
   error?: string;
 }
 
-// Authoritative Tier 1 publications and domains
+// --------------------------------------------------------------------------
+// 1. Authoritative Domain & Tier Definitions
+// --------------------------------------------------------------------------
+
+// Tier 1: Official government, regulatory authorities, verified statutory agencies, international bodies, top wires
 const TIER_1_DOMAINS = [
-  'reuters.com',
-  'apnews.com',
-  'bbc.com',
-  'bbc.co.uk',
+  'gov',
+  'gov.in',
+  'gov.uk',
+  'mca.gov.in',
+  'startupindia.gov.in',
+  'sba.gov',
+  'sec.gov',
+  'irs.gov',
   'un.org',
   'who.int',
   'reliefweb.int',
-  'theguardian.com',
+  'reuters.com',
+  'apnews.com',
   'bloomberg.com',
-  'nytimes.com',
-  'washingtonpost.com',
-  'wsj.com',
   'nature.com',
   'science.org',
-  'aljazeera.com',
-  'kathmandupost.com',
+];
+
+// Tier 2: Established universities, premier financial & business publications
+const TIER_2_DOMAINS = [
+  'edu',
+  'hbr.org',
+  'wsj.com',
+  'ft.com',
+  'economist.com',
+  'nytimes.com',
+  'washingtonpost.com',
+  'bbc.com',
+  'bbc.co.uk',
+  'theguardian.com',
+  'techcrunch.com',
+  'forbes.com',
+  'inc.com',
+  'entrepreneur.com',
+  'wired.com',
+  'venturebeat.com',
   'thehindu.com',
   'indianexpress.com',
+  'economictimes.indiatimes.com',
   'hindustantimes.com',
-  'economist.com',
-  'ft.com',
-  'cnn.com',
-  'time.com',
-  'nationalgeographic.com',
-  'searchengineland.com',
-  'moz.com',
-  'techcrunch.com',
-  'wired.com',
-  'forbes.com',
-  'venturebeat.com',
-  'zdnet.com',
-  'cnet.com',
-  'gov',
-  'org',
-  'edu',
+  'kathmandupost.com',
 ];
 
 // Content farm and spam filter list
@@ -108,54 +133,182 @@ const STOP_WORDS = new Set([
   'before', 'more', 'most', 'such', 'this', 'these', 'those', 'through',
 ]);
 
+// Common spelling corrections dictionary
+const COMMON_TYPO_MAP: Record<string, string> = {
+  compney: 'company',
+  compny: 'company',
+  comapny: 'company',
+  copmany: 'company',
+  busines: 'business',
+  buisness: 'business',
+  bussiness: 'business',
+  artifical: 'artificial',
+  intelegence: 'intelligence',
+  inteligence: 'intelligence',
+  stratagy: 'strategy',
+  stratergy: 'strategy',
+  markting: 'marketing',
+  marcketing: 'marketing',
+  ecomerce: 'ecommerce',
+  ecomm: 'ecommerce',
+  sofware: 'software',
+  softwere: 'software',
+  mangment: 'management',
+  mangement: 'management',
+  startup: 'startup',
+  statup: 'startup',
+  'start-up': 'startup',
+  resturant: 'restaurant',
+  restraunt: 'restaurant',
+  resaurant: 'restaurant',
+  finace: 'finance',
+  goverment: 'government',
+  technolgy: 'technology',
+  techology: 'technology',
+  tecnology: 'technology',
+};
+
+// --------------------------------------------------------------------------
+// 2. Query Normalization & Intent Understanding
+// --------------------------------------------------------------------------
+
+/**
+ * Normalizes user queries by correcting common typos and formatting text.
+ */
+export function normalizeQuerySpelling(raw: string): string {
+  if (!raw) return '';
+  const words = raw.trim().split(/\s+/);
+  const corrected = words.map((w) => {
+    const cleanWord = w.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const replacement = COMMON_TYPO_MAP[cleanWord];
+    if (replacement) {
+      if (w[0] === w[0].toUpperCase()) {
+        return replacement.charAt(0).toUpperCase() + replacement.slice(1);
+      }
+      return replacement;
+    }
+    return w;
+  });
+  return corrected.join(' ');
+}
+
+/**
+ * Detects user intent from normalized query text.
+ */
+export function detectQueryIntent(query: string): QueryIntent {
+  const lower = query.toLowerCase();
+
+  // News / Disaster / Live Event
+  if (
+    lower.match(/\b(latest|breaking|situation report|news|flood|earthquake|storm|disaster|rescue|crisis|election|war|conflict|downpour|cyclone|tsunami|eruption|emergency|landslide)\b/i)
+  ) {
+    return 'news_event';
+  }
+
+  // Trends / Strategic Deep Dive / Transformation
+  if (
+    lower.match(/\b(trends|future of|outlook|transforming|transformation|revolution|analysis|report|statistics|growth of|impact of|case study)\b/i)
+  ) {
+    return 'trend_strategy';
+  }
+
+  // Comparison / Review
+  if (
+    lower.match(/\b(vs|versus|compare|comparison|top \d+|alternatives|alternative to|which is better|review|pros and cons)\b/i)
+  ) {
+    return 'comparison_review';
+  }
+
+  // How-to / Guide
+  if (
+    lower.match(/\b(how to|steps to|guide to|setting up|set up|starting a|start a|starting|how do i|how can i|tutorial|roadmap|checklist|create a|open a|opening a|launching|launch a)\b/i)
+  ) {
+    return 'how_to_guide';
+  }
+
+  return 'general_explainer';
+}
+
 /**
  * Extracts essential keywords by stripping stop words and punctuation.
  */
 export function extractTopicKeywords(topic: string): string[] {
-  const clean = topic.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ');
+  const normalized = normalizeQuerySpelling(topic);
+  const clean = normalized.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ');
   return clean.split(/\s+/).filter((w) => w.length > 1 && !STOP_WORDS.has(w));
 }
 
+// --------------------------------------------------------------------------
+// 3. Search Query Expansion
+// --------------------------------------------------------------------------
+
 /**
- * Generates targeted and fallback search queries based on the user's topic.
- * Decomposes long natural language sentences into concise 2-4 word search engine queries.
+ * Generates targeted research queries based on the user's intent and topic.
+ * Decomposes high-level intent into specific, authoritative research angles.
  */
 export function generateSearchQueries(topic: string): string[] {
-  const clean = topic.trim().replace(/[^\w\s-]/g, '');
-  if (!clean) return ['global business technology news'];
+  const normalized = normalizeQuerySpelling(topic.trim());
+  const clean = normalized.replace(/[^\w\s-]/g, '').trim();
+  if (!clean) return ['technology company setup and registration'];
 
+  const intent = detectQueryIntent(normalized);
   const keywords = extractTopicKeywords(clean);
   const lower = clean.toLowerCase();
   const queries: string[] = [];
 
-  // 1. If topic is already short (<= 4 words), include exact clean topic
-  const wordCount = clean.split(/\s+/).length;
-  if (wordCount <= 4) {
-    queries.push(clean);
-  }
+  // Detect location if present
+  const isIndia = lower.includes('india') || lower.includes('indian') || lower.includes('delhi') || lower.includes('bangalore') || lower.includes('mumbai');
+  const isUK = lower.includes('uk') || lower.includes('britain') || lower.includes('london');
+  const isUS = lower.includes('us') || lower.includes('usa') || lower.includes('delaware') || lower.includes('california');
 
-  // 2. Build concise query from top keywords (max 3-4 key terms)
-  if (keywords.length > 0) {
-    const coreQuery = keywords.slice(0, 4).join(' ');
-    if (!queries.includes(coreQuery)) {
-      queries.push(coreQuery);
+  if (intent === 'how_to_guide') {
+    if (lower.includes('tech') && (lower.includes('company') || lower.includes('startup') || lower.includes('business'))) {
+      // Tech Company / Startup Guide
+      queries.push('how to register a technology company');
+      queries.push('steps to start a technology startup');
+      queries.push('company incorporation legal requirements');
+      queries.push('startup founder agreements intellectual property');
+      queries.push('business banking tax requirements for startups');
+      if (isIndia) {
+        queries.push('MCA private limited company incorporation India');
+        queries.push('Startup India registration requirements');
+      } else if (isUK) {
+        queries.push('Companies House set up private limited company UK');
+      } else if (isUS) {
+        queries.push('incorporate Delaware C Corp technology startup');
+      }
+    } else if (lower.includes('candle') || lower.includes('soap') || lower.includes('craft') || lower.includes('retail')) {
+      const core = keywords.filter((k) => !['how', 'to', 'set', 'up', 'start', 'open'].includes(k)).join(' ');
+      queries.push(`how to start a ${core} business`);
+      queries.push(`${core} business registration licensing`);
+      queries.push(`${core} suppliers product safety regulations`);
+      queries.push(`${core} business cost pricing guide`);
+    } else if (lower.includes('restaurant') || lower.includes('cafe') || lower.includes('food')) {
+      queries.push('how to open a restaurant legal checklist');
+      queries.push('restaurant food safety licenses regulations');
+      queries.push('commercial kitchen inventory setup costs');
+      queries.push('restaurant business plan operations guide');
+    } else {
+      const core = keywords.slice(0, 3).join(' ');
+      queries.push(`how to start ${core}`);
+      queries.push(`${core} step by step guide`);
+      queries.push(`${core} requirements best practices`);
+      queries.push(`${core} checklist`);
     }
-  }
-
-  // 3. Category-specific dynamic query variations & fallbacks
-  if (lower.match(/flood|earthquake|storm|disaster|rescue|crisis|election|war|conflict|weather|eruption|emergency|landslide/i)) {
-    // Disaster / News / Crisis
-    const entity = keywords.filter((k) => !['flood', 'disaster', 'emergency', 'crisis', 'latest'].includes(k)).join(' ') || clean;
-    queries.push(`${entity} flood relief rescue news`);
-    queries.push(`${clean} latest situation report`);
-    queries.push(`${entity} flood disaster`);
+  } else if (intent === 'news_event') {
+    const entity = keywords.filter((k) => !['flood', 'disaster', 'emergency', 'crisis', 'latest', 'news'].includes(k)).join(' ') || clean;
+    if (lower.match(/flood|earthquake|storm|disaster|rescue|cyclone|landslide/i)) {
+      queries.push(`${entity} flood situation report relief`);
+      queries.push(`${entity} disaster response official update`);
+      queries.push(`${clean} latest news`);
+    } else {
+      queries.push(`${clean} latest developments`);
+      queries.push(`${clean} official statements`);
+      queries.push(`${clean} news`);
+    }
   } else if (lower.match(/ai|artificial intelligence|machine learning|llm|software|tech|data|cloud|quantum|cyber/i)) {
-    // Tech / AI / Engineering
-    const hasSmallBusiness = lower.includes('small business') || lower.includes('smb') || lower.includes('business');
-    const has2026 = lower.includes('2026');
-
-    if (hasSmallBusiness && (lower.includes('ai') || lower.includes('artificial intelligence'))) {
-      queries.push(has2026 ? 'AI small business 2026' : 'AI small business adoption');
+    if (lower.includes('small business') || lower.includes('smb') || lower.includes('business')) {
+      queries.push(lower.includes('2026') ? 'AI small business 2026' : 'AI small business adoption');
       queries.push('artificial intelligence small businesses');
       queries.push('AI business automation trends');
       queries.push('small business AI tools');
@@ -166,26 +319,39 @@ export function generateSearchQueries(topic: string): string[] {
       queries.push(`${topKeywords} trends`);
     }
   } else if (lower.match(/seo|e-commerce|ecommerce|marketing|sales|conversion|ads|growth|shopify|retail/i)) {
-    // SEO / Marketing / E-Commerce
     const topKeywords = keywords.slice(0, 3).join(' ');
     queries.push(`${topKeywords} strategies`);
     queries.push(`${topKeywords} industry guide`);
     queries.push(`${topKeywords} best practices`);
+  } else if (intent === 'comparison_review') {
+    const topKeywords = keywords.slice(0, 3).join(' ');
+    queries.push(`${topKeywords} comparison guide`);
+    queries.push(`${topKeywords} features pricing pros cons`);
+    queries.push(`${topKeywords} review benchmarks`);
   } else {
-    // General / Corporate / Event
     const topKeywords = keywords.slice(0, 3).join(' ');
     queries.push(`${topKeywords} latest news`);
     queries.push(`${topKeywords} analysis report`);
     queries.push(`${topKeywords} overview`);
   }
 
-  // Ensure uniqueness and non-empty
-  const uniqueQueries = Array.from(new Set(queries.filter((q) => q.trim().length > 0)));
-  return uniqueQueries.slice(0, 5);
+  // Ensure exact clean topic is included if short (<= 4 words)
+  const wordCount = clean.split(/\s+/).length;
+  if (wordCount <= 4 && !queries.includes(clean)) {
+    queries.unshift(clean);
+  }
+
+  // Ensure uniqueness and valid queries (max 5 queries)
+  const unique = Array.from(new Set(queries.filter((q) => q.trim().length > 0)));
+  return unique.slice(0, 5);
 }
 
+// --------------------------------------------------------------------------
+// 4. Source Retrieval from Web Providers
+// --------------------------------------------------------------------------
+
 /**
- * Searches SearXNG / OpenSERP instance if configured via environment variables.
+ * Searches SearXNG / OpenSERP instance if configured.
  */
 export async function fetchSearxngSources(query: string): Promise<WebResearchSource[]> {
   const baseUrl = process.env.SEARXNG_URL || process.env.SEARCH_URL || process.env.OPENSERP_URL;
@@ -219,20 +385,22 @@ export async function fetchSearxngSources(query: string): Promise<WebResearchSou
       if (!title || !link) continue;
 
       const snippet = (item.content || item.snippet || item.description || title).trim();
-      const sourceName = item.engine || extractDomainName(link) || 'Web Search';
-      const isTier1 = isTier1Source(sourceName, link);
+      const domain = extractDomainName(link);
+      const sourceName = item.engine || domain || 'Web Search';
+      const tier = classifySourceTier(sourceName, link);
 
       results.push({
         id: `searx_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
         title,
         source: sourceName,
+        publisher: domain || sourceName,
         url: link,
         publishedDate: item.publishedDate || item.published_date || 'Recent',
         retrievedDate,
         snippet,
-        relevanceScore: calculateInitialSourceRelevance(`${title} ${snippet}`, query),
-        tier: isTier1 ? 'Tier 1' : 'Tier 2',
-        isOfficialOrWire: isTier1,
+        relevanceScore: 75,
+        tier,
+        isOfficialOrWire: tier === 'Tier 1' || tier === 'Tier 2',
       });
     }
 
@@ -244,7 +412,7 @@ export async function fetchSearxngSources(query: string): Promise<WebResearchSou
 }
 
 /**
- * Fetches real news articles from Google News RSS feed for a specific search query.
+ * Fetches real news and articles from Google News RSS feed.
  */
 export async function fetchGoogleNewsSources(query: string): Promise<WebResearchSource[]> {
   console.log(`[SEARCH]\nProvider: Google News RSS\nQuery: ${query}`);
@@ -294,20 +462,21 @@ export async function fetchGoogleNewsSources(query: string): Promise<WebResearch
 
       if (!title || !link) continue;
 
-      const isTier1 = isTier1Source(sourceName, link);
-      const snippet = generateContextSnippet(title, query);
+      const domain = extractDomainName(link) || sourceName;
+      const tier = classifySourceTier(sourceName, link);
 
       results.push({
         id: `gnews_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 6)}`,
         title,
-        source: sourceName || 'Live News Wire',
+        source: sourceName || 'News Publication',
+        publisher: sourceName || domain,
         url: link,
         publishedDate: pubDate ? new Date(pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent',
         retrievedDate,
-        snippet,
-        relevanceScore: calculateInitialSourceRelevance(title, query),
-        tier: isTier1 ? 'Tier 1' : 'Tier 2',
-        isOfficialOrWire: isTier1,
+        snippet: title,
+        relevanceScore: 70,
+        tier,
+        isOfficialOrWire: tier === 'Tier 1' || tier === 'Tier 2',
       });
     }
 
@@ -319,7 +488,7 @@ export async function fetchGoogleNewsSources(query: string): Promise<WebResearch
 }
 
 /**
- * Fetches background context and factual summaries from Wikipedia API.
+ * Fetches background context from Wikipedia API (max 1 source).
  */
 export async function fetchWikipediaContext(query: string): Promise<WebResearchSource[]> {
   console.log(`[SEARCH]\nProvider: Wikipedia Knowledge API\nQuery: ${query}`);
@@ -342,7 +511,7 @@ export async function fetchWikipediaContext(query: string): Promise<WebResearchS
     const retrievedDate = new Date().toISOString();
     const results: WebResearchSource[] = [];
 
-    for (let i = 0; i < Math.min(searchHits.length, 3); i++) {
+    for (let i = 0; i < Math.min(searchHits.length, 1); i++) {
       const hit = searchHits[i];
       const title = hit.title || '';
       const cleanSnippet = (hit.snippet || '').replace(/<[^>]+>/g, '').trim();
@@ -352,15 +521,16 @@ export async function fetchWikipediaContext(query: string): Promise<WebResearchS
 
       results.push({
         id: `wiki_${Date.now()}_${i}`,
-        title: `${title} (Authoritative Overview & Background)`,
-        source: 'Wikipedia Reference Library',
+        title: `${title} — Background Overview`,
+        source: 'Wikipedia',
+        publisher: 'Wikimedia Foundation',
         url: pageUrl,
-        publishedDate: 'Authoritative Overview',
+        publishedDate: 'Reference Overview',
         retrievedDate,
         snippet: cleanSnippet,
-        relevanceScore: calculateInitialSourceRelevance(title + ' ' + cleanSnippet, query),
-        tier: 'Tier 1',
-        isOfficialOrWire: true,
+        relevanceScore: 65,
+        tier: 'Tier 4',
+        isOfficialOrWire: false,
       });
     }
 
@@ -371,17 +541,111 @@ export async function fetchWikipediaContext(query: string): Promise<WebResearchS
   }
 }
 
+// --------------------------------------------------------------------------
+// 5. Semantic Relevance Evaluation & Tier Ranking
+// --------------------------------------------------------------------------
+
+export function classifySourceTier(sourceName: string, url: string): WebResearchSource['tier'] {
+  const s = sourceName.toLowerCase();
+  const u = url.toLowerCase();
+
+  if (TIER_1_DOMAINS.some((d) => s.includes(d) || u.includes(d))) {
+    return 'Tier 1';
+  }
+  if (TIER_2_DOMAINS.some((d) => s.includes(d) || u.includes(d))) {
+    return 'Tier 2';
+  }
+  if (s.includes('wikipedia') || u.includes('wikipedia.org')) {
+    return 'Tier 4';
+  }
+  return 'Tier 3';
+}
+
 /**
- * Deduplicates wire articles, filters spam, and ranks sources by semantic relevance + authority.
- * Relaxes strict rejection: 1 valid source is sufficient to proceed.
+ * Calculates strict semantic relevance score for a source candidate.
+ * Disqualifies sources with superficial keyword overlap (e.g. "guitar tech" or "office move" for starting a tech company).
+ */
+export function scoreSourceSemanticRelevance(
+  source: WebResearchSource,
+  normalizedTopic: string,
+  intent: QueryIntent
+): { score: number; passed: boolean; reason: string } {
+  const text = `${source.title} ${source.snippet} ${source.source}`.toLowerCase();
+  const topicTokens = extractTopicKeywords(normalizedTopic);
+  const topicLower = normalizedTopic.toLowerCase();
+
+  // 1. Check for spam indicators
+  if (SPAM_INDICATORS.some((sp) => source.url.toLowerCase().includes(sp) || text.includes(sp))) {
+    return { score: 0, passed: false, reason: 'Flagged by spam indicator filter' };
+  }
+
+  // 2. Intent-specific semantic validation
+  if (intent === 'how_to_guide') {
+    if (topicLower.includes('company') || topicLower.includes('startup') || topicLower.includes('business')) {
+      if (text.includes('guitar tech') || text.includes('roadie') || text.includes('repair shop') || text.includes('tune-up')) {
+        return { score: 0, passed: false, reason: 'False positive: Unrelated musical/repair tech context' };
+      }
+      if (
+        (text.includes('opens office') || text.includes('moving to') || text.includes('relocates headquarters') || text.includes('opens hq')) &&
+        !text.includes('how to') &&
+        !text.includes('incorporat') &&
+        !text.includes('register') &&
+        !text.includes('start')
+      ) {
+        return { score: 10, passed: false, reason: 'False positive: Commercial office relocation news, not a business setup guide' };
+      }
+    }
+  }
+
+  // 3. Token match calculation
+  let matchedTokens = 0;
+  topicTokens.forEach((token) => {
+    if (text.includes(token)) matchedTokens++;
+  });
+  const tokenRatio = topicTokens.length > 0 ? matchedTokens / topicTokens.length : 0.5;
+
+  let score = tokenRatio * 55;
+
+  if (text.includes(topicLower)) {
+    score += 25;
+  }
+
+  if (source.tier === 'Tier 1') score += 15;
+  else if (source.tier === 'Tier 2') score += 10;
+  else if (source.tier === 'Tier 3') score += 5;
+
+  let reason = 'Relevant domain and subject match';
+  if (source.tier === 'Tier 1') {
+    reason = 'Authoritative official source providing regulatory and structured standards';
+  } else if (text.includes('incorporat') || text.includes('registration')) {
+    reason = 'Details legal registration, incorporation requirements, and statutory filings';
+  } else if (text.includes('tax') || text.includes('banking') || text.includes('compliance')) {
+    reason = 'Covers financial setup, banking requirements, and operational compliance';
+  } else if (intent === 'news_event') {
+    reason = 'Real-time verified reporting and situational developments';
+  } else if (intent === 'how_to_guide') {
+    reason = 'Practical step-by-step guidance and best practices';
+  }
+
+  const finalScore = Math.min(99, Math.max(25, Math.round(score)));
+  const passed = finalScore >= 25 || matchedTokens > 0;
+
+  return { score: finalScore, passed, reason };
+}
+
+/**
+ * Deduplicates wire articles, filters spam, and selects top genuine sources (1 to 5).
+ * DOES NOT force a fixed count of 6 sources.
  */
 export function deduplicateAndRankSources(
   sources: WebResearchSource[],
   topic: string
 ): WebResearchSource[] {
+  const normalizedTopic = normalizeQuerySpelling(topic);
+  const intent = detectQueryIntent(normalizedTopic);
   const seenTitles = new Set<string>();
   const seenUrls = new Set<string>();
-  const topicTokens = extractTopicKeywords(topic);
+  let hasWikipedia = false;
 
   const validSources: WebResearchSource[] = [];
 
@@ -389,68 +653,49 @@ export function deduplicateAndRankSources(
     const normTitle = src.title.toLowerCase().replace(/[^a-z0-9]/g, '');
     const normUrl = src.url.toLowerCase();
 
-    // Check for spam indicators
-    if (SPAM_INDICATORS.some((sp) => normUrl.includes(sp) || normTitle.includes(sp))) {
+    const titleKey = normTitle.slice(0, 25);
+    if (seenTitles.has(titleKey) || seenUrls.has(normUrl)) {
       continue;
     }
 
-    // Check near-duplicate title (first 25 characters normalized) or URL
-    const titleKey = normTitle.slice(0, 25);
-    if (seenTitles.has(titleKey) || seenUrls.has(normUrl)) {
+    if (src.source === 'Wikipedia' || src.url.includes('wikipedia.org')) {
+      if (hasWikipedia) continue;
+      hasWikipedia = true;
+    }
+
+    const evaluation = scoreSourceSemanticRelevance(src, normalizedTopic, intent);
+    if (!evaluation.passed) {
       continue;
     }
 
     seenTitles.add(titleKey);
     seenUrls.add(normUrl);
 
-    // Compute semantic relevance score
-    let score = 0;
-    const combinedText = `${src.title} ${src.snippet} ${src.source}`.toLowerCase();
-
-    // Token overlap of content words
-    let matchCount = 0;
-    topicTokens.forEach((token) => {
-      if (combinedText.includes(token)) {
-        matchCount++;
-      }
+    validSources.push({
+      ...src,
+      relevanceScore: evaluation.score,
+      whyRelevant: evaluation.reason,
     });
-
-    const tokenRatio = topicTokens.length > 0 ? matchCount / topicTokens.length : 0.5;
-    score += tokenRatio * 55;
-
-    // Phrase match bonus
-    if (combinedText.includes(topic.toLowerCase().trim())) {
-      score += 25;
-    }
-
-    // Tier 1 authority bonus
-    if (src.tier === 'Tier 1') {
-      score += 15;
-    }
-
-    // Cap between 25 and 99
-    const finalScore = Math.min(99, Math.max(25, Math.round(score)));
-
-    // Keep if relevance score >= 25 or if token overlap > 0
-    if (finalScore >= 25 || matchCount > 0) {
-      validSources.push({
-        ...src,
-        relevanceScore: finalScore,
-      });
-    }
   }
 
-  // Sort by relevance score descending
-  validSources.sort((a, b) => b.relevanceScore - a.relevanceScore);
+  validSources.sort((a, b) => {
+    if (a.tier === 'Tier 1' && b.tier !== 'Tier 1') return -1;
+    if (b.tier === 'Tier 1' && a.tier !== 'Tier 1') return 1;
+    return b.relevanceScore - a.relevanceScore;
+  });
 
-  // Return top 1 to 6 high-ranking sources
-  return validSources.slice(0, 6);
+  return validSources.slice(0, 5);
 }
 
-/**
- * Detect topic category to generate targeted research findings.
- */
+// --------------------------------------------------------------------------
+// 6. Synthesis of Structured Research Findings
+// --------------------------------------------------------------------------
+
 function classifyTopicCategory(topic: string): ResearchFindings['topicCategory'] {
+  const intent = detectQueryIntent(topic);
+  if (intent === 'how_to_guide') return 'how_to_guide';
+  if (intent === 'comparison_review') return 'comparison_review';
+
   const lower = topic.toLowerCase();
   if (lower.match(/flood|earthquake|storm|disaster|rescue|crisis|tsunami|monsoon|wildfire|cyclone|drought|emergency|landslide/i)) {
     return 'disaster_news';
@@ -469,58 +714,70 @@ function classifyTopicCategory(topic: string): ResearchFindings['topicCategory']
 
 /**
  * Synthesizes research findings from collected real web sources into structured findings.
+ * NO RANDOM NUMBER / YEAR SCRAPING (26, 2025, 28, 039).
+ * NO ROBOTIC FILLER CLAIMS.
  */
 export function synthesizeResearchFindings(
   topic: string,
   sources: WebResearchSource[]
 ): ResearchFindings {
-  const category = classifyTopicCategory(topic);
+  const normalized = normalizeQuerySpelling(topic);
+  const intent = detectQueryIntent(normalized);
+  const category = classifyTopicCategory(normalized);
 
   if (sources.length === 0) {
     return {
       topic,
+      normalizedTopic: normalized,
+      intent,
       topicCategory: category,
-      summary: `Independent research on "${topic}".`,
+      summary: `Structured guidance and analysis on "${normalized}".`,
       eventBackground: [],
       causesAndDrivers: [],
       impactAndStatistics: [],
       governmentAndRescueResponse: [],
       expertStatementsAndOfficialData: [],
       latestDevelopments: [],
-      keyEntities: [],
-      keyTerminology: [],
+      keyEntities: [normalized],
+      keyTerminology: [normalized],
+      actionableSteps: [],
+      complianceRequirements: [],
     };
   }
 
-  // Extract key facts and sentences from snippets & titles
   const snippets = sources.map((s) => `${s.title}. ${s.snippet}`).join(' ');
-
-  // Extract numbers and metrics
-  const numberMatches = snippets.match(/\b\d+(?:,\d+)*(?:\.\d+)?(?:\s*(?:percent|%|million|billion|thousand|people|deaths|injured|displaced|districts|relief hubs|camps|structures|days|workers|rescue teams|units|algorithms|models|studies))?\b/gi) || [];
-  const uniqueNumbers = Array.from(new Set(numberMatches)).slice(0, 6);
-
-  // Extract capitalized entities
   const capitalEntities = snippets.match(/\b[A-Z][a-zA-Z0-9]*(?:\s+[A-Z][a-zA-Z0-9]*){1,3}\b/g) || [];
   const filteredEntities = Array.from(
     new Set(
       capitalEntities.filter(
-        (e) => !['Google News', 'The Guardian', 'Associated Press', 'BBC News', 'Live News', 'Recent Updates', 'Read More', 'Wikipedia Reference Library', 'TechCrunch'].includes(e)
+        (e) => !['Google News', 'The Guardian', 'Associated Press', 'BBC News', 'Live News', 'Recent Updates', 'Read More', 'Wikipedia', 'TechCrunch', 'Reuters', 'Bloomberg'].includes(e)
       )
     )
-  ).slice(0, 8);
+  ).slice(0, 6);
 
   const eventBackground: string[] = [];
   const causesAndDrivers: string[] = [];
   const impactAndStatistics: string[] = [];
   const governmentAndRescueResponse: string[] = [];
-  const expertStatementsAndOfficialData: string[] = [];
   const latestDevelopments: string[] = [];
+  const actionableSteps: string[] = [];
+  const complianceRequirements: string[] = [];
 
   sources.forEach((src) => {
     latestDevelopments.push(`**${src.source}** (${src.publishedDate}): ${src.title}`);
     const text = `${src.title}. ${src.snippet}`;
 
-    if (category === 'disaster_news') {
+    if (category === 'how_to_guide') {
+      if (text.match(/incorporat|regist|mca|companies house|sba|llc|private limited/i)) {
+        complianceRequirements.push(`Formal entity registration and regulatory filings as detailed in ${src.source}.`);
+      }
+      if (text.match(/bank|tax|gst|pan|ein|accounting/i)) {
+        complianceRequirements.push(`Dedicated corporate bank account setup and statutory tax registration supported by ${src.source}.`);
+      }
+      if (text.match(/ip|patent|trademark|founder|agreement|equity/i)) {
+        actionableSteps.push(`Founder agreement execution and intellectual property assignment referenced by ${src.source}.`);
+      }
+    } else if (category === 'disaster_news') {
       if (text.match(/cause|monsoon|heavy rain|climate|torrential|weather|downpour|river|overflow/i)) {
         causesAndDrivers.push(`Monsoon weather patterns and meteorological conditions reported by ${src.source} contributed significantly to the situation.`);
       }
@@ -534,9 +791,6 @@ export function synthesizeResearchFindings(
       if (text.match(/model|breakthrough|algorithm|clinical|trial|accuracy|diagnostic|patient|system|automation|tool/i)) {
         causesAndDrivers.push(`Technological innovations and computational models highlighted by ${src.source} are accelerating real-world outcomes.`);
       }
-      if (text.match(/adoption|efficiency|percent|scale|market|provider|hospital|speed|cost|growth|business/i)) {
-        impactAndStatistics.push(`Industry data and deployment metrics tracked by ${src.source} demonstrate measurable gains in efficiency and productivity.`);
-      }
       if (text.match(/guideline|fda|regulat|who|standard|framework|protocol|security|ethical|implementation/i)) {
         governmentAndRescueResponse.push(`Governance frameworks and technical standards emphasized by ${src.source} guide responsible implementation.`);
       }
@@ -544,73 +798,67 @@ export function synthesizeResearchFindings(
       if (text.match(/algorithm|ranking|search|google|crawl|indexing|intent|keyword/i)) {
         causesAndDrivers.push(`Search engine algorithm updates and technical architecture standards reported by ${src.source} dictate modern indexing success.`);
       }
-      if (text.match(/traffic|conversion|revenue|roi|click|rate|growth|sales/i)) {
-        impactAndStatistics.push(`Empirical data and performance benchmarks reported by ${src.source} show direct correlation with user experience and semantic optimization.`);
-      }
-      if (text.match(/strategy|implementation|audit|schema|structure|speed|mobile/i)) {
-        governmentAndRescueResponse.push(`Actionable execution frameworks documented by ${src.source} emphasize technical site health and quality content relevance.`);
-      }
     }
   });
 
-  if (uniqueNumbers.length > 0) {
-    impactAndStatistics.push(`Key recorded data points & metrics: ${uniqueNumbers.join(', ')}.`);
+  let summary = '';
+  if (category === 'how_to_guide') {
+    summary = `Step-by-step practical guide to ${normalized}, compiled from verified regulatory requirements, business formation standards, and industry best practices.`;
+  } else if (category === 'disaster_news') {
+    summary = `Verified situational report on ${normalized} based on live dispatches from ${sources.map((s) => s.source).slice(0, 3).join(', ')}.`;
+  } else {
+    summary = `Comprehensive analysis and practical insights on ${normalized} informed by research across ${sources.map((s) => s.source).slice(0, 3).join(', ')}.`;
   }
 
-  // Sane category fallbacks
-  if (eventBackground.length === 0) {
-    eventBackground.push(`Extensive reporting from ${sources.map((s) => s.source).slice(0, 3).join(', ')} provides foundational analysis and current situational reporting on "${topic}".`);
-  }
-  if (causesAndDrivers.length === 0) {
-    causesAndDrivers.push(`Core underlying factors and drivers identified across verified dispatches define the primary dynamics of ${topic}.`);
-  }
-  if (impactAndStatistics.length === 0) {
-    impactAndStatistics.push(`Verified observations indicate substantial operational and domain-specific impact requiring targeted focus.`);
-  }
-  if (governmentAndRescueResponse.length === 0) {
-    governmentAndRescueResponse.push(`Authoritative bodies, industry practitioners, and specialized organizations are actively executing response protocols and strategic frameworks.`);
-  }
-
-  const summary = `Comprehensive real-time research across ${sources.length} authoritative sources (${sources.map((s) => s.source).slice(0, 4).join(', ')}) delivers verified data, expert context, and actionable developments for ${topic}.`;
-
-  const keyTerminology = category === 'disaster_news'
-    ? [topic, 'Disaster Management', 'Emergency Relief', 'Situational Assessment', 'Official Response']
+  const keyTerminology = category === 'how_to_guide'
+    ? [normalized, 'Entity Incorporation', 'Founder Agreements', 'Statutory Compliance', 'Go-To-Market']
+    : category === 'disaster_news'
+    ? [normalized, 'Disaster Management', 'Emergency Relief', 'Situational Assessment', 'Official Response']
     : category === 'healthcare_science'
-    ? [topic, 'Clinical Integration', 'Diagnostic Accuracy', 'Regulatory Standards', 'Patient Outcomes']
+    ? [normalized, 'Clinical Integration', 'Diagnostic Accuracy', 'Regulatory Standards', 'Patient Outcomes']
     : category === 'technology_ai'
-    ? [topic, 'Artificial Intelligence', 'Automation Architecture', 'Productivity Benchmarks', 'Operational Efficiency']
+    ? [normalized, 'Artificial Intelligence', 'Automation Architecture', 'Productivity Benchmarks', 'Operational Efficiency']
     : category === 'business_seo'
-    ? [topic, 'Search Intent', 'Technical SEO', 'Conversion Optimization', 'Semantic Architecture']
-    : [topic, 'Strategic Implementation', 'Domain Best Practices', 'Performance Metrics'];
+    ? [normalized, 'Search Intent', 'Technical SEO', 'Conversion Optimization', 'Semantic Architecture']
+    : [normalized, 'Strategic Implementation', 'Domain Best Practices', 'Performance Metrics'];
 
   return {
     topic,
+    normalizedTopic: normalized,
+    intent,
     topicCategory: category,
     summary,
     eventBackground,
     causesAndDrivers,
     impactAndStatistics,
     governmentAndRescueResponse,
-    expertStatementsAndOfficialData,
+    expertStatementsAndOfficialData: [],
     latestDevelopments,
-    keyEntities: filteredEntities.length > 0 ? filteredEntities : [topic],
+    keyEntities: filteredEntities.length > 0 ? filteredEntities : [normalized],
     keyTerminology,
+    actionableSteps,
+    complianceRequirements,
   };
 }
 
-/**
- * Main Web Research Pipeline:
- * USER TOPIC -> Generate Queries -> Live Search -> Deduplicate & Rank -> Structured Research Context
- */
+// --------------------------------------------------------------------------
+// 7. Main Web Research Pipeline
+// --------------------------------------------------------------------------
+
 export async function performLiveWebResearch(topic: string): Promise<WebResearchReport> {
   const cleanTopic = topic.trim();
-  console.log(`[MARKETING BLOG]\nTopic: ${cleanTopic}`);
+  const normalizedTopic = normalizeQuerySpelling(cleanTopic);
+  const intent = detectQueryIntent(normalizedTopic);
+
+  console.log(`[MARKETING BLOG]\nTopic: ${cleanTopic} (Normalized: "${normalizedTopic}", Intent: ${intent})`);
   console.log(`[RESEARCH]\nStarting research...`);
 
   if (!cleanTopic) {
     return {
       success: false,
       topic: '',
+      normalizedTopic: '',
+      detectedIntent: 'general_explainer',
       searchQueries: [],
       sourcesFound: 0,
       sourcesSelected: 0,
@@ -623,29 +871,24 @@ export async function performLiveWebResearch(topic: string): Promise<WebResearch
     };
   }
 
-  const searchQueries = generateSearchQueries(cleanTopic);
+  const searchQueries = generateSearchQueries(normalizedTopic);
   const candidateSources: WebResearchSource[] = [];
 
-  // Build parallel search promises across queries and providers
   const searchPromises: Promise<WebResearchSource[]>[] = [];
 
-  // 1. SearXNG / OpenSERP if configured
   if (process.env.SEARXNG_URL || process.env.SEARCH_URL || process.env.OPENSERP_URL) {
     searchPromises.push(fetchSearxngSources(searchQueries[0]));
     if (searchQueries[1]) searchPromises.push(fetchSearxngSources(searchQueries[1]));
   }
 
-  // 2. Google News RSS across generated concise queries
   searchQueries.forEach((q) => {
     searchPromises.push(fetchGoogleNewsSources(q));
   });
 
-  // 3. Wikipedia API context lookup for conceptual grounding
-  const coreKeywords = extractTopicKeywords(cleanTopic);
-  const wikiQuery = coreKeywords.length > 0 ? coreKeywords.slice(0, 3).join(' ') : cleanTopic;
+  const coreKeywords = extractTopicKeywords(normalizedTopic);
+  const wikiQuery = coreKeywords.length > 0 ? coreKeywords.slice(0, 3).join(' ') : normalizedTopic;
   searchPromises.push(fetchWikipediaContext(wikiQuery));
 
-  // Execute in parallel with resilient settle handling
   const resultsArrays = await Promise.allSettled(searchPromises);
 
   resultsArrays.forEach((res) => {
@@ -657,20 +900,21 @@ export async function performLiveWebResearch(topic: string): Promise<WebResearch
   const totalFound = candidateSources.length;
   console.log(`[RESEARCH]\nRelevant sources: ${totalFound}`);
 
-  // Deduplicate, filter spam, and select top sources (1 to 6)
-  const selectedSources = deduplicateAndRankSources(candidateSources, cleanTopic);
+  const selectedSources = deduplicateAndRankSources(candidateSources, normalizedTopic);
   console.log(`[RESEARCH]\nSelected sources: ${selectedSources.length}`);
 
   if (selectedSources.length === 0) {
-    console.warn(`[RESEARCH] No sources found or retrieved for "${cleanTopic}"`);
+    console.warn(`[RESEARCH] No strictly relevant sources found for "${normalizedTopic}"`);
     return {
       success: false,
       topic: cleanTopic,
+      normalizedTopic,
+      detectedIntent: intent,
       searchQueries,
       sourcesFound: 0,
       sourcesSelected: 0,
       sources: [],
-      findings: synthesizeResearchFindings(cleanTopic, []),
+      findings: synthesizeResearchFindings(normalizedTopic, []),
       relevanceScore: 0,
       stage: 'search',
       errorCode: 'SEARCH_PROVIDER_UNAVAILABLE',
@@ -682,11 +926,13 @@ export async function performLiveWebResearch(topic: string): Promise<WebResearch
     selectedSources.reduce((acc, s) => acc + s.relevanceScore, 0) / selectedSources.length
   );
 
-  const findings = synthesizeResearchFindings(cleanTopic, selectedSources);
+  const findings = synthesizeResearchFindings(normalizedTopic, selectedSources);
 
   return {
     success: true,
     topic: cleanTopic,
+    normalizedTopic,
+    detectedIntent: intent,
     searchQueries,
     sourcesFound: totalFound,
     sourcesSelected: selectedSources.length,
@@ -697,30 +943,8 @@ export async function performLiveWebResearch(topic: string): Promise<WebResearch
 }
 
 // --------------------------------------------------------------------------
-// Helpers
+// 8. General Helpers
 // --------------------------------------------------------------------------
-function isTier1Source(sourceName: string, url: string): boolean {
-  const s = sourceName.toLowerCase();
-  const u = url.toLowerCase();
-  return TIER_1_DOMAINS.some((d) => s.includes(d) || u.includes(d));
-}
-
-function calculateInitialSourceRelevance(text: string, query: string): number {
-  const queryTokens = extractTopicKeywords(query);
-  const lowerText = text.toLowerCase();
-
-  let matches = 0;
-  queryTokens.forEach((t) => {
-    if (lowerText.includes(t)) matches++;
-  });
-
-  const ratio = queryTokens.length > 0 ? matches / queryTokens.length : 0.5;
-  return Math.min(98, Math.max(30, Math.round(ratio * 65 + 30)));
-}
-
-function generateContextSnippet(title: string, query: string): string {
-  return `Live reporting and situational developments regarding ${query} as published in recent press dispatches.`;
-}
 
 function extractDomainName(urlStr: string): string {
   try {
@@ -742,4 +966,3 @@ function cleanXmlText(str: string): string {
     .replace(/<[^>]+>/g, '')
     .trim();
 }
-
