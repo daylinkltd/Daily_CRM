@@ -17,6 +17,7 @@ import {
   parseCreativeType,
   resolveBrandIdentity,
   parseDynamicCreativeIntent,
+  resolveVideoIntent,
 } from './ai-generator';
 
 describe('Universal AI Marketing Content Generator Suite', () => {
@@ -780,10 +781,10 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     // Video Prompt verification
     expect(social.video_prompt).toContain('https://storage.example.com/tenant123/assets/vanilla-candle.png');
     expect(social.video_prompt).toContain('https://storage.example.com/tenant123/assets/logo.png');
-    expect(social.video_prompt).toContain('Scene 1 — 0–2 seconds:');
-    expect(social.video_prompt).toContain('Scene 2 — 2–5 seconds:');
-    expect(social.video_prompt).toContain('Scene 3 — 5–8 seconds:');
-    expect(social.video_prompt).toContain('Scene 4 — 8–10 seconds:');
+    expect(social.video_prompt).toContain('Scene 1');
+    expect(social.video_prompt).toContain('Scene 2');
+    expect(social.video_prompt).toContain('Scene 3');
+    expect(social.video_prompt).toContain('Scene 4');
   });
 
   // TEST 28: Universal Generation Across 6 Distinct Industries (Zero DailyBuz / CRM Pollution)
@@ -939,10 +940,10 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     expect(prompt).not.toMatch(/<[^>]*>/);
   });
 
-  // TEST 32: Video prompt structure for DailyBuz with 0-10s timeline and logo closing card
-  it('TEST 32: generates a structured 0-10s video prompt for DailyBuz citing the authentic logo reference', () => {
+  // TEST 32: Video prompt structure for DailyBuz with dynamic intent and authentic logo reference
+  it('TEST 32: generates a structured video prompt for DailyBuz citing the authentic logo reference and dynamic intent', () => {
     const rawUserRequest =
-      'Create a DailyBuz video post announcing our new AI automation features';
+      'Create a 10-second DailyBuz video post announcing our new AI automation features';
 
     const logoAsset = {
       id: 'asset_dailybuz_logo_001',
@@ -961,11 +962,12 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       videoStyle: 'Cinematic',
     });
 
-    expect(videoPrompt).toContain('CREATE A 10-SECOND CINEMATIC PROMOTIONAL VIDEO FOR DAILYBUZ');
+    expect(videoPrompt).toContain('CREATE A 10-SECOND CINEMATIC SOFTWARE & PRODUCT DEMO FOR INSTAGRAM (DAILYBUZ)');
     expect(videoPrompt).toContain('https://cdn.dailybuz.com/assets/tenant_123/dailybuz-logo.png');
-    expect(videoPrompt).toContain('Chronological Sequence (0–10s)');
-    expect(videoPrompt).toContain('0–2s (Opening Hook)');
-    expect(videoPrompt).toContain('8–10s (Outro & CTA)');
+    expect(videoPrompt).toContain('- Scene 1');
+    expect(videoPrompt).toContain('- Scene 2');
+    expect(videoPrompt).toContain('- Scene 3');
+    expect(videoPrompt).toContain('- Scene 4');
     expect(videoPrompt).not.toContain('product packaging');
     expect(videoPrompt).not.toMatch(/<[^>]*>/);
   });
@@ -1701,6 +1703,247 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       expect(promptB).toContain('https://dailybuz.com/uploads/marketing/assets/tenant_b/logo.png');
       expect(promptB).not.toContain('tenant_a');
       expect(promptB).not.toContain('Daylink');
+    });
+  });
+
+  describe('Multi-Tenant Dynamic Video Generation & Intent Resolution Suite', () => {
+    // 1. Messi stats and trophies -> Sports / Statistics Video (Informational, No fake sales CTA)
+    it('VIDEO TEST 1: resolves "messi stats and trophies" as Sports/Statistics Informational video with zero sales tropes', () => {
+      const userRequest = 'messi stats and trophies';
+      const intent = resolveVideoIntent({ rawRequest: userRequest });
+
+      expect(intent.subject).toBe('messi stats and trophies');
+      expect(intent.videoType.category).toBe('sports_statistics');
+      expect(intent.videoType.label).toBe('Sports / Statistics Video');
+      expect(intent.objective).toBe('Informational');
+      expect(intent.marketingGoal).toBeNull();
+      expect(intent.targetAudience).toBeNull();
+      expect(intent.duration).toBeNull();
+      expect(intent.platform).toBeNull();
+      expect(intent.aspectRatio).toBeNull();
+      expect(intent.cta).toBeNull();
+
+      const prompt = buildDetailedVideoPrompt({ topic: userRequest });
+
+      // Title & category verification
+      expect(prompt).toContain('CREATE A BROADCAST SPORTS / STATISTICS VIDEO');
+      expect(prompt).toContain('messi stats and trophies');
+      expect(prompt).toContain('Scene 1 (Opening Introduction):');
+      expect(prompt).toContain('Scene 2 (Key Statistics):');
+      expect(prompt).toContain('Scene 3 (Major Trophies):');
+      expect(prompt).toContain('Scene 4 (Legacy Summary):');
+
+      // Factual & non-commercial guardrails
+      expect(prompt).toContain('Do not invent statistics, achievements, numbers, dates, or match outcomes.');
+      expect(prompt).toContain('Do not add unrequested sales language or lead generation copy.');
+
+      // Zero hardcoded marketing defaults
+      expect(prompt).not.toContain('Lead Generation & Signups');
+      expect(prompt).not.toContain('Discerning customers');
+      expect(prompt).not.toContain('quality-focused buyers');
+      expect(prompt).not.toContain('passionate enthusiasts');
+      expect(prompt).not.toContain('Discover more and experience');
+      expect(prompt).not.toContain('Daylink Tech Labs');
+      expect(prompt).not.toContain('10-SECOND');
+      expect(prompt).not.toContain('0–2s Opening Hook');
+    });
+
+    // 2. 2BHK apartment walkthrough -> Real Estate Walkthrough
+    it('VIDEO TEST 2: resolves "2BHK apartment walkthrough" as Real Estate Walkthrough', () => {
+      const userRequest = '2BHK apartment walkthrough';
+      const intent = resolveVideoIntent({ rawRequest: userRequest });
+
+      expect(intent.videoType.category).toBe('real_estate_walkthrough');
+      expect(intent.videoType.label).toBe('Real Estate Walkthrough');
+      expect(intent.objective).toBe('Property Showcase');
+      expect(intent.targetAudience).toBeNull();
+      expect(intent.cta).toBeNull();
+
+      const prompt = buildDetailedVideoPrompt({ topic: userRequest });
+      expect(prompt).toContain('CREATE A CINEMATIC REAL ESTATE WALKTHROUGH');
+      expect(prompt).toContain('Scene 1 (Exterior & Entryway):');
+      expect(prompt).toContain('Scene 2 (Living & Dining Spaces):');
+      expect(prompt).toContain('Scene 3 (Bedrooms & Interiors):');
+      expect(prompt).toContain('Scene 4 (Balcony & Outlook):');
+
+      // Zero contamination
+      expect(prompt).not.toContain('Lead Generation & Signups');
+      expect(prompt).not.toContain('Discerning customers');
+      expect(prompt).not.toContain('Daylink Tech Labs');
+      expect(prompt).not.toContain('AI CRM');
+      expect(prompt).not.toContain('Messi');
+    });
+
+    // 3. Summer collection video -> Fashion / Collection Video
+    it('VIDEO TEST 3: resolves "summer collection video" as Fashion / Collection Video', () => {
+      const userRequest = 'summer collection video';
+      const intent = resolveVideoIntent({ rawRequest: userRequest });
+
+      expect(intent.videoType.category).toBe('fashion_collection');
+      expect(intent.videoType.label).toBe('Fashion / Collection Video');
+      expect(intent.objective).toBe('Collection Showcase');
+
+      const prompt = buildDetailedVideoPrompt({ topic: userRequest });
+      expect(prompt).toContain('CREATE A CINEMATIC FASHION / COLLECTION VIDEO');
+      expect(prompt).toContain('Scene 1 (Collection Reveal):');
+      expect(prompt).toContain('Scene 2 (Detail & Styling):');
+      expect(prompt).toContain('Scene 3 (Silhouette Motion):');
+      expect(prompt).toContain('Scene 4 (Collection Signature):');
+
+      // Zero contamination
+      expect(prompt).not.toContain('Lead Generation & Signups');
+      expect(prompt).not.toContain('Daylink Tech Labs');
+      expect(prompt).not.toContain('software');
+      expect(prompt).not.toContain('real estate');
+    });
+
+    // 4. Company introduction video -> Corporate Introduction (Authenticated Tenant)
+    it('VIDEO TEST 4: resolves "company introduction video" using authenticated tenant brand without Daylink bias', () => {
+      const userRequest = 'company introduction video';
+      const tenantContext = {
+        businessName: 'Apex Health Systems',
+        industry: 'Healthcare',
+      };
+
+      const intent = resolveVideoIntent({
+        rawRequest: userRequest,
+        brandContext: tenantContext,
+      });
+
+      expect(intent.videoType.category).toBe('corporate_introduction');
+      expect(intent.videoType.label).toBe('Corporate Introduction');
+      expect(intent.brandName).toBe('Apex Health Systems');
+      expect(intent.objective).toBe('Corporate Introduction');
+
+      const prompt = buildDetailedVideoPrompt({
+        topic: userRequest,
+        brandContext: tenantContext,
+      });
+
+      expect(prompt).toContain('CREATE A CINEMATIC CORPORATE INTRODUCTION FOR APEX HEALTH SYSTEMS');
+      expect(prompt).toContain('Brand:\nApex Health Systems');
+      expect(prompt).toContain('Scene 1 (Vision & Mission):');
+      expect(prompt).toContain('Scene 2 (Team & Capabilities):');
+      expect(prompt).toContain('Scene 3 (Innovation & Impact):');
+      expect(prompt).toContain('Scene 4 (Corporate Closing):');
+
+      expect(prompt).not.toContain('Daylink Tech Labs');
+      expect(prompt).not.toContain('Lead Generation & Signups');
+    });
+
+    // 5. 10 second instagram ad for our pizza -> Promotional Advertisement
+    it('VIDEO TEST 5: resolves "10 second instagram ad for our pizza" with dynamic 10-second duration and Instagram format', () => {
+      const userRequest = '10 second instagram ad for our pizza';
+      const intent = resolveVideoIntent({ rawRequest: userRequest });
+
+      expect(intent.videoType.category).toBe('promotional_advertisement');
+      expect(intent.videoType.label).toBe('Promotional Advertisement');
+      expect(intent.duration).toBe('10 seconds');
+      expect(intent.platform).toBe('instagram');
+      expect(intent.aspectRatio).toBe('9:16 (Vertical Reels/Stories)');
+      expect(intent.objective).toBe('Promotion');
+
+      const prompt = buildDetailedVideoPrompt({ topic: userRequest });
+      expect(prompt).toContain('CREATE A 10-SECOND CINEMATIC PROMOTIONAL ADVERTISEMENT FOR INSTAGRAM');
+      expect(prompt).toContain('9:16 (Vertical Reels/Stories)');
+      expect(prompt).toContain('Scene 1 — 0–2 seconds:');
+      expect(prompt).toContain('Scene 2 — 2–5 seconds:');
+      expect(prompt).toContain('Scene 3 — 5–8 seconds:');
+      expect(prompt).toContain('Scene 4 — 8–10 seconds:');
+
+      expect(prompt).not.toContain('Lead Generation & Signups');
+      expect(prompt).not.toContain('Discerning customers');
+      expect(prompt).not.toContain('Daylink Tech Labs');
+    });
+
+    // 6. show our services in a video -> Services Showcase
+    it('VIDEO TEST 6: resolves "show our services in a video" as Services Showcase', () => {
+      const userRequest = 'show our services in a video';
+      const tenantContext = {
+        businessName: 'Veloce Logistics',
+        services: ['Express Freight', 'Warehousing', 'Last-Mile Delivery'],
+      };
+
+      const intent = resolveVideoIntent({
+        rawRequest: userRequest,
+        brandContext: tenantContext,
+      });
+
+      expect(intent.videoType.category).toBe('services_showcase');
+      expect(intent.videoType.label).toBe('Services Showcase');
+      expect(intent.brandName).toBe('Veloce Logistics');
+
+      const prompt = buildDetailedVideoPrompt({
+        topic: userRequest,
+        brandContext: tenantContext,
+      });
+
+      expect(prompt).toContain('CREATE A CINEMATIC SERVICES SHOWCASE FOR VELOCE LOGISTICS');
+      expect(prompt).toContain('Scene 1 (Service Overview):');
+      expect(prompt).toContain('Scene 2 (Capabilities Walkthrough):');
+      expect(prompt).toContain('Scene 3 (Differentiators & Value):');
+      expect(prompt).toContain('Scene 4 (Professional Conclusion):');
+
+      expect(prompt).not.toContain('Daylink Tech Labs');
+      expect(prompt).not.toContain('Lead Generation & Signups');
+    });
+
+    // 7. HTML & rich-text sanitization
+    it('VIDEO TEST 7: normalizes rich-text HTML artifacts like <p> and <blockquote> cleanly', () => {
+      const userRequest = '<p><blockquote>messi stats and trophies</blockquote></p>';
+      const intent = resolveVideoIntent({ rawRequest: userRequest });
+
+      expect(intent.subject).toBe('messi stats and trophies');
+      expect(intent.videoType.category).toBe('sports_statistics');
+
+      const prompt = buildDetailedVideoPrompt({ topic: userRequest });
+      expect(prompt).not.toMatch(/<[^>]*>/);
+      expect(prompt).toContain('CREATE A BROADCAST SPORTS / STATISTICS VIDEO');
+    });
+
+    // 8. Cross-contamination test across sequential requests
+    it('VIDEO TEST 8: ensures zero cross-contamination across sequential diverse requests', () => {
+      // Request A
+      const promptA = buildDetailedVideoPrompt({ topic: 'messi stats and trophies' });
+      expect(promptA).toContain('SPORTS / STATISTICS VIDEO');
+      expect(promptA).not.toContain('apartment');
+      expect(promptA).not.toContain('summer collection');
+
+      // Request B
+      const promptB = buildDetailedVideoPrompt({ topic: '2BHK apartment walkthrough' });
+      expect(promptB).toContain('REAL ESTATE WALKTHROUGH');
+      expect(promptB).not.toContain('messi');
+      expect(promptB).not.toContain('summer collection');
+
+      // Request C
+      const promptC = buildDetailedVideoPrompt({ topic: 'summer collection video' });
+      expect(promptC).toContain('FASHION / COLLECTION VIDEO');
+      expect(promptC).not.toContain('messi');
+      expect(promptC).not.toContain('apartment');
+    });
+
+    // 9. Exact Logo preservation directives
+    it('VIDEO TEST 9: preserves logo geometry and rules when reference asset is attached', () => {
+      const logoAsset = {
+        id: 'asset_tenant_logo_77',
+        name: 'Brand Logo',
+        category: 'LOGOS' as const,
+        public_url: 'https://cdn.example.com/tenants/99/logo.png',
+        usageInstruction: 'Official brand emblem',
+        relevanceScore: 100,
+      };
+
+      const prompt = buildDetailedVideoPrompt({
+        topic: 'summer collection video',
+        selectedAssets: [logoAsset],
+      });
+
+      expect(prompt).toContain('https://cdn.example.com/tenants/99/logo.png');
+      expect(prompt).toContain('Logo Preservation:');
+      expect(prompt).toContain('Preserve logo geometry, colors, typography, and proportions exactly.');
+      expect(prompt).toContain('Do not redesign, recreate, recolor, distort, stretch, modify, replace, or invent the logo.');
+      expect(prompt).not.toContain('/uploads/');
+      expect(prompt).not.toContain('localhost');
     });
   });
 });

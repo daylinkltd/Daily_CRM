@@ -832,7 +832,8 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
   // 2. Remove conversational wrappers and command prefixes
   const commandPrefixes = [
     /^(?:i\s+want\s+to|i\s+would\s+like\s+to|we\s+want\s+to|we\s+need\s+to|please|can\s+you|help\s+me)\s+(?:create|make|generate|write|compose|design|post|build)\s+(?:a|an|the)?\s*(?:detailed|engaging|premium|high-end)?\s*/i,
-    /^(?:create|make|generate|write|compose|design|post|build)\s+(?:an?|the)?\s*(?:detailed|engaging|premium|high-end)?\s*(?:instagram|linkedin|twitter|x|facebook|tiktok|youtube|threads|social|blog)?\s*(?:marketing\s+creative|marketing\s+post|marketing\s+ad|marketing\s+campaign|marketing|creative|post|ad|article|caption|content|reel|video|flyer|banner|poster|update|something\s+premium|something)?\s*(?:for|about|promoting|to promote|introducing|highlighting|showcasing|featuring)?\s*/i,
+    /^(?:create|make|generate|write|compose|design|post|build)\s+(?:an?|the)?\s*(?:detailed|engaging|premium|high-end)?\s*(?:\d{1,3}\s*(?:-|–|\s)?\s*(?:seconds?|secs?|minutes?|mins?|s)\s+)?\s*(?:instagram|linkedin|twitter|x|facebook|tiktok|youtube|threads|social|blog)?\s*(?:marketing\s+creative|marketing\s+post|marketing\s+ad|marketing\s+campaign|marketing|creative|post|ad|article|caption|content|reel|video|flyer|banner|poster|update|something\s+premium|something)?\s*(?:for|about|promoting|to promote|introducing|highlighting|showcasing|featuring)?\s*/i,
+    /^(?:\d{1,3}\s*(?:-|–|\s)?\s*(?:seconds?|secs?|minutes?|mins?|s)\s+)/i,
     /^(?:marketing\s+creative\s+for|marketing\s+post\s+for|marketing\s+campaign\s+for|marketing\s+for)\s*/i,
     /^(?:creative\s+for|poster\s+for|post\s+for|flyer\s+for|video\s+for|ad\s+for)\s*/i,
     /^(?:something\s+premium\s+for|something\s+for)\s*/i,
@@ -866,7 +867,7 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
 
   // If still not found, check if text contains an explicit company name with industry suffix (excluding generic command words)
   if (!extractedBrand) {
-    const specificBrandMatch = text.match(/\b(?!(?:marketing|creative|poster|post|for|about|promoting|with|in|to|the|our|a|an|weekend|launch|collection|apartment|pizza|summer|winter)\b)([A-Za-z0-9&']+(?:\s+(?!(?:for|about|with|in|to|the|our|a|an|poster|launch|collection|offer|sale|post|flyer)\b)[A-Za-z0-9&']+){0,2}\s+(?:Tech\s+Labs|Technologies|Solutions|Software|CRM|HR|Studio|Hub|Engine|Agency|Co|Inc|LLC|Ltd|Group|Bakery|Cafe|Motors|Designs|Homes|Living))\b/i);
+    const specificBrandMatch = text.match(/\b(?!(?:marketing|creative|poster|post|for|about|promoting|with|in|to|the|our|a|an|weekend|launch|collection|apartment|pizza|summer|winter|second|seconds|minute|minutes)\b)([A-Za-z0-9&']+(?:\s+(?!(?:for|about|with|in|to|the|our|a|an|poster|launch|collection|offer|sale|post|flyer|second|seconds|minute|minutes)\b)[A-Za-z0-9&']+){0,2}\s+(?:Tech\s+Labs|Technologies|Solutions|Software|CRM|HR|Studio|Hub|Engine|Agency|Co|Inc|LLC|Ltd|Group|Bakery|Cafe|Motors|Designs|Homes|Living))\b/i);
     if (specificBrandMatch && specificBrandMatch[0] && isValidBrandName(specificBrandMatch[0])) {
       extractedBrand = stripLegalCompanySuffix(formatBrandTitleCase(specificBrandMatch[0].trim()));
     } else {
@@ -874,7 +875,7 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
       if (forCompanyMatch && forCompanyMatch[1] && isValidBrandName(forCompanyMatch[1])) {
         extractedBrand = stripLegalCompanySuffix(formatBrandTitleCase(forCompanyMatch[1].trim()));
       } else {
-        const nounBeforeCreativeMatch = text.match(/\b(?!(?:create|make|generate|write|compose|design|post|build|marketing|creative|poster|for|about|with|the|our|a|an|weekend|summer|winter|pizza|apartment|launch|collection|services|service)\b)([A-Za-z0-9&']+(?:\s+(?!(?:marketing|creative|poster|post|video|flyer|for|about|with|the|our|launch|collection|offer|sale|services)\b)[A-Za-z0-9&']+){0,2})\s+(?:marketing\s+post|marketing\s+creative|marketing\s+campaign|video\s+post|poster|creative|campaign|flyer)\b/i);
+        const nounBeforeCreativeMatch = text.match(/\b(?!(?:create|make|generate|write|compose|design|post|build|marketing|creative|poster|for|about|with|the|our|a|an|weekend|summer|winter|pizza|apartment|launch|collection|services|service|second|seconds|sec|minute|minutes|min|hour|hours|10-second|30-second|5-second|15-second|60-second)\b)([A-Za-z0-9&']+(?:\s+(?!(?:marketing|creative|poster|post|video|flyer|for|about|with|the|our|launch|collection|offer|sale|services|second|seconds|minute|minutes)\b)[A-Za-z0-9&']+){0,2})\s+(?:marketing\s+post|marketing\s+creative|marketing\s+campaign|video\s+post|poster|creative|campaign|flyer)\b/i);
         if (nounBeforeCreativeMatch && nounBeforeCreativeMatch[1] && isValidBrandName(nounBeforeCreativeMatch[1])) {
           extractedBrand = stripLegalCompanySuffix(formatBrandTitleCase(nounBeforeCreativeMatch[1].trim()));
         }
@@ -1224,12 +1225,12 @@ export function detectIndustryDomain(topic: string): IndustryDomainInfo {
     category: 'Commercial & Brand Marketing',
     keywords: [...keyTerms, 'premium quality', 'exceptional value', 'customer satisfaction', 'unique features'],
     hashtags: dynamicHashtags.length > 0 ? dynamicHashtags : ['#BrandSpotlight', '#ProductLaunch', '#NewRelease', '#QualityFirst'],
-    defaultAudience: 'Discerning customers, passionate enthusiasts, and quality-focused buyers',
-    defaultVisualScene: 'Polished commercial studio setting with clean visual hierarchy, balanced natural lighting, and curated styling',
-    defaultVisualObject: `Showcase presentation of "${topic}" with high-fidelity detailing and premium tactile aesthetics`,
-    defaultVideoHook: `Captivating opening hook highlighting the unique appeal and standout quality of "${topic}"`,
-    defaultVideoAction: `Engaging visual exploration presenting key aspects and benefits of "${topic}"`,
-    defaultCta: `Discover more and experience "${topic}" today`,
+    defaultAudience: 'Interested audience and followers',
+    defaultVisualScene: 'Polished visual setting with clean visual hierarchy, balanced natural lighting, and curated styling',
+    defaultVisualObject: `Showcase presentation of "${topic}" with high-fidelity detailing and aesthetic visual balance`,
+    defaultVideoHook: `Captivating opening hook highlighting key aspects of "${topic}"`,
+    defaultVideoAction: `Engaging visual exploration presenting the core elements of "${topic}"`,
+    defaultCta: `Learn more about "${topic}"`,
   };
 }
 
@@ -2077,6 +2078,300 @@ export function buildDetailedImagePrompt(params: {
   });
 }
 
+export interface VideoIntent {
+  rawRequest: string;
+  subject: string;
+  cleanSubject: string;
+  videoType: {
+    value: string;
+    label: string;
+    category:
+      | 'sports_statistics'
+      | 'real_estate_walkthrough'
+      | 'fashion_collection'
+      | 'corporate_introduction'
+      | 'services_showcase'
+      | 'promotional_advertisement'
+      | 'educational_tutorial'
+      | 'documentary_informational'
+      | 'tech_product_demo'
+      | 'general';
+  };
+  objective: string | null;
+  marketingGoal: string | null;
+  targetAudience: string | null;
+  duration: string | null;
+  platform: string | null;
+  aspectRatio: string | null;
+  cta: string | null;
+  style: string | null;
+  brandName?: string | null;
+  tenantId?: string | null;
+  tenantName?: string | null;
+  referenceAssets: SelectedAssetReference[];
+}
+
+export function resolveVideoIntent(params: {
+  rawRequest: string;
+  tenantId?: string | null;
+  tenantName?: string | null;
+  brandContext?: BrandContext;
+  selectedBrandProfile?: { company_name?: string; brand_name?: string; legal_name?: string };
+  platform?: string | null;
+  objective?: string | null;
+  targetAudience?: string | null;
+  duration?: string | null;
+  cta?: string | null;
+  videoStyle?: string | null;
+  selectedAssets?: SelectedAssetReference[];
+}): VideoIntent {
+  const stripped = stripHtmlAndFormatting(params.rawRequest || '');
+  const normalized = normalizeQuerySpelling(stripped);
+  const lower = normalized.toLowerCase();
+
+  // 1. Duration extraction (Dynamic: only when specified)
+  let duration: string | null = params.duration?.trim() || null;
+  if (!duration) {
+    const secondMatch = lower.match(/\b(\d+)\s*(?:-|–|\s)?\s*(?:seconds?|secs?|s)\b/i);
+    const minuteMatch = lower.match(/\b(\d+)\s*(?:-|–|\s)?\s*(?:minutes?|mins?|m)\b/i);
+    if (secondMatch && secondMatch[1]) {
+      duration = `${secondMatch[1]} seconds`;
+    } else if (minuteMatch && minuteMatch[1]) {
+      duration = `${minuteMatch[1]} minutes`;
+    }
+  }
+
+  // 2. Platform & Aspect Ratio extraction (Dynamic: only when specified)
+  let platform: string | null = params.platform?.trim() || null;
+  if (!platform) {
+    if (lower.includes('instagram') || lower.includes('insta') || lower.includes('reels') || lower.includes('reel')) platform = 'instagram';
+    else if (lower.includes('tiktok')) platform = 'tiktok';
+    else if (lower.includes('youtube shorts') || lower.includes('shorts')) platform = 'youtube shorts';
+    else if (lower.includes('youtube')) platform = 'youtube';
+    else if (lower.includes('linkedin')) platform = 'linkedin';
+    else if (lower.includes('twitter') || lower.includes(' x ') || lower.endsWith(' x')) platform = 'x';
+    else if (lower.includes('facebook') || lower.includes('fb')) platform = 'facebook';
+  }
+
+  let aspectRatio: string | null = null;
+  if (platform) {
+    if (platform === 'youtube') {
+      aspectRatio = '16:9 (Landscape)';
+    } else if (platform === 'linkedin') {
+      aspectRatio = '1:1 (Square) or 16:9';
+    } else {
+      aspectRatio = '9:16 (Vertical Reels/Stories)';
+    }
+  }
+
+  // 3. Brand Identity Resolution (Strictly Multi-Tenant, Zero Daylink hardcoding)
+  const brandInfo = resolveBrandIdentity(normalized, params.brandContext, params.selectedBrandProfile);
+  const brandName = brandInfo.displayName || brandInfo.name || null;
+
+  // 4. Video Category & Type Classification
+  let videoTypeValue = 'documentary_informational';
+  let videoTypeLabel = 'Informational Video';
+  let videoCategory: VideoIntent['videoType']['category'] = 'documentary_informational';
+  let defaultObjective: string | null = null;
+
+  if (
+    lower.includes('messi') ||
+    lower.includes('ronaldo') ||
+    lower.includes('trophies') ||
+    lower.includes('stats and trophies') ||
+    lower.includes('career stats') ||
+    lower.includes('football') ||
+    lower.includes('soccer') ||
+    lower.includes('basketball') ||
+    lower.includes('nba') ||
+    lower.includes('cricket') ||
+    lower.includes('match highlights') ||
+    lower.includes('ballon d') ||
+    lower.includes('world cup') ||
+    lower.includes('sports')
+  ) {
+    videoTypeValue = 'sports_statistics';
+    videoTypeLabel = 'Sports / Statistics Video';
+    videoCategory = 'sports_statistics';
+    defaultObjective = 'Informational';
+  } else if (
+    lower.includes('walkthrough') ||
+    lower.includes('apartment walkthrough') ||
+    lower.includes('2bhk') ||
+    lower.includes('3bhk') ||
+    lower.includes('house tour') ||
+    lower.includes('home tour') ||
+    lower.includes('villa tour') ||
+    lower.includes('property tour') ||
+    lower.includes('property walkthrough') ||
+    lower.includes('real estate walkthrough') ||
+    lower.includes('real estate video')
+  ) {
+    videoTypeValue = 'real_estate_walkthrough';
+    videoTypeLabel = 'Real Estate Walkthrough';
+    videoCategory = 'real_estate_walkthrough';
+    defaultObjective = 'Property Showcase';
+  } else if (
+    lower.includes('summer collection') ||
+    lower.includes('winter collection') ||
+    lower.includes('spring collection') ||
+    lower.includes('fashion collection') ||
+    lower.includes('collection video') ||
+    lower.includes('lookbook video') ||
+    lower.includes('apparel video') ||
+    lower.includes('fashion video') ||
+    lower.includes('clothing video')
+  ) {
+    videoTypeValue = 'fashion_collection';
+    videoTypeLabel = 'Fashion / Collection Video';
+    videoCategory = 'fashion_collection';
+    defaultObjective = 'Collection Showcase';
+  } else if (
+    lower.includes('company introduction') ||
+    lower.includes('corporate introduction') ||
+    lower.includes('about our company') ||
+    lower.includes('corporate video') ||
+    lower.includes('company overview') ||
+    lower.includes('who we are') ||
+    lower.includes('our story')
+  ) {
+    videoTypeValue = 'corporate_introduction';
+    videoTypeLabel = 'Corporate Introduction';
+    videoCategory = 'corporate_introduction';
+    defaultObjective = 'Corporate Introduction';
+  } else if (
+    lower.includes('show our services') ||
+    lower.includes('services in a video') ||
+    lower.includes('services video') ||
+    lower.includes('our services video') ||
+    lower.includes('services showcase') ||
+    lower.includes('company services')
+  ) {
+    videoTypeValue = 'services_showcase';
+    videoTypeLabel = 'Services Showcase';
+    videoCategory = 'services_showcase';
+    defaultObjective = 'Services Showcase';
+  } else if (
+    lower.includes('ad for our') ||
+    lower.includes('commercial for our') ||
+    lower.includes('promotional ad') ||
+    lower.includes('discount video') ||
+    lower.includes('offer video') ||
+    lower.includes('sale ad') ||
+    lower.includes('pizza ad') ||
+    lower.includes('product ad') ||
+    lower.includes('instagram ad') ||
+    lower.includes('promotional video') ||
+    lower.includes('promo video')
+  ) {
+    videoTypeValue = 'promotional_advertisement';
+    videoTypeLabel = 'Promotional Advertisement';
+    videoCategory = 'promotional_advertisement';
+    defaultObjective = 'Promotion';
+  } else if (
+    lower.includes('how to') ||
+    lower.includes('tutorial') ||
+    lower.includes('guide') ||
+    lower.includes('step by step') ||
+    lower.includes('educational video')
+  ) {
+    videoTypeValue = 'educational_tutorial';
+    videoTypeLabel = 'Educational / Tutorial Video';
+    videoCategory = 'educational_tutorial';
+    defaultObjective = 'Educational';
+  } else if (
+    lower.includes('crm') ||
+    lower.includes('saas') ||
+    lower.includes('software demo') ||
+    lower.includes('dashboard walkthrough') ||
+    lower.includes('ai automation')
+  ) {
+    videoTypeValue = 'tech_product_demo';
+    videoTypeLabel = 'Software & Product Demo';
+    videoCategory = 'tech_product_demo';
+    defaultObjective = 'Product Showcase';
+  } else {
+    videoTypeValue = 'documentary_informational';
+    videoTypeLabel = 'Informational Video';
+    videoCategory = 'documentary_informational';
+    defaultObjective = 'Informational';
+  }
+
+  // 5. Subject formulation
+  const { cleanSubject } = extractSubjectAndEntity(normalized, params.brandContext);
+  let subject = cleanSubject;
+  if (!subject || subject.length < 2) {
+    subject = normalized;
+  }
+
+  // 6. Objective & Marketing Goal (Null unless requested / appropriate)
+  let objective: string | null = null;
+  let marketingGoal: string | null = null;
+  if (params.objective && params.objective.trim().length > 0) {
+    objective = params.objective.trim();
+    marketingGoal = params.objective.trim();
+  } else if (videoCategory === 'promotional_advertisement') {
+    objective = 'Promotion';
+    marketingGoal = 'Promotion & Sales';
+  } else if (defaultObjective) {
+    objective = defaultObjective;
+    marketingGoal = null;
+  }
+
+  // 7. Target Audience (Null unless explicitly requested or configured for business videos)
+  let targetAudience: string | null = null;
+  if (params.targetAudience && params.targetAudience.trim().length > 0) {
+    targetAudience = params.targetAudience.trim();
+  } else {
+    const audienceInPromptMatch = normalized.match(/(?:for|targeting|aimed at)\s+([A-Za-z0-9\s&/-]+?)(?:in\s+a\s+video|with|using|\.|\,|$)/i);
+    if (audienceInPromptMatch && audienceInPromptMatch[1]) {
+      const candidate = audienceInPromptMatch[1].trim();
+      if (!['our', 'a', 'the', 'my', 'something'].includes(candidate.toLowerCase()) && candidate.length > 2) {
+        targetAudience = formatToTitleCase(candidate);
+      }
+    } else if (params.brandContext?.targetAudience && (videoCategory === 'corporate_introduction' || videoCategory === 'services_showcase' || videoCategory === 'tech_product_demo')) {
+      targetAudience = params.brandContext.targetAudience.trim();
+    }
+  }
+
+  // 8. CTA (Null unless explicitly requested or promotional)
+  let cta: string | null = null;
+  if (params.cta && params.cta.trim().length > 0) {
+    cta = params.cta.trim();
+  } else {
+    const ctaInPromptMatch = normalized.match(/(?:with cta|cta|call to action)\s*[:=]?\s*["']?([^"'\n]+?)["']?(?:\.|$)/i);
+    if (ctaInPromptMatch && ctaInPromptMatch[1]) {
+      cta = ctaInPromptMatch[1].trim();
+    }
+  }
+
+  // 9. Style
+  const style = params.videoStyle?.trim() || (videoCategory === 'sports_statistics' ? 'Broadcast' : 'Cinematic');
+
+  return {
+    rawRequest: params.rawRequest,
+    subject,
+    cleanSubject,
+    videoType: {
+      value: videoTypeValue,
+      label: videoTypeLabel,
+      category: videoCategory,
+    },
+    objective,
+    marketingGoal,
+    targetAudience,
+    duration,
+    platform,
+    aspectRatio,
+    cta,
+    style,
+    brandName,
+    tenantId: params.tenantId || null,
+    tenantName: params.tenantName || null,
+    referenceAssets: params.selectedAssets || [],
+  };
+}
+
 export function buildDetailedVideoPrompt(params: {
   topic: string;
   contentType?: string;
@@ -2086,114 +2381,212 @@ export function buildDetailedVideoPrompt(params: {
   productOrService?: string;
   objective?: string;
   videoStyle?: string;
+  duration?: string;
+  cta?: string;
   brandContext?: BrandContext;
   selectedAssets?: SelectedAssetReference[];
   additionalInstructions?: string;
 }): string {
-  const {
-    topic,
-    platforms = ['instagram'],
-    targetAudience,
-    campaignName,
-    productOrService,
-    objective,
-    videoStyle = 'Cinematic',
-    brandContext,
-    selectedAssets = [],
-    additionalInstructions,
-  } = params;
+  const intent = resolveVideoIntent({
+    rawRequest: params.topic,
+    brandContext: params.brandContext,
+    platform: params.platforms && params.platforms.length > 0 ? params.platforms[0] : null,
+    objective: params.objective,
+    targetAudience: params.targetAudience,
+    duration: params.duration,
+    cta: params.cta,
+    videoStyle: params.videoStyle,
+    selectedAssets: params.selectedAssets,
+  });
 
-  const parsed = extractSubjectAndEntity(topic, brandContext);
-  const domainInfo = detectIndustryDomain(parsed.cleanSubject);
-  const primaryPlatform = platforms[0] || 'instagram';
-  const platformSpecs = getPlatformAspectGuidelines(primaryPlatform);
+  const sections: string[] = [];
 
-  const brandName = parsed.extractedBrand || (brandContext?.businessName ? stripLegalCompanySuffix(brandContext.businessName) : undefined);
-  const marketingGoal = objective || 'Promotion & Sales';
-  const audience = targetAudience || brandContext?.targetAudience || domainInfo.defaultAudience;
-  const isSaaS = parsed.isSaaSOrDigital;
+  // 1. Header (Dynamic duration, style, type, platform, brand)
+  const durationPrefix = intent.duration
+    ? `${intent.duration.toUpperCase().replace(/\s+SECONDS?/, '-SECOND').replace(/\s+MINUTES?/, '-MINUTE')} `
+    : '';
+  const platformSuffix = intent.platform ? ` FOR ${intent.platform.toUpperCase()}` : '';
+  const brandSuffix = intent.brandName ? ` FOR ${intent.brandName.toUpperCase()}` : '';
 
-  const videoSections: string[] = [];
+  let headerTitle = '';
+  if (intent.brandName && intent.platform) {
+    headerTitle = `CREATE A ${durationPrefix}${(intent.style || 'CINEMATIC').toUpperCase()} ${intent.videoType.label.toUpperCase()} FOR ${intent.platform.toUpperCase()} (${intent.brandName.toUpperCase()})`;
+  } else if (intent.platform) {
+    headerTitle = `CREATE A ${durationPrefix}${(intent.style || 'CINEMATIC').toUpperCase()} ${intent.videoType.label.toUpperCase()}${platformSuffix}`;
+  } else if (intent.brandName) {
+    headerTitle = `CREATE A ${durationPrefix}${(intent.style || 'CINEMATIC').toUpperCase()} ${intent.videoType.label.toUpperCase()}${brandSuffix}`;
+  } else {
+    headerTitle = `CREATE A ${durationPrefix}${(intent.style || 'CINEMATIC').toUpperCase()} ${intent.videoType.label.toUpperCase()}`;
+  }
+  sections.push(headerTitle.trim());
 
-  const brandHeader = brandName ? ` FOR ${brandName.toUpperCase()}` : '';
-  videoSections.push(`CREATE A 10-SECOND ${videoStyle.toUpperCase()} PROMOTIONAL VIDEO${brandHeader}`);
+  // 2. Subject
+  sections.push(`Subject:\n${intent.subject}`);
 
-  if (brandName) {
-    videoSections.push(`Brand:\n${brandName}`);
+  // 3. Brand (Only when resolved)
+  if (intent.brandName) {
+    sections.push(`Brand:\n${intent.brandName}`);
   }
 
-  videoSections.push(`Marketing Objective:\n${marketingGoal}`);
-  videoSections.push(`Target Audience:\n${audience}`);
-  videoSections.push(`Format & Aspect Ratio:\n${platformSpecs.videoRatio} optimized for ${primaryPlatform.toUpperCase()}`);
+  // 4. Objective (Only when present)
+  if (intent.objective || intent.marketingGoal) {
+    sections.push(`Objective:\n${intent.objective || intent.marketingGoal}`);
+  }
 
-  if (selectedAssets && selectedAssets.length > 0) {
-    const logoAsset = selectedAssets.find((a) => a.category === 'LOGOS');
+  // 5. Target Audience (Only when present)
+  if (intent.targetAudience) {
+    sections.push(`Target Audience:\n${intent.targetAudience}`);
+  }
+
+  // 6. Format & Aspect Ratio (Only when platform or aspectRatio is present)
+  if (intent.aspectRatio || intent.platform) {
+    const ratioStr = intent.aspectRatio || '9:16';
+    const platStr = intent.platform ? ` optimized for ${intent.platform.toUpperCase()}` : '';
+    sections.push(`Format & Aspect Ratio:\n${ratioStr}${platStr}`);
+  }
+
+  // 7. Reference Assets (Public HTTPS URLs & exact logo preservation)
+  if (intent.referenceAssets && intent.referenceAssets.length > 0) {
+    const logoAsset = intent.referenceAssets.find((a) => a.category === 'LOGOS');
     if (logoAsset) {
       const logoUrl = normalizeAssetPublicUrl(logoAsset.public_url);
-      videoSections.push(
-        `PRIMARY BRAND ASSET\nAsset type: Official company logo\nBrand: ${brandName || 'Official Brand'}\nPublic reference URL:\n${logoUrl}\n\nPrimary Brand Reference:\n${logoUrl}\n\nPreserve the exact ${brandName || 'official brand'} logo for the closing title card and subtle watermark.\nDo not redesign, distort, or recreate the logo.`
+      sections.push(
+        `PRIMARY BRAND ASSET\nAsset type: Official Company Logo\nBrand: ${intent.brandName || 'Official Brand'}\nPublic reference URL:\n${logoUrl}\n\nPrimary Brand Reference:\n${logoUrl}\n\nLogo Preservation:\nUse the supplied logo image as the authoritative brand reference.\nPreserve logo geometry, colors, typography, and proportions exactly.\nDo not redesign, recreate, recolor, distort, stretch, modify, replace, or invent the logo.`
       );
     }
-    const productAsset = selectedAssets.find((a) => a.category === 'PRODUCTS');
-    if (productAsset) {
-      const productUrl = normalizeAssetPublicUrl(productAsset.public_url);
-      videoSections.push(`Product Visual Reference:\n${productUrl}\n\nUse this product image as the primary visual reference:\n${productUrl}`);
-    }
-    const uiAsset = selectedAssets.find((a) => a.category === 'UI_DIGITAL');
-    if (uiAsset) {
-      const uiUrl = normalizeAssetPublicUrl(uiAsset.public_url);
-      videoSections.push(`UI / Dashboard Screen Reference:\n${uiUrl}`);
-    }
-    const peopleAsset = selectedAssets.find((a) => a.category === 'PEOPLE');
-    if (peopleAsset) {
-      const peoUrl = normalizeAssetPublicUrl(peopleAsset.public_url);
-      videoSections.push(`Subject Portrait Reference:\n${peoUrl}`);
+    const nonLogoAssets = intent.referenceAssets.filter((a) => a.category !== 'LOGOS');
+    for (const asset of nonLogoAssets) {
+      const resolved = normalizeAssetPublicUrl(asset.public_url);
+      sections.push(`Visual Reference (${asset.name || asset.category}):\n${resolved}`);
     }
   }
 
-  if (domainInfo.category === 'Food & Hospitality') {
-    videoSections.push(
-      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) Sizzling close-up action highlighting fresh culinary ingredients, steam rising, and mouth-watering textures.\n- Scene 2 — 2–5 seconds: 2–5s (Culinary Artistry) Smooth dynamic tracking shot showing chef preparation, oven glow, and artisan finishing touches.\n- Scene 3 — 5–8 seconds: 5–8s (Gourmet Presentation) Close-up macro pan showcasing the finished plated dish with vibrant colors and appetizing garnishes.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Elegant closing shot with ${brandName ? `the ${brandName} logo` : 'the brand logo'}, accompanied by on-screen CTA: "${domainInfo.defaultCta}".`
+  // 8. Creative Direction & Scene Breakdown
+  const cat = intent.videoType.category;
+  const dur = intent.duration;
+
+  if (cat === 'sports_statistics') {
+    sections.push(
+      `Creative Direction:\nCreate a visually engaging sports-history and statistics presentation using clean athletic graphics, dynamic data visualization, stat comparison overlays, timeline markers, and iconic trophy imagery.`
     );
-  } else if (domainInfo.category === 'Real Estate') {
-    videoSections.push(
-      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) Breathtaking sweeping push-in through elegant grand entrance into a sunlit open-concept luxury living space.\n- Scene 2 — 2–5 seconds: 2–5s (Interior Walkthrough) Smooth cinematic gimbal pan through the master suite, designer kitchen, and expansive floor-to-ceiling windows.\n- Scene 3 — 5–8 seconds: 5–8s (Scenic Balcony & Amenities) Golden hour shot showcasing the panoramic skyline balcony view, landscaped grounds, and premium amenities.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Clean branded title card with ${brandName ? `the ${brandName} logo` : 'the property logo'} and on-screen CTA: "${domainInfo.defaultCta}".`
+    if (dur && dur.includes('10')) {
+      sections.push(
+        `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: Opening visual introducing ${intent.subject} with atmospheric stadium lighting and broadcast graphics.\n- Scene 2 — 2–5 seconds: Highlighting key career statistics, record-breaking numbers, and all-time milestones using dynamic on-screen data overlays.\n- Scene 3 — 5–8 seconds: Celebrating major tournament trophies, championship victories, and individual awards with golden illumination.\n- Scene 4 — 8–10 seconds: Clean summary concluding sequence celebrating the iconic sporting legacy.`
+      );
+    } else {
+      sections.push(
+        `Scene Breakdown:\n- Scene 1 (Opening Introduction): Opening visual introducing ${intent.subject} with atmospheric stadium lighting and broadcast graphics.\n- Scene 2 (Key Statistics): Highlighting key career statistics, record-breaking numbers, and all-time milestones using dynamic on-screen data overlays.\n- Scene 3 (Major Trophies): Celebrating major tournament trophies, championship victories, and individual awards with golden illumination.\n- Scene 4 (Legacy Summary): Clean summary concluding sequence celebrating the iconic sporting legacy.`
+      );
+    }
+  } else if (cat === 'real_estate_walkthrough') {
+    sections.push(
+      `Creative Direction:\nCreate a breathtaking architectural walkthrough showcasing ${intent.subject} with cinematic gimbal movements, natural sunlight, and expansive perspectives.`
     );
-  } else if (domainInfo.category === 'Fashion & Retail') {
-    videoSections.push(
-      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) Dynamic walking movement capturing natural sunlight filtering through contemporary summer apparel with graceful garment drape.\n- Scene 2 — 2–5 seconds: 2–5s (Lookbook Transitions) Snappy rhythmic cuts showcasing different styling combinations, authentic fabric textures, and contemporary tailoring.\n- Scene 3 — 5–8 seconds: 5–8s (Lookbook Silhouette) Elegant 360-degree rotating hero silhouette against a sun-drenched minimalist architectural setting.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) High-fashion title card featuring ${brandName ? `the ${brandName} logo` : 'the brand logo'} and on-screen CTA: "${domainInfo.defaultCta}".`
+    if (dur && dur.includes('10')) {
+      sections.push(
+        `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: Architectural exterior and welcoming grand entryway with morning natural light.\n- Scene 2 — 2–5 seconds: Smooth push-in through sunlit open-concept living and dining spaces with high ceilings.\n- Scene 3 — 5–8 seconds: Walkthrough of spacious bedrooms, modern designer kitchen, and premium bathroom finishes.\n- Scene 4 — 8–10 seconds: Sweeping golden-hour balcony panorama overlooking skyline views.`
+      );
+    } else {
+      sections.push(
+        `Scene Breakdown:\n- Scene 1 (Exterior & Entryway): Architectural exterior and welcoming grand entryway with morning natural light.\n- Scene 2 (Living & Dining Spaces): Smooth push-in through sunlit open-concept living and dining spaces with high ceilings.\n- Scene 3 (Bedrooms & Interiors): Walkthrough of spacious bedrooms, modern designer kitchen, and premium bathroom finishes.\n- Scene 4 (Balcony & Outlook): Sweeping golden-hour balcony panorama overlooking skyline views.`
+      );
+    }
+  } else if (cat === 'fashion_collection') {
+    sections.push(
+      `Creative Direction:\nCreate a high-fashion editorial lookbook video for ${intent.subject} with rhythmic cuts, natural garment motion, and sun-drenched architectural backdrops.`
     );
-  } else if (domainInfo.category === 'Healthcare & Life Sciences') {
-    videoSections.push(
-      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) Reassuring modern clinical opening highlighting state-of-the-art diagnostic technology and patient-centric care.\n- Scene 2 — 2–5 seconds: 2–5s (Clinical Precision) Focused healthcare practitioners collaborating with advanced diagnostic displays and specialized equipment.\n- Scene 3 — 5–8 seconds: 5–8s (Patient Experience) Compassionate consultation sequence demonstrating patient comfort, safety, and modern facility excellence.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Authoritative closing frame with ${brandName ? `the ${brandName} logo` : 'the healthcare logo'} and on-screen CTA: "${domainInfo.defaultCta}".`
+    if (dur && dur.includes('10')) {
+      sections.push(
+        `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: Dynamic collection reveal capturing natural sunlight filtering through contemporary summer apparel with graceful garment drape.\n- Scene 2 — 2–5 seconds: Snappy rhythmic cuts showcasing diverse styling combinations, authentic fabric textures, and contemporary tailoring.\n- Scene 3 — 5–8 seconds: Elegant 360-degree rotating hero silhouette against a sun-drenched minimalist setting.\n- Scene 4 — 8–10 seconds: High-fashion concluding sequence featuring the collection signature look.`
+      );
+    } else {
+      sections.push(
+        `Scene Breakdown:\n- Scene 1 (Collection Reveal): Dynamic collection reveal capturing natural sunlight filtering through contemporary summer apparel with graceful garment drape.\n- Scene 2 (Detail & Styling): Snappy rhythmic cuts showcasing diverse styling combinations, authentic fabric textures, and contemporary tailoring.\n- Scene 3 (Silhouette Motion): Elegant 360-degree rotating hero silhouette against a sun-drenched minimalist setting.\n- Scene 4 (Collection Signature): High-fashion concluding sequence featuring the collection signature look.`
+      );
+    }
+  } else if (cat === 'corporate_introduction') {
+    sections.push(
+      `Creative Direction:\nCreate a polished corporate introduction video for ${intent.brandName || intent.subject} highlighting company vision, culture, and core achievements.`
     );
-  } else if (isSaaS) {
-    videoSections.push(
-      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) Sleek dynamic push-in on a glowing modern workspace interface displaying automated software workflows.\n- Scene 2 — 2–5 seconds: 2–5s (Core Action) Smooth fluid camera movement highlighting real-time software workflows, data processing, and team efficiency.\n- Scene 3 — 5–8 seconds: 5–8s (Value Revelation) Polished UI transition showcasing connected workflows, insights, and high performance.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Clean closing shot with ${brandName ? `the ${brandName} logo` : 'the official brand logo'}, accompanied by on-screen CTA: "${brandName ? `Discover ${brandName}` : 'Get Started Today'}".`
+    sections.push(
+      `Scene Breakdown:\n- Scene 1 (Vision & Mission): Inspiring opening establishing corporate identity and organizational purpose.\n- Scene 2 (Team & Capabilities): Team collaboration, workplace excellence, and core domain capabilities.\n- Scene 3 (Innovation & Impact): Flagship solutions, client value creation, and technological leadership.\n- Scene 4 (Corporate Closing): Authoritative closing frame with official company branding.`
     );
-  } else if (parsed.hasPhysicalProduct) {
-    videoSections.push(
-      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) ${domainInfo.defaultVideoHook}.\n- Scene 2 — 2–5 seconds: 2–5s (Core Action) ${domainInfo.defaultVideoAction}.\n- Scene 3 — 5–8 seconds: 5–8s (Craftsmanship & Detail) Close-up macro panning shot highlighting texture, materials, and premium finish.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Elegant product hero shot with ${brandName ? `the ${brandName} logo` : 'the brand logo'} and CTA: "${domainInfo.defaultCta}".`
+  } else if (cat === 'services_showcase') {
+    sections.push(
+      `Creative Direction:\nCreate an engaging services showcase video for ${intent.brandName || intent.subject} presenting core capabilities and operational value.`
+    );
+    sections.push(
+      `Scene Breakdown:\n- Scene 1 (Service Overview): Engaging opening hook introducing the primary business service domains.\n- Scene 2 (Capabilities Walkthrough): Step-by-step presentation of key service workflows and client solutions.\n- Scene 3 (Differentiators & Value): Highlighting operational reliability, modern standards, and client outcomes.\n- Scene 4 (Professional Conclusion): Clean branded conclusion with official brand identity.`
+    );
+  } else if (cat === 'promotional_advertisement') {
+    sections.push(
+      `Creative Direction:\nCreate an enticing promotional advertisement for ${intent.subject} with high-energy pacing, vivid sensory details, and clear promotional value.`
+    );
+    const ctaLine = intent.cta ? `, accompanied by on-screen CTA: "${intent.cta}"` : '';
+    if (dur && dur.includes('10')) {
+      sections.push(
+        `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: High-energy opening hook showcasing fresh appeal and standout features of ${intent.subject}.\n- Scene 2 — 2–5 seconds: Sensory close-up action and appetizing / tactile craftsmanship details.\n- Scene 3 — 5–8 seconds: Hero presentation of the finished offering highlighting special promotional value.\n- Scene 4 — 8–10 seconds: Promotional closing card${ctaLine}.`
+      );
+    } else {
+      sections.push(
+        `Scene Breakdown:\n- Scene 1 (Opening Hook): High-energy opening hook showcasing fresh appeal and standout features of ${intent.subject}.\n- Scene 2 (Product Action): Sensory close-up action and appetizing / tactile craftsmanship details.\n- Scene 3 (Hero Value): Hero presentation of the finished offering highlighting special promotional value.\n- Scene 4 (Promotional Card): Promotional closing card${ctaLine}.`
+      );
+    }
+  } else if (cat === 'tech_product_demo') {
+    sections.push(
+      `Creative Direction:\nCreate a sleek SaaS interface and product demo video representing ${intent.subject} with smooth cursor tracking, dashboard workflows, and data visualizations.`
+    );
+    sections.push(
+      `Scene Breakdown:\n- Scene 1 (Workspace Overview): Sleek dynamic push-in on a glowing modern workspace interface displaying automated software workflows.\n- Scene 2 (Core Action): Smooth fluid camera movement highlighting real-time workflows, data processing, and team efficiency.\n- Scene 3 (Value Metric): Polished UI transition showcasing connected workflows, insights, and high performance.\n- Scene 4 (Closing Card): Clean closing shot with official brand logo.`
     );
   } else {
-    videoSections.push(
-      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) ${domainInfo.defaultVideoHook}.\n- Scene 2 — 2–5 seconds: 2–5s (Core Action) ${domainInfo.defaultVideoAction}.\n- Scene 3 — 5–8 seconds: 5–8s (Climax) High-impact demonstration of results and transformative value.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Transition to a clean branded final frame using the supplied logo, with space for a short call-to-action: "${domainInfo.defaultCta}".`
+    sections.push(
+      `Creative Direction:\nCreate a visually compelling video about ${intent.subject} with clean visual hierarchy, balanced lighting, and engaging pacing.`
+    );
+    sections.push(
+      `Scene Breakdown:\n- Scene 1 (Introduction): Engaging visual hook introducing the central subject.\n- Scene 2 (Exploration): Comprehensive visual exploration of key aspects and insights.\n- Scene 3 (Highlights): High-impact demonstration of essential visual elements.\n- Scene 4 (Conclusion): Clean and polished concluding sequence.`
     );
   }
 
-  videoSections.push(
-    `Motion & Lighting Direction:\n${videoStyle} lighting, smooth gimbal camera motions, high framerate clarity, professional depth of field, and crisp color grading.`
-  );
+  // 9. Motion & Lighting Direction
+  if (cat === 'sports_statistics') {
+    sections.push(
+      `Motion & Lighting Direction:\nBroadcast-grade camera tracking, bold stadium illumination, clean kinetic typography, high-framerate sports motion, and dynamic data overlay graphics.`
+    );
+  } else if (cat === 'real_estate_walkthrough') {
+    sections.push(
+      `Motion & Lighting Direction:\nSmooth gimbal tracking movements, golden-hour natural daylight, warm ambient interior illumination, crisp depth of field, and balanced architectural composition.`
+    );
+  } else if (cat === 'fashion_collection') {
+    sections.push(
+      `Motion & Lighting Direction:\nFluid handheld and steadycam movements, warm natural sunlight, high-fashion color grading, crisp fabric clarity, and effortless editorial rhythm.`
+    );
+  } else {
+    sections.push(
+      `Motion & Lighting Direction:\n${intent.style || 'Cinematic'} lighting, smooth gimbal camera motions, high framerate clarity, professional depth of field, and crisp color grading.`
+    );
+  }
 
-  videoSections.push(
-    `Guardrails:\nPreserve logo geometry and colors exactly.\nNo jittery artifacts.\nNo fake competitor branding.\nNo watermarks.`
-  );
+  // 10. Guardrails
+  const guardrails = [
+    'Preserve logo geometry and colors exactly.',
+    'No jittery artifacts.',
+    'No fake competitor branding.',
+    'No watermarks.',
+  ];
+  if (cat === 'sports_statistics' || cat === 'documentary_informational') {
+    guardrails.push('Do not invent statistics, achievements, numbers, dates, or match outcomes.');
+    guardrails.push('Do not add unrequested sales language or lead generation copy.');
+  }
+  if (!intent.cta) {
+    guardrails.push('Do not append unrequested call-to-action buttons or marketing sales pitches.');
+  }
+  sections.push(`Guardrails:\n${guardrails.map((g) => `- ${g}`).join('\n')}`);
 
-  const rawPrompt = videoSections.join('\n\n');
+  const rawPrompt = sections.join('\n\n');
   return validateAndSanitizePrompt(rawPrompt, {
-    brand_name: brandName,
-    creative_category: isSaaS ? 'SaaS / Technology Marketing' : 'General Brand Campaign',
-    visual_style: videoStyle,
+    brand_name: intent.brandName || undefined,
+    visual_style: intent.style || 'Cinematic',
   });
 }
 
@@ -2279,12 +2672,13 @@ export async function generateMarketingContent(
     : buildDetailedVideoPrompt({
         topic: rawInput,
         contentType: req.contentType,
-        platforms: platformList,
-        targetAudience,
+        platforms: req.platforms && req.platforms.length > 0 ? req.platforms : undefined,
+        targetAudience: req.targetAudience,
         campaignName,
         productOrService,
-        objective,
+        objective: req.objective,
         videoStyle,
+        cta: req.existingCta,
         brandContext: effectiveBrandContext,
         selectedAssets,
         additionalInstructions: req.additionalCreativeInstructions,
