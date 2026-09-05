@@ -117,22 +117,49 @@ export async function POST(req: NextRequest) {
     const sanitizedExt = fileExt.replace(/[^a-z0-9]/gi, '').slice(0, 8) || 'png';
     const assetId = uuidv4();
     const fileName = `${assetId}.${sanitizedExt}`;
-
-    // Tenant-isolated storage directory under public/uploads/marketing/assets/<workspace_id>/
     const safeWorkspace = workspaceId.replace(/[^a-zA-Z0-9_-]/g, '');
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'marketing', 'assets', safeWorkspace);
-    await mkdir(uploadsDir, { recursive: true });
+    const storagePath = `${safeWorkspace}/${fileName}`;
 
-    const diskPath = join(uploadsDir, fileName);
-    await writeFile(diskPath, buffer);
+    let publicUrl = '';
+    let usedStoragePath = storagePath;
 
-    let baseAppUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL || 'https://dailybuz.com';
-    if (baseAppUrl.includes('localhost') || baseAppUrl.includes('127.0.0.1')) {
-      baseAppUrl = 'https://dailybuz.com';
+    // 1. Try Supabase Storage upload to 'marketing-assets' bucket
+    try {
+      const { data: uploadData, error: storageErr } = await supabase.storage
+        .from('marketing-assets')
+        .upload(storagePath, buffer, {
+          contentType: file.type || 'image/png',
+          upsert: true,
+        });
+
+      if (!storageErr && uploadData) {
+        const { data: urlData } = supabase.storage
+          .from('marketing-assets')
+          .getPublicUrl(storagePath);
+        publicUrl = urlData.publicUrl;
+        usedStoragePath = storagePath;
+      } else {
+        console.warn('[BrandAssetsAPI] Supabase storage notice:', storageErr?.message);
+      }
+    } catch (sErr: any) {
+      console.warn('[BrandAssetsAPI] Supabase storage exception:', sErr?.message);
     }
-    const cleanBase = baseAppUrl.replace(/\/$/, '');
-    const relativeUrl = `/uploads/marketing/assets/${safeWorkspace}/${fileName}`;
-    const publicUrl = `${cleanBase}${relativeUrl}`;
+
+    // 2. Fallback to local disk if Supabase Storage did not return publicUrl
+    if (!publicUrl) {
+      const uploadsDir = join(process.cwd(), 'public', 'uploads', 'marketing', 'assets', safeWorkspace);
+      await mkdir(uploadsDir, { recursive: true });
+      const diskPath = join(uploadsDir, fileName);
+      await writeFile(diskPath, buffer);
+      usedStoragePath = diskPath;
+
+      let baseAppUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL || 'https://dailybuz.com';
+      if (baseAppUrl.includes('localhost') || baseAppUrl.includes('127.0.0.1')) {
+        baseAppUrl = 'https://dailybuz.com';
+      }
+      const cleanBase = baseAppUrl.replace(/\/$/, '');
+      publicUrl = `${cleanBase}/uploads/marketing/assets/${safeWorkspace}/${fileName}`;
+    }
 
     let insertedAsset: any = null;
 
@@ -146,7 +173,7 @@ export async function POST(req: NextRequest) {
           category,
           sub_category: subCategory.trim() || null,
           description: description.trim() || null,
-          storage_path: diskPath,
+          storage_path: usedStoragePath,
           public_url: publicUrl,
           mime_type: file.type || 'image/png',
           file_size_bytes: fileSizeBytes,
@@ -164,7 +191,7 @@ export async function POST(req: NextRequest) {
           category,
           sub_category: subCategory.trim() || null,
           description: description.trim() || null,
-          storage_path: diskPath,
+          storage_path: usedStoragePath,
           public_url: publicUrl,
           mime_type: file.type || 'image/png',
           file_size_bytes: fileSizeBytes,
@@ -184,7 +211,7 @@ export async function POST(req: NextRequest) {
         category,
         sub_category: subCategory.trim() || null,
         description: description.trim() || null,
-        storage_path: diskPath,
+        storage_path: usedStoragePath,
         public_url: publicUrl,
         mime_type: file.type || 'image/png',
         file_size_bytes: fileSizeBytes,
@@ -277,10 +304,18 @@ export async function DELETE(req: NextRequest) {
       .maybeSingle();
 
     if (asset?.storage_path) {
-      try {
-        await unlink(asset.storage_path);
-      } catch (fsErr) {
-        console.warn('[BrandAssetsAPI] File removal non-fatal warning:', fsErr);
+      if (asset.storage_path.startsWith('/')) {
+        try {
+          await unlink(asset.storage_path);
+        } catch (fsErr) {
+          console.warn('[BrandAssetsAPI] File removal non-fatal warning:', fsErr);
+        }
+      } else {
+        try {
+          await supabase.storage.from('marketing-assets').remove([asset.storage_path]);
+        } catch (sErr) {
+          console.warn('[BrandAssetsAPI] Storage removal non-fatal warning:', sErr);
+        }
       }
     }
 
