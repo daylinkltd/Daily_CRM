@@ -1438,4 +1438,269 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       expect(intent3.creativeType.value).toBe('company_profile_creative');
     });
   });
+
+  // ==========================================================================
+  // MULTI-TENANT ISOLATION & ZERO DAYLINK-AS-CUSTOMER ASSUMPTION SUITE
+  // ==========================================================================
+  describe('Multi-Tenant Customer Isolation & Cross-Industry Isolation Suite', () => {
+    // TEST 1: Tenant A - Daylink Tech Labs (Authenticated Tenant)
+    it('TENANT A: Daylink Tech Labs generates tech/services poster from authenticated tenant data', async () => {
+      const tenantContext = {
+        businessName: 'Daylink Tech Labs Private Limited',
+        brandVoice: 'Innovative enterprise AI solutions',
+        brandColors: '#0EA5E9, #0284C7',
+        productsOrServices: 'AI & Automation, Intelligent Software Solutions',
+        targetAudience: 'Startups and technology enterprises',
+      };
+
+      const logoAsset = {
+        id: 'asset_tenant_daylink_logo',
+        name: 'Daylink Official Logo',
+        category: 'LOGOS' as const,
+        public_url: 'https://dailybuz.com/uploads/marketing/assets/daylink/logo.png',
+      };
+
+      const intent = parseDynamicCreativeIntent({
+        rawInput: 'services poster',
+        tenantId: 'tenant_daylink_123',
+        tenantName: 'Daylink Tech Labs',
+        brandContext: tenantContext,
+      });
+
+      expect(intent.brand.name).toBe('Daylink Tech Labs');
+      expect(intent.brand.legalName).toBe('Daylink Tech Labs Private Limited');
+      expect(intent.brand.source).toBe('tenant_profile');
+      expect(intent.creativeType.label).toBe('Services Poster');
+      expect(intent.creativeType.value).toBe('services_poster');
+
+      const prompt = buildDetailedImagePrompt({
+        topic: 'services poster',
+        brandContext: tenantContext,
+        selectedAssets: [logoAsset],
+      });
+
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM SERVICES POSTER FOR DAYLINK TECH LABS.');
+      expect(prompt).toContain('BRAND:\nDaylink Tech Labs');
+      expect(prompt).toContain('CREATIVE TYPE:\nServices Poster');
+      expect(prompt).toContain('https://dailybuz.com/uploads/marketing/assets/daylink/logo.png');
+      expect(prompt).not.toContain('pizza');
+      expect(prompt).not.toContain('apartment');
+      expect(prompt).not.toContain('fashion');
+    });
+
+    // TEST 2: Tenant B - ABC Pizza (Restaurant / Food)
+    it('TENANT B: ABC Pizza generates culinary creative with ZERO Daylink/CRM/SaaS contamination', async () => {
+      const tenantContext = {
+        businessName: 'ABC Pizza LLC',
+        brandVoice: 'Warm, appetizing, artisanal Italian',
+        brandColors: '#E11D48, #F59E0B',
+        productsOrServices: 'Wood-fired pizzas, garlic knots, artisanal desserts',
+        targetAudience: 'Local families and food lovers',
+      };
+
+      const pizzaLogoAsset = {
+        id: 'asset_tenant_pizza_logo',
+        name: 'ABC Pizza Logo',
+        category: 'LOGOS' as const,
+        public_url: 'https://dailybuz.com/uploads/marketing/assets/abc_pizza/logo.png',
+      };
+
+      const intent = parseDynamicCreativeIntent({
+        rawInput: 'weekend pizza offer',
+        tenantId: 'tenant_pizza_456',
+        tenantName: 'ABC Pizza',
+        brandContext: tenantContext,
+      });
+
+      expect(intent.brand.name).toBe('ABC Pizza');
+      expect(intent.brand.source).toBe('tenant_profile');
+      expect(intent.creativeType.label).toBe('Sale Promotional Creative');
+      expect(intent.creativeType.value).toBe('sale_promotional_creative');
+
+      const prompt = buildDetailedImagePrompt({
+        topic: 'weekend pizza offer',
+        brandContext: tenantContext,
+        selectedAssets: [pizzaLogoAsset],
+      });
+
+      // Assert Brand and Creative Type
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM SALE PROMOTIONAL CREATIVE FOR ABC PIZZA.');
+      expect(prompt).toContain('BRAND:\nABC Pizza');
+      expect(prompt).toContain('CREATIVE TYPE:\nSale Promotional Creative');
+      expect(prompt).toContain('PRIMARY REFERENCE IMAGE:\nhttps://dailybuz.com/uploads/marketing/assets/abc_pizza/logo.png');
+
+      // Assert Culinary Creative Direction
+      expect(prompt).toContain('CREATIVE DIRECTION:\nCreate a mouth-watering artisanal culinary visual asset');
+      expect(prompt).toContain('VISUAL STYLE:\nArtisanal Culinary Photography.');
+      expect(prompt).toContain('CTA:\n"Order Now"');
+
+      // STRICT NEGATIVE ASSERTIONS: Must NEVER contain Daylink, CRM, SaaS, AI Automation
+      const lower = prompt.toLowerCase();
+      expect(lower).not.toContain('daylink');
+      expect(lower).not.toContain('crm');
+      expect(lower).not.toContain('saas');
+      expect(lower).not.toContain('ai automation');
+      expect(lower).not.toContain('software');
+      expect(lower).not.toContain('dashboard');
+    });
+
+    // TEST 3: Tenant C - XYZ Properties (Real Estate)
+    it('TENANT C: XYZ Properties generates luxury architectural creative with ZERO SaaS contamination', async () => {
+      const tenantContext = {
+        businessName: 'XYZ Properties Private Limited',
+        brandVoice: 'Prestigious, refined, luxury living',
+        brandColors: '#0F172A, #D97706',
+        productsOrServices: 'Luxury 2BHK and 3BHK residential apartments and penthouses',
+        targetAudience: 'High-net-worth homebuyers and real estate investors',
+      };
+
+      const reLogoAsset = {
+        id: 'asset_tenant_re_logo',
+        name: 'XYZ Properties Logo',
+        category: 'LOGOS' as const,
+        public_url: 'https://dailybuz.com/uploads/marketing/assets/xyz_properties/logo.png',
+      };
+
+      const intent = parseDynamicCreativeIntent({
+        rawInput: '2BHK apartment launch poster',
+        tenantId: 'tenant_re_789',
+        tenantName: 'XYZ Properties',
+        brandContext: tenantContext,
+      });
+
+      expect(intent.brand.name).toBe('XYZ Properties');
+      expect(intent.brand.source).toBe('tenant_profile');
+      expect(intent.creativeType.label).toBe('Property Launch Poster');
+
+      const prompt = buildDetailedImagePrompt({
+        topic: '2BHK apartment launch poster',
+        brandContext: tenantContext,
+        selectedAssets: [reLogoAsset],
+      });
+
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM PROPERTY LAUNCH POSTER FOR XYZ PROPERTIES.');
+      expect(prompt).toContain('BRAND:\nXYZ Properties');
+      expect(prompt).toContain('CREATIVE TYPE:\nProperty Launch Poster');
+      expect(prompt).toContain('CREATIVE DIRECTION:\nCreate a breathtaking architectural visual asset');
+      expect(prompt).toContain('VISUAL STYLE:\nLuxury Architectural Photography.');
+      expect(prompt).toContain('CTA:\n"Schedule a Tour"');
+
+      // Zero Daylink / SaaS
+      const lower = prompt.toLowerCase();
+      expect(lower).not.toContain('daylink');
+      expect(lower).not.toContain('crm');
+      expect(lower).not.toContain('saas');
+      expect(lower).not.toContain('ai automation');
+      expect(lower).not.toContain('intelligent software');
+    });
+
+    // TEST 4: Tenant D - ABC Fashion (Clothing Brand)
+    it('TENANT D: ABC Fashion generates summer collection lookbook with ZERO software contamination', async () => {
+      const tenantContext = {
+        businessName: 'ABC Fashion Studio',
+        brandVoice: 'Chic, contemporary, effortless elegance',
+        brandColors: '#BE185D, #FDE047',
+        productsOrServices: 'Summer linen collections, designer apparel, sustainable clothing',
+        targetAudience: 'Fashion-forward women and trendsetters',
+      };
+
+      const fashionLogoAsset = {
+        id: 'asset_tenant_fashion_logo',
+        name: 'ABC Fashion Logo',
+        category: 'LOGOS' as const,
+        public_url: 'https://dailybuz.com/uploads/marketing/assets/abc_fashion/logo.png',
+      };
+
+      const intent = parseDynamicCreativeIntent({
+        rawInput: 'summer collection poster',
+        tenantId: 'tenant_fashion_101',
+        tenantName: 'ABC Fashion Studio',
+        brandContext: tenantContext,
+      });
+
+      expect(intent.brand.name).toBe('ABC Fashion Studio');
+      expect(intent.creativeType.label).toBe('Product Collection Poster');
+
+      const prompt = buildDetailedImagePrompt({
+        topic: 'summer collection poster',
+        brandContext: tenantContext,
+        selectedAssets: [fashionLogoAsset],
+      });
+
+      expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM PRODUCT COLLECTION POSTER FOR ABC FASHION STUDIO.');
+      expect(prompt).toContain('BRAND:\nABC Fashion Studio');
+      expect(prompt).toContain('CREATIVE DIRECTION:\nCreate a high-fashion editorial visual asset');
+      expect(prompt).toContain('VISUAL STYLE:\nHigh-Fashion Editorial Lookbook.');
+      expect(prompt).toContain('CTA:\n"Shop the Collection"');
+
+      // Zero Daylink / SaaS
+      const lower = prompt.toLowerCase();
+      expect(lower).not.toContain('daylink');
+      expect(lower).not.toContain('crm');
+      expect(lower).not.toContain('saas');
+      expect(lower).not.toContain('automation workflow');
+    });
+
+    // TEST 5: Creative Types parsed dynamically from specific user requests without "Marketing Creative" default
+    it('TENANT UNIVERSAL: parses dynamic creative types without assuming Marketing Creative default', () => {
+      const t1 = parseCreativeType('pizza menu poster');
+      expect(t1.label).toBe('Menu Poster');
+      expect(t1.value).toBe('menu_poster');
+
+      const t2 = parseCreativeType('employee hiring poster');
+      expect(t2.label).toBe('Recruitment Poster');
+      expect(t2.value).toBe('recruitment_poster');
+
+      const t3 = parseCreativeType('new product launch');
+      expect(t3.label).toBe('Product Launch Creative');
+      expect(t3.value).toBe('product_launch_creative');
+
+      const t4 = parseCreativeType('summer sale');
+      expect(t4.label).toBe('Sale Promotional Creative');
+      expect(t4.value).toBe('sale_promotional_creative');
+
+      const t5 = parseCreativeType('company services');
+      expect(t5.label).toBe('Services Poster');
+      expect(t5.value).toBe('services_poster');
+
+      const t6 = parseCreativeType('Instagram post');
+      expect(t6.label).toBe('Not specified');
+      expect(t6.value).toBeNull();
+
+      const t7 = parseCreativeType('marketing campaign for our summer sale');
+      expect(t7.label).toBe('Marketing Campaign');
+      expect(t7.value).toBe('marketing_campaign');
+    });
+
+    // TEST 6: Multi-tenant asset isolation ensures zero cross-tenant contamination
+    it('TENANT ISOLATION: prevents Tenant A assets from leaking into Tenant B generations', async () => {
+      const tenantAAssets = [
+        {
+          id: 'asset_tenant_a_logo',
+          name: 'Tenant A Daylink Logo',
+          category: 'LOGOS' as const,
+          public_url: 'https://dailybuz.com/uploads/marketing/assets/tenant_a/logo.png',
+        },
+      ];
+
+      const tenantBAssets = [
+        {
+          id: 'asset_tenant_b_logo',
+          name: 'Tenant B Pizza Logo',
+          category: 'LOGOS' as const,
+          public_url: 'https://dailybuz.com/uploads/marketing/assets/tenant_b/logo.png',
+        },
+      ];
+
+      const promptB = buildDetailedImagePrompt({
+        topic: 'weekend pizza offer',
+        brandContext: { businessName: 'ABC Pizza' },
+        selectedAssets: tenantBAssets,
+      });
+
+      expect(promptB).toContain('https://dailybuz.com/uploads/marketing/assets/tenant_b/logo.png');
+      expect(promptB).not.toContain('tenant_a');
+      expect(promptB).not.toContain('Daylink');
+    });
+  });
 });
