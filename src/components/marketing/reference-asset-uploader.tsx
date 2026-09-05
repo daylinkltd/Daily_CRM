@@ -45,10 +45,30 @@ export function ReferenceAssetUploader({
   const [libraryAssets, setLibraryAssets] = useState<BrandAsset[]>([]);
   const [showLibraryPicker, setShowLibraryPicker] = useState(false);
   const [loadingLibrary, setLoadingLibrary] = useState(false);
+  const [previewMap, setPreviewMap] = useState<Record<string, string>>({});
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
   const replacingAssetIdRef = useRef<string | null>(null);
+
+  const getDisplayUrl = (asset: BrandAsset): string => {
+    if (previewMap[asset.id]) return previewMap[asset.id];
+    if (!asset.public_url) return '';
+    if (asset.public_url.startsWith('data:') || asset.public_url.startsWith('blob:')) return asset.public_url;
+    if (asset.public_url.startsWith('/uploads/')) return asset.public_url;
+    if (typeof window !== 'undefined') {
+      try {
+        const parsed = new URL(asset.public_url);
+        if (parsed.pathname.startsWith('/uploads/')) {
+          return parsed.pathname;
+        }
+      } catch {
+        // fallback
+      }
+    }
+    return asset.public_url;
+  };
 
   // Fetch workspace library assets for quick selection
   const fetchLibrary = async () => {
@@ -85,6 +105,7 @@ export function ReferenceAssetUploader({
 
     setUploading(true);
     const uploadedAssets: BrandAsset[] = [];
+    const newPreviews: Record<string, string> = {};
 
     for (const file of fileList) {
       // Validate type & size
@@ -109,7 +130,7 @@ export function ReferenceAssetUploader({
         let initialCat: BrandAssetCategory = 'PRODUCTS';
         if (nameLower.includes('logo') || nameLower.includes('icon') || nameLower.includes('brand')) {
           initialCat = 'LOGOS';
-        } else if (nameLower.includes('ui') || nameLower.includes('app') || nameLower.includes('screen') || nameLower.includes('dashboard')) {
+        } else if (nameLower.includes('ui') || nameLower.includes('app') || nameLower.includes('screen') || nameLower.includes('dashboard') || nameLower.includes('screenshot')) {
           initialCat = 'UI_DIGITAL';
         } else if (nameLower.includes('founder') || nameLower.includes('team') || nameLower.includes('person') || nameLower.includes('headshot')) {
           initialCat = 'PEOPLE';
@@ -124,12 +145,21 @@ export function ReferenceAssetUploader({
         const json = await res.json();
         if (res.ok && json.success && json.asset) {
           uploadedAssets.push(json.asset);
+          try {
+            newPreviews[json.asset.id] = URL.createObjectURL(file);
+          } catch {
+            // ignore
+          }
         } else {
           toast.error(json.error || `Failed to upload ${file.name}`);
         }
       } catch (err: any) {
         toast.error(err.message || `Upload failed for ${file.name}`);
       }
+    }
+
+    if (Object.keys(newPreviews).length > 0) {
+      setPreviewMap((prev) => ({ ...prev, ...newPreviews }));
     }
 
     if (uploadedAssets.length > 0) {
@@ -433,12 +463,19 @@ export function ReferenceAssetUploader({
               >
                 {/* Top Row: Thumbnail + Info + Actions */}
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-muted/40 border border-border overflow-hidden shrink-0 flex items-center justify-center relative group">
-                    <img
-                      src={asset.public_url}
-                      alt={asset.name}
-                      className="h-full w-full object-contain"
-                    />
+                  <div className="h-12 w-12 rounded-xl bg-muted/40 border border-border overflow-hidden shrink-0 flex items-center justify-center relative">
+                    {!imageErrors[asset.id] ? (
+                      <img
+                        src={getDisplayUrl(asset)}
+                        alt=""
+                        onError={() => setImageErrors((prev) => ({ ...prev, [asset.id]: true }))}
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full w-full bg-muted/60 text-muted-foreground">
+                        <ImageIcon className="h-5 w-5 opacity-60" />
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0 space-y-1">

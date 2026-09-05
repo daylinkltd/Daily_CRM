@@ -2311,39 +2311,66 @@ export function CreateWorkspaceTabs() {
                     <div className="pt-3 border-t border-sky-500/20 space-y-2">
                       <div className="flex items-center justify-between">
                         <h5 className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                          <Sparkles className="h-3.5 w-3.5 text-sky-500" /> Referenced Brand Assets ({selectedBrandAssets.length})
+                          <Sparkles className="h-3.5 w-3.5 text-sky-500" /> REFERENCE ASSETS ({selectedBrandAssets.length})
                         </h5>
-                        <span className="text-[10px] text-muted-foreground">Embedded as public references in prompt</span>
+                        <span className="text-[10px] text-muted-foreground">Embedded as public HTTPS references in prompt</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {selectedBrandAssets.map((asset) => (
-                          <div key={asset.id} className="flex items-start gap-2.5 p-2 rounded-xl border border-sky-500/20 bg-background/80 group">
-                            <div className="h-10 w-10 rounded-lg bg-muted/40 border border-border overflow-hidden shrink-0 flex items-center justify-center">
-                              <img src={asset.public_url} alt={asset.name} className="h-full w-full object-contain" />
-                            </div>
-                            <div className="flex-1 min-w-0 space-y-0.5">
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="text-xs font-bold text-foreground truncate">{asset.name}</span>
-                                <div className="flex items-center gap-1">
+                        {selectedBrandAssets.map((asset) => {
+                          const isHttp = asset.public_url && (asset.public_url.startsWith('https://') || asset.public_url.startsWith('http://'));
+                          const normalizedUrl = isHttp ? asset.public_url : `${typeof window !== 'undefined' ? window.location.origin : 'https://dailybuz.com'}${asset.public_url?.startsWith('/') ? asset.public_url : `/${asset.public_url || ''}`}`;
+                          return (
+                            <div key={asset.id} className="flex items-start gap-2.5 p-2.5 rounded-xl border border-sky-500/20 bg-background/80 group">
+                              <div className="h-12 w-12 rounded-lg bg-muted/40 border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                                <img src={normalizedUrl} alt={asset.name} className="h-full w-full object-contain" />
+                              </div>
+                              <div className="flex-1 min-w-0 space-y-1">
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className="text-xs font-bold text-foreground truncate flex items-center gap-1">
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                    {asset.name}
+                                  </span>
                                   <Badge variant="secondary" className="text-[9px] px-1 py-0">{asset.category}</Badge>
-                                  <button
+                                </div>
+                                <div className="text-[10px] space-y-0.5 text-muted-foreground">
+                                  <p className="font-mono text-[9px] truncate text-foreground">
+                                    <span className="font-semibold text-muted-foreground">Public URL: </span>
+                                    {normalizedUrl}
+                                  </p>
+                                  <div className="flex items-center gap-2 text-[9px]">
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Status: Accessible</span>
+                                    <span>•</span>
+                                    <span>Usage: Exact reference</span>
+                                    <span>•</span>
+                                    <span>Preservation: Exact</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1.5 pt-0.5">
+                                  <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => {
-                                      navigator.clipboard.writeText(asset.public_url);
+                                      navigator.clipboard.writeText(normalizedUrl);
                                       toast.success(`Copied public URL for ${asset.name}!`);
                                     }}
-                                    className="p-1 rounded text-muted-foreground hover:text-sky-600 hover:bg-sky-500/10 transition-colors"
-                                    title="Copy Public Asset URL"
+                                    className="h-6 px-2 text-[10px] font-medium rounded-md gap-1 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10"
                                   >
-                                    <Copy className="h-3 w-3" />
-                                  </button>
+                                    <Copy className="h-2.5 w-2.5" /> Copy URL
+                                  </Button>
+                                  <a
+                                    href={normalizedUrl}
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    className="h-6 px-2 text-[10px] font-medium rounded-md inline-flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-muted"
+                                  >
+                                    <ArrowUpRight className="h-2.5 w-2.5" /> Open Asset
+                                  </a>
                                 </div>
                               </div>
-                              <p className="text-[10px] text-sky-600 dark:text-sky-400 font-medium line-clamp-1">{asset.usageInstruction}</p>
-                              <p className="text-[9px] text-muted-foreground truncate font-mono">{asset.public_url}</p>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}

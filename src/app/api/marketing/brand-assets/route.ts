@@ -35,15 +35,21 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.warn('[BrandAssetsAPI] DB Fetch warning (table pending migration):', error.message);
-      return NextResponse.json({
-        success: true,
-        assets: [],
-      });
     }
+
+    const baseAppUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL || 'https://dailybuz.com';
+    const cleanBase = baseAppUrl.replace(/\/$/, '');
+
+    const normalizedAssets = ((assets || []) as any[]).map((a) => ({
+      ...a,
+      public_url: a.public_url?.startsWith('http')
+        ? a.public_url
+        : `${cleanBase}${a.public_url?.startsWith('/') ? a.public_url : `/${a.public_url || ''}`}`,
+    }));
 
     return NextResponse.json({
       success: true,
-      assets: assets || [],
+      assets: normalizedAssets,
     });
   } catch (err: any) {
     console.error('[BrandAssetsAPI] GET Error:', err);
@@ -61,24 +67,30 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    const file = formData.get('file') as File;
-    const workspaceId = formData.get('workspace_id') as string;
-    const name = (formData.get('name') as string) || file?.name || 'Brand Asset';
-    const category = (formData.get('category') as string) || 'PRODUCTS';
+    const file = formData.get('file') as File | null;
+    const workspaceId = formData.get('workspace_id') as string | null;
+    const name = (formData.get('name') as string) || (file ? file.name : 'Asset');
+    const category = (formData.get('category') as string) || 'LOGOS';
     const subCategory = (formData.get('sub_category') as string) || '';
     const description = (formData.get('description') as string) || '';
 
     if (!file || !workspaceId) {
+      return NextResponse.json({ error: 'File and workspace_id are required' }, { status: 400 });
+    }
+
+    // Validate MIME type
+    const validMimes = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+    if (!validMimes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'file and workspace_id are required' },
+        { error: `Unsupported file type: ${file.type}. Allowed: PNG, JPEG, WEBP, SVG.` },
         { status: 400 }
       );
     }
 
-    const validCategories = ['LOGOS', 'PRODUCTS', 'UI_DIGITAL', 'PEOPLE', 'OTHER'];
-    if (!validCategories.includes(category)) {
+    // Max 20MB limit
+    if (file.size > 20 * 1024 * 1024) {
       return NextResponse.json(
-        { error: `Invalid category. Must be one of: ${validCategories.join(', ')}` },
+        { error: 'File size exceeds 20MB maximum limit' },
         { status: 400 }
       );
     }
@@ -98,9 +110,17 @@ export async function POST(req: NextRequest) {
     await mkdir(uploadsDir, { recursive: true });
 
     const diskPath = join(uploadsDir, fileName);
-    await writeFile(diskPath, buffer);
-
-    const publicUrl = `/uploads/marketing/assets/${safeWorkspace}/${fileName}`;
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || '';
+    const proto = req.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+    let baseAppUrl = 'https://dailybuz.com';
+    if (process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL) {
+      baseAppUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL)!.replace(/\/$/, '');
+    } else if (host) {
+      baseAppUrl = `${proto}://${host}`;
+    }
+    const cleanBase = baseAppUrl.replace(/\/$/, '');
+    const relativeUrl = `/uploads/marketing/assets/${safeWorkspace}/${fileName}`;
+    const publicUrl = `${cleanBase}${relativeUrl}`;
 
     let insertedAsset: any = null;
 

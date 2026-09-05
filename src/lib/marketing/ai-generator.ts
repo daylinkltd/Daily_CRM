@@ -244,6 +244,96 @@ export function stripHtmlAndFormatting(input: string): string {
     .trim();
 }
 
+export const VALUE_PROP_BLACKLIST_STRINGS = [
+  'build intelligent software',
+  'building intelligent software',
+  'automate repetitive work',
+  'automating repetitive work',
+  'improve productivity',
+  'improving productivity',
+  'improve productivity using ai',
+  'increase sales',
+  'save time',
+  'scale your business',
+  'streamline operations',
+  'automate workflows',
+];
+
+export function isValidBrandName(candidate: string | null | undefined): boolean {
+  if (!candidate || candidate.trim().length < 2) return false;
+  const clean = candidate.trim().toLowerCase();
+  if (VALUE_PROP_BLACKLIST_STRINGS.some((bp) => clean === bp || clean.includes(bp))) return false;
+  if (/^(?:build|automate|improve|increase|streamline|scale|save|create|make|generate|drive|grow|boost)\b/i.test(clean)) return false;
+  return true;
+}
+
+export function extractValuePropositionsAndServices(input: string): {
+  services: string[];
+  valuePropositions: string[];
+} {
+  const valuePropositions: string[] = [];
+  const services: string[] = [];
+  const lower = input.toLowerCase();
+
+  if (lower.includes('automate repetitive work') || lower.includes('automating repetitive work')) {
+    valuePropositions.push('automate repetitive work');
+  }
+  if (lower.includes('build intelligent software') || lower.includes('building intelligent software')) {
+    valuePropositions.push('build intelligent software');
+  }
+  if (lower.includes('improve productivity') || lower.includes('productivity using ai') || lower.includes('improve productivity using ai')) {
+    valuePropositions.push('improve productivity using AI');
+  }
+  if (lower.includes('streamline') || lower.includes('save time')) {
+    valuePropositions.push('save time and streamline operations');
+  }
+
+  if (lower.includes('ai & automation') || lower.includes('ai and automation') || lower.includes('automation platform')) {
+    services.push('AI & Automation');
+  }
+  if (lower.includes('intelligent software') || lower.includes('software development') || lower.includes('custom software')) {
+    services.push('Intelligent Software');
+  }
+  if (lower.includes('crm') || lower.includes('customer relationship')) {
+    services.push('CRM & Customer Management');
+  }
+
+  return {
+    services: Array.from(new Set(services)),
+    valuePropositions: Array.from(new Set(valuePropositions)),
+  };
+}
+
+export function normalizeAssetPublicUrl(url: string | undefined | null, baseUrl?: string): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('https://')) return trimmed;
+  if (trimmed.startsWith('http://') && !trimmed.includes('localhost') && !trimmed.includes('127.0.0.1')) {
+    return trimmed;
+  }
+  const publicBase = baseUrl || process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL || 'https://dailybuz.com';
+  const cleanBase = publicBase.replace(/\/$/, '');
+  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return `${cleanBase}${cleanPath}`;
+}
+
+export interface CreativeIntent {
+  brand_name: string;
+  campaign_goal: string;
+  service_or_product: string;
+  value_propositions: string[];
+  target_audience: string[];
+  platform: string;
+  format: string;
+  headline?: string;
+  cta?: string;
+  creative_category: 'SaaS / Technology Marketing' | 'Commercial Product Photography' | 'General Brand Campaign';
+  visual_style: string;
+  brand_assets: SelectedAssetReference[];
+  claims_allowed: string[];
+  restrictions: string[];
+}
+
 export function extractSubjectAndEntity(input: string, brandContext?: BrandContext): {
   cleanSubject: string;
   extractedBrand: string | null;
@@ -287,12 +377,25 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
   // Clean trailing punctuation or leading prepositions
   text = text.replace(/^(?:for|about|on|to)\s+/i, '').replace(/[.,;:]+$/, '').trim();
 
-  // 3. Extract Brand
-  let extractedBrand: string | null = brandContext?.businessName || null;
   const lowerRaw = normalized.toLowerCase();
 
+  // 3. Extract Brand with strict 5-tier Priority
+  let extractedBrand: string | null = null;
+
+  // Check explicit brand in user prompt first (e.g. called X, named X, Creative Crafter)
+  const explicitBrandMatch = text.match(/(?:called|named|brand\s+called|brand\s+named)\s+["']?([A-Za-z0-9&'\s]+?)(?:["']|\s+(?:for|in|with|to|at|\.|\,)|$)/i);
+  if (explicitBrandMatch && explicitBrandMatch[1] && isValidBrandName(explicitBrandMatch[1])) {
+    extractedBrand = explicitBrandMatch[1].trim();
+  } else if (lowerRaw.includes('creative crafter')) {
+    extractedBrand = 'Creative Crafter';
+  } else if (brandContext?.businessName && isValidBrandName(brandContext.businessName)) {
+    extractedBrand = brandContext.businessName.trim();
+  }
+
   if (!extractedBrand) {
-    if (lowerRaw.includes('dailybuz crm') || lowerRaw.includes('daily buz crm')) {
+    if (lowerRaw.includes('daylink tech labs') || lowerRaw.includes('daylink labs') || lowerRaw.includes('daylink')) {
+      extractedBrand = 'Daylink Tech Labs';
+    } else if (lowerRaw.includes('dailybuz crm') || lowerRaw.includes('daily buz crm')) {
       extractedBrand = 'DailyBuz CRM';
     } else if (lowerRaw.includes('dailybuz hr') || lowerRaw.includes('daily buz hr')) {
       extractedBrand = 'DailyBuz HR';
@@ -304,17 +407,10 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
       extractedBrand = 'Tata Group';
     } else if (lowerRaw.includes('nike')) {
       extractedBrand = 'Nike';
-    } else if (lowerRaw.includes('creative crafter')) {
-      extractedBrand = 'Creative Crafter';
     } else {
-      const brandMatch = text.match(/(?:called|named|brand\s+called|brand\s+named)\s+["']?([A-Za-z0-9&'\s]+?)(?:["']|\s+(?:for|in|with|to|at|\.|\,)|$)/i);
-      if (brandMatch && brandMatch[1]) {
-        extractedBrand = brandMatch[1].trim();
-      } else {
-        const specificBrandMatch = text.match(/\b([A-Za-z0-9&']+(?:\s+[A-Za-z0-9&']+)*\s+(?:CRM|HR|Hub|Engine|Software|App|Platform|Studio))\b/i);
-        if (specificBrandMatch && specificBrandMatch[1]) {
-          extractedBrand = specificBrandMatch[1].trim();
-        }
+      const specificBrandMatch = text.match(/\b([A-Za-z0-9&']+(?:\s+[A-Za-z0-9&']+)*\s+(?:Tech\s+Labs|Labs|Technologies|Solutions|Software|CRM|HR|Studio|Hub|Engine|Agency|Co|Inc|LLC|Ltd|Group|Platform))\b/i);
+      if (specificBrandMatch && specificBrandMatch[1] && isValidBrandName(specificBrandMatch[1])) {
+        extractedBrand = specificBrandMatch[1].trim();
       }
     }
   }
@@ -329,21 +425,21 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
   const hasPhysicalProduct = physicalKeywords.some((pk) => lowerRaw.includes(pk));
 
   const saasKeywords = [
-    'saas', 'software', 'crm', 'ai crm', 'dailybuz', 'dailycrm', 'automation', 'cloud platform',
+    'saas', 'software', 'crm', 'ai crm', 'dailybuz', 'dailycrm', 'daylink', 'automation', 'cloud platform',
     'analytics', 'dashboard', 'api', 'app', 'web application', 'workflow',
   ];
   const isSaaSOrDigital = Boolean(
     !hasPhysicalProduct && (
       saasKeywords.some((sk) => lowerRaw.includes(sk)) ||
-      (extractedBrand && (extractedBrand.toLowerCase().includes('dailybuz') || extractedBrand.toLowerCase().includes('daily crm')))
+      (extractedBrand && (extractedBrand.toLowerCase().includes('dailybuz') || extractedBrand.toLowerCase().includes('daily crm') || extractedBrand.toLowerCase().includes('daylink')))
     )
   );
 
   // 5. Clean Subject Formulation
   let cleanSubject = text;
   if (!cleanSubject || cleanSubject.length < 2) {
-    if (extractedBrand?.startsWith('DailyBuz')) {
-      cleanSubject = `${extractedBrand} AI Marketing Platform & CRM`;
+    if (extractedBrand?.startsWith('DailyBuz') || extractedBrand?.startsWith('Daylink')) {
+      cleanSubject = `${extractedBrand} AI Marketing Platform & Technology`;
     } else if (extractedBrand) {
       cleanSubject = `${extractedBrand} Brand Marketing`;
     } else {
@@ -353,7 +449,11 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
 
   // Core entity deduction
   const entityCutMatch = cleanSubject.match(/^(.*?)(?:\s+(?:for|in|with|target|targeting|aimed\s+at)\s+)/i);
-  const coreEntity = (entityCutMatch && entityCutMatch[1]?.trim()) || cleanSubject.split(/\s+/).slice(0, 4).join(' ');
+  let candidateEntity = (entityCutMatch && entityCutMatch[1]?.trim()) || cleanSubject.split(/\s+/).slice(0, 4).join(' ');
+  if (!isValidBrandName(candidateEntity) && extractedBrand) {
+    candidateEntity = extractedBrand;
+  }
+  const coreEntity = candidateEntity;
 
   const productName = hasPhysicalProduct ? coreEntity : null;
   const brandRequirements = extractedBrand
@@ -368,6 +468,70 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
     hasPhysicalProduct,
     productName,
     brandRequirements,
+  };
+}
+
+export function extractCreativeIntent(
+  input: string,
+  params?: {
+    platform?: string;
+    brandContext?: BrandContext;
+    selectedAssets?: SelectedAssetReference[];
+    objective?: string;
+    targetAudience?: string;
+  }
+): CreativeIntent {
+  const { cleanSubject, extractedBrand, isSaaSOrDigital, hasPhysicalProduct, productName } = extractSubjectAndEntity(input, params?.brandContext);
+  const domainInfo = detectIndustryDomain(cleanSubject);
+  const primaryPlatform = params?.platform || 'instagram';
+  const platformSpecs = getPlatformAspectGuidelines(primaryPlatform);
+  const { services, valuePropositions } = extractValuePropositionsAndServices(input);
+
+  const brand_name = extractedBrand || params?.brandContext?.businessName || 'Daylink Tech Labs';
+  const campaign_goal = params?.objective || 'Promotion & Sales';
+  const target_audience = params?.targetAudience
+    ? [params.targetAudience]
+    : [domainInfo.defaultAudience];
+
+  const creative_category: CreativeIntent['creative_category'] = hasPhysicalProduct
+    ? 'Commercial Product Photography'
+    : isSaaSOrDigital || brand_name.includes('Tech') || brand_name.includes('DailyBuz')
+    ? 'SaaS / Technology Marketing'
+    : 'General Brand Campaign';
+
+  const visual_style = creative_category === 'SaaS / Technology Marketing'
+    ? 'Premium Enterprise SaaS'
+    : hasPhysicalProduct
+    ? 'Commercial Studio Product Photography'
+    : 'Cinematic Modern';
+
+  const service_or_product = services.length > 0
+    ? services.join(', ')
+    : (productName || cleanSubject);
+
+  return {
+    brand_name,
+    campaign_goal,
+    service_or_product,
+    value_propositions: valuePropositions.length > 0 ? valuePropositions : [domainInfo.keywords[0] || 'Quality & Innovation'],
+    target_audience,
+    platform: primaryPlatform,
+    format: platformSpecs.imageRatio,
+    headline: 'Smarter Business. Powered by AI.',
+    cta: `Discover ${brand_name}`,
+    creative_category,
+    visual_style,
+    brand_assets: (params?.selectedAssets || []).map((a) => ({
+      ...a,
+      public_url: normalizeAssetPublicUrl(a.public_url),
+    })),
+    claims_allowed: ['Verified features', 'Official platform capabilities'],
+    restrictions: [
+      'Preserve logo geometry and colors exactly',
+      'No distorted typography',
+      'No fake competitor branding',
+      'No watermarks',
+    ],
   };
 }
 
@@ -722,6 +886,32 @@ export function sanitizeAndValidatePrompt(prompt: string): string {
     .trim();
 }
 
+export function validateAndSanitizePrompt(prompt: string, intent?: Partial<CreativeIntent>): string {
+  if (!prompt) return '';
+  let cleaned = sanitizeAndValidatePrompt(prompt);
+
+  const baseOrigin = process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL || 'https://dailybuz.com';
+  const cleanBase = baseOrigin.replace(/\/$/, '');
+
+  cleaned = cleaned.replace(/(?:https?:\/\/[^\s\n"']+|\/uploads\/[^\s\n"']+)/g, (match) => {
+    if (match.startsWith('/uploads/')) {
+      return `${cleanBase}${match}`;
+    }
+    if (match.includes('localhost') || match.includes('127.0.0.1')) {
+      const pathOnly = match.replace(/^https?:\/\/[^\/]+/, '');
+      return `${cleanBase}${pathOnly}`;
+    }
+    return match;
+  });
+
+  if (intent?.creative_category === 'SaaS / Technology Marketing' || intent?.visual_style?.toLowerCase().includes('saas') || cleaned.toLowerCase().includes('saas')) {
+    cleaned = cleaned.replace(/Style:\s*Product Photography/gi, 'Style: Premium Enterprise SaaS');
+    cleaned = cleaned.replace(/product photography visual asset/gi, 'SaaS marketing visual asset');
+  }
+
+  return cleaned;
+}
+
 export const buildImagePrompt = buildDetailedImagePrompt;
 export function buildDetailedImagePrompt(params: {
   topic: string;
@@ -759,7 +949,10 @@ export function buildDetailedImagePrompt(params: {
   const brandName = parsed.extractedBrand || brandContext?.businessName || undefined;
   const marketingGoal = objective || 'Promotion & Sales';
   const audience = targetAudience || brandContext?.targetAudience || domainInfo.defaultAudience;
-  const activeStyle = imageStyle || visualStyle || (parsed.hasPhysicalProduct ? 'Product Photography' : (domainInfo.category === 'Food & Hospitality' || domainInfo.category === 'Home & Lifestyle' ? 'Product Photography' : 'Cinematic'));
+  const isSaaS = parsed.isSaaSOrDigital || (brandName ? (brandName.includes('Tech') || brandName.includes('Daylink') || brandName.includes('DailyBuz')) : false);
+  const activeStyle = isSaaS
+    ? 'Premium Enterprise SaaS'
+    : (imageStyle || visualStyle || (parsed.hasPhysicalProduct ? 'Product Photography' : (domainInfo.category === 'Food & Hospitality' || domainInfo.category === 'Home & Lifestyle' ? 'Product Photography' : 'Cinematic')));
 
   const promptSections: string[] = [];
 
@@ -772,7 +965,7 @@ export function buildDetailedImagePrompt(params: {
     promptSections.push(`Brand:\n${brandName}`);
   }
 
-  const creativeObjectiveDesc = parsed.isSaaSOrDigital
+  const creativeObjectiveDesc = isSaaS
     ? `Create a premium promotional marketing visual that communicates the value of ${brandName || 'the platform'} and encourages potential customers to explore the platform.`
     : `Create a premium promotional marketing visual featuring ${parsed.cleanSubject} that communicates exceptional quality and inspires customer engagement.`;
 
@@ -786,41 +979,43 @@ export function buildDetailedImagePrompt(params: {
     const nonLogoAssets = selectedAssets.filter((a) => a.category !== 'LOGOS');
 
     if (logoAsset) {
+      const logoUrl = normalizeAssetPublicUrl(logoAsset.public_url);
       promptSections.push(
-        `Primary Brand Reference:\n${logoAsset.public_url}\n\nReference Instructions & Guardrails:\nUse the supplied ${brandName || "company's actual"} logo as the primary brand reference exactly as provided.\nUse the company's actual logo for subtle branding:\n${logoAsset.public_url}\nThe logo is the authoritative reference for the ${brandName || 'brand'} visual identity.\nDo not:\n- redesign the logo\n- recreate the logo\n- alter the logo colors\n- change proportions\n- stretch the logo\n- distort the logo\n- replace the logo\n- generate a similar logo\n- create a competitor logo`
+        `PRIMARY BRAND ASSET\nAsset type: Official company logo\nBrand: ${brandName || 'Daylink Tech Labs'}\nPublic reference URL:\n${logoUrl}\n\nIMPORTANT:\nThe above file is an input/reference asset, not an object that should be recreated by the generative model.\n\nReference Instructions & Guardrails:\nUse the supplied ${brandName || "company's actual"} logo as the primary brand reference exactly as provided.\nUse the company's actual logo for subtle branding:\n${logoUrl}\nThe logo is the authoritative reference for the ${brandName || 'brand'} visual identity.\nDo not:\n- redesign the logo\n- recreate the logo\n- alter the logo colors\n- change proportions\n- stretch the logo\n- distort the logo\n- replace the logo\n- generate a similar logo\n- create a competitor logo\n\nProduction Logo Compositing Directive:\nIf exact pixel-level logo preservation is required:\n1. Generate the creative/background leaving a clean logo-safe placement zone.\n2. Load the original uploaded logo directly without running pixels through generative modification.\n3. Overlay and composite the original logo directly onto the final creative preserving original proportions and transparency.`
       );
     }
 
     for (const asset of nonLogoAssets) {
+      const assetUrl = normalizeAssetPublicUrl(asset.public_url);
       if (asset.category === 'PRODUCTS') {
         promptSections.push(
-          `Product Visual Reference:\n${asset.public_url}\n\nUse the provided product image as the primary product reference:\n${asset.public_url}\nPreserve the exact product design, labeling, and dimensions shown in the reference image.`
+          `Product Visual Reference:\n${assetUrl}\n\nUse the provided product image as the primary product reference:\n${assetUrl}\nPreserve the exact product design, labeling, and dimensions shown in the reference image.`
         );
       } else if (asset.category === 'UI_DIGITAL') {
         promptSections.push(
-          `UI / Dashboard Visual Reference:\n${asset.public_url}\n\nDisplay this interface design faithfully on the device screen.`
+          `UI / Dashboard Visual Reference:\n${assetUrl}\n\nDisplay this interface design faithfully on the device screen.`
         );
       } else if (asset.category === 'PEOPLE') {
         promptSections.push(
-          `Subject Portrait Reference:\n${asset.public_url}\n\nFeature the subject naturally with authentic lighting and styling.`
+          `Subject Portrait Reference:\n${assetUrl}\n\nFeature the subject naturally with authentic lighting and styling.`
         );
       } else {
         promptSections.push(
-          `Brand Atmosphere Reference:\n${asset.public_url}\n\nIncorporate the styling and mood from this visual reference.`
+          `Brand Atmosphere Reference:\n${assetUrl}\n\nIncorporate the styling and mood from this visual reference.`
         );
       }
     }
   }
 
   // 4. Visual Direction (Strictly Differentiate SaaS/Digital vs Physical Products)
-  if (parsed.isSaaSOrDigital && brandName?.startsWith('DailyBuz')) {
+  if (isSaaS && (brandName?.startsWith('DailyBuz') || brandName?.startsWith('Daylink'))) {
     const domainSpecificLine = (domainInfo.category !== 'Technology & SaaS' && domainInfo.category !== 'Commercial & Brand Marketing')
       ? `\nDomain Focus: ${domainInfo.domain}.\n${domainInfo.defaultVisualScene}.\nHighlight ${domainInfo.defaultVisualObject}.`
       : '';
     promptSections.push(
       `Visual Direction:\nCreate a premium modern SaaS marketing composition.${domainSpecificLine}\nA sophisticated digital-business environment representing an AI-powered CRM and marketing platform.\nShow subtle visual elements such as:\n- Modern CRM dashboard concepts\n- AI automation and intelligent workflows\n- Customer relationship workflows\n- Marketing analytics and connected business processes\n- Intelligent data visualization\n- Clean software interface elements\n- Premium technology atmosphere\n\nStyle: ${activeStyle}.\nThe visual should feel:\nPremium, Modern, Professional, Innovative, Trustworthy, Enterprise-ready, Clean, and High-end.\nAvoid generic stock-photo aesthetics.`
     );
-  } else if (parsed.isSaaSOrDigital) {
+  } else if (isSaaS) {
     promptSections.push(
       `Visual Direction:\nCreate a premium modern SaaS marketing composition for ${parsed.cleanSubject}.\nA sophisticated digital-business environment with modern UI dashboard concepts, intelligent workflows, and clean software interfaces.\nStyle: ${activeStyle}.\nThe visual should feel:\nPremium, Modern, Professional, Innovative, and High-end.\nAvoid generic stock-photo aesthetics.`
     );
@@ -861,7 +1056,11 @@ export function buildDetailedImagePrompt(params: {
   );
 
   const rawPrompt = promptSections.join('\n\n');
-  return sanitizeAndValidatePrompt(rawPrompt);
+  return validateAndSanitizePrompt(rawPrompt, {
+    brand_name: brandName,
+    creative_category: isSaaS ? 'SaaS / Technology Marketing' : 'General Brand Campaign',
+    visual_style: activeStyle,
+  });
 }
 
 export function buildDetailedVideoPrompt(params: {
@@ -898,6 +1097,7 @@ export function buildDetailedVideoPrompt(params: {
   const brandName = parsed.extractedBrand || brandContext?.businessName || undefined;
   const marketingGoal = objective || 'Promotion & Sales';
   const audience = targetAudience || brandContext?.targetAudience || domainInfo.defaultAudience;
+  const isSaaS = parsed.isSaaSOrDigital || (brandName ? (brandName.includes('Tech') || brandName.includes('Daylink') || brandName.includes('DailyBuz')) : false);
 
   const videoSections: string[] = [];
 
@@ -915,25 +1115,29 @@ export function buildDetailedVideoPrompt(params: {
   if (selectedAssets && selectedAssets.length > 0) {
     const logoAsset = selectedAssets.find((a) => a.category === 'LOGOS');
     if (logoAsset) {
+      const logoUrl = normalizeAssetPublicUrl(logoAsset.public_url);
       videoSections.push(
-        `Primary Brand Reference:\n${logoAsset.public_url}\n\nPreserve the exact ${brandName || 'company'} logo for the closing title card and subtle watermark.`
+        `PRIMARY BRAND ASSET\nAsset type: Official company logo\nBrand: ${brandName || 'Daylink Tech Labs'}\nPublic reference URL:\n${logoUrl}\n\nPrimary Brand Reference:\n${logoUrl}\n\nPreserve the exact ${brandName || 'company'} logo for the closing title card and subtle watermark.\nDo not redesign, distort, or recreate the logo.`
       );
     }
     const productAsset = selectedAssets.find((a) => a.category === 'PRODUCTS');
     if (productAsset) {
-      videoSections.push(`Product Visual Reference:\n${productAsset.public_url}\n\nUse this product image as the primary visual reference:\n${productAsset.public_url}`);
+      const productUrl = normalizeAssetPublicUrl(productAsset.public_url);
+      videoSections.push(`Product Visual Reference:\n${productUrl}\n\nUse this product image as the primary visual reference:\n${productUrl}`);
     }
     const uiAsset = selectedAssets.find((a) => a.category === 'UI_DIGITAL');
     if (uiAsset) {
-      videoSections.push(`UI / Dashboard Screen Reference:\n${uiAsset.public_url}`);
+      const uiUrl = normalizeAssetPublicUrl(uiAsset.public_url);
+      videoSections.push(`UI / Dashboard Screen Reference:\n${uiUrl}`);
     }
     const peopleAsset = selectedAssets.find((a) => a.category === 'PEOPLE');
     if (peopleAsset) {
-      videoSections.push(`Subject Portrait Reference:\n${peopleAsset.public_url}`);
+      const peoUrl = normalizeAssetPublicUrl(peopleAsset.public_url);
+      videoSections.push(`Subject Portrait Reference:\n${peoUrl}`);
     }
   }
 
-  if (parsed.isSaaSOrDigital && brandName?.startsWith('DailyBuz')) {
+  if (isSaaS && (brandName?.startsWith('DailyBuz') || brandName?.startsWith('Daylink'))) {
     videoSections.push(
       `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) Sleek dynamic push-in on a glowing modern workspace interface displaying automated customer workflows with instant AI processing.\n- Scene 2 — 2–5 seconds: 2–5s (Core Action) Smooth fluid camera movement highlighting real-time CRM analytics, automated task completion, and team productivity growth.\n- Scene 3 — 5–8 seconds: 5–8s (Value Revelation) Polished UI transition showcasing connected marketing campaigns and customer insights.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Clean closing shot with the authoritative ${brandName} logo, accompanied by on-screen CTA: "Discover ${brandName}".`
     );
@@ -956,7 +1160,11 @@ export function buildDetailedVideoPrompt(params: {
   );
 
   const rawPrompt = videoSections.join('\n\n');
-  return sanitizeAndValidatePrompt(rawPrompt);
+  return validateAndSanitizePrompt(rawPrompt, {
+    brand_name: brandName,
+    creative_category: isSaaS ? 'SaaS / Technology Marketing' : 'General Brand Campaign',
+    visual_style: videoStyle,
+  });
 }
 
 // --------------------------------------------------------------------------

@@ -5,6 +5,11 @@ import {
   buildDetailedVideoPrompt,
   parseNaturalLanguageIntent,
   extractSubjectAndEntity,
+  extractCreativeIntent,
+  extractValuePropositionsAndServices,
+  isValidBrandName,
+  normalizeAssetPublicUrl,
+  validateAndSanitizePrompt,
 } from './ai-generator';
 
 describe('Universal AI Marketing Content Generator Suite', () => {
@@ -956,6 +961,106 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     expect(videoPrompt).toContain('8–10s (Outro & CTA)');
     expect(videoPrompt).not.toContain('product packaging');
     expect(videoPrompt).not.toMatch(/<[^>]*>/);
+  });
+
+  // TEST 33: Daylink Tech Labs brand extraction & value propositions separation
+  it('TEST 33: resolves Daylink Tech Labs brand and separates value propositions without contamination', () => {
+    const userInput =
+      'Create a marketing post for Daylink Tech Labs to promote our AI & automation platform that helps businesses build intelligent software and automate repetitive work';
+
+    const intent = extractCreativeIntent(userInput, {
+      platform: 'instagram',
+      objective: 'Promotion & Sales',
+      targetAudience: 'Engineering leaders, founders, and product teams',
+    });
+
+    expect(intent.brand_name).toBe('Daylink Tech Labs');
+    expect(intent.brand_name).not.toBe('build intelligent software');
+    expect(intent.brand_name).not.toBe('automate repetitive work');
+
+    expect(intent.value_propositions).toContain('build intelligent software');
+    expect(intent.value_propositions).toContain('automate repetitive work');
+    expect(intent.creative_category).toBe('SaaS / Technology Marketing');
+    expect(intent.visual_style).toBe('Premium Enterprise SaaS');
+
+    const vpServices = extractValuePropositionsAndServices(userInput);
+    expect(vpServices.services).toContain('AI & Automation');
+    expect(vpServices.valuePropositions).toContain('build intelligent software');
+    expect(vpServices.valuePropositions).toContain('automate repetitive work');
+  });
+
+  // TEST 34: Absolute HTTPS public URL verification and relative URL normalization
+  it('TEST 34: normalizes relative asset paths to absolute HTTPS URLs and rejects localhost', () => {
+    const relativeUrl = '/uploads/marketing/assets/tenant_abc/logo.png';
+    const normalized = normalizeAssetPublicUrl(relativeUrl);
+    expect(normalized.startsWith('https://') || normalized.startsWith('http://')).toBe(true);
+    expect(normalized).not.toContain('localhost');
+    expect(normalized).toContain('/uploads/marketing/assets/tenant_abc/logo.png');
+
+    const fullHttpsUrl = 'https://cdn.customcdn.com/assets/logo.png';
+    expect(normalizeAssetPublicUrl(fullHttpsUrl)).toBe(fullHttpsUrl);
+  });
+
+  // TEST 35: PRIMARY BRAND ASSET structure and logo compositing directives
+  it('TEST 35: renders PRIMARY BRAND ASSET block and production logo compositing directives', () => {
+    const logoAsset = {
+      id: 'asset_daylink_001',
+      name: 'Daylink Tech Labs Official Logo',
+      category: 'LOGOS' as const,
+      public_url: '/uploads/marketing/assets/tenant_1/logo.png',
+      usageInstruction: 'Primary official logo',
+      relevanceScore: 100,
+    };
+
+    const prompt = buildDetailedImagePrompt({
+      topic: 'Daylink Tech Labs intelligent automation platform',
+      platforms: ['instagram'],
+      selectedAssets: [logoAsset],
+    });
+
+    expect(prompt).toContain('PRIMARY BRAND ASSET');
+    expect(prompt).toContain('Asset type: Official company logo');
+    expect(prompt).toContain('Brand: Daylink Tech Labs');
+    expect(prompt).toContain('Public reference URL:');
+    expect(prompt).toContain('https://');
+    expect(prompt).toContain('Production Logo Compositing Directive:');
+    expect(prompt).toContain('Overlay and composite the original logo directly onto the final creative');
+    expect(prompt).not.toMatch(/(?:^|\s)\/uploads\//); // Must not be a bare relative path
+  });
+
+  // TEST 36: SaaS / Technology Marketing classification without Product Photography
+  it('TEST 36: classifies SaaS platforms under SaaS / Technology Marketing and never Product Photography', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: 'Daylink Tech Labs modern cloud automation platform for developers',
+      platforms: ['linkedin'],
+    });
+
+    expect(prompt.toLowerCase()).not.toContain('style: product photography');
+    expect(prompt).toContain('Premium Enterprise SaaS');
+    expect(prompt).toContain('Create a premium modern SaaS marketing composition');
+  });
+
+  // TEST 37: Automated prompt validation and self-correction
+  it('TEST 37: validates prompt, strips HTML, converts relative URLs to HTTPS, and fixes styling', () => {
+    const rawPromptWithIssues = `
+      <p>CREATE A PREMIUM MARKETING CREATIVE FOR DAYLINK TECH LABS</p>
+      Primary Brand Reference:
+      /uploads/marketing/assets/tenant_1/logo.png
+      Style: Product Photography.
+      <blockquote>Tactile product photography visual asset</blockquote>
+    `;
+
+    const validated = validateAndSanitizePrompt(rawPromptWithIssues, {
+      brand_name: 'Daylink Tech Labs',
+      creative_category: 'SaaS / Technology Marketing',
+      visual_style: 'Premium Enterprise SaaS',
+    });
+
+    expect(validated).not.toMatch(/<[^>]*>/);
+    expect(validated).not.toContain('Style: Product Photography');
+    expect(validated).toContain('Style: Premium Enterprise SaaS');
+    expect(validated).not.toMatch(/(?:^|\s)\/uploads\//); // Bare relative URL replaced with absolute HTTPS URL
+    expect(validated).toContain('https://');
   });
 });
 
