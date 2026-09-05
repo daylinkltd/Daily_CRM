@@ -86,9 +86,13 @@ export async function POST(request: Request) {
         ]);
 
         const brandProfile = profileRes.data;
-        if (assetsRes.data && assetsRes.data.length > 0) {
-          brandAssets = assetsRes.data;
+        const dbAssets = assetsRes.data || [];
+        const combinedAssetsMap = new Map<string, any>();
+        dbAssets.forEach((a: any) => combinedAssetsMap.set(a.id, a));
+        if (Array.isArray(body.brandAssets)) {
+          body.brandAssets.forEach((a: any) => combinedAssetsMap.set(a.id, a));
         }
+        brandAssets = Array.from(combinedAssetsMap.values());
 
         const workspace = workspaceRes.data;
         const mSettings = mSettingsRes.data;

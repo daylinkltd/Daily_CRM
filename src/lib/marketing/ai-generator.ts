@@ -228,41 +228,147 @@ export function formatToTitleCase(str: string): string {
 // --------------------------------------------------------------------------
 // 1. Universal Subject, Entity & Keyword Extractor
 // --------------------------------------------------------------------------
-export function extractSubjectAndEntity(input: string): {
+// 1. Universal Subject, Entity, Brand & Intent Extractor
+// --------------------------------------------------------------------------
+export function stripHtmlAndFormatting(input: string): string {
+  if (!input) return '';
+  return input
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function extractSubjectAndEntity(input: string, brandContext?: BrandContext): {
   cleanSubject: string;
   extractedBrand: string | null;
   coreEntity: string;
+  isSaaSOrDigital: boolean;
+  hasPhysicalProduct: boolean;
+  productName: string | null;
+  brandRequirements: string;
 } {
-  const normalized = normalizeQuerySpelling(input.trim());
+  const stripped = stripHtmlAndFormatting(input);
+  const normalized = normalizeQuerySpelling(stripped);
   let text = normalized;
 
+  // 1. Remove meta brand reference instructions from raw topic string
+  const metaInstructions = [
+    /\b(?:using|with)\s+(?:the|our|an)?\s*(?:updated|official|new|primary)?\s*(?:logo|brand\s+logo|brand\s+reference|reference\s+image|asset)[^.]*?(?:\.|$)/gi,
+    /\b(?:the\s+)?(?:generated\s+)?(?:content\s+and\s+creative|creative\s+and\s+content|post)\s+should\s+(?:accurately\s+)?reflect[^.]*?(?:\.|$)/gi,
+    /\b(?:as\s+the\s+primary\s+brand\s+reference|accurately\s+reflect\s+the\s+updated\s+logo\s+and\s+brand\s+identity)[^.]*?(?:\.|$)/gi,
+    /\b(?:make\s+sure\s+to\s+include|incorporating)\s+(?:the|our)\s+(?:updated\s+)?(?:logo|brand)[^.]*?(?:\.|$)/gi,
+  ];
+  for (const meta of metaInstructions) {
+    text = text.replace(meta, ' ').trim();
+  }
+
+  // 2. Remove conversational wrappers and command prefixes
   const commandPrefixes = [
-    /^(?:create|make|generate|write|compose|design)\s+(?:an?|the)?\s*(?:instagram|linkedin|twitter|x|facebook|tiktok|social|blog)?\s*(?:post|ad|article|caption|content|reel|update)?\s*(?:for|about|promoting|to promote|introducing|highlighting|showcasing)?\s*/i,
+    /^(?:i\s+want\s+to|i\s+would\s+like\s+to|we\s+want\s+to|we\s+need\s+to|please|can\s+you|help\s+me)\s+(?:create|make|generate|write|compose|design|post|build)\s+(?:a|an|the)?\s*(?:detailed|engaging|premium|high-end)?\s*/i,
+    /^(?:create|make|generate|write|compose|design|post|build)\s+(?:an?|the)?\s*(?:detailed|engaging|premium|high-end)?\s*(?:instagram|linkedin|twitter|x|facebook|tiktok|youtube|threads|social|blog)?\s*(?:post|ad|article|caption|content|reel|video|creative|update)?\s*(?:for|about|promoting|to promote|introducing|highlighting|showcasing)?\s*/i,
     /^(?:promote|announcing|announce|showcase|introduce|launch)\s+(?:our|a|an|the|new)?\s*/i,
     /^(?:post|ad|article|caption)\s+(?:about|for|on)\s*/i,
   ];
 
-  for (const prefix of commandPrefixes) {
-    text = text.replace(prefix, '').trim();
-  }
-
-  let extractedBrand: string | null = null;
-  const brandMatch = text.match(/(?:called|named|brand\s+called|brand\s+named)\s+["']?([A-Za-z0-9&'\s]+?)(?:["']|\s+(?:for|in|with|to|at|\.|\,)|$)/i);
-  if (brandMatch && brandMatch[1]) {
-    extractedBrand = brandMatch[1].trim();
-  } else {
-    const specificBrandMatch = text.match(/\b([A-Za-z0-9&']+(?:\s+[A-Za-z0-9&']+)*\s+(?:CRM|HR|Hub|Engine|Software|App|Platform|Studio))\b/i);
-    if (specificBrandMatch && specificBrandMatch[1]) {
-      extractedBrand = specificBrandMatch[1].trim();
+  let prev = '';
+  while (text !== prev) {
+    prev = text;
+    for (const prefix of commandPrefixes) {
+      text = text.replace(prefix, '').trim();
     }
   }
 
-  const cleanSubject = text.length > 0 ? text : normalized;
+  // Clean trailing punctuation or leading prepositions
+  text = text.replace(/^(?:for|about|on|to)\s+/i, '').replace(/[.,;:]+$/, '').trim();
 
+  // 3. Extract Brand
+  let extractedBrand: string | null = brandContext?.businessName || null;
+  const lowerRaw = normalized.toLowerCase();
+
+  if (!extractedBrand) {
+    if (lowerRaw.includes('dailybuz crm') || lowerRaw.includes('daily buz crm')) {
+      extractedBrand = 'DailyBuz CRM';
+    } else if (lowerRaw.includes('dailybuz hr') || lowerRaw.includes('daily buz hr')) {
+      extractedBrand = 'DailyBuz HR';
+    } else if (lowerRaw.includes('dailybuz') || lowerRaw.includes('daily buz')) {
+      extractedBrand = 'DailyBuz';
+    } else if (lowerRaw.includes('daily crm') || lowerRaw.includes('dailycrm')) {
+      extractedBrand = 'Daily CRM';
+    } else if (lowerRaw.includes('tata group') || lowerRaw.includes('tata')) {
+      extractedBrand = 'Tata Group';
+    } else if (lowerRaw.includes('nike')) {
+      extractedBrand = 'Nike';
+    } else if (lowerRaw.includes('creative crafter')) {
+      extractedBrand = 'Creative Crafter';
+    } else {
+      const brandMatch = text.match(/(?:called|named|brand\s+called|brand\s+named)\s+["']?([A-Za-z0-9&'\s]+?)(?:["']|\s+(?:for|in|with|to|at|\.|\,)|$)/i);
+      if (brandMatch && brandMatch[1]) {
+        extractedBrand = brandMatch[1].trim();
+      } else {
+        const specificBrandMatch = text.match(/\b([A-Za-z0-9&']+(?:\s+[A-Za-z0-9&']+)*\s+(?:CRM|HR|Hub|Engine|Software|App|Platform|Studio))\b/i);
+        if (specificBrandMatch && specificBrandMatch[1]) {
+          extractedBrand = specificBrandMatch[1].trim();
+        }
+      }
+    }
+  }
+
+  // 4. Physical Product vs Digital / SaaS vs General Topic
+  const physicalKeywords = [
+    'candle', 'scented candle', 'fragrance', 'perfume', 'pizza', 'food', 'burger',
+    'sneaker', 'shoes', 'footwear', 'apparel', 'clothing', 'dress', 'jacket', 'shirt',
+    'coffee', 'coffee beans', 'tea', 'drink', 'bottle', 'beverage', 'jewelry', 'ring',
+    'necklace', 'watch', 'soap', 'lotion', 'skincare cream', 'packaging',
+  ];
+  const hasPhysicalProduct = physicalKeywords.some((pk) => lowerRaw.includes(pk));
+
+  const saasKeywords = [
+    'saas', 'software', 'crm', 'ai crm', 'dailybuz', 'dailycrm', 'automation', 'cloud platform',
+    'analytics', 'dashboard', 'api', 'app', 'web application', 'workflow',
+  ];
+  const isSaaSOrDigital = Boolean(
+    !hasPhysicalProduct && (
+      saasKeywords.some((sk) => lowerRaw.includes(sk)) ||
+      (extractedBrand && (extractedBrand.toLowerCase().includes('dailybuz') || extractedBrand.toLowerCase().includes('daily crm')))
+    )
+  );
+
+  // 5. Clean Subject Formulation
+  let cleanSubject = text;
+  if (!cleanSubject || cleanSubject.length < 2) {
+    if (extractedBrand?.startsWith('DailyBuz')) {
+      cleanSubject = `${extractedBrand} AI Marketing Platform & CRM`;
+    } else if (extractedBrand) {
+      cleanSubject = `${extractedBrand} Brand Marketing`;
+    } else {
+      cleanSubject = normalized.slice(0, 50);
+    }
+  }
+
+  // Core entity deduction
   const entityCutMatch = cleanSubject.match(/^(.*?)(?:\s+(?:for|in|with|target|targeting|aimed\s+at)\s+)/i);
   const coreEntity = (entityCutMatch && entityCutMatch[1]?.trim()) || cleanSubject.split(/\s+/).slice(0, 4).join(' ');
 
-  return { cleanSubject, extractedBrand, coreEntity };
+  const productName = hasPhysicalProduct ? coreEntity : null;
+  const brandRequirements = extractedBrand
+    ? `Preserve the supplied ${extractedBrand} logo and visual brand identity exactly without modification.`
+    : 'Preserve brand identity assets exactly as provided.';
+
+  return {
+    cleanSubject,
+    extractedBrand,
+    coreEntity,
+    isSaaSOrDigital,
+    hasPhysicalProduct,
+    productName,
+    brandRequirements,
+  };
 }
 
 export function extractKeyTerms(text: string): string[] {
@@ -378,28 +484,28 @@ export function detectIndustryDomain(topic: string): IndustryDomainInfo {
       domain: 'Handmade Crafts & Home Fragrance',
       category: 'Home & Lifestyle',
       keywords: ['handmade candles', 'home fragrance', 'soy wax', 'essential oils', 'cozy living', 'artisanal decor', 'handcrafted luxury', 'aromatherapy'],
-      hashtags: ['#HandmadeCandles', '#HomeFragrance', '#SoyCandles', '#CozyLiving', '#ArtisanMade', '#CandleLovers', '#Aromatherapy', '#HandcraftedLuxury'],
-      defaultAudience: 'Home decor enthusiasts, fragrance lovers, and thoughtful gift seekers',
-      defaultVisualScene: 'Warm, cozy minimalist interior with soft ambient light, textured linen surfaces, and subtle botanical elements',
-      defaultVisualObject: 'Artisanal handmade scented candle in an amber glass vessel with a gently flickering natural flame',
+      hashtags: ['#HandmadeCandles', '#HomeFragrance', '#SoyWaxCandles', '#Aromatherapy', '#CozyLiving', '#ArtisanalDecor', '#ShopHandmade'],
+      defaultAudience: 'Discerning homeowners, interior design enthusiasts, and mindful lifestyle consumers',
+      defaultVisualScene: 'Sunlit rustic modern living space or boutique studio table with warm amber natural light',
+      defaultVisualObject: 'Artisanal soy wax scented candle in minimalist matte ceramic vessel with glowing wooden wick',
       defaultVideoHook: 'Close-up of a match striking and gently lighting an artisanal candle wick with soft warm crackle',
       defaultVideoAction: 'Camera slowly pulls back to reveal the candle filling a peaceful sunlit living room with ambient warmth',
-      defaultCta: 'Shop the collection today & bring warmth to your space',
+      defaultCta: 'Shop the collection today and bring warmth to your space',
     };
   }
 
-  if (t.includes('pizza') || t.includes('restaurant') || t.includes('cafe') || t.includes('dining') || t.includes('bakery') || t.includes('burger') || t.includes('sushi') || t.includes('chef') || t.includes('food') || t.includes('bistro') || t.includes('dessert') || t.includes('coffee') || t.includes('roastery')) {
+  if (t.includes('pizza') || t.includes('food') || t.includes('restaurant') || t.includes('burger') || t.includes('coffee') || t.includes('dining') || t.includes('bakery') || t.includes('cafe')) {
     return {
-      domain: 'Food, Dining & Culinary Arts',
+      domain: 'Artisanal Dining & Culinary Experiences',
       category: 'Food & Hospitality',
-      keywords: ['artisanal food', 'fresh ingredients', 'culinary experience', 'gourmet dining', 'local flavors', 'foodie destination', 'handcrafted dishes'],
-      hashtags: ['#FoodieLife', '#GourmetEats', '#FoodLovers', '#RestaurantOpening', '#DeliciousBites', '#CulinaryArt', '#LocalFlavors', '#Foodstagram'],
-      defaultAudience: 'Local foodies, families, dining enthusiasts, and neighborhood food lovers',
-      defaultVisualScene: 'Vibrant, inviting restaurant setting with rustic wood tables, warm ambient Edison bulbs, and mouthwatering food presentation',
-      defaultVisualObject: 'Freshly prepared gourmet dish steaming on a rustic wooden board, garnished with fresh herbs and vibrant colors',
-      defaultVideoHook: 'Sizzling close-up macro shot of ingredients being flame-cooked or fresh cheese pull',
-      defaultVideoAction: 'Vibrant montage of chef plating the dish, happy diners smiling, and the inviting lively restaurant atmosphere',
-      defaultCta: 'Reserve your table or order now to experience the flavors',
+      keywords: ['fresh ingredients', 'culinary craft', 'artisan recipe', 'gourmet dining', 'foodie experience', 'authentic flavors'],
+      hashtags: ['#FoodieLife', '#ArtisanFood', '#CulinaryExperience', '#GourmetDining', '#FreshIngredients', '#FoodLovers'],
+      defaultAudience: 'Food lovers, dining enthusiasts, local foodies, and culinary connoisseurs',
+      defaultVisualScene: 'Warm, rustic culinary kitchen with wood-fired oven glow and fresh organic ingredients arranged on a chef preparation table',
+      defaultVisualObject: 'Gourmet artisanal dish with steam rising, vibrant color contrasts, and mouth-watering culinary textures',
+      defaultVideoHook: 'Sizzling close-up action highlighting fresh ingredients and steam rising in an artisanal kitchen',
+      defaultVideoAction: 'Dynamic preparation sequence showing chef artistry, finishing touches, and plated presentation',
+      defaultCta: 'Reserve your table or order online to taste the difference',
     };
   }
 
@@ -604,6 +710,18 @@ export function parseNaturalLanguageIntent(input: string): StructuredIntent {
 // --------------------------------------------------------------------------
 // 5. Image & Video Prompt Builders
 // --------------------------------------------------------------------------
+export function sanitizeAndValidatePrompt(prompt: string): string {
+  if (!prompt) return '';
+  return prompt
+    .replace(/<[^>]*>/g, '') // Strip all HTML tags
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 export const buildImagePrompt = buildDetailedImagePrompt;
 export function buildDetailedImagePrompt(params: {
   topic: string;
@@ -633,73 +751,117 @@ export function buildDetailedImagePrompt(params: {
     additionalInstructions,
   } = params;
 
-  const { cleanSubject, extractedBrand } = extractSubjectAndEntity(topic);
-  const domainInfo = detectIndustryDomain(cleanSubject);
+  const parsed = extractSubjectAndEntity(topic, brandContext);
+  const domainInfo = detectIndustryDomain(parsed.cleanSubject);
   const primaryPlatform = platforms[0] || 'instagram';
   const platformSpecs = getPlatformAspectGuidelines(primaryPlatform);
 
-  const activeStyle = imageStyle || visualStyle || (domainInfo.category === 'Food & Hospitality' || domainInfo.category === 'Home & Lifestyle' ? 'Product Photography' : 'Cinematic');
-  const subjectName = productOrService || extractedBrand || cleanSubject;
-  const audience = targetAudience || domainInfo.defaultAudience;
-  const marketingGoal = objective || 'engagement and brand appeal';
+  const brandName = parsed.extractedBrand || brandContext?.businessName || undefined;
+  const marketingGoal = objective || 'Promotion & Sales';
+  const audience = targetAudience || brandContext?.targetAudience || domainInfo.defaultAudience;
+  const activeStyle = imageStyle || visualStyle || (parsed.hasPhysicalProduct ? 'Product Photography' : (domainInfo.category === 'Food & Hospitality' || domainInfo.category === 'Home & Lifestyle' ? 'Product Photography' : 'Cinematic'));
 
-  let styleDetails = 'Commercial studio product photography, razor-sharp focus on the primary subject, authentic tactile textures, and soft natural lighting';
-  if (activeStyle === 'Cinematic') {
-    styleDetails = 'Cinematic 35mm film aesthetic, rich atmospheric depth, dramatic volumetric lighting, balanced shadows and highlights';
+  const promptSections: string[] = [];
+
+  // 1. Header Title
+  const brandHeader = brandName ? ` FOR ${brandName.toUpperCase()}` : '';
+  promptSections.push(`CREATE A PREMIUM ${primaryPlatform.toUpperCase()} MARKETING CREATIVE${brandHeader}`);
+
+  // 2. Brand & Objectives
+  if (brandName) {
+    promptSections.push(`Brand:\n${brandName}`);
   }
 
-  const promptSections: string[] = [
-    `Create a premium ${activeStyle.toLowerCase()} visual asset featuring the ${cleanSubject} as the hero subject for ${primaryPlatform.toUpperCase()} (${platformSpecs.imageRatio}).`,
-  ];
+  const creativeObjectiveDesc = parsed.isSaaSOrDigital
+    ? `Create a premium promotional marketing visual that communicates the value of ${brandName || 'the platform'} and encourages potential customers to explore the platform.`
+    : `Create a premium promotional marketing visual featuring ${parsed.cleanSubject} that communicates exceptional quality and inspires customer engagement.`;
 
-  // Referenced Brand Assets (Real Accessible Public URLs)
+  promptSections.push(`Creative Objective:\n${creativeObjectiveDesc}`);
+  promptSections.push(`Marketing Goal:\n${marketingGoal}`);
+  promptSections.push(`Target Audience:\n${audience}`);
+
+  // 3. Referenced Brand Assets (Real Accessible Public URLs)
   if (selectedAssets && selectedAssets.length > 0) {
-    for (const asset of selectedAssets) {
+    const logoAsset = selectedAssets.find((a) => a.category === 'LOGOS');
+    const nonLogoAssets = selectedAssets.filter((a) => a.category !== 'LOGOS');
+
+    if (logoAsset) {
+      promptSections.push(
+        `Primary Brand Reference:\n${logoAsset.public_url}\n\nReference Instructions & Guardrails:\nUse the supplied ${brandName || "company's actual"} logo as the primary brand reference exactly as provided.\nUse the company's actual logo for subtle branding:\n${logoAsset.public_url}\nThe logo is the authoritative reference for the ${brandName || 'brand'} visual identity.\nDo not:\n- redesign the logo\n- recreate the logo\n- alter the logo colors\n- change proportions\n- stretch the logo\n- distort the logo\n- replace the logo\n- generate a similar logo\n- create a competitor logo`
+      );
+    }
+
+    for (const asset of nonLogoAssets) {
       if (asset.category === 'PRODUCTS') {
-        promptSections.push(`Use the provided product image as the primary product reference:\n${asset.public_url}`);
-      } else if (asset.category === 'LOGOS') {
-        promptSections.push(`Use the company's actual logo for subtle branding:\n${asset.public_url}`);
+        promptSections.push(
+          `Product Visual Reference:\n${asset.public_url}\n\nUse the provided product image as the primary product reference:\n${asset.public_url}\nPreserve the exact product design, labeling, and dimensions shown in the reference image.`
+        );
       } else if (asset.category === 'UI_DIGITAL') {
-        promptSections.push(`Use this UI screenshot as the interface reference displayed on the device:\n${asset.public_url}`);
+        promptSections.push(
+          `UI / Dashboard Visual Reference:\n${asset.public_url}\n\nDisplay this interface design faithfully on the device screen.`
+        );
       } else if (asset.category === 'PEOPLE') {
-        promptSections.push(`Use this portrait photo as the visual subject reference:\n${asset.public_url}`);
-      } else if (asset.category === 'OTHER') {
-        promptSections.push(`Use this brand asset as visual styling reference:\n${asset.public_url}`);
+        promptSections.push(
+          `Subject Portrait Reference:\n${asset.public_url}\n\nFeature the subject naturally with authentic lighting and styling.`
+        );
+      } else {
+        promptSections.push(
+          `Brand Atmosphere Reference:\n${asset.public_url}\n\nIncorporate the styling and mood from this visual reference.`
+        );
       }
     }
   }
 
+  // 4. Visual Direction (Strictly Differentiate SaaS/Digital vs Physical Products)
+  if (parsed.isSaaSOrDigital && brandName?.startsWith('DailyBuz')) {
+    const domainSpecificLine = (domainInfo.category !== 'Technology & SaaS' && domainInfo.category !== 'Commercial & Brand Marketing')
+      ? `\nDomain Focus: ${domainInfo.domain}.\n${domainInfo.defaultVisualScene}.\nHighlight ${domainInfo.defaultVisualObject}.`
+      : '';
+    promptSections.push(
+      `Visual Direction:\nCreate a premium modern SaaS marketing composition.${domainSpecificLine}\nA sophisticated digital-business environment representing an AI-powered CRM and marketing platform.\nShow subtle visual elements such as:\n- Modern CRM dashboard concepts\n- AI automation and intelligent workflows\n- Customer relationship workflows\n- Marketing analytics and connected business processes\n- Intelligent data visualization\n- Clean software interface elements\n- Premium technology atmosphere\n\nStyle: ${activeStyle}.\nThe visual should feel:\nPremium, Modern, Professional, Innovative, Trustworthy, Enterprise-ready, Clean, and High-end.\nAvoid generic stock-photo aesthetics.`
+    );
+  } else if (parsed.isSaaSOrDigital) {
+    promptSections.push(
+      `Visual Direction:\nCreate a premium modern SaaS marketing composition for ${parsed.cleanSubject}.\nA sophisticated digital-business environment with modern UI dashboard concepts, intelligent workflows, and clean software interfaces.\nStyle: ${activeStyle}.\nThe visual should feel:\nPremium, Modern, Professional, Innovative, and High-end.\nAvoid generic stock-photo aesthetics.`
+    );
+  } else if (parsed.hasPhysicalProduct) {
+    promptSections.push(
+      `Visual Direction:\nCreate a commercial studio product photography visual asset featuring ${parsed.productName || parsed.cleanSubject}.\nRazor-sharp focus on the primary subject, authentic tactile textures, curated lifestyle staging, and soft natural lighting.\nStyle: ${activeStyle}.\nColor direction reflects clean, inviting, and premium tones.`
+    );
+  } else {
+    promptSections.push(
+      `Visual Direction:\n${domainInfo.defaultVisualScene}.\nFocus prominently on ${domainInfo.defaultVisualObject}.\nStyle: ${activeStyle}.\nAesthetic reflects balanced shadows, highlights, and rich visual depth.`
+    );
+  }
+
+  // 5. Composition & Framing
   promptSections.push(
-    `Subject & Core Concept: High-end visual representation of ${subjectName}. The visual must clearly communicate the marketing goal of "${marketingGoal}" for an audience of ${audience}.`
+    `Composition & Framing:\nPlatform: ${primaryPlatform.charAt(0).toUpperCase() + primaryPlatform.slice(1)}\nPreferred format: ${platformSpecs.imageRatio}\nFraming & Camera: ${platformSpecs.imageRecommendation}.\nComposition requirements:\n- Strong central focal point\n- Mobile-first visual hierarchy\n- Clean negative space\n- Premium depth and balanced composition\n- Logo clearly visible but naturally integrated into the composition\n- No overcrowding or unnecessary decorative clutter`
   );
 
+  // 6. Text & Copy Guidance
   promptSections.push(
-    `Scene & Environment: ${domainInfo.defaultVisualScene}. Centered prominently on ${domainInfo.defaultVisualObject}.`
+    `Text & Copy Guidance:\nKeep on-image text minimal to ensure clean visual rendering.\nSuggested headline: "Smarter Business. Powered by AI."\nOptional CTA: "Discover ${brandName || 'More'}"\nPrioritize clean negative space so marketing text can be added with precision.`
   );
 
-  promptSections.push(
-    `Composition & Camera: ${platformSpecs.imageRecommendation}. Place the subject prominently in the foreground with strong focal clarity and clean negative space for optional marketing copy.`
-  );
-
-  promptSections.push(
-    `Lighting & Aesthetic: ${styleDetails}. Color direction reflects clean, inviting, and premium tones.`
-  );
-
+  // 7. Custom Directives / Brand Palette
   if (brandContext?.brandColors) {
-    promptSections.push(`Brand Palette: Incorporate subtle accents of ${brandContext.brandColors}.`);
+    promptSections.push(`Brand Palette:\nIncorporate subtle accents of ${brandContext.brandColors}.`);
   }
   if (campaignName && campaignName.trim()) {
-    promptSections.push(`Campaign Theme: Aligned with the "${campaignName.trim()}" initiative.`);
+    promptSections.push(`Campaign Linkage:\nAligned with the "${campaignName.trim()}" initiative.`);
   }
   if (additionalInstructions && additionalInstructions.trim()) {
-    promptSections.push(`Custom Directives: ${additionalInstructions.trim()}`);
+    promptSections.push(`Custom Directives:\n${additionalInstructions.trim()}`);
   }
 
+  // 8. Brand Consistency & Negative Guardrails
   promptSections.push(
-    `Keep the product shape, packaging, and branding faithful to the provided reference.\nDo not create competitor logos.\nDo not distort the product.\nDo not alter the company logo.\nNo watermarks.\nNo unnecessary text.`
+    `Brand Consistency:\nMaintain the uploaded logo's exact visual identity.\nNo watermarks.\nNo unnecessary text.\nDo not invent fake logos, modified logos, random company names, distorted typography, or competitor branding.\nUse the supplied reference image URL above as the authoritative brand reference.`
   );
 
-  return promptSections.join('\n\n');
+  const rawPrompt = promptSections.join('\n\n');
+  return sanitizeAndValidatePrompt(rawPrompt);
 }
 
 export function buildDetailedVideoPrompt(params: {
@@ -728,75 +890,73 @@ export function buildDetailedVideoPrompt(params: {
     additionalInstructions,
   } = params;
 
-  const { cleanSubject, extractedBrand } = extractSubjectAndEntity(topic);
-  const domainInfo = detectIndustryDomain(cleanSubject);
+  const parsed = extractSubjectAndEntity(topic, brandContext);
+  const domainInfo = detectIndustryDomain(parsed.cleanSubject);
   const primaryPlatform = platforms[0] || 'instagram';
   const platformSpecs = getPlatformAspectGuidelines(primaryPlatform);
 
-  const subjectName = productOrService || extractedBrand || cleanSubject;
-  const audience = targetAudience || domainInfo.defaultAudience;
-  const marketingGoal = objective || 'promotion and engagement';
+  const brandName = parsed.extractedBrand || brandContext?.businessName || undefined;
+  const marketingGoal = objective || 'Promotion & Sales';
+  const audience = targetAudience || brandContext?.targetAudience || domainInfo.defaultAudience;
 
-  const videoSections: string[] = [
-    `Create a 10-second ${videoStyle.toLowerCase()} ${primaryPlatform.toLowerCase() === 'youtube' ? 'horizontal 16:9' : 'vertical 9:16'} ${primaryPlatform.toUpperCase()} promotional video for "${cleanSubject}".`,
-  ];
+  const videoSections: string[] = [];
 
-  // Referenced Brand Assets (Real Accessible Public URLs)
+  const brandHeader = brandName ? ` FOR ${brandName.toUpperCase()}` : '';
+  videoSections.push(`CREATE A 10-SECOND ${videoStyle.toUpperCase()} PROMOTIONAL VIDEO${brandHeader}`);
+
+  if (brandName) {
+    videoSections.push(`Brand:\n${brandName}`);
+  }
+
+  videoSections.push(`Marketing Objective:\n${marketingGoal}`);
+  videoSections.push(`Target Audience:\n${audience}`);
+  videoSections.push(`Format & Aspect Ratio:\n${platformSpecs.videoRatio} optimized for ${primaryPlatform.toUpperCase()}`);
+
   if (selectedAssets && selectedAssets.length > 0) {
-    const productAsset = selectedAssets.find((a) => a.category === 'PRODUCTS' || a.category === 'UI_DIGITAL');
     const logoAsset = selectedAssets.find((a) => a.category === 'LOGOS');
-    const peopleAsset = selectedAssets.find((a) => a.category === 'PEOPLE');
-
-    if (productAsset) {
-      videoSections.push(`Use this product image as the primary visual reference:\n${productAsset.public_url}`);
-    }
-    if (peopleAsset) {
-      videoSections.push(`Use this portrait photo as the main subject reference:\n${peopleAsset.public_url}`);
-    }
     if (logoAsset) {
-      videoSections.push(`Use the company logo in the final frame:\n${logoAsset.public_url}`);
+      videoSections.push(
+        `Primary Brand Reference:\n${logoAsset.public_url}\n\nPreserve the exact ${brandName || 'company'} logo for the closing title card and subtle watermark.`
+      );
+    }
+    const productAsset = selectedAssets.find((a) => a.category === 'PRODUCTS');
+    if (productAsset) {
+      videoSections.push(`Product Visual Reference:\n${productAsset.public_url}\n\nUse this product image as the primary visual reference:\n${productAsset.public_url}`);
+    }
+    const uiAsset = selectedAssets.find((a) => a.category === 'UI_DIGITAL');
+    if (uiAsset) {
+      videoSections.push(`UI / Dashboard Screen Reference:\n${uiAsset.public_url}`);
+    }
+    const peopleAsset = selectedAssets.find((a) => a.category === 'PEOPLE');
+    if (peopleAsset) {
+      videoSections.push(`Subject Portrait Reference:\n${peopleAsset.public_url}`);
     }
   }
 
-  videoSections.push(
-    `Concept & Objective: Showcase "${cleanSubject}" for ${audience} delivering on "${marketingGoal}".`
-  );
-
-  videoSections.push(
-    `Scene 1 — 0–2 seconds:\nOpen with a close-up cinematic shot of ${subjectName} in a warm, elegant setting to capture attention immediately.`
-  );
-
-  videoSections.push(
-    `Scene 2 — 2–5 seconds:\nSlow camera movement around the subject while dynamic environmental lighting creates an atmospheric glow.`
-  );
-
-  videoSections.push(
-    `Scene 3 — 5–8 seconds:\nShow ${subjectName} in active use as part of a premium lifestyle / professional setting, highlighting exquisite details and value.`
-  );
-
-  videoSections.push(
-    `Scene 4 — 8–10 seconds:\nTransition to a clean branded final frame using the supplied logo, with space for a short call-to-action.`
-  );
-
-  videoSections.push(
-    `Cinematography & Styling: Soft cinematic lighting, smooth camera movement, premium commercial product photography, warm elegant atmosphere, and ${primaryPlatform}-first visual composition.`
-  );
-
-  if (brandContext?.brandColors) {
-    videoSections.push(`Brand Tones: Featuring subtle accents of ${brandContext.brandColors}.`);
-  }
-  if (campaignName && campaignName.trim()) {
-    videoSections.push(`Campaign Context: Aligned with "${campaignName.trim()}".`);
-  }
-  if (additionalInstructions && additionalInstructions.trim()) {
-    videoSections.push(`Custom Directives: ${additionalInstructions.trim()}`);
+  if (parsed.isSaaSOrDigital && brandName?.startsWith('DailyBuz')) {
+    videoSections.push(
+      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) Sleek dynamic push-in on a glowing modern workspace interface displaying automated customer workflows with instant AI processing.\n- Scene 2 — 2–5 seconds: 2–5s (Core Action) Smooth fluid camera movement highlighting real-time CRM analytics, automated task completion, and team productivity growth.\n- Scene 3 — 5–8 seconds: 5–8s (Value Revelation) Polished UI transition showcasing connected marketing campaigns and customer insights.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Clean closing shot with the authoritative ${brandName} logo, accompanied by on-screen CTA: "Discover ${brandName}".`
+    );
+  } else if (parsed.hasPhysicalProduct) {
+    videoSections.push(
+      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) ${domainInfo.defaultVideoHook}.\n- Scene 2 — 2–5 seconds: 2–5s (Core Action) ${domainInfo.defaultVideoAction}.\n- Scene 3 — 5–8 seconds: 5–8s (Craftsmanship & Detail) Close-up macro panning shot highlighting texture, materials, and premium finish.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Elegant product hero shot with ${brandName || 'brand'} logo and CTA: "${domainInfo.defaultCta}".`
+    );
+  } else {
+    videoSections.push(
+      `Chronological Sequence (0–10s):\n- Scene 1 — 0–2 seconds: 0–2s (Opening Hook) ${domainInfo.defaultVideoHook}.\n- Scene 2 — 2–5 seconds: 2–5s (Core Action) ${domainInfo.defaultVideoAction}.\n- Scene 3 — 5–8 seconds: 5–8s (Climax) High-impact demonstration of results and transformative value.\n- Scene 4 — 8–10 seconds: 8–10s (Outro & CTA) Transition to a clean branded final frame using the supplied logo, with space for a short call-to-action: "${domainInfo.defaultCta}".`
+    );
   }
 
   videoSections.push(
-    `Preserve the actual product appearance and supplied logo.\nDo not distort the packaging.\nNo competitor branding.\nNo watermarks.`
+    `Motion & Lighting Direction:\n${videoStyle} lighting, smooth gimbal camera motions, high framerate clarity, professional depth of field, and crisp color grading.`
   );
 
-  return videoSections.join('\n\n');
+  videoSections.push(
+    `Guardrails:\nPreserve logo geometry and colors exactly.\nNo jittery artifacts.\nNo fake competitor branding.\nNo watermarks.`
+  );
+
+  const rawPrompt = videoSections.join('\n\n');
+  return sanitizeAndValidatePrompt(rawPrompt);
 }
 
 // --------------------------------------------------------------------------

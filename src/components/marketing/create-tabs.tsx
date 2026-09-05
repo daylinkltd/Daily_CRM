@@ -77,7 +77,8 @@ import { MediaCreativeSection, type MediaCreativeData } from '@/components/marke
 import { evaluateBlogSEO, type SEOReadinessReport } from '@/lib/marketing/seo-evaluator';
 import type { ReferenceArticle, GenerationTraceContext, RelevanceValidationResult } from '@/lib/marketing/attachment-processor';
 import type { WebResearchSource } from '@/lib/marketing/web-researcher';
-import type { SelectedAssetReference } from '@/lib/marketing/brand-asset-selector';
+import { ReferenceAssetUploader } from '@/components/marketing/reference-asset-uploader';
+import type { SelectedAssetReference, BrandAsset } from '@/lib/marketing/brand-asset-selector';
 
 
 export const CONTENT_TYPES = [
@@ -271,6 +272,7 @@ export function CreateWorkspaceTabs() {
   const [generationMode, setGenerationMode] = useState<'web_research' | 'ai_generate'>('web_research');
   const [searchErrorState, setSearchErrorState] = useState<{ topic: string; message: string } | null>(null);
   const [selectedBrandAssets, setSelectedBrandAssets] = useState<SelectedAssetReference[]>([]);
+  const [activeBrandReferences, setActiveBrandReferences] = useState<BrandAsset[]>([]);
   const [activeResultTab, setActiveResultTab] = useState<ResultTab>('content');
   const [activePreviewPlatform, setActivePreviewPlatform] = useState<SocialPlatform>('instagram');
   const [isGenerated, setIsGenerated] = useState<boolean>(false);
@@ -518,6 +520,7 @@ export function CreateWorkspaceTabs() {
           additionalCreativeInstructions: additionalInstructions,
           templateId: selectedTemplateId,
           workspaceId: activeWorkspace?.id,
+          brandAssets: activeBrandReferences.length > 0 ? activeBrandReferences : undefined,
           uploadedMediaUrl: mediaCreative?.source === 'uploaded' ? mediaCreative.url : undefined,
           referenceArticles: referenceArticles.length > 0 ? referenceArticles : undefined,
           primaryKeyword: primaryKeyword.trim() || undefined,
@@ -636,6 +639,7 @@ export function CreateWorkspaceTabs() {
           existingCta: generatedCta,
           imagePromptVersion,
           workspaceId: activeWorkspace?.id,
+          brandAssets: activeBrandReferences.length > 0 ? activeBrandReferences : undefined,
         }),
       });
 
@@ -644,10 +648,12 @@ export function CreateWorkspaceTabs() {
 
       const newPrompt = data.mode === 'blog' ? data.blog?.image_prompt : data.social?.image_prompt;
       const newVersion = data.mode === 'blog' ? data.blog?.image_prompt_version : data.social?.image_prompt_version;
+      const newSelectedAssets = data.mode === 'blog' ? data.blog?.selected_assets : data.social?.selected_assets;
 
       if (newPrompt) {
         setImagePrompt(newPrompt);
         setImagePromptVersion(newVersion || imagePromptVersion + 1);
+        if (newSelectedAssets) setSelectedBrandAssets(newSelectedAssets);
         toast.success(`Image prompt regenerated (${imageStyle} style)! Other fields preserved.`);
       }
     } catch (err: unknown) {
@@ -681,6 +687,7 @@ export function CreateWorkspaceTabs() {
           existingCta: generatedCta,
           videoPromptVersion,
           workspaceId: activeWorkspace?.id,
+          brandAssets: activeBrandReferences.length > 0 ? activeBrandReferences : undefined,
         }),
       });
 
@@ -689,10 +696,12 @@ export function CreateWorkspaceTabs() {
 
       const newPrompt = data.mode === 'blog' ? data.blog?.video_prompt : data.social?.video_prompt;
       const newVersion = data.mode === 'blog' ? data.blog?.video_prompt_version : data.social?.video_prompt_version;
+      const newSelectedAssets = data.mode === 'blog' ? data.blog?.selected_assets : data.social?.selected_assets;
 
       if (newPrompt) {
         setVideoPrompt(newPrompt);
         setVideoPromptVersion(newVersion || videoPromptVersion + 1);
+        if (newSelectedAssets) setSelectedBrandAssets(newSelectedAssets);
         toast.success(`Video prompt regenerated (${videoStyle} style)! Other fields preserved.`);
       }
     } catch (err: unknown) {
@@ -1341,6 +1350,15 @@ export function CreateWorkspaceTabs() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Reference Brand & Product Images (Drag & Drop Uploader) */}
+            <div className="space-y-2.5 pt-2 border-t border-border/70">
+              <ReferenceAssetUploader
+                workspaceId={activeWorkspace?.id || ''}
+                references={activeBrandReferences}
+                onChange={setActiveBrandReferences}
+              />
             </div>
 
             {/* Primary SEO Keyword (Keyword as constraint, NOT topic) */}
@@ -2299,14 +2317,27 @@ export function CreateWorkspaceTabs() {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {selectedBrandAssets.map((asset) => (
-                          <div key={asset.id} className="flex items-start gap-2.5 p-2 rounded-xl border border-sky-500/20 bg-background/80">
+                          <div key={asset.id} className="flex items-start gap-2.5 p-2 rounded-xl border border-sky-500/20 bg-background/80 group">
                             <div className="h-10 w-10 rounded-lg bg-muted/40 border border-border overflow-hidden shrink-0 flex items-center justify-center">
                               <img src={asset.public_url} alt={asset.name} className="h-full w-full object-contain" />
                             </div>
                             <div className="flex-1 min-w-0 space-y-0.5">
                               <div className="flex items-center justify-between gap-1">
                                 <span className="text-xs font-bold text-foreground truncate">{asset.name}</span>
-                                <Badge variant="secondary" className="text-[9px] px-1 py-0">{asset.category}</Badge>
+                                <div className="flex items-center gap-1">
+                                  <Badge variant="secondary" className="text-[9px] px-1 py-0">{asset.category}</Badge>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(asset.public_url);
+                                      toast.success(`Copied public URL for ${asset.name}!`);
+                                    }}
+                                    className="p-1 rounded text-muted-foreground hover:text-sky-600 hover:bg-sky-500/10 transition-colors"
+                                    title="Copy Public Asset URL"
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </button>
+                                </div>
                               </div>
                               <p className="text-[10px] text-sky-600 dark:text-sky-400 font-medium line-clamp-1">{asset.usageInstruction}</p>
                               <p className="text-[9px] text-muted-foreground truncate font-mono">{asset.public_url}</p>
@@ -2324,6 +2355,19 @@ export function CreateWorkspaceTabs() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const el = document.getElementById('marketing-image-prompt-input');
+                          el?.focus();
+                        }}
+                        className="h-9 px-3 text-xs font-bold rounded-xl gap-1.5 border-border text-foreground hover:bg-muted"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" /> Edit Prompt
+                      </Button>
+
                       <Button
                         type="button"
                         variant="outline"
@@ -2544,14 +2588,27 @@ export function CreateWorkspaceTabs() {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {selectedBrandAssets.map((asset) => (
-                          <div key={asset.id} className="flex items-start gap-2.5 p-2 rounded-xl border border-purple-500/20 bg-background/80">
+                          <div key={asset.id} className="flex items-start gap-2.5 p-2 rounded-xl border border-purple-500/20 bg-background/80 group">
                             <div className="h-10 w-10 rounded-lg bg-muted/40 border border-border overflow-hidden shrink-0 flex items-center justify-center">
                               <img src={asset.public_url} alt={asset.name} className="h-full w-full object-contain" />
                             </div>
                             <div className="flex-1 min-w-0 space-y-0.5">
                               <div className="flex items-center justify-between gap-1">
                                 <span className="text-xs font-bold text-foreground truncate">{asset.name}</span>
-                                <Badge variant="secondary" className="text-[9px] px-1 py-0">{asset.category}</Badge>
+                                <div className="flex items-center gap-1">
+                                  <Badge variant="secondary" className="text-[9px] px-1 py-0">{asset.category}</Badge>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(asset.public_url);
+                                      toast.success(`Copied public URL for ${asset.name}!`);
+                                    }}
+                                    className="p-1 rounded text-muted-foreground hover:text-purple-600 hover:bg-purple-500/10 transition-colors"
+                                    title="Copy Public Asset URL"
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </button>
+                                </div>
                               </div>
                               <p className="text-[10px] text-purple-600 dark:text-purple-400 font-medium line-clamp-1">{asset.usageInstruction}</p>
                               <p className="text-[9px] text-muted-foreground truncate font-mono">{asset.public_url}</p>
@@ -2570,6 +2627,19 @@ export function CreateWorkspaceTabs() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const el = document.getElementById('marketing-video-prompt-input');
+                          el?.focus();
+                        }}
+                        className="h-9 px-3 text-xs font-bold rounded-xl gap-1.5 border-border text-foreground hover:bg-muted"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" /> Edit Prompt
+                      </Button>
+
                       <Button
                         type="button"
                         variant="outline"

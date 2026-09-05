@@ -858,6 +858,105 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     expect(social.image_prompt_version).toBe(2);
     expect(social.image_prompt).toContain('vanilla scented candle');
   });
+
+  // TEST 30: Semantic parsing of conversational DailyBuz user request without verbatim sentence leakage
+  it('TEST 30: parses conversational DailyBuz request semantically and prevents verbatim sentence leakage in prompt subject', () => {
+    const rawUserRequest =
+      'I want to create a detailed DailyBuz marketing post using the updated logo as the primary brand reference. The generated content and creative should accurately reflect the updated logo and brand identity.';
+
+    const parsed = extractSubjectAndEntity(rawUserRequest);
+
+    // Brand and digital classification
+    expect(parsed.extractedBrand).toBe('DailyBuz');
+    expect(parsed.isSaaSOrDigital).toBe(true);
+    expect(parsed.hasPhysicalProduct).toBe(false);
+    expect(parsed.productName).toBeNull();
+
+    // Subject must be concise, NOT the whole conversational sentence
+    expect(parsed.cleanSubject.toLowerCase()).not.toContain('i want to create');
+    expect(parsed.cleanSubject.toLowerCase()).not.toContain('the generated content and creative should accurately reflect');
+    expect(parsed.cleanSubject.toLowerCase()).toContain('dailybuz');
+  });
+
+  // TEST 31: DailyBuz SaaS Creative Direction (Zero physical product photography or packaging details)
+  it('TEST 31: generates a premium SaaS technology creative prompt for DailyBuz without physical product hallucinations', () => {
+    const rawUserRequest =
+      'I want to create a detailed DailyBuz marketing post using the updated logo as the primary brand reference. The generated content and creative should accurately reflect the updated logo and brand identity.';
+
+    const logoAsset = {
+      id: 'asset_dailybuz_logo_001',
+      name: 'DailyBuz Official Logo',
+      category: 'LOGOS' as const,
+      public_url: 'https://cdn.dailybuz.com/assets/tenant_123/dailybuz-logo.png',
+      usageInstruction: 'Primary brand reference logo',
+      relevanceScore: 100,
+    };
+
+    const prompt = buildDetailedImagePrompt({
+      topic: rawUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [logoAsset],
+      objective: 'Promotion & Sales',
+      targetAudience: 'Discerning customers, passionate enthusiasts, and quality-focused buyers',
+    });
+
+    // 1. Must contain header and brand
+    expect(prompt).toContain('CREATE A PREMIUM INSTAGRAM MARKETING CREATIVE FOR DAILYBUZ');
+    expect(prompt).toContain('Brand:\nDailyBuz');
+    expect(prompt).toContain('Marketing Goal:\nPromotion & Sales');
+
+    // 2. Must cite the real public URL and strict preservation rules
+    expect(prompt).toContain('https://cdn.dailybuz.com/assets/tenant_123/dailybuz-logo.png');
+    expect(prompt).toContain('Use the supplied DailyBuz logo as the primary brand reference exactly as provided');
+    expect(prompt).toContain('Do not:\n- redesign the logo\n- recreate the logo\n- alter the logo colors\n- change proportions\n- stretch the logo\n- distort the logo\n- replace the logo');
+
+    // 3. Must specify modern SaaS / AI CRM visual direction
+    expect(prompt).toContain('Create a premium modern SaaS marketing composition');
+    expect(prompt).toContain('AI-powered CRM and marketing platform');
+    expect(prompt).toContain('Modern CRM dashboard concepts');
+
+    // 4. Must NOT hallucinate physical product photography or packaging
+    const lowerPrompt = prompt.toLowerCase();
+    expect(lowerPrompt).not.toContain('product photography');
+    expect(lowerPrompt).not.toContain('product packaging');
+    expect(lowerPrompt).not.toContain('packaging details');
+    expect(lowerPrompt).not.toContain('tactile product aesthetics');
+    expect(lowerPrompt).not.toContain('i want to create a detailed dailybuz marketing post');
+
+    // 5. Must NOT contain HTML tags
+    expect(prompt).not.toMatch(/<[^>]*>/);
+  });
+
+  // TEST 32: Video prompt structure for DailyBuz with 0-10s timeline and logo closing card
+  it('TEST 32: generates a structured 0-10s video prompt for DailyBuz citing the authentic logo reference', () => {
+    const rawUserRequest =
+      'Create a DailyBuz video post announcing our new AI automation features';
+
+    const logoAsset = {
+      id: 'asset_dailybuz_logo_001',
+      name: 'DailyBuz Official Logo',
+      category: 'LOGOS' as const,
+      public_url: 'https://cdn.dailybuz.com/assets/tenant_123/dailybuz-logo.png',
+      usageInstruction: 'Primary brand reference logo',
+      relevanceScore: 100,
+    };
+
+    const videoPrompt = buildDetailedVideoPrompt({
+      topic: rawUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [logoAsset],
+      objective: 'Promotion & Sales',
+      videoStyle: 'Cinematic',
+    });
+
+    expect(videoPrompt).toContain('CREATE A 10-SECOND CINEMATIC PROMOTIONAL VIDEO FOR DAILYBUZ');
+    expect(videoPrompt).toContain('https://cdn.dailybuz.com/assets/tenant_123/dailybuz-logo.png');
+    expect(videoPrompt).toContain('Chronological Sequence (0–10s)');
+    expect(videoPrompt).toContain('0–2s (Opening Hook)');
+    expect(videoPrompt).toContain('8–10s (Outro & CTA)');
+    expect(videoPrompt).not.toContain('product packaging');
+    expect(videoPrompt).not.toMatch(/<[^>]*>/);
+  });
 });
 
 
