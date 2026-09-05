@@ -264,6 +264,8 @@ export function isValidBrandName(candidate: string | null | undefined): boolean 
   const clean = candidate.trim().toLowerCase();
   if (VALUE_PROP_BLACKLIST_STRINGS.some((bp) => clean === bp || clean.includes(bp))) return false;
   if (/^(?:build|automate|improve|increase|streamline|scale|save|create|make|generate|drive|grow|boost)\b/i.test(clean)) return false;
+  if (/^(?:er\s+for|poster\s+for|for\s+our|for\s+the|our\s+|my\s+|the\s+|a\s+|an\s+)/i.test(clean)) return false;
+  if (['crm', 'hr', 'poster', 'post', 'flyer', 'banner', 'video', 'creative', 'services'].includes(clean)) return false;
   return true;
 }
 
@@ -770,7 +772,7 @@ export function extractSubjectAndEntity(input: string, brandContext?: BrandConte
     } else if (lowerRaw.includes('nike')) {
       extractedBrand = 'Nike';
     } else {
-      const specificBrandMatch = text.match(/\b([A-Za-z0-9&']+(?:\s+[A-Za-z0-9&']+)*\s+(?:Tech\s+Labs|Labs|Technologies|Solutions|Software|CRM|HR|Studio|Hub|Engine|Agency|Co|Inc|LLC|Ltd|Group|Platform))\b/i);
+      const specificBrandMatch = text.match(/\b([A-Z][A-Za-z0-9&']*(?:\s+[A-Z][A-Za-z0-9&']*)*\s+(?:Tech\s+Labs|Labs|Technologies|Solutions|Software|CRM|HR|Studio|Hub|Engine|Agency|Co|Inc|LLC|Ltd|Group|Platform))\b/);
       if (specificBrandMatch && specificBrandMatch[1] && isValidBrandName(specificBrandMatch[1])) {
         extractedBrand = specificBrandMatch[1].trim();
       }

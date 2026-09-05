@@ -40,6 +40,7 @@
     "test:watch": "vitest",
     "test:marketing": "vitest run src/lib/marketing",
     "test:video": "vitest run src/lib/marketing/video-service.test.ts src/lib/marketing/image-service.test.ts",
+    "test:creative-types": "npx tsx scripts/test-creative-types.ts",
     "run:video": "npx tsx scripts/run-video-service.ts"
   },
   "dependencies": {
