@@ -37,7 +37,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:marketing": "vitest run src/lib/marketing",
+    "test:video": "vitest run src/lib/marketing/video-service.test.ts src/lib/marketing/image-service.test.ts",
+    "run:video": "npx tsx scripts/run-video-service.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
