@@ -93,10 +93,17 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
 
   // Form State - 4. Education & Experience
   const [highestQualification, setHighestQualification] = useState('');
-  const [degreeName, setDegreeName] = useState('');
-  const [instituteUniversity, setInstituteUniversity] = useState('');
-  const [yearOfPassing, setYearOfPassing] = useState('');
-  const [cgpaPercentage, setCgpaPercentage] = useState('');
+  const [educationRecords, setEducationRecords] = useState<{
+    level: string;
+    degree: string;
+    institute: string;
+    year: string;
+    score: string;
+  }[]>([
+    { level: '10TH', degree: '10th Standard / SSLC', institute: '', year: '', score: '' },
+    { level: '12TH', degree: '12th Standard / HSC', institute: '', year: '', score: '' },
+    { level: 'DEGREE', degree: '', institute: '', year: '', score: '' }
+  ]);
   const [totalExperienceYears, setTotalExperienceYears] = useState('0');
   const [prevCompany, setPrevCompany] = useState('');
   const [prevDesignation, setPrevDesignation] = useState('');
@@ -289,12 +296,15 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
           // Education & Experience
           highest_qualification: highestQualification.trim() || null,
           total_experience_years: Number(totalExperienceYears) || 0,
-          education_details: degreeName ? [{
-            degree: degreeName.trim(),
-            institute: instituteUniversity.trim(),
-            year: yearOfPassing.trim(),
-            score: cgpaPercentage.trim(),
-          }] : null,
+          education_details: educationRecords.filter(e => e.degree.trim() || e.institute.trim()).length > 0
+            ? educationRecords.filter(e => e.degree.trim() || e.institute.trim()).map(e => ({
+                level: e.level,
+                degree: e.degree.trim(),
+                institute: e.institute.trim(),
+                year: e.year.trim(),
+                score: e.score.trim()
+              }))
+            : null,
           previous_work_history: prevCompany ? [{
             company: prevCompany.trim(),
             designation: prevDesignation.trim(),
@@ -342,9 +352,9 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-popover border-border text-popover-foreground sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-foreground">
+      <DialogContent className="bg-popover border-border text-popover-foreground w-[95vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-base sm:text-lg font-bold text-foreground">
             HR Comprehensive Employee Master Onboarding
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
@@ -359,13 +369,15 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 py-2">
             <Tabs defaultValue="employment" className="w-full">
-              <TabsList className="grid grid-cols-5 w-full bg-muted/60 text-xs">
-                <TabsTrigger value="employment" className="text-xs gap-1"><Briefcase className="size-3.5" /> 1. Employment</TabsTrigger>
-                <TabsTrigger value="personal" className="text-xs gap-1"><User className="size-3.5" /> 2. Personal</TabsTrigger>
-                <TabsTrigger value="family" className="text-xs gap-1"><Users className="size-3.5" /> 3. Family & Nominee</TabsTrigger>
-                <TabsTrigger value="education" className="text-xs gap-1"><GraduationCap className="size-3.5" /> 4. Edu & Exp</TabsTrigger>
-                <TabsTrigger value="bank" className="text-xs gap-1"><Landmark className="size-3.5" /> 5. Bank & Statutory</TabsTrigger>
-              </TabsList>
+              <div className="w-full overflow-x-auto pb-2">
+                <TabsList className="inline-flex min-w-full sm:w-full sm:grid sm:grid-cols-5 h-auto p-1 bg-muted/70 text-xs">
+                  <TabsTrigger value="employment" className="text-[11px] sm:text-xs py-1.5 px-2.5 gap-1 shrink-0 whitespace-nowrap"><Briefcase className="size-3.5 shrink-0" /> 1. Employment</TabsTrigger>
+                  <TabsTrigger value="personal" className="text-[11px] sm:text-xs py-1.5 px-2.5 gap-1 shrink-0 whitespace-nowrap"><User className="size-3.5 shrink-0" /> 2. Personal</TabsTrigger>
+                  <TabsTrigger value="family" className="text-[11px] sm:text-xs py-1.5 px-2.5 gap-1 shrink-0 whitespace-nowrap"><Users className="size-3.5 shrink-0" /> 3. Family &amp; Nominee</TabsTrigger>
+                  <TabsTrigger value="education" className="text-[11px] sm:text-xs py-1.5 px-2.5 gap-1 shrink-0 whitespace-nowrap"><GraduationCap className="size-3.5 shrink-0" /> 4. Edu &amp; Exp</TabsTrigger>
+                  <TabsTrigger value="bank" className="text-[11px] sm:text-xs py-1.5 px-2.5 gap-1 shrink-0 whitespace-nowrap"><Landmark className="size-3.5 shrink-0" /> 5. Bank &amp; Statutory</TabsTrigger>
+                </TabsList>
+              </div>
 
               {/* Tab 1: Core & Employment */}
               <TabsContent value="employment" className="space-y-3 pt-3">
@@ -391,7 +403,7 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="space-y-1.5">
                     <Label className="text-xs">Employee Code (ID)</Label>
                     <Input value={employeeCode} onChange={(e) => setEmployeeCode(e.target.value)} placeholder="e.g. EMP-042" className="h-9 text-xs" />
@@ -466,7 +478,7 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
 
               {/* Tab 2: Personal & Contact */}
               <TabsContent value="personal" className="space-y-3 pt-3">
-                <div className="grid grid-cols-3 gap-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div className="space-y-1.5">
                     <Label className="text-xs">Date of Birth</Label>
                     <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="h-9 text-xs" />
@@ -661,30 +673,126 @@ export function OnboardEmployeeForm({ open, onOpenChange, onSaved }: OnboardEmpl
               {/* Tab 4: Education & Prior Experience */}
               <TabsContent value="education" className="space-y-3 pt-3">
                 <div className="space-y-2">
-                  <Label className="font-bold text-xs text-primary">Educational Qualification</Label>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="space-y-1">
-                      <Label className="text-[11px]">Highest Qualification</Label>
-                      <Input value={highestQualification} onChange={(e) => setHighestQualification(e.target.value)} placeholder="e.g. B.Tech Computer Science / MBA" className="h-8 text-xs" />
+                  <div className="flex items-center justify-between">
+                    <Label className="font-bold text-xs text-primary flex items-center gap-1.5">
+                      <GraduationCap className="size-3.5" /> Educational Qualifications (10th, 12th, Graduation, PG)
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[11px] gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                      onClick={() => setEducationRecords([...educationRecords, { level: 'POST_GRAD', degree: '', institute: '', year: '', score: '' }])}
+                    >
+                      <Plus className="size-3" /> Add Degree / Qualification
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs pb-1">
+                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                      <Label className="text-[11px]">Highest Qualification Summary</Label>
+                      <Input value={highestQualification} onChange={(e) => setHighestQualification(e.target.value)} placeholder="e.g. B.Tech Computer Science / M.Tech" className="h-8 text-xs" />
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-[11px]">Degree / Specialization</Label>
-                      <Input value={degreeName} onChange={(e) => setDegreeName(e.target.value)} placeholder="e.g. Bachelor of Technology" className="h-8 text-xs" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[11px]">Institute / University</Label>
-                      <Input value={instituteUniversity} onChange={(e) => setInstituteUniversity(e.target.value)} placeholder="e.g. Delhi University / IIT" className="h-8 text-xs" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-[11px]">Year of Passing</Label>
-                        <Input value={yearOfPassing} onChange={(e) => setYearOfPassing(e.target.value)} placeholder="2022" className="h-8 text-xs" />
+                  </div>
+
+                  <div className="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
+                    {educationRecords.map((edu, idx) => (
+                      <div key={idx} className="bg-muted/30 p-2.5 rounded-lg space-y-2 text-xs border border-border/50">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="font-bold text-[11px] text-primary shrink-0 uppercase tracking-wide">
+                              #{idx + 1}
+                            </span>
+                            <Select
+                              value={edu.level}
+                              onValueChange={(val) => {
+                                const updated = [...educationRecords];
+                                updated[idx].level = val;
+                                setEducationRecords(updated);
+                              }}
+                            >
+                              <SelectTrigger className="h-7 text-[11px] w-36 bg-background"><SelectValue placeholder="Level" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="10TH" className="text-xs">10th Class / Secondary</SelectItem>
+                                <SelectItem value="12TH" className="text-xs">12th Class / Sr. Secondary</SelectItem>
+                                <SelectItem value="DIPLOMA" className="text-xs">Diploma</SelectItem>
+                                <SelectItem value="DEGREE" className="text-xs">Bachelor / Graduation</SelectItem>
+                                <SelectItem value="POST_GRAD" className="text-xs">Post Graduation / Master</SelectItem>
+
+                                <SelectItem value="DOCTORATE" className="text-xs">Doctorate / Ph.D.</SelectItem>
+                                <SelectItem value="OTHER" className="text-xs">Other Certification</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {educationRecords.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-6 text-destructive hover:bg-destructive/10"
+                              onClick={() => setEducationRecords(educationRecords.filter((_, i) => i !== idx))}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-12 gap-2">
+                          <div className="col-span-12 sm:col-span-5 space-y-0.5">
+                            <Label className="text-[10px] text-muted-foreground">Degree / Exam Title</Label>
+                            <Input
+                              placeholder="e.g. 10th Board / B.Tech CSE"
+                              value={edu.degree}
+                              onChange={(e) => {
+                                const updated = [...educationRecords];
+                                updated[idx].degree = e.target.value;
+                                setEducationRecords(updated);
+                              }}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                          <div className="col-span-12 sm:col-span-4 space-y-0.5">
+                            <Label className="text-[10px] text-muted-foreground">School / College / Board</Label>
+                            <Input
+                              placeholder="e.g. CBSE / Delhi Univ"
+                              value={edu.institute}
+                              onChange={(e) => {
+                                const updated = [...educationRecords];
+                                updated[idx].institute = e.target.value;
+                                setEducationRecords(updated);
+                              }}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                          <div className="col-span-6 sm:col-span-1.5 space-y-0.5">
+                            <Label className="text-[10px] text-muted-foreground">Year</Label>
+                            <Input
+                              placeholder="2018"
+                              value={edu.year}
+                              onChange={(e) => {
+                                const updated = [...educationRecords];
+                                updated[idx].year = e.target.value;
+                                setEducationRecords(updated);
+                              }}
+                              className="h-8 text-xs font-mono"
+                            />
+                          </div>
+                          <div className="col-span-6 sm:col-span-1.5 space-y-0.5">
+                            <Label className="text-[10px] text-muted-foreground">Marks / %</Label>
+                            <Input
+                              placeholder="85%"
+                              value={edu.score}
+                              onChange={(e) => {
+                                const updated = [...educationRecords];
+                                updated[idx].score = e.target.value;
+                                setEducationRecords(updated);
+                              }}
+                              className="h-8 text-xs font-mono"
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-[11px]">CGPA / Percentage</Label>
-                        <Input value={cgpaPercentage} onChange={(e) => setCgpaPercentage(e.target.value)} placeholder="8.5 / 85%" className="h-8 text-xs" />
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
