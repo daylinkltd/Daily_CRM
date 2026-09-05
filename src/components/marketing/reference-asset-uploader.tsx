@@ -299,6 +299,12 @@ export function ReferenceAssetUploader({
       });
       const json = await res.json();
       if (res.ok && json.success && json.asset) {
+        try {
+          const blobUrl = URL.createObjectURL(file);
+          setPreviewMap((prev) => ({ ...prev, [json.asset.id]: blobUrl }));
+        } catch {
+          // ignore
+        }
         const next = references.map((r) => (r.id === targetId ? json.asset : r));
         onChange(next);
         toast.success('Asset replaced successfully!');

@@ -37,15 +37,29 @@ export async function GET(req: NextRequest) {
       console.warn('[BrandAssetsAPI] DB Fetch warning (table pending migration):', error.message);
     }
 
-    const baseAppUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL || 'https://dailybuz.com';
+    let baseAppUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL || 'https://dailybuz.com';
+    if (baseAppUrl.includes('localhost') || baseAppUrl.includes('127.0.0.1')) {
+      baseAppUrl = 'https://dailybuz.com';
+    }
     const cleanBase = baseAppUrl.replace(/\/$/, '');
 
-    const normalizedAssets = ((assets || []) as any[]).map((a) => ({
-      ...a,
-      public_url: a.public_url?.startsWith('http')
-        ? a.public_url
-        : `${cleanBase}${a.public_url?.startsWith('/') ? a.public_url : `/${a.public_url || ''}`}`,
-    }));
+    const normalizedAssets = ((assets || []) as any[]).map((a) => {
+      let pub = (a.public_url || '').trim();
+      if (!pub || pub.startsWith('/uploads/')) {
+        pub = `${cleanBase}${pub.startsWith('/') ? pub : `/${pub}`}`;
+      } else if (pub.includes('localhost') || pub.includes('127.0.0.1')) {
+        try {
+          const parsed = new URL(pub);
+          pub = `${cleanBase}${parsed.pathname}`;
+        } catch {
+          pub = `${cleanBase}/uploads/marketing/assets/${a.id}.png`;
+        }
+      }
+      return {
+        ...a,
+        public_url: pub,
+      };
+    });
 
     return NextResponse.json({
       success: true,
@@ -110,13 +124,11 @@ export async function POST(req: NextRequest) {
     await mkdir(uploadsDir, { recursive: true });
 
     const diskPath = join(uploadsDir, fileName);
-    const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || '';
-    const proto = req.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
-    let baseAppUrl = 'https://dailybuz.com';
-    if (process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL) {
-      baseAppUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL)!.replace(/\/$/, '');
-    } else if (host) {
-      baseAppUrl = `${proto}://${host}`;
+    await writeFile(diskPath, buffer);
+
+    let baseAppUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.PUBLIC_APP_URL || process.env.APP_URL || 'https://dailybuz.com';
+    if (baseAppUrl.includes('localhost') || baseAppUrl.includes('127.0.0.1')) {
+      baseAppUrl = 'https://dailybuz.com';
     }
     const cleanBase = baseAppUrl.replace(/\/$/, '');
     const relativeUrl = `/uploads/marketing/assets/${safeWorkspace}/${fileName}`;

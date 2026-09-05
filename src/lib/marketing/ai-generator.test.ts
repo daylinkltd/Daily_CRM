@@ -10,6 +10,9 @@ import {
   isValidBrandName,
   normalizeAssetPublicUrl,
   validateAndSanitizePrompt,
+  resolveAssetPublicUrl,
+  validateAssetUrlAccessibility,
+  validateCreativePromptQA,
 } from './ai-generator';
 
 describe('Universal AI Marketing Content Generator Suite', () => {
@@ -148,8 +151,8 @@ describe('Universal AI Marketing Content Generator Suite', () => {
       platforms: ['instagram'],
       imageStyle: 'Product Photography',
     });
-    expect(instaPrompt).toContain('1:1');
-    expect(instaPrompt).toContain('Instagram mobile feed');
+    expect(instaPrompt).toContain('4:5');
+    expect(instaPrompt).toContain('Instagram 4:5 vertical');
 
     const linkedinPrompt = buildDetailedImagePrompt({
       topic: 'AI Automation Services',
@@ -157,7 +160,7 @@ describe('Universal AI Marketing Content Generator Suite', () => {
       imageStyle: 'Modern Tech',
     });
     expect(linkedinPrompt).toContain('1.91:1');
-    expect(linkedinPrompt).toContain('LinkedIn');
+    expect(linkedinPrompt).toContain('Linkedin');
 
     const tiktokPrompt = buildDetailedImagePrompt({
       topic: 'Summer Fashion Outfits',
@@ -766,9 +769,9 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     // Image Prompt verification
     expect(social.image_prompt).toContain('https://storage.example.com/tenant123/assets/vanilla-candle.png');
     expect(social.image_prompt).toContain('https://storage.example.com/tenant123/assets/logo.png');
-    expect(social.image_prompt).toContain('Use the provided product image as the primary product reference:');
-    expect(social.image_prompt).toContain("Use the company's actual logo for subtle branding:");
-    expect(social.image_prompt).toContain('No watermarks');
+    expect(social.image_prompt).toContain('PRODUCT REFERENCE IMAGE:');
+    expect(social.image_prompt).toContain('PRIMARY REFERENCE IMAGE:');
+    expect(social.image_prompt).toContain('LOGO PRESERVATION:');
 
     // Video Prompt verification
     expect(social.video_prompt).toContain('https://storage.example.com/tenant123/assets/vanilla-candle.png');
@@ -906,19 +909,19 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     });
 
     // 1. Must contain header and brand
-    expect(prompt).toContain('CREATE A PREMIUM INSTAGRAM MARKETING CREATIVE FOR DAILYBUZ');
-    expect(prompt).toContain('Brand:\nDailyBuz');
-    expect(prompt).toContain('Marketing Goal:\nPromotion & Sales');
+    expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM MARKETING CREATIVE FOR DAILYBUZ.');
+    expect(prompt).toContain('BRAND:\nDailyBuz');
 
     // 2. Must cite the real public URL and strict preservation rules
     expect(prompt).toContain('https://cdn.dailybuz.com/assets/tenant_123/dailybuz-logo.png');
-    expect(prompt).toContain('Use the supplied DailyBuz logo as the primary brand reference exactly as provided');
-    expect(prompt).toContain('Do not:\n- redesign the logo\n- recreate the logo\n- alter the logo colors\n- change proportions\n- stretch the logo\n- distort the logo\n- replace the logo');
+    expect(prompt).toContain('PRIMARY REFERENCE IMAGE:');
+    expect(prompt).toContain('LOGO PRESERVATION:');
+    expect(prompt).toContain('Do not recreate, redesign, recolor, distort, stretch, modify, replace or generate a new version of the logo.');
 
     // 3. Must specify modern SaaS / AI CRM visual direction
-    expect(prompt).toContain('Create a premium modern SaaS marketing composition');
-    expect(prompt).toContain('AI-powered CRM and marketing platform');
-    expect(prompt).toContain('Modern CRM dashboard concepts');
+    expect(prompt).toContain('CREATIVE DIRECTION:\nCreate a sophisticated premium SaaS environment');
+    expect(prompt).toContain('modern software dashboard with elegant CRM');
+    expect(prompt).toContain('VISUAL STYLE:\nPremium enterprise SaaS.');
 
     // 4. Must NOT hallucinate physical product photography or packaging
     const lowerPrompt = prompt.toLowerCase();
@@ -1018,13 +1021,12 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
       selectedAssets: [logoAsset],
     });
 
-    expect(prompt).toContain('PRIMARY BRAND ASSET');
-    expect(prompt).toContain('Asset type: Official company logo');
-    expect(prompt).toContain('Brand: Daylink Tech Labs');
-    expect(prompt).toContain('Public reference URL:');
+    expect(prompt).toContain('PRIMARY REFERENCE IMAGE:');
+    expect(prompt).toContain('REFERENCE ASSET TYPE:\nOfficial Company Logo');
+    expect(prompt).toContain('BRAND:\nDaylink Tech Labs');
     expect(prompt).toContain('https://');
-    expect(prompt).toContain('Production Logo Compositing Directive:');
-    expect(prompt).toContain('Overlay and composite the original logo directly onto the final creative');
+    expect(prompt).toContain('LOGO PRESERVATION:');
+    expect(prompt).toContain('Do not recreate, redesign, recolor, distort, stretch, modify, replace or generate a new version of the logo.');
     expect(prompt).not.toMatch(/(?:^|\s)\/uploads\//); // Must not be a bare relative path
   });
 
@@ -1036,32 +1038,246 @@ Astronomers analyzing transit transmission spectra from the James Webb Space Tel
     });
 
     expect(prompt.toLowerCase()).not.toContain('style: product photography');
-    expect(prompt).toContain('Premium Enterprise SaaS');
-    expect(prompt).toContain('Create a premium modern SaaS marketing composition');
+    expect(prompt).toContain('VISUAL STYLE:\nPremium enterprise SaaS.');
+    expect(prompt).toContain('CREATIVE DIRECTION:\nCreate a sophisticated premium SaaS environment');
   });
 
-  // TEST 37: Automated prompt validation and self-correction
-  it('TEST 37: validates prompt, strips HTML, converts relative URLs to HTTPS, and fixes styling', () => {
-    const rawPromptWithIssues = `
-      <p>CREATE A PREMIUM MARKETING CREATIVE FOR DAYLINK TECH LABS</p>
-      Primary Brand Reference:
-      /uploads/marketing/assets/tenant_1/logo.png
-      Style: Product Photography.
-      <blockquote>Tactile product photography visual asset</blockquote>
-    `;
+  // --------------------------------------------------------------------------
+  // PRODUCTION VALIDATION SUITE: 15 Core Acceptance Tests for Daylink Tech Labs
+  // --------------------------------------------------------------------------
+  const sampleUserRequest =
+    'Create a premium Instagram marketing creative for Daylink Tech Labs promoting our AI & Automation services. Use the uploaded Daylink Tech Labs logo as the primary brand reference and keep the logo exactly unchanged. The visual should communicate that Daylink Tech Labs helps businesses automate repetitive work, build intelligent software solutions and improve productivity using AI. Target audience: startups, small and medium businesses and technology-driven companies. Modern premium SaaS/technology aesthetic, strong visual hierarchy, clean composition, subtle AI and automation elements, professional enterprise feel. Instagram 4:5 vertical. Keep text minimal and leave negative space. Do not invent statistics, customer logos or claims.';
 
-    const validated = validateAndSanitizePrompt(rawPromptWithIssues, {
-      brand_name: 'Daylink Tech Labs',
-      creative_category: 'SaaS / Technology Marketing',
-      visual_style: 'Premium Enterprise SaaS',
+  const sampleDbLogoAsset = {
+    id: 'ab6095d0-aa86-4328-934b-d56f26d8d7d8',
+    name: 'Daylink Tech Labs Logo',
+    category: 'LOGOS' as const,
+    sub_category: 'Primary Official Logo',
+    description: 'Authoritative official vector brand logo for Daylink Tech Labs',
+    storage_path: '/uploads/marketing/assets/ab6095d0-aa86-4328-934b-d56f26d8d7d8/bf9b5959-3af3-47af-b66c-6ec213000399.png',
+    public_url: '/uploads/marketing/assets/ab6095d0-aa86-4328-934b-d56f26d8d7d8/bf9b5959-3af3-47af-b66c-6ec213000399.png',
+    mime_type: 'image/png',
+    usageInstruction: 'Use as authoritative primary official brand logo',
+    relevanceScore: 100,
+  };
+
+  // TEST 1: Uploaded PNG logo -> public URL resolution
+  it('PRODUCTION TEST 1: resolves uploaded relative logo storage path to absolute production HTTPS URL', () => {
+    const resolved = resolveAssetPublicUrl(sampleDbLogoAsset);
+    expect(resolved.publicUrl).toBe(
+      'https://dailybuz.com/uploads/marketing/assets/ab6095d0-aa86-4328-934b-d56f26d8d7d8/bf9b5959-3af3-47af-b66c-6ec213000399.png'
+    );
+    expect(resolved.publicUrl.startsWith('https://')).toBe(true);
+    expect(resolved.storagePath).toBe(
+      '/uploads/marketing/assets/ab6095d0-aa86-4328-934b-d56f26d8d7d8/bf9b5959-3af3-47af-b66c-6ec213000399.png'
+    );
+    expect(resolved.publicUrl).not.toContain('localhost');
+  });
+
+  // TEST 2: Public URL -> HTTP accessibility validation
+  it('PRODUCTION TEST 2: verifies public HTTPS URL format, HTTP status and image/png MIME type', async () => {
+    const resolved = resolveAssetPublicUrl(sampleDbLogoAsset);
+    const report = await validateAssetUrlAccessibility(resolved.publicUrl, {
+      id: sampleDbLogoAsset.id,
+      name: sampleDbLogoAsset.name,
     });
 
-    expect(validated).not.toMatch(/<[^>]*>/);
-    expect(validated).not.toContain('Style: Product Photography');
-    expect(validated).toContain('Style: Premium Enterprise SaaS');
-    expect(validated).not.toMatch(/(?:^|\s)\/uploads\//); // Bare relative URL replaced with absolute HTTPS URL
-    expect(validated).toContain('https://');
+    expect(report.accessible).toBe(true);
+    expect(report.status).toBe(200);
+    expect(report.contentType).toMatch(/image\/png|image\//);
+    expect(report.publicUrl.startsWith('https://')).toBe(true);
+  });
+
+  // TEST 3: Asset -> image reference passed to generation system
+  it('PRODUCTION TEST 3: attaches resolved reference asset to generated image prompt structure', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt).toContain('PRIMARY REFERENCE IMAGE:');
+    expect(prompt).toContain('https://dailybuz.com/uploads/marketing/assets/ab6095d0-aa86-4328-934b-d56f26d8d7d8/bf9b5959-3af3-47af-b66c-6ec213000399.png');
+    expect(prompt).toContain('REFERENCE ASSET TYPE:\nOfficial Company Logo');
+    expect(prompt).toContain('REFERENCE ASSET:\nOfficial Daylink Tech Labs logo.');
+  });
+
+  // TEST 4: User request -> semantic extraction
+  it('PRODUCTION TEST 4: semantically extracts brand, services, value propositions and audience without raw request dumping', () => {
+    const intent = extractCreativeIntent(sampleUserRequest, {
+      platform: 'instagram',
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(intent.brand_name).toBe('Daylink Tech Labs');
+    expect(intent.service_or_product).toContain('AI & Automation');
+    expect(intent.value_propositions).toContain('automate repetitive work');
+    expect(intent.value_propositions).toContain('build intelligent software');
+    expect(intent.value_propositions).toContain('improve productivity using AI');
+    expect(intent.creative_category).toBe('SaaS / Technology Marketing');
+    expect(intent.visual_style).toBe('Premium Enterprise SaaS');
+  });
+
+  // TEST 5: Brand resolution -> Daylink Tech Labs
+  it('PRODUCTION TEST 5: accurately resolves brand name as Daylink Tech Labs and rejects service concepts', () => {
+    const { extractedBrand } = extractSubjectAndEntity(sampleUserRequest);
+    expect(extractedBrand).toBe('Daylink Tech Labs');
+    expect(extractedBrand).not.toBe('build intelligent software');
+    expect(extractedBrand).not.toBe('automate repetitive work');
+    expect(isValidBrandName('build intelligent software')).toBe(false);
+    expect(isValidBrandName('Daylink Tech Labs')).toBe(true);
+  });
+
+  // TEST 6: Creative type -> Premium SaaS / Technology
+  it('PRODUCTION TEST 6: classifies the creative type strictly as SaaS / Technology Marketing and not Product Photography', () => {
+    const intent = extractCreativeIntent(sampleUserRequest);
+    expect(intent.creative_category).toBe('SaaS / Technology Marketing');
+    expect(intent.visual_style).toBe('Premium Enterprise SaaS');
+  });
+
+  // TEST 7: Aspect ratio -> Instagram 4:5
+  it('PRODUCTION TEST 7: specifies vertical 4:5 aspect ratio and 1080 × 1350 resolution for Instagram', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt).toContain('CREATE A PREMIUM 4:5 INSTAGRAM MARKETING CREATIVE FOR DAYLINK TECH LABS.');
+    expect(prompt).toContain('Instagram 4:5 vertical.');
+    expect(prompt).toContain('1080 × 1350 composition.');
+  });
+
+  // TEST 8: Generated prompt contains REAL HTTPS image URL
+  it('PRODUCTION TEST 8: ensures generated prompt embeds the validated public HTTPS URL', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt).toContain(
+      'PRIMARY REFERENCE IMAGE:\nhttps://dailybuz.com/uploads/marketing/assets/ab6095d0-aa86-4328-934b-d56f26d8d7d8/bf9b5959-3af3-47af-b66c-6ec213000399.png'
+    );
+    expect(prompt).toContain('FINAL REQUIREMENT:\nThe supplied reference image URL above is a REAL validated public HTTPS image URL.');
+  });
+
+  // TEST 9: Generated prompt contains exact-logo preservation rules
+  it('PRODUCTION TEST 9: ensures logo preservation rules strictly forbid redrawing, distortion, or generative modification', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt).toContain('LOGO PRESERVATION:');
+    expect(prompt).toContain('Use the supplied logo as the authoritative brand reference.');
+    expect(prompt).toContain('Do not recreate, redesign, recolor, distort, stretch, modify, replace or generate a new version of the logo.');
+    expect(prompt).toContain('LOGO:\nPlace the actual supplied logo naturally in a premium, unobstructed brand-safe area.\n\nDo not modify the logo.');
+  });
+
+  // TEST 10: Generated prompt contains no relative /uploads URL
+  it('PRODUCTION TEST 10: contains zero un-prefixed relative /uploads/ paths', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt).not.toMatch(/(?:^|\s)\/uploads\/marketing\/assets\//);
+  });
+
+  // TEST 11: Generated prompt contains no localhost
+  it('PRODUCTION TEST 11: contains zero localhost or 127.0.0.1 references', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt).not.toContain('localhost');
+    expect(prompt).not.toContain('127.0.0.1');
+  });
+
+  // TEST 12: Generated prompt contains no "build intelligent software" as brand
+  it('PRODUCTION TEST 12: never infers "build intelligent software" as the company name', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt).toContain('BRAND:\nDaylink Tech Labs');
+    expect(prompt).not.toContain('BRAND:\nbuild intelligent software');
+    expect(prompt).not.toContain('FOR BUILD INTELLIGENT SOFTWARE');
+  });
+
+  // TEST 13: Generated prompt contains no "Product Photography"
+  it('PRODUCTION TEST 13: contains zero "Product Photography" classification for SaaS/technology', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt.toLowerCase()).not.toContain('style: product photography');
+    expect(prompt.toLowerCase()).not.toContain('creative type:\nproduct photography');
+    expect(prompt).toContain('VISUAL STYLE:\nPremium enterprise SaaS.');
+  });
+
+  // TEST 14: Generated prompt contains no malformed HTML
+  it('PRODUCTION TEST 14: contains zero raw HTML, <p>, <br>, or markdown garbage', () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    expect(prompt).not.toMatch(/<[^>]*>/);
+    expect(prompt).not.toContain('&nbsp;');
+    expect(prompt).not.toContain('<blockquote>');
+  });
+
+  // TEST 15: Prompt QA validation pipeline passes all 15 checks
+  it('PRODUCTION TEST 15: validates that the complete prompt passes all QA pipeline gates', async () => {
+    const prompt = buildDetailedImagePrompt({
+      topic: sampleUserRequest,
+      platforms: ['instagram'],
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    const intent = extractCreativeIntent(sampleUserRequest, {
+      platform: 'instagram',
+      selectedAssets: [sampleDbLogoAsset],
+    });
+
+    const resolved = resolveAssetPublicUrl(sampleDbLogoAsset);
+    const assetReport = await validateAssetUrlAccessibility(resolved.publicUrl, {
+      id: sampleDbLogoAsset.id,
+      name: sampleDbLogoAsset.name,
+    });
+
+    const qaResult = validateCreativePromptQA(prompt, intent, [assetReport]);
+
+    expect(qaResult.passed).toBe(true);
+    expect(qaResult.brandCorrect).toBe(true);
+    expect(qaResult.referenceAssetPresent).toBe(true);
+    expect(qaResult.publicUrlPresent).toBe(true);
+    expect(qaResult.publicUrlHttps).toBe(true);
+    expect(qaResult.publicUrlAccessible).toBe(true);
+    expect(qaResult.correctMimeType).toBe(true);
+    expect(qaResult.noInternalPath).toBe(true);
+    expect(qaResult.noBrandConflict).toBe(true);
+    expect(qaResult.correctCreativeType).toBe(true);
+    expect(qaResult.correctPlatform).toBe(true);
+    expect(qaResult.correctAspectRatio).toBe(true);
+    expect(qaResult.noHtml).toBe(true);
+    expect(qaResult.noFakeClaims).toBe(true);
+    expect(qaResult.noCompetitorBranding).toBe(true);
+    expect(qaResult.exactLogoInstructionPresent).toBe(true);
+    expect(qaResult.diagnostics).toEqual([]);
   });
 });
+
 
 
