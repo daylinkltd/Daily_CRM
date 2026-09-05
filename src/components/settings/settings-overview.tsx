@@ -191,11 +191,6 @@ export function SettingsOverview({
             }`,
     },
     {
-      section: 'members',
-      loading: false,
-      subtitle: 'Per-resource create / read / update / delete access',
-    },
-    {
       section: 'templates',
       loading: countsLoading,
       subtitle:
@@ -209,11 +204,6 @@ export function SettingsOverview({
     },
     {
       section: 'crm',
-      loading: false,
-      subtitle: `${defaultCurrency} — ${currencyLabel}`,
-    },
-    {
-      section: 'crm',
       loading: countsLoading,
       subtitle:
         counts?.tags == null && counts?.customFields == null
@@ -221,6 +211,11 @@ export function SettingsOverview({
           : `${counts?.tags ?? 0} tag${counts?.tags === 1 ? '' : 's'} · ${
               counts?.customFields ?? 0
             } custom field${counts?.customFields === 1 ? '' : 's'}`,
+    },
+    {
+      section: 'accounting',
+      loading: false,
+      subtitle: `${defaultCurrency} — ${currencyLabel}`,
     },
     {
       section: 'catalog',
@@ -231,9 +226,14 @@ export function SettingsOverview({
           : `${counts.catalog} catalog item${counts.catalog === 1 ? '' : 's'}`,
     },
     {
-      section: 'profile',
+      section: 'branding',
       loading: false,
-      subtitle: `${cap(mode)} mode · ${themeName} accent`,
+      subtitle: 'Logo, company details & letterhead',
+    },
+    {
+      section: 'projects',
+      loading: false,
+      subtitle: 'Project defaults & billing rates',
     },
     {
       section: 'hr',
@@ -244,6 +244,16 @@ export function SettingsOverview({
       section: 'retail',
       loading: false,
       subtitle: 'Industry presets, POS rules & master forms',
+    },
+    {
+      section: 'modules',
+      loading: false,
+      subtitle: 'Enable or disable platform modules',
+    },
+    {
+      section: 'profile',
+      loading: false,
+      subtitle: `${cap(mode)} mode · ${themeName} accent`,
     },
   ];
 
