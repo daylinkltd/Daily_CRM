@@ -18,6 +18,7 @@ export type ImageGenerationState =
   | 'FAILED';
 
 export type ImageErrorCode =
+  | 'PUBLIC_FIGURE_REFUSAL'
   | 'PROVIDER_REJECTED'
   | 'PROVIDER_UNAVAILABLE'
   | 'INVALID_REQUEST'
@@ -30,11 +31,15 @@ export interface ImageGenerationError {
   type: 'IMAGE_GENERATION_ERROR';
   code: ImageErrorCode;
   message: string;
-  technicalDetail?: string;
-  suggestedAction: 'edit_prompt' | 'try_again' | 'check_settings';
+  reason?: string;
+  description?: string;
+  fallbackPrompt?: string;
+  suggestedAction: 'editorial_fallback' | 'edit_prompt' | 'try_again' | 'check_settings';
+  availableActions?: Array<'retry' | 'editorial_fallback' | 'edit_prompt'>;
   stage: 'validation' | 'submission' | 'generation' | 'processing';
   provider?: string;
   model?: string;
+  technicalDetail?: string;
 }
 
 export interface GenerateImageOptions {
@@ -47,7 +52,7 @@ export interface GenerateImageOptions {
   format?: string;
   provider?: 'openai_dalle3' | 'midjourney' | 'auto';
   model?: string;
-  mockFailure?: 'guardrails_rejection' | 'temporary_unavailable' | 'network_error' | 'timeout' | null;
+  mockFailure?: 'public_figure_refusal' | 'guardrails_rejection' | 'temporary_unavailable' | 'network_error' | 'timeout' | null;
 }
 
 export interface GeneratedImageResult {
@@ -108,8 +113,130 @@ const CURATED_IMAGE_CATALOG: Record<string, string[]> = {
 };
 
 // --------------------------------------------------------------------------
-// 2. Raw Provider Guardrails / Moderation Refusal Patterns
+// 2. Public Figure Intent Detection & Editorial Fallback Generator
 // --------------------------------------------------------------------------
+export interface PublicFigureDetectionResult {
+  isPublicFigure: boolean;
+  personName: string | null;
+  topic: string;
+  intentCategory: 'sports_infographic' | 'achievement_poster' | 'editorial_quote_graphic' | 'editorial_business_graphic' | 'general_editorial_graphic';
+  intentLabel: string;
+}
+
+export function detectPublicFigureIntent(input: string): PublicFigureDetectionResult {
+  const normalized = (input || '').trim();
+  const lower = normalized.toLowerCase();
+
+  const publicFigures = [
+    { name: 'Lionel Messi', keywords: ['lionel messi', 'messi'], domain: 'sports' },
+    { name: 'Cristiano Ronaldo', keywords: ['cristiano ronaldo', 'ronaldo', 'cr7'], domain: 'sports' },
+    { name: 'Neymar Jr', keywords: ['neymar', 'neymar jr'], domain: 'sports' },
+    { name: 'Kylian Mbappé', keywords: ['mbappe', 'kylian mbappe'], domain: 'sports' },
+    { name: 'Virat Kohli', keywords: ['virat kohli', 'virat', 'kohli'], domain: 'sports' },
+    { name: 'MS Dhoni', keywords: ['ms dhoni', 'dhoni'], domain: 'sports' },
+    { name: 'Rohit Sharma', keywords: ['rohit sharma'], domain: 'sports' },
+    { name: 'Sachin Tendulkar', keywords: ['sachin tendulkar', 'sachin'], domain: 'sports' },
+    { name: 'LeBron James', keywords: ['lebron james', 'lebron'], domain: 'sports' },
+    { name: 'Michael Jordan', keywords: ['michael jordan', 'jordan'], domain: 'sports' },
+    { name: 'Steve Jobs', keywords: ['steve jobs', 'steve jobs quote'], domain: 'tech_quote' },
+    { name: 'Elon Musk', keywords: ['elon musk', 'elon'], domain: 'tech_business' },
+    { name: 'Bill Gates', keywords: ['bill gates'], domain: 'tech_business' },
+    { name: 'Sam Altman', keywords: ['sam altman'], domain: 'tech_business' },
+    { name: 'Jensen Huang', keywords: ['jensen huang'], domain: 'tech_business' },
+    { name: 'Albert Einstein', keywords: ['albert einstein', 'einstein'], domain: 'science_quote' },
+  ];
+
+  let matchedPerson: (typeof publicFigures)[0] | null = null;
+  for (const pf of publicFigures) {
+    if (pf.keywords.some((kw) => new RegExp(`\\b${kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(lower))) {
+      matchedPerson = pf;
+      break;
+    }
+  }
+
+  if (!matchedPerson) {
+    return {
+      isPublicFigure: false,
+      personName: null,
+      topic: normalized,
+      intentCategory: 'general_editorial_graphic',
+      intentLabel: 'Editorial Graphic',
+    };
+  }
+
+  // Determine specific intent category from user request
+  let intentCategory: PublicFigureDetectionResult['intentCategory'] = 'general_editorial_graphic';
+  let intentLabel = 'Editorial Graphic';
+
+  if (matchedPerson.domain === 'sports') {
+    if (lower.includes('stats') || lower.includes('trophies') || lower.includes('records') || lower.includes('infographic') || lower.includes('data')) {
+      intentCategory = 'sports_infographic';
+      intentLabel = 'Sports Infographic';
+    } else if (lower.includes('achievement') || lower.includes('milestone') || lower.includes('career') || lower.includes('poster')) {
+      intentCategory = 'achievement_poster';
+      intentLabel = 'Achievement Poster';
+    } else {
+      intentCategory = 'sports_infographic';
+      intentLabel = 'Sports Infographic';
+    }
+  } else if (matchedPerson.domain === 'tech_quote' || matchedPerson.domain === 'science_quote' || lower.includes('quote') || lower.includes('saying') || lower.includes('philosophy')) {
+    intentCategory = 'editorial_quote_graphic';
+    intentLabel = 'Editorial Graphic';
+  } else if (matchedPerson.domain === 'tech_business' || lower.includes('ai') || lower.includes('tech') || lower.includes('future') || lower.includes('business')) {
+    intentCategory = 'editorial_business_graphic';
+    intentLabel = 'Editorial / Business Graphic';
+  }
+
+  return {
+    isPublicFigure: true,
+    personName: matchedPerson.name,
+    topic: normalized,
+    intentCategory,
+    intentLabel,
+  };
+}
+
+export function generateEditorialFallbackPrompt(
+  userInput: string,
+  detection?: PublicFigureDetectionResult
+): string {
+  const det = detection || detectPublicFigureIntent(userInput);
+  const person = det.personName || 'the public figure';
+  const lower = (userInput || '').toLowerCase();
+
+  if (det.intentCategory === 'sports_infographic') {
+    return `Create an original editorial sports infographic about ${person}'s career achievements using clean typography, trophy icons, football-inspired graphics, timelines, and data visualization. Do not recreate an existing poster or branded artwork.`;
+  }
+
+  if (det.intentCategory === 'achievement_poster') {
+    return `Create an original editorial achievement poster about ${person}'s career milestones using clean typography, trophy emblems, athletic iconography, record statistics, and modern infographic layouts. Do not recreate an existing poster or copyrighted artwork.`;
+  }
+
+  if (det.intentCategory === 'editorial_quote_graphic') {
+    return `Create an original editorial graphic inspired by ${person}'s quote using clean minimalist typography, thoughtful layout, elegant monochromatic tones, and modern editorial styling. Do not recreate an existing portrait or branded artwork.`;
+  }
+
+  if (det.intentCategory === 'editorial_business_graphic') {
+    return `Create an original editorial business and technology graphic exploring ${person}'s vision on AI using modern data visualization, clean typography, futuristic accents, and structured infographic layouts. Do not recreate an existing photo or branded artwork.`;
+  }
+
+  return `Create an original editorial infographic and visual concept about ${userInput} using clean typography, structured data blocks, modern iconography, and elegant information design. Do not recreate an existing portrait or copyrighted artwork.`;
+}
+
+// --------------------------------------------------------------------------
+// 3. Raw Provider Guardrails / Moderation Refusal Patterns
+// --------------------------------------------------------------------------
+const RAW_PUBLIC_FIGURE_PATTERNS = [
+  /can't\s+depict\s+(?:some\s+)?public\s+figures/i,
+  /cannot\s+depict\s+(?:some\s+)?public\s+figures/i,
+  /cannot\s+generate\s+images\s+of\s+public\s+figures/i,
+  /public\s+figures/i,
+  /public\s+figure/i,
+  /celebrity\s+likeness/i,
+  /real\s+person/i,
+  /living\s+person/i,
+];
+
 const RAW_IMAGE_GUARDRAILS_PATTERNS = [
   /violate\s+our\s+guardrails\s+concerning\s+similarity\s+to\s+third[\s-]party\s+content/i,
   /guardrails\s+concerning\s+similarity/i,
@@ -120,19 +247,59 @@ const RAW_IMAGE_GUARDRAILS_PATTERNS = [
   /copyright\s+or\s+trademark\s+restriction/i,
   /celebrity\s+likeness\s+policy/i,
   /cannot\s+generate\s+images\s+of\s+public\s+figures/i,
+  ...RAW_PUBLIC_FIGURE_PATTERNS,
 ];
 
 // --------------------------------------------------------------------------
-// 3. Helper: Map Raw Image Generation Errors to Application Errors
+// 4. Helper: Map Raw Image Generation Errors to Application Errors
 // --------------------------------------------------------------------------
 export function mapImageProviderErrorToApplicationError(
   err: any,
-  context: { provider: string; model: string; stage: 'validation' | 'submission' | 'generation' | 'processing' }
+  context: {
+    provider: string;
+    model: string;
+    stage: 'validation' | 'submission' | 'generation' | 'processing';
+    prompt?: string;
+  }
 ): ImageGenerationError {
   const rawMsg = String(err?.message || err?.error || err || '');
   const status = err?.status || err?.statusCode || 500;
+  const promptText = context.prompt || '';
+  const detection = detectPublicFigureIntent(promptText || rawMsg);
 
-  // Check if error is the OpenAI DALL-E 3 guardrails refusal
+  // Check for Public Figure specific refusal
+  const isPublicFigureRefusal =
+    RAW_PUBLIC_FIGURE_PATTERNS.some((p) => p.test(rawMsg)) ||
+    (detection.isPublicFigure && (rawMsg.includes('guardrails') || rawMsg.includes('safety') || rawMsg.includes('policy') || status === 400));
+
+  if (isPublicFigureRefusal) {
+    const fallbackPrompt = generateEditorialFallbackPrompt(promptText || detection.personName || 'public figure', detection);
+
+    // Internal log only (do not expose raw error to user)
+    console.info('[PUBLIC FIGURE REFUSAL DETECTED]', {
+      provider: context.provider,
+      originalPrompt: promptText,
+      mappedErrorType: 'PUBLIC_FIGURE_REFUSAL',
+      fallbackOffered: fallbackPrompt,
+    });
+
+    return {
+      success: false,
+      type: 'IMAGE_GENERATION_ERROR',
+      code: 'PUBLIC_FIGURE_REFUSAL',
+      message: "Image couldn't be generated with the current provider.",
+      reason: 'This request involves a public figure.',
+      description: 'This request involves a public figure. We can generate an original editorial-style graphic instead.',
+      fallbackPrompt,
+      suggestedAction: 'editorial_fallback',
+      availableActions: ['retry', 'editorial_fallback', 'edit_prompt'],
+      stage: context.stage,
+      provider: context.provider,
+      model: context.model,
+    };
+  }
+
+  // Check if error is general OpenAI DALL-E 3 guardrails refusal
   const isGuardrailRefusal =
     RAW_IMAGE_GUARDRAILS_PATTERNS.some((p) => p.test(rawMsg)) ||
     rawMsg.includes('guardrails') ||
@@ -157,6 +324,7 @@ export function mapImageProviderErrorToApplicationError(
         'This visual concept contains elements that resemble protected third-party brands or copyrighted material. Please edit your prompt to describe the visual with original styling.',
       technicalDetail: 'OpenAI DALL-E 3 guardrails triggered for third-party content similarity.',
       suggestedAction: 'edit_prompt',
+      availableActions: ['retry', 'edit_prompt'],
       stage: context.stage,
       provider: context.provider,
       model: context.model,
@@ -259,6 +427,16 @@ export class ImageGenerationService {
     }
 
     // Mock failure triggers for automated tests
+    if (options.mockFailure === 'public_figure_refusal') {
+      return mapImageProviderErrorToApplicationError(
+        {
+          status: 400,
+          message: "There are a lot of people I can help with, but I can't depict some public figures.",
+        },
+        { provider, model, stage: 'generation', prompt: rawPrompt }
+      );
+    }
+
     if (options.mockFailure === 'guardrails_rejection') {
       return mapImageProviderErrorToApplicationError(
         {
@@ -266,14 +444,14 @@ export class ImageGenerationService {
           message:
             'We’re so sorry, but the image we created may violate our guardrails concerning similarity to third-party content. If you think we got it wrong, please retry or edit your prompt.',
         },
-        { provider, model, stage: 'generation' }
+        { provider, model, stage: 'generation', prompt: rawPrompt }
       );
     }
 
     if (options.mockFailure === 'temporary_unavailable') {
       return mapImageProviderErrorToApplicationError(
         { status: 503, message: 'OpenAI DALL-E 3 service overloaded' },
-        { provider, model, stage: 'generation' }
+        { provider, model, stage: 'generation', prompt: rawPrompt }
       );
     }
 
@@ -309,7 +487,7 @@ export class ImageGenerationService {
           const errorMsg = parsed.error?.message || parsed.message || rawErr;
           return mapImageProviderErrorToApplicationError(
             { status: response.status, message: errorMsg },
-            { provider, model, stage: 'generation' }
+            { provider, model, stage: 'generation', prompt: rawPrompt }
           );
         }
 

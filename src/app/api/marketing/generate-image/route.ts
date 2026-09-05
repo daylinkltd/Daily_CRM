@@ -7,13 +7,14 @@ import {
 } from '@/lib/marketing/image-service';
 
 export async function POST(req: NextRequest) {
+  let body: GenerateImageOptions | null = null;
   try {
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const body: GenerateImageOptions = await req.json();
+    body = await req.json();
 
     if (!body || !body.prompt) {
       return NextResponse.json(
@@ -32,7 +33,12 @@ export async function POST(req: NextRequest) {
     const result = await ImageGenerationService.generateImage(body);
 
     if (!result.success) {
-      const status = result.code === 'INVALID_REQUEST' ? 400 : result.code === 'PROVIDER_REJECTED' ? 422 : 500;
+      const status =
+        result.code === 'INVALID_REQUEST'
+          ? 400
+          : result.code === 'PROVIDER_REJECTED' || result.code === 'PUBLIC_FIGURE_REFUSAL'
+          ? 422
+          : 500;
       return NextResponse.json(result, { status });
     }
 
@@ -57,6 +63,7 @@ export async function POST(req: NextRequest) {
       provider: 'openai_dalle3',
       model: 'dall-e-3',
       stage: 'generation',
+      prompt: typeof body !== 'undefined' ? body?.prompt : undefined,
     });
     return NextResponse.json(errorResponse, { status: 500 });
   }

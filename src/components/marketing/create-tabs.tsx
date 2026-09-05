@@ -325,7 +325,11 @@ export function CreateWorkspaceTabs() {
   const [imageGenError, setImageGenError] = useState<{
     message: string;
     code: string;
+    reason?: string;
+    description?: string;
+    fallbackPrompt?: string;
     suggestedAction: string;
+    availableActions?: string[];
   } | null>(null);
 
   // File Upload and Text Paste Handlers for Reference Articles
@@ -814,10 +818,15 @@ export function CreateWorkspaceTabs() {
     toast.success('Saved video to Marketing Content Library!');
   };
 
-  const handleGenerateAIImage = async () => {
-    if (!imagePrompt || imagePrompt.trim().length < 5) {
+  const handleGenerateAIImage = async (customPrompt?: string) => {
+    const targetPrompt = (customPrompt && typeof customPrompt === 'string') ? customPrompt : imagePrompt;
+    if (!targetPrompt || targetPrompt.trim().length < 5) {
       toast.error('Please enter a descriptive image prompt (at least 5 characters).');
       return;
+    }
+
+    if (customPrompt && typeof customPrompt === 'string') {
+      setImagePrompt(customPrompt);
     }
 
     setImageGenError(null);
@@ -828,7 +837,7 @@ export function CreateWorkspaceTabs() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: imagePrompt.trim(),
+          prompt: targetPrompt.trim(),
           title: generatedTitle || topicPrompt || 'AI Image Creative',
           style: imageStyle,
           platform: selectedPlatforms[0] || 'instagram',
@@ -840,9 +849,13 @@ export function CreateWorkspaceTabs() {
       if (!res.ok || !data.success) {
         setImageGenState('FAILED');
         setImageGenError({
-          message: data.message || "Image generation couldn't be completed.",
+          message: data.message || "Image couldn't be generated with the current provider.",
           code: data.code || 'PROVIDER_REJECTED',
+          reason: data.reason,
+          description: data.description,
+          fallbackPrompt: data.fallbackPrompt,
           suggestedAction: data.suggestedAction || 'edit_prompt',
+          availableActions: data.availableActions || ['retry', 'edit_prompt'],
         });
         toast.error(data.message || 'Image generation failed.');
         return;
@@ -854,7 +867,7 @@ export function CreateWorkspaceTabs() {
         url: data.media?.url || data.image?.url,
         title: data.image?.title || generatedTitle || 'AI Image Asset',
         style: data.media?.visualStyle || imageStyle,
-        prompt: imagePrompt,
+        prompt: targetPrompt,
       });
 
       toast.success('AI Image generated successfully!');
@@ -2246,23 +2259,47 @@ export function CreateWorkspaceTabs() {
                     <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 space-y-3 animate-in fade-in duration-300">
                       <div className="flex items-start gap-2.5">
                         <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
-                        <div className="space-y-1">
+                        <div className="space-y-1.5 flex-1">
                           <h5 className="text-xs font-bold text-rose-700 dark:text-rose-300">
-                            Image generation couldn't be completed.
+                            {imageGenError.message || "Image couldn't be generated with the current provider."}
                           </h5>
-                          <p className="text-xs text-rose-600 dark:text-rose-400">
-                            {imageGenError.message}
-                          </p>
+                          {imageGenError.reason && (
+                            <p className="text-xs font-semibold text-rose-700 dark:text-rose-300">
+                              Reason: {imageGenError.reason}
+                            </p>
+                          )}
+                          {imageGenError.description ? (
+                            <p className="text-xs text-rose-600/90 dark:text-rose-400">
+                              {imageGenError.description}
+                            </p>
+                          ) : (
+                            imageGenError.message !== "Image couldn't be generated with the current provider." && (
+                              <p className="text-xs text-rose-600 dark:text-rose-400">
+                                {imageGenError.message}
+                              </p>
+                            )
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 pt-1">
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        {imageGenError.code === 'PUBLIC_FIGURE_REFUSAL' && imageGenError.fallbackPrompt && (
+                          <Button
+                            size="sm"
+                            type="button"
+                            onClick={() => handleGenerateAIImage(imageGenError.fallbackPrompt)}
+                            className="h-8 text-xs font-bold rounded-xl bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
+                          >
+                            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                            Generate an editorial-style graphic
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           type="button"
-                          onClick={handleGenerateAIImage}
+                          onClick={() => handleGenerateAIImage()}
                           className="h-8 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-700 text-white"
                         >
-                          Try Again
+                          Retry
                         </Button>
                         <Button
                           size="sm"
@@ -2307,7 +2344,7 @@ export function CreateWorkspaceTabs() {
                             size="sm"
                             type="button"
                             variant="outline"
-                            onClick={handleGenerateAIImage}
+                            onClick={() => handleGenerateAIImage()}
                             className="h-8 text-xs font-bold rounded-xl border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
                           >
                             Regenerate Image
