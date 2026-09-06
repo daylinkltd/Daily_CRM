@@ -232,7 +232,19 @@ they should run instead — don't imply you verified it.
 ## 9. Open work
 
 ### Ready to do
-0. **Paste migration 127** (`printing_press_module.sql`) — the Printing Press
+-1. **Paste migration 128** (`printing_presets.sql`) — preset vocabulary for
+   the printing module (sizes/paper/GSM/print types/colours/finishing/units),
+   seeded for every workspace + trigger for new ones. The job form's
+   dropdowns and Printing → Presets read it; they show empty lists until it
+   runs. Also new app-wide pattern: `CreatableSelect` (ui/creatable-select)
+   and `SearchableSelect`'s `createLabel`/`onCreate` — searchable dropdowns
+   with a pinned "+ Add" that opens a quick-create dialog
+   (`shared/quick-create-contact`, `shared/quick-create-ledger`,
+   `printing/quick-create-preset`); adopted in the printing job form, the
+   invoice create dialog, and both accounting entry screens. New pickers
+   should follow it.
+0. **Paste migration 127** — DONE per user (2026-09-06); PJ-000001 consumed
+   by a verification probe, PJ-000002 was the user's test job. (`printing_press_module.sql`) — the Printing Press
    module's tables, RLS, PJ- number series, and the `invoices.source` CHECK
    widened to allow `'printing'`. The sidebar group, pages
    (`/printing`, `/printing/orders/new`, `/printing/orders/[id]`) and the

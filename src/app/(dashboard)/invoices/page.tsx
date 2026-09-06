@@ -37,6 +37,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { CreatableSelect } from "@/components/ui/creatable-select";
+import { QuickCreateContact } from "@/components/shared/quick-create-contact";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -94,6 +96,7 @@ export default function InvoicesPage() {
   const [creating, setCreating] = useState(false);
   const [contacts, setContacts] = useState<ContactOption[]>([]);
   const [newContactId, setNewContactId] = useState("");
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [newDueDate, setNewDueDate] = useState("");
   const [newTaxRate, setNewTaxRate] = useState("0");
   const [newDiscount, setNewDiscount] = useState("0");
@@ -439,18 +442,22 @@ export default function InvoicesPage() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Customer</label>
-                <Select value={newContactId} onValueChange={(v) => v && setNewContactId(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select customer" />
-                  </SelectTrigger>
-                  <SelectContent searchPlaceholder="Search customers...">
-                    {contacts.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.company ? `${c.name ?? "—"} (${c.company})` : c.name ?? "—"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* CreatableSelect: a first invoice often precedes the
+                    contact — mint the customer without leaving here. */}
+                <CreatableSelect
+                  options={contacts.map((c) => ({
+                    value: c.id,
+                    label: c.name ?? "—",
+                    hint: c.company,
+                  }))}
+                  value={newContactId}
+                  onValueChange={setNewContactId}
+                  placeholder="Select customer"
+                  searchPlaceholder="Search customers..."
+                  createLabel="Add customer"
+                  onCreate={() => setContactDialogOpen(true)}
+                  aria-label="Customer"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Due date</label>
@@ -562,6 +569,16 @@ export default function InvoicesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <QuickCreateContact
+        open={contactDialogOpen}
+        onOpenChange={setContactDialogOpen}
+        workspaceId={workspaceId}
+        onCreated={(c) => {
+          setContacts((prev) => [...prev, { id: c.id, name: c.name, company: c.company }]);
+          setNewContactId(c.id);
+        }}
+      />
     </div>
   );
 }

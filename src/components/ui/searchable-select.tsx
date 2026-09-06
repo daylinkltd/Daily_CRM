@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useId } from "react";
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, Plus, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -56,6 +56,8 @@ export function SearchableSelect({
   clearable,
   className,
   ariaLabel,
+  createLabel,
+  onCreate,
 }: {
   options: SearchableOption[];
   value: string | null;
@@ -68,6 +70,11 @@ export function SearchableSelect({
   clearable?: boolean;
   className?: string;
   ariaLabel?: string;
+  /** With `onCreate`, pins a "+ {createLabel}" footer below the list —
+   *  outside the filter, so it shows exactly when nothing matches.
+   *  The dropdown closes before the caller's create dialog opens. */
+  createLabel?: string;
+  onCreate?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -239,6 +246,20 @@ export function SearchableSelect({
               })
             )}
           </ul>
+          {createLabel && onCreate && (
+            <div className="border-t border-border p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpenState(false);
+                  onCreate();
+                }}
+                className="flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-muted"
+              >
+                <Plus className="size-3.5" /> {createLabel}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

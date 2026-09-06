@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { QuickCreateLedger } from "@/components/shared/quick-create-ledger";
 import { IconAction } from "@/components/ui/icon-action";
 
 interface Account {
@@ -66,6 +67,11 @@ export default function BulkEntryPage() {
   const [pasteOpen, setPasteOpen] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const [posting, setPosting] = useState(false);
+  // Which row+side asked for a new ledger, so it lands back there.
+  const [ledgerTarget, setLedgerTarget] = useState<{
+    row: number;
+    side: "debit_account_id" | "credit_account_id";
+  } | null>(null);
 
   const loadAccounts = useCallback(async () => {
     if (!workspaceId) return;
@@ -296,6 +302,8 @@ export default function BulkEntryPage() {
                       onChange={(v) => setRow(i, { debit_account_id: v })}
                       placeholder="Debit…"
                       ariaLabel={`Row ${i + 1} debit ledger`}
+                      createLabel="Add ledger"
+                      onCreate={() => setLedgerTarget({ row: i, side: "debit_account_id" })}
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -305,6 +313,8 @@ export default function BulkEntryPage() {
                       onChange={(v) => setRow(i, { credit_account_id: v })}
                       placeholder="Credit…"
                       ariaLabel={`Row ${i + 1} credit ledger`}
+                      createLabel="Add ledger"
+                      onCreate={() => setLedgerTarget({ row: i, side: "credit_account_id" })}
                     />
                   </td>
                   <td className="px-2 py-2">
@@ -334,6 +344,17 @@ export default function BulkEntryPage() {
           </table>
         </CardContent>
       </Card>
+
+      <QuickCreateLedger
+        open={ledgerTarget !== null}
+        onOpenChange={(open) => !open && setLedgerTarget(null)}
+        workspaceId={workspaceId}
+        onCreated={(ledger) => {
+          void loadAccounts();
+          if (ledgerTarget) setRow(ledgerTarget.row, { [ledgerTarget.side]: ledger.id });
+          setLedgerTarget(null);
+        }}
+      />
 
       <p className="text-[11px] text-muted-foreground">
         Rows post independently through the same posting engine as New Entry — each becomes a

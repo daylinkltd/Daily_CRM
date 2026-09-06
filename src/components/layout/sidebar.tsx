@@ -275,6 +275,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/printing", label: "Job Orders", icon: FileText },
       { href: "/printing/orders/new", label: "New Job / Enquiry", icon: PenSquare },
+      { href: "/printing/settings", label: "Presets", icon: Settings },
     ]
   },
   {
