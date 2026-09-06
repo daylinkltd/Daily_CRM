@@ -232,6 +232,14 @@ they should run instead — don't imply you verified it.
 ## 9. Open work
 
 ### Ready to do
+0. **Paste migration 127** (`printing_press_module.sql`) — the Printing Press
+   module's tables, RLS, PJ- number series, and the `invoices.source` CHECK
+   widened to allow `'printing'`. The sidebar group, pages
+   (`/printing`, `/printing/orders/new`, `/printing/orders/[id]`) and the
+   `module_printing` role key are already live in code; the pages error
+   until the tables exist. Accounting also gained ledger delete + voucher
+   void (ledgers list, ledger statement, transactions pages), all gated by
+   the `accounting:delete` matrix key via `has_workspace_permission`.
 1. **Paste migration 125.** Nothing else in this section depends on it, but the
    module picker is inert until it runs.
 2. **GST Phase 0 remnants** — all agreed, none started:

@@ -14,15 +14,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, BookOpen, Loader2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { formatCurrency } from "@/lib/currency";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface Account {
   id: string;
@@ -36,6 +43,7 @@ interface Account {
 
 interface StatementRow {
   entryId: string;
+  referenceType: string | null;
   date: string;
   voucherNumber: string;
   narration: string;
@@ -48,8 +56,15 @@ interface StatementRow {
 export default function LedgerStatementPage() {
   const { id } = useParams<{ id: string }>();
   const supabase = createClient();
-  const { activeWorkspace, defaultCurrency } = useWorkspace();
+  const { accountRole } = useAuth();
+  const { activeWorkspace, defaultCurrency, can } = useWorkspace();
   const workspaceId = activeWorkspace?.id;
+
+  // Same ABAC key as everywhere accounting deletes happen. Owner/admin
+  // permission maps carry no CRUD keys, so the role check comes first;
+  // the API re-checks via has_workspace_permission.
+  const canVoid =
+    accountRole === "owner" || accountRole === "admin" || can("accounting:delete");
 
   const [account, setAccount] = useState<Account | null>(null);
   const [parent, setParent] = useState<Account | null>(null);
@@ -57,6 +72,8 @@ export default function LedgerStatementPage() {
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [voiding, setVoiding] = useState<StatementRow | null>(null);
+  const [voidBusy, setVoidBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!workspaceId || !id) return;
@@ -87,7 +104,7 @@ export default function LedgerStatementPage() {
       const { data: lines } = await supabase
         .from("commerce_journal_lines")
         .select(
-          "journal_entry_id, debit_amount, credit_amount, entry:commerce_journal_entries!inner(id, voucher_number, voucher_date, narration, created_at, deleted_at)",
+          "journal_entry_id, debit_amount, credit_amount, entry:commerce_journal_entries!inner(id, voucher_number, voucher_date, narration, reference_type, created_at, deleted_at)",
         )
         .eq("account_id", id)
         .is("entry.deleted_at", null)
@@ -102,6 +119,7 @@ export default function LedgerStatementPage() {
           voucher_number: string;
           voucher_date: string | null;
           narration: string | null;
+          reference_type: string | null;
           created_at: string;
         };
       };
@@ -165,6 +183,7 @@ export default function LedgerStatementPage() {
 
         out.push({
           entryId: l.journal_entry_id,
+          referenceType: l.entry.reference_type,
           date,
           voucherNumber: l.entry.voucher_number,
           narration: l.entry.narration ?? "",
@@ -195,6 +214,29 @@ export default function LedgerStatementPage() {
     [rows],
   );
   const closing = rows[0]?.balance ?? (Number(account?.opening_balance) || 0);
+
+  async function handleVoid() {
+    if (!workspaceId || !voiding) return;
+    setVoidBusy(true);
+    try {
+      const res = await fetch(
+        `/api/accounting/journal/${voiding.entryId}?workspace_id=${workspaceId}`,
+        { method: "DELETE" },
+      );
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(payload.error || "Failed to void voucher");
+        return;
+      }
+      toast.success(`Voided ${voiding.voucherNumber} — statement updated`);
+      setVoiding(null);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not reach the server");
+    } finally {
+      setVoidBusy(false);
+    }
+  }
 
   if (!loading && !account) {
     return (
@@ -272,6 +314,7 @@ export default function LedgerStatementPage() {
                   <th className="px-2 py-3 text-right">Debit</th>
                   <th className="px-2 py-3 text-right">Credit</th>
                   <th className="px-4 py-3 text-right">Balance</th>
+                  {canVoid && <th className="w-10 px-2 py-3" aria-label="Actions" />}
                 </tr>
               </thead>
               <tbody>
@@ -296,6 +339,19 @@ export default function LedgerStatementPage() {
                     <td className="whitespace-nowrap px-4 py-2.5 text-right font-semibold text-foreground">
                       {formatCurrency(r.balance, defaultCurrency)}
                     </td>
+                    {canVoid && (
+                      <td className="px-2 py-2.5 text-right">
+                        {(r.referenceType === "MANUAL_JOURNAL" || !r.referenceType) && (
+                          <IconAction
+                            label={`Void ${r.voucherNumber}`}
+                            icon={<Trash2 />}
+                            variant="ghost"
+                            className="text-red-400 hover:text-red-300"
+                            onClick={() => setVoiding(r)}
+                          />
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -307,12 +363,44 @@ export default function LedgerStatementPage() {
                   <td className="px-2 py-3 text-right">{formatCurrency(totals.debit, defaultCurrency)}</td>
                   <td className="px-2 py-3 text-right">{formatCurrency(totals.credit, defaultCurrency)}</td>
                   <td className="px-4 py-3 text-right">{formatCurrency(closing, defaultCurrency)}</td>
+                  {canVoid && <td />}
                 </tr>
               </tfoot>
             </table>
           )}
         </CardContent>
       </Card>
+      {/* Void confirmation — soft delete; the voucher leaves every
+          balance but stays in the books marked voided. */}
+      <Dialog open={!!voiding} onOpenChange={(open) => !open && setVoiding(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-4 text-red-400" />
+              Void voucher
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Void{" "}
+            <span className="font-semibold text-foreground">{voiding?.voucherNumber}</span>?
+            Both sides of the entry disappear from every ledger and report, but the
+            voucher stays in the books marked as voided — nothing is erased.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVoiding(null)} disabled={voidBusy}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleVoid}
+              disabled={voidBusy}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {voidBusy ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
+              Void voucher
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

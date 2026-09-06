@@ -16,7 +16,7 @@
 // shape for each.
 // ============================================================
 
-export const MODULE_KEYS = ["crm", "accounting", "hr", "retail", "projects", "bar"] as const;
+export const MODULE_KEYS = ["crm", "accounting", "hr", "retail", "projects", "bar", "printing"] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 export const MODULE_LABELS: Record<ModuleKey, string> = {
@@ -26,6 +26,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   retail: "Retail",
   projects: "Projects",
   bar: "Bar & Restaurant Management",
+  printing: "Printing Press",
 };
 
 /** The four CRUD actions, in matrix column order. */
@@ -489,6 +490,18 @@ export const RESOURCES: Resource[] = [
     module: "bar",
     description: "Storage locations, kitchen stations, and supplier masters",
     tables: [ws("kitchen_locations"), ws("kitchen_suppliers")],
+  },
+
+  // ── Printing Press ───────────────────────────────────────────────
+  {
+    key: "printing_orders",
+    label: "Printing Job Orders",
+    module: "printing",
+    description: "Job orders from enquiry through production to delivery",
+    tables: [
+      ws("printing_orders"),
+      via("printing_order_items", "printing_orders", "order_id"),
+    ],
   },
 ];
 

@@ -113,6 +113,7 @@ export const SCOPE_GROUPS: readonly ScopeGroup[] = (() => {
     retail: 'Retail',
     projects: 'Projects',
     bar: 'Bar & Restaurant Management',
+    printing: 'Printing Press',
   };
 
   const groups: ScopeGroup[] = [
