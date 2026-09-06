@@ -126,9 +126,9 @@ export default function ShiftsPage() {
         description="Configure work shifts, start/end hours and grace periods."
         action={
           canManage && (
-            <div className="flex items-center gap-2">
-              <IconAction label="Bulk add" icon={<Layers className="size-4 " />} variant="outline" onClick={() => setBulkAddOpen(true)} />
-              <IconAction label="Add Shift" icon={<Plus className="size-4 " />} onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground" />
+            <div className="flex flex-wrap items-center gap-2">
+              <IconAction label="Bulk add" icon={<Layers className="size-4 shrink-0" />} variant="outline" onClick={() => setBulkAddOpen(true)} />
+              <IconAction label="Add Shift" icon={<Plus className="size-4 shrink-0" />} onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground" />
             </div>
           )
         }

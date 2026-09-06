@@ -22,10 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { CreatableSelect } from "@/components/ui/creatable-select";
 import { IconAction } from "@/components/ui/icon-action";
+import { QuickCreateLedger } from "@/components/shared/quick-create-ledger";
 
 interface Account {
   id: string;
@@ -53,6 +52,9 @@ export default function NewEntryPage() {
   const [narration, setNarration] = useState("");
   const [lines, setLines] = useState<Line[]>([{ ...BLANK_LINE }, { ...BLANK_LINE }]);
   const [posting, setPosting] = useState(false);
+  // Which line's picker asked for a new ledger, so the created account
+  // lands back on that line.
+  const [ledgerDialogFor, setLedgerDialogFor] = useState<number | null>(null);
 
   const fetchAccounts = useCallback(async () => {
     if (!workspaceId) return;
@@ -155,18 +157,21 @@ export default function NewEntryPage() {
             </div>
             {lines.map((l, i) => (
               <div key={i} className="grid grid-cols-[1fr_8rem_8rem_2.5rem] items-center gap-2">
-                <Select value={l.account_id} onValueChange={(v) => v && setLine(i, { account_id: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select account" />
-                  </SelectTrigger>
-                  <SelectContent searchPlaceholder="Search accounts...">
-                    {accounts.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.account_code} — {a.account_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* CreatableSelect: the account you need mid-voucher is
+                    the one that doesn't exist yet — mint it in place. */}
+                <CreatableSelect
+                  options={accounts.map((a) => ({
+                    value: a.id,
+                    label: `${a.account_code} — ${a.account_name}`,
+                  }))}
+                  value={l.account_id}
+                  onValueChange={(v) => setLine(i, { account_id: v })}
+                  placeholder="Select account"
+                  searchPlaceholder="Search accounts..."
+                  createLabel="Add ledger"
+                  onCreate={() => setLedgerDialogFor(i)}
+                  aria-label="Account"
+                />
                 <Input
                   className="text-right"
                   type="number" min="0" placeholder="0.00"
@@ -216,6 +221,17 @@ export default function NewEntryPage() {
           </div>
         </CardContent>
       </Card>
+
+      <QuickCreateLedger
+        open={ledgerDialogFor !== null}
+        onOpenChange={(open) => !open && setLedgerDialogFor(null)}
+        workspaceId={workspaceId}
+        onCreated={(ledger) => {
+          void fetchAccounts();
+          if (ledgerDialogFor !== null) setLine(ledgerDialogFor, { account_id: ledger.id });
+          setLedgerDialogFor(null);
+        }}
+      />
     </div>
   );
 }

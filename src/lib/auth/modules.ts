@@ -19,7 +19,7 @@
 import type { WorkspaceDbRole } from "./roles";
 
 /** The app modules the sidebar switches between. */
-export type ModuleKey = "crm" | "marketing" | "accounting" | "hr" | "retail" | "bar" | "projects";
+export type ModuleKey = "crm" | "marketing" | "accounting" | "hr" | "retail" | "bar" | "printing" | "projects";
 
 /** Ordered list of every module key (mirrors sidebar nav order). */
 export const MODULE_KEYS: readonly ModuleKey[] = [
@@ -29,6 +29,7 @@ export const MODULE_KEYS: readonly ModuleKey[] = [
   "hr",
   "retail",
   "bar",
+  "printing",
   "projects",
 ] as const;
 
@@ -40,6 +41,7 @@ export interface ModuleAccess {
   hr: boolean;
   retail: boolean;
   bar: boolean;
+  printing: boolean;
   projects: boolean;
 }
 
@@ -51,6 +53,7 @@ export const MODULE_PERMISSION_KEY: Record<ModuleKey, string> = {
   hr: "module_hr",
   retail: "module_retail",
   bar: "module_bar",
+  printing: "module_printing",
   projects: "module_projects",
 };
 
@@ -62,6 +65,7 @@ export const MODULE_LABELS: Record<ModuleKey, string> = {
   hr: "HR",
   retail: "Retail",
   bar: "Bar Management",
+  printing: "Printing Press",
   projects: "Projects",
 };
 
@@ -80,6 +84,7 @@ export const DEFAULT_MODULE_ACCESS: ModuleAccess = {
   hr: false,
   retail: false,
   bar: true,
+  printing: false,
   projects: false,
 };
 
@@ -91,6 +96,7 @@ const ALL_MODULES: ModuleAccess = {
   hr: true,
   retail: true,
   bar: true,
+  printing: true,
   projects: true,
 };
 
@@ -143,6 +149,7 @@ export function deriveModuleAccess(
     hr: permissions[MODULE_PERMISSION_KEY.hr] === true,
     retail: permissions[MODULE_PERMISSION_KEY.retail] === true,
     bar: permissions[MODULE_PERMISSION_KEY.bar] === true,
+    printing: permissions[MODULE_PERMISSION_KEY.printing] === true,
     projects: permissions[MODULE_PERMISSION_KEY.projects] === true,
   };
 }
@@ -195,6 +202,9 @@ export function applyPlatformFlags(
     hr: access.hr && flags.enable_hr !== false,
     retail: access.retail && flags.enable_retail !== false,
     bar: access.bar,
+    // Like bar/marketing: no platform flag column yet — roles + the
+    // workspace's own module selection govern it.
+    printing: access.printing,
     projects: access.projects && flags.enable_projects !== false,
   };
 }

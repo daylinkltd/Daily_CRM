@@ -290,87 +290,87 @@ export default function AttendancePage() {
   });
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto text-foreground">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto text-foreground">
       {/* Page Header with Punch Action & Request Trigger */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card/80 p-5 rounded-3xl border border-border backdrop-blur-xl shadow-2xl">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card/80 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-border backdrop-blur-xl shadow-xl sm:shadow-2xl">
         <div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
-            <Clock className="h-5 w-5 text-primary" />
-            Attendance &amp; Time Tracking
+          <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary shrink-0" />
+            <span>Attendance &amp; Time Tracking</span>
           </h1>
           <p className="text-muted-foreground text-xs mt-0.5">
             Real-time punch logs, shift tracking &amp; break management.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <PunchAction onPunch={fetchAttendanceData} />
           {canManageAttendance && (
             <Button
               onClick={() => { setEditRecord(null); setEditOpen(true); }}
-              className="bg-primary text-primary-foreground font-bold rounded-xl h-10 gap-1.5 text-xs"
+              className="bg-primary text-primary-foreground font-bold rounded-xl h-9 sm:h-10 gap-1.5 text-xs flex-1 sm:flex-none"
             >
-              <Plus className="h-4 w-4" /> Log Attendance
+              <Plus className="h-4 w-4 shrink-0" /> <span className="truncate">Log Attendance</span>
             </Button>
           )}
           <Button
             onClick={() => setShowRequestModal(true)}
             variant="outline"
-            className="border-border bg-background text-foreground hover:text-foreground font-bold rounded-xl h-10 gap-1.5 text-xs"
+            className="border-border bg-background text-foreground hover:text-foreground font-bold rounded-xl h-9 sm:h-10 gap-1.5 text-xs flex-1 sm:flex-none"
           >
-            <Plus className="h-4 w-4 text-[#00aef0]" /> Request Regularization
+            <Plus className="h-4 w-4 text-[#00aef0] shrink-0" /> <span className="truncate">Request Regularization</span>
           </Button>
         </div>
       </div>
 
       {/* Overview Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 bg-card border border-border rounded-2xl">
-          <div className="text-xs text-muted-foreground font-medium">Total Logged Hours</div>
-          <div className="text-2xl font-extrabold text-foreground mt-1">{totalWorkingHours} hrs</div>
-          <div className="text-[11px] text-muted-foreground mt-1">Gross working time</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="p-3 sm:p-4 bg-card border border-border rounded-xl sm:rounded-2xl">
+          <div className="text-[11px] sm:text-xs text-muted-foreground font-medium truncate">Total Logged</div>
+          <div className="text-xl sm:text-2xl font-extrabold text-foreground mt-0.5 sm:mt-1">{totalWorkingHours} hrs</div>
+          <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 truncate">Gross working time</div>
         </div>
 
-        <div className="p-4 bg-card border border-border rounded-2xl">
-          <div className="text-xs text-muted-foreground font-medium">Net Productive Hours</div>
-          <div className="text-2xl font-extrabold text-[#00aef0] mt-1">{totalNetProductive} hrs</div>
-          <div className="text-[11px] text-muted-foreground mt-1">Total Hours minus Break Time</div>
+        <div className="p-3 sm:p-4 bg-card border border-border rounded-xl sm:rounded-2xl">
+          <div className="text-[11px] sm:text-xs text-muted-foreground font-medium truncate">Net Productive</div>
+          <div className="text-xl sm:text-2xl font-extrabold text-[#00aef0] mt-0.5 sm:mt-1">{totalNetProductive} hrs</div>
+          <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 truncate">Minus Break Time</div>
         </div>
 
-        <div className="p-4 bg-card border border-border rounded-2xl">
-          <div className="text-xs text-muted-foreground font-medium">Approved Overtime</div>
-          <div className="text-2xl font-extrabold text-emerald-400 mt-1">{totalOvertimeHours} hrs</div>
-          <div className="text-[11px] text-muted-foreground mt-1">Comp-off eligible</div>
+        <div className="p-3 sm:p-4 bg-card border border-border rounded-xl sm:rounded-2xl">
+          <div className="text-[11px] sm:text-xs text-muted-foreground font-medium truncate">Overtime</div>
+          <div className="text-xl sm:text-2xl font-extrabold text-emerald-400 mt-0.5 sm:mt-1">{totalOvertimeHours} hrs</div>
+          <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 truncate">Comp-off eligible</div>
         </div>
 
-        <div className="p-4 bg-card border border-border rounded-2xl">
-          <div className="text-xs text-muted-foreground font-medium">Late Arrivals</div>
-          <div className="text-2xl font-extrabold text-amber-400 mt-1">{lateCount}</div>
-          <div className="text-[11px] text-muted-foreground mt-1">Exceeding shift grace time</div>
+        <div className="p-3 sm:p-4 bg-card border border-border rounded-xl sm:rounded-2xl">
+          <div className="text-[11px] sm:text-xs text-muted-foreground font-medium truncate">Late Arrivals</div>
+          <div className="text-xl sm:text-2xl font-extrabold text-amber-400 mt-0.5 sm:mt-1">{lateCount}</div>
+          <div className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 truncate">Exceeding shift grace</div>
         </div>
       </div>
 
       {/* Dynamic Tabs */}
-      <div className="flex items-center justify-between border-b border-border pb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-2 gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0">
           <button
             onClick={() => setActiveTab('LOGS')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
               activeTab === 'LOGS'
                 ? 'bg-[#00aef0] text-foreground shadow-lg shadow-[#00aef0]/20'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Live Attendance Logs &amp; Breaks
+            Attendance Logs &amp; Breaks
           </button>
           <button
             onClick={() => setActiveTab('APPROVALS')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all relative ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl transition-all relative whitespace-nowrap ${
               activeTab === 'APPROVALS'
                 ? 'bg-[#00aef0] text-foreground shadow-lg shadow-[#00aef0]/20'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Manager Approvals
+            Approvals
             {requests.filter((r) => r.status === 'PENDING').length > 0 && (
               <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] bg-rose-500 text-foreground font-extrabold">
                 {requests.filter((r) => r.status === 'PENDING').length}
@@ -380,13 +380,13 @@ export default function AttendancePage() {
         </div>
 
         {activeTab === 'LOGS' && (
-          <div className="relative w-64">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Search employee..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 bg-background border-border text-foreground text-xs rounded-xl"
+              className="pl-9 h-9 bg-background border-border text-foreground text-xs rounded-xl w-full"
             />
           </div>
         )}
@@ -394,7 +394,7 @@ export default function AttendancePage() {
 
       {/* TAB 1: Attendance & Break Logs */}
       {activeTab === 'LOGS' && (
-        <div className="rounded-2xl border border-border bg-card/60 overflow-hidden shadow-2xl">
+        <div className="rounded-xl sm:rounded-2xl border border-border bg-card/60 overflow-x-auto shadow-xl sm:shadow-2xl">
           {loading ? (
             <div className="flex items-center justify-center p-12 text-muted-foreground text-xs">
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
@@ -406,7 +406,7 @@ export default function AttendancePage() {
               <span>No attendance logs found for this period.</span>
             </div>
           ) : (
-            <Table>
+            <Table className="min-w-[650px] sm:min-w-full">
               <TableHeader className="bg-background/80 text-xs text-muted-foreground border-b border-border">
                 <TableRow>
                   <TableHead className="py-3.5">Date</TableHead>

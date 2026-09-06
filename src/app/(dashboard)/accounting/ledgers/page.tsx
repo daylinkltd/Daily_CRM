@@ -11,7 +11,7 @@ import Link from "next/link";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BookOpen, Plus, Search, Loader2, Pencil } from "lucide-react";
+import { BookOpen, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -78,9 +78,16 @@ const BLANK: EditState = {
 
 export default function LedgersPage() {
   const supabase = createClient();
-  const { accountId } = useAuth();
-  const { activeWorkspace, defaultCurrency } = useWorkspace();
+  const { accountId, accountRole } = useAuth();
+  const { activeWorkspace, defaultCurrency, can } = useWorkspace();
   const workspaceId = activeWorkspace?.id || accountId;
+
+  // ABAC: owners/admins always may; everyone else needs the matrix key
+  // (Settings → Roles → Accounting → Delete). get_user_permissions
+  // returns owner/admin maps WITHOUT CRUD keys, so the role check must
+  // come first. The API re-checks via has_workspace_permission.
+  const canDelete =
+    accountRole === "owner" || accountRole === "admin" || can("accounting:delete");
 
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   const [balances, setBalances] = useState<Map<string, number>>(new Map());
@@ -91,6 +98,8 @@ export default function LedgersPage() {
 
   const [edit, setEdit] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<Ledger | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const fetchAll = useCallback(async () => {
     if (!workspaceId) return;
@@ -177,6 +186,29 @@ export default function LedgersPage() {
       toast.error(err instanceof Error ? err.message : "Failed to save ledger");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!workspaceId || !deleting) return;
+    setDeleteBusy(true);
+    try {
+      const res = await fetch(
+        `/api/accounting/ledgers/${deleting.id}?workspace_id=${workspaceId}`,
+        { method: "DELETE" },
+      );
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(payload.error || "Failed to delete ledger");
+        return;
+      }
+      toast.success(`Deleted ${deleting.account_name}`);
+      setDeleting(null);
+      await fetchAll();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not reach the server");
+    } finally {
+      setDeleteBusy(false);
     }
   }
 
@@ -305,6 +337,18 @@ export default function LedgersPage() {
                             })
                           }
                         />
+                        {/* Delete: ABAC-gated (accounting:delete), never
+                            on system accounts — the posting engine's
+                            role catalogue must survive. */}
+                        {canDelete && !l.is_system && (
+                          <IconAction
+                            label={`Delete ${l.account_name}`}
+                            icon={<Trash2 />}
+                            variant="ghost"
+                            className="text-red-400 hover:text-red-300"
+                            onClick={() => setDeleting(l)}
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   );
@@ -314,6 +358,42 @@ export default function LedgersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete confirmation. The API refuses system accounts, ledgers
+          with journal lines, and group heads with children — those come
+          back as toasts with the reason, so this dialog only promises
+          what can actually happen. */}
+      <Dialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-4 text-red-400" />
+              Delete ledger
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Delete{" "}
+            <span className="font-semibold text-foreground">
+              {deleting?.account_name} ({deleting?.account_code})
+            </span>{" "}
+            from the chart of accounts? This only works for ledgers with no
+            transactions — history is never deleted.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleting(null)} disabled={deleteBusy}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={deleteBusy}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {deleteBusy ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
+              Delete ledger
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!edit} onOpenChange={(open) => !open && setEdit(null)}>
         <DialogContent className="max-w-md">

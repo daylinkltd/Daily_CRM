@@ -1,5 +1,5 @@
 -- ============================================================
--- 128 — Expand Marketing Content Types Check Constraint
+-- 131 — Expand Marketing Content Types Check Constraint
 --
 -- Widens the content_type check constraint on public.marketing_posts
 -- to support all modern marketing formats including Case Studies,

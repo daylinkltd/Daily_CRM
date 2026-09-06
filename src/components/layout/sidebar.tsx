@@ -13,6 +13,7 @@ import { useTheme } from "@/hooks/use-theme";
 import {
   LayoutDashboard,
   MessageSquare,
+  Printer,
   Users,
   UserCircle,
   Inbox,
@@ -137,6 +138,7 @@ const NAV_GROUP_MODULE: Record<string, ModuleKey | null> = {
   Accounting: "accounting",
   Retail: "retail",
   "Bar Management": "bar",
+  "Printing Press": "printing",
   "Project Management": "projects",
   "HR Management": "hr",
   System: null,
@@ -262,6 +264,18 @@ const navGroups: NavGroup[] = [
       { href: "/bar-management/reports/sales", label: "Dish Sales Report", icon: BarChart3, section: "Reports & Analytics" },
       { href: "/bar-management/shifts", label: "Shifts & Z-Reports", icon: Clock },
       { href: "/bar-management/reports/ksbcl", label: "KSBCL Register", icon: FileText },
+    ]
+  },
+  {
+    // The printing-press job flow. Masters (customers, catalog, units,
+    // inventory, suppliers) deliberately live in CRM/Retail — this group
+    // is only what's unique to a press: jobs and their production flow.
+    label: "Printing Press",
+    icon: Printer,
+    items: [
+      { href: "/printing", label: "Job Orders", icon: FileText },
+      { href: "/printing/orders/new", label: "New Job / Enquiry", icon: PenSquare },
+      { href: "/printing/settings", label: "Presets", icon: Settings },
     ]
   },
   {

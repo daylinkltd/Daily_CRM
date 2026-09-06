@@ -46,6 +46,7 @@ const MODULE_BLURB: Record<ModuleKey, string> = {
   hr: 'Staff records, attendance, leave, payroll and letters.',
   retail: 'Point of sale, products, stock and purchasing.',
   bar: 'Table service, kitchen orders and bar stock by the peg.',
+  printing: 'Printing job orders — enquiry, quotation, production and delivery.',
   projects: 'Projects, tasks, timesheets and billable hours.',
 };
 

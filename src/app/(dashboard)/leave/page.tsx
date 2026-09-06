@@ -152,19 +152,19 @@ export default function LeavePage() {
       />
 
       <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative w-full max-w-sm">
+        <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={canApproveLeave ? "Search by employee name or leave type..." : "Search leave types..."}
-            className="pl-8 bg-card border-border text-foreground placeholder:text-muted-foreground"
+            className="pl-8 bg-card border-border text-foreground placeholder:text-muted-foreground w-full"
           />
         </div>
       </div>
 
-      <div className="rounded-lg border border-border overflow-hidden bg-card">
-        <Table>
+      <div className="rounded-lg border border-border overflow-x-auto bg-card shadow-xs">
+        <Table className="min-w-[550px] sm:min-w-full">
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
               {canApproveLeave && <TableHead className="text-muted-foreground">Employee</TableHead>}

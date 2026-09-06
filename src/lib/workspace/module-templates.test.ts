@@ -133,7 +133,7 @@ describe('recommendationReason', () => {
 describe('applyWorkspaceModules', () => {
   const all: ModuleAccess = {
     crm: true, marketing: true, accounting: true, hr: true,
-    retail: true, bar: true, projects: true,
+    retail: true, bar: true, printing: true, projects: true,
   };
 
   it('hides what the business did not turn on', () => {

@@ -299,7 +299,7 @@ export default function PayrollAdminPage() {
   }
 
   return (
-    <div className="p-(--page-padding-desktop)">
+    <div className="p-[var(--page-padding-mobile)] sm:p-[var(--page-padding-tablet)] lg:p-[var(--page-padding-desktop)] space-y-4 sm:space-y-6">
       <PageHeader
         title="Payroll"
         description="Process monthly cycles, generate payslips, pay out — every step posts to accounting."
@@ -312,14 +312,14 @@ export default function PayrollAdminPage() {
         }
         actions={
           <div className="flex items-center gap-2">
-            <IconAction label="Salaries" icon={<Users />} variant="outline" onClick={openSalaries} />
-            <IconAction label="New Cycle" icon={<Plus />} onClick={() => setNewCycleOpen(true)} />
+            <IconAction label="Salaries" icon={<Users className="size-4 shrink-0" />} variant="outline" onClick={openSalaries} />
+            <IconAction label="New Cycle" icon={<Plus className="size-4 shrink-0" />} onClick={() => setNewCycleOpen(true)} />
           </div>
         }
       />
 
-      <Card>
-        <CardContent>
+      <Card className="overflow-hidden">
+        <CardContent className="p-0 sm:p-6 overflow-x-auto">
           {loading ? (
             <div className="flex min-h-[200px] items-center justify-center text-muted-foreground">
               <Loader2 className="size-4 animate-spin" />
@@ -331,7 +331,7 @@ export default function PayrollAdminPage() {
               description="Set employee salaries first, then create a cycle for the month you want to pay."
             />
           ) : (
-            <Table>
+            <Table className="min-w-[500px] sm:min-w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-8" />

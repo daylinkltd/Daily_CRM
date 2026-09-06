@@ -1,5 +1,5 @@
 -- ============================================================
--- 129 — Marketing AI Video & Image Creative Assets Migration
+-- 132 — Marketing AI Video & Image Creative Assets Migration
 --
 -- Idempotent PostgreSQL script to support:
 -- 1. AI Video and Image generation prompt storage & prompt versioning

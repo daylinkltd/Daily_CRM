@@ -1,5 +1,5 @@
 -- ============================================================
--- 126 — DailyBuz Marketing Hub Core Schema
+-- 129 — DailyBuz Marketing Hub Core Schema
 --
 -- Adds multi-tenant tables for:
 -- 1. `marketing_posts` (Social posts, approval workflow, scheduling, publishing)

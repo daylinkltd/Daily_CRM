@@ -234,6 +234,7 @@ function SelectContent({
   alignItemWithTrigger = false,
   searchable = true,
   searchPlaceholder,
+  footer,
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<
@@ -243,6 +244,12 @@ function SelectContent({
     /** Every dropdown is searchable by default; opt out per-use. */
     searchable?: boolean
     searchPlaceholder?: string
+    /**
+     * Pinned below the list — outside the search filter, so it stays
+     * visible precisely when nothing matches. The home of "+ Add new…"
+     * (see CreatableSelect); anything else pinnable belongs here too.
+     */
+    footer?: React.ReactNode
   }) {
   return (
     <SelectPrimitive.Portal>
@@ -265,6 +272,11 @@ function SelectContent({
           <SelectPrimitive.List>{children}</SelectPrimitive.List>
           {searchable ? <SelectEmpty /> : null}
           <SelectScrollDownButton />
+          {footer ? (
+            <div className="sticky bottom-0 border-t border-border bg-popover p-1">
+              {footer}
+            </div>
+          ) : null}
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>
     </SelectPrimitive.Portal>

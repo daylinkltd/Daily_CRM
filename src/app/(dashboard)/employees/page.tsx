@@ -65,7 +65,8 @@ export default function EmployeesPage() {
       // departments and designations: that is why those columns rendered
       // as "-" for every employee.
       // 1. Try querying employee_profiles with joined relations
-      let { data: rawData, error } = await supabase
+      let rawData: any[] = [];
+      const { data, error } = await supabase
         .from('employee_profiles')
         .select(`
           *,
@@ -74,6 +75,8 @@ export default function EmployeesPage() {
           workspace_members!workspace_member_id ( id, user_id, role )
         `)
         .eq('workspace_id', activeWorkspace.id);
+
+      rawData = data || [];
 
       // Fallback query if relational join returned an error
       if (error || !rawData) {
@@ -189,18 +192,84 @@ export default function EmployeesPage() {
       />
 
       <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative w-full max-w-sm">
+        <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, email, or ID..."
-            className="pl-8 bg-card border-border text-foreground placeholder:text-muted-foreground"
+            className="pl-8 bg-card border-border text-foreground placeholder:text-muted-foreground w-full"
           />
         </div>
       </div>
 
-      <div className="rounded-lg border border-border overflow-hidden bg-card">
+      {/* Mobile Card List View (< sm screens) */}
+      <div className="block sm:hidden space-y-3">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12 bg-card border border-border rounded-lg">
+            <Loader2 className="size-6 animate-spin text-primary mb-2" />
+            <p className="text-sm text-muted-foreground">Loading employees...</p>
+          </div>
+        ) : filteredEmployees.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 bg-card border border-border rounded-lg">
+            <UserSquare className="size-8 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground">
+              {search ? 'No employees match your search.' : 'No employees found.'}
+            </p>
+          </div>
+        ) : (
+          filteredEmployees.map(({ emp, fullName, email, avatarUrl }) => (
+            <div
+              key={emp.workspace_member_id}
+              className="p-3.5 bg-card border border-border rounded-lg space-y-3 shadow-xs cursor-pointer active:bg-muted/50"
+              onClick={() => viewEmployeeDetails(emp.workspace_member_id)}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                    <SelectRowCheckbox
+                      checked={selection.isSelected(emp.workspace_member_id)}
+                      onToggle={(o) => selection.toggle(emp.workspace_member_id, o)}
+                      label={`Select ${fullName}`}
+                    />
+                  </div>
+                  <Avatar className="size-9 border border-border shrink-0">
+                    {avatarUrl && <AvatarImage src={avatarUrl} />}
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                      {fullName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium text-foreground truncate">
+                      {fullName}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                      <Mail className="size-3 shrink-0" />
+                      <span className="truncate">{email}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <StatusBadge status={emp.status || 'ACTIVE'} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/60 text-muted-foreground">
+                <div>
+                  <span className="text-[10px] uppercase font-semibold block text-muted-foreground/70">Emp ID</span>
+                  <span className="font-mono text-foreground font-medium">{emp.employee_code || '-'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-semibold block text-muted-foreground/70">Department</span>
+                  <span className="text-foreground">{emp.departments?.name || '-'}</span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View (>= sm screens) */}
+      <div className="hidden sm:block rounded-lg border border-border overflow-hidden bg-card">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">

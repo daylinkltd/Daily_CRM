@@ -1,5 +1,5 @@
 -- ============================================================
--- 127 — Marketing Creative Prompts & Objective Schema
+-- 130 — Marketing Creative Prompts & Objective Schema
 --
 -- Adds creative prompt storage, prompt versioning, and objective tracking to `marketing_posts`.
 -- Prompts are production-ready text specs for external models (e.g. OpenAI DALL-E 3 / Sora).

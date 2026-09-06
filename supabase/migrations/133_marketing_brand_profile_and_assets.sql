@@ -1,5 +1,5 @@
 -- ============================================================
--- 130 — Marketing Brand Profiles & Brand Asset Library Schema
+-- 133 — Marketing Brand Profiles & Brand Asset Library Schema
 --
 -- Adds multi-tenant tables and storage for:
 -- 1. `marketing_brand_profiles` (Company details, voice, colors, target audience)

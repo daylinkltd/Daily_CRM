@@ -15,6 +15,7 @@ const ALL_MODULES = {
   hr: true,
   retail: true,
   bar: true,
+  printing: true,
   projects: true,
 };
 
@@ -41,6 +42,7 @@ describe("deriveModuleAccess", () => {
       hr: false,
       retail: false,
       bar: true,
+      printing: false,
       projects: false,
     });
   });
@@ -66,6 +68,7 @@ describe("deriveModuleAccess", () => {
       hr: true,
       retail: false,
       bar: false,
+      printing: false,
       projects: true,
     });
   });
@@ -80,6 +83,7 @@ describe("deriveModuleAccess", () => {
       hr: true,
       retail: false,
       bar: false,
+      printing: false,
       projects: false,
     });
   });
@@ -97,6 +101,7 @@ describe("deriveModuleAccess", () => {
       hr: false,
       retail: true,
       bar: false,
+      printing: false,
       projects: false,
     });
   });
@@ -109,7 +114,7 @@ describe("deriveModuleAccess", () => {
 });
 
 describe("applyPlatformFlags", () => {
-  const all = { crm: true, marketing: true, accounting: true, hr: true, retail: true, bar: true, projects: true };
+  const all = { crm: true, marketing: true, accounting: true, hr: true, retail: true, bar: true, printing: true, projects: true };
 
   it("fails open when no flags row exists", () => {
     // Flags are a kill switch for exceptions, not a provisioning step —
@@ -130,7 +135,7 @@ describe("applyPlatformFlags", () => {
   it("never grants what the role did not", () => {
     // AND, not OR: a platform flag switched on cannot open a module the
     // owner's role configuration keeps closed.
-    const roleLimited = { crm: true, marketing: false, accounting: false, hr: false, retail: false, bar: false, projects: false };
+    const roleLimited = { crm: true, marketing: false, accounting: false, hr: false, retail: false, bar: false, printing: false, projects: false };
     const out = applyPlatformFlags(roleLimited, {
       enable_hr: true,
       enable_retail: true,
@@ -162,6 +167,7 @@ describe("module keys are opt-in, never opt-out", () => {
       hr: false,
       retail: false,
       bar: false,
+      printing: false,
       projects: false,
     });
   });

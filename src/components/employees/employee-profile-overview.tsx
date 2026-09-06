@@ -99,6 +99,13 @@ export function EmployeeProfileOverview({
 
     // 5. Educational Qualifications & Experience
     highest_qualification: employee.highest_qualification || '',
+    education_details: Array.isArray(employee.education_details) && employee.education_details.length > 0
+      ? employee.education_details
+      : [
+          { level: '10TH', degree: '10th Standard / SSLC', institute: '', year: '', score: '' },
+          { level: '12TH', degree: '12th Standard / HSC', institute: '', year: '', score: '' },
+          { level: 'DEGREE', degree: '', institute: '', year: '', score: '' }
+        ],
     total_experience_years: employee.total_experience_years || 0,
 
     // 6. Notes
@@ -616,19 +623,146 @@ export function EmployeeProfileOverview({
         {/* Tab 5: Education & Experience */}
         <TabsContent value="education" className="pt-4 space-y-4">
           <div className="bg-card rounded-xl border border-border p-5 space-y-4">
-            <h3 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-2 text-primary">
-              <GraduationCap className="size-4" /> Educational Qualifications & Prior Experience
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-2 text-primary">
+                <GraduationCap className="size-4" /> Educational Qualifications & Prior Experience
+              </h3>
+              {canEdit && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-[11px] gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                  onClick={() => {
+                    const updated = [...formData.education_details, { level: 'POST_GRAD', degree: '', institute: '', year: '', score: '' }];
+                    handleChange('education_details', updated);
+                  }}
+                >
+                  <Plus className="size-3" /> Add Degree / Qualification
+                </Button>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="space-y-1.5">
-                <Label className="text-xs">Highest Qualification / Degree</Label>
+                <Label className="text-xs">Highest Qualification Summary</Label>
                 <Input value={formData.highest_qualification} onChange={(e) => handleChange('highest_qualification', e.target.value)} disabled={!canEdit} placeholder="e.g. B.Tech in Computer Science / MBA" className="h-9" />
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Total Prior Work Experience (Years)</Label>
                 <Input type="number" step="0.5" value={formData.total_experience_years} onChange={(e) => handleChange('total_experience_years', e.target.value)} disabled={!canEdit} placeholder="e.g. 4.5" className="h-9 font-mono" />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-border space-y-3 text-xs">
+              <h4 className="font-bold text-foreground text-xs uppercase tracking-wider text-primary">Academic History Records (10th, 12th, Graduation, Post-Graduation)</h4>
+              
+              <div className="space-y-2.5">
+                {formData.education_details.map((edu: any, idx: number) => (
+                  <div key={idx} className="bg-muted/20 p-3 rounded-lg space-y-2 text-xs border border-border/60">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1">
+                        <span className="font-bold text-[11px] text-primary shrink-0 uppercase tracking-wide">
+                          #{idx + 1}
+                        </span>
+                        <Select
+                          disabled={!canEdit}
+                          value={edu.level || 'DEGREE'}
+                          onValueChange={(val) => {
+                            const updated = [...formData.education_details];
+                            updated[idx].level = val;
+                            handleChange('education_details', updated);
+                          }}
+                        >
+                          <SelectTrigger className="h-7 text-[11px] w-40 bg-background"><SelectValue placeholder="Level" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="10TH" className="text-xs">10th Class / Secondary</SelectItem>
+                            <SelectItem value="12TH" className="text-xs">12th Class / Sr. Secondary</SelectItem>
+                            <SelectItem value="DIPLOMA" className="text-xs">Diploma</SelectItem>
+                            <SelectItem value="DEGREE" className="text-xs">Bachelor / Graduation</SelectItem>
+                            <SelectItem value="POST_GRAD" className="text-xs">Post Graduation / Master</SelectItem>
+                            <SelectItem value="DOCTORATE" className="text-xs">Doctorate / Ph.D.</SelectItem>
+                            <SelectItem value="OTHER" className="text-xs">Other Certification</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {canEdit && formData.education_details.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-6 text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            const updated = formData.education_details.filter((_: any, i: number) => i !== idx);
+                            handleChange('education_details', updated);
+                          }}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-12 gap-2 pt-1">
+                      <div className="col-span-12 sm:col-span-5 space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Degree / Certificate Title</Label>
+                        <Input
+                          placeholder="e.g. 10th Board / B.Tech Computer Science"
+                          value={edu.degree || ''}
+                          disabled={!canEdit}
+                          onChange={(e) => {
+                            const updated = [...formData.education_details];
+                            updated[idx].degree = e.target.value;
+                            handleChange('education_details', updated);
+                          }}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="col-span-12 sm:col-span-4 space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">School / Institute / Board</Label>
+                        <Input
+                          placeholder="e.g. CBSE Board / Delhi University"
+                          value={edu.institute || ''}
+                          disabled={!canEdit}
+                          onChange={(e) => {
+                            const updated = [...formData.education_details];
+                            updated[idx].institute = e.target.value;
+                            handleChange('education_details', updated);
+                          }}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <div className="col-span-6 sm:col-span-1.5 space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Passing Year</Label>
+                        <Input
+                          placeholder="2018"
+                          value={edu.year || ''}
+                          disabled={!canEdit}
+                          onChange={(e) => {
+                            const updated = [...formData.education_details];
+                            updated[idx].year = e.target.value;
+                            handleChange('education_details', updated);
+                          }}
+                          className="h-8 text-xs font-mono"
+                        />
+                      </div>
+                      <div className="col-span-6 sm:col-span-1.5 space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Marks / CGPA</Label>
+                        <Input
+                          placeholder="85%"
+                          value={edu.score || ''}
+                          disabled={!canEdit}
+                          onChange={(e) => {
+                            const updated = [...formData.education_details];
+                            updated[idx].score = e.target.value;
+                            handleChange('education_details', updated);
+                          }}
+                          className="h-8 text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

@@ -61,6 +61,12 @@ export const BUSINESS_TYPES: BusinessType[] = [
     modules: ['bar', 'retail', 'accounting'],
   },
   {
+    id: 'printing_press',
+    label: 'Printing press or print shop',
+    description: 'Walk-in printouts to bulk jobs — quotations, production stages, delivery.',
+    modules: ['printing', 'retail', 'accounting'],
+  },
+  {
     id: 'wholesale',
     label: 'Wholesale or distribution',
     description: 'You supply other businesses, in bulk, usually on credit.',
