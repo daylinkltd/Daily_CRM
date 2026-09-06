@@ -96,16 +96,39 @@ CREATE POLICY "Active workspace members can manage printing_order_items" ON publ
     ));
 
 -- 4. Job numbers: PJ-000001… per workspace through the atomic
---    generate_next_document_number() RPC. Existing workspaces get a
---    series row here; a workspace without one still works (the RPC
---    falls back to a random suffix).
-INSERT INTO public.platform_number_series (workspace_id, document_type, prefix, suffix, running_number, reset_rule)
-SELECT w.id, 'PRINTING_ORDER', 'PJ-', '', 1, 'NEVER'
+--    generate_next_document_number() RPC. Since migration 123 the RPC
+--    auto-creates a series row on first use, but its defaults would be
+--    'PRI/' + yearly reset — this seed row is the TEMPLATE it copies
+--    instead: PJ- prefix, never resets. 123 also made `period_key`
+--    NOT NULL (the reset period a counter belongs to); for reset_rule
+--    NEVER the period is 'ALL' (see document_series_period_key).
+INSERT INTO public.platform_number_series
+    (workspace_id, document_type, prefix, suffix, running_number, reset_rule, period_key, financial_year)
+SELECT w.id, 'PRINTING_ORDER', 'PJ-', '', 1, 'NEVER', 'ALL', 'ALL'
 FROM public.workspaces w
-WHERE NOT EXISTS (
-    SELECT 1 FROM public.platform_number_series s
-    WHERE s.workspace_id = w.id AND s.document_type = 'PRINTING_ORDER'
-);
+ON CONFLICT (workspace_id, document_type, period_key) DO NOTHING;
+
+-- Workspaces created after this migration need the same template, or
+-- their first job numbers as the generator's generic 'PRI/000001'.
+CREATE OR REPLACE FUNCTION public.seed_printing_number_series()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+    INSERT INTO public.platform_number_series
+        (workspace_id, document_type, prefix, suffix, running_number, reset_rule, period_key, financial_year)
+    VALUES (NEW.id, 'PRINTING_ORDER', 'PJ-', '', 1, 'NEVER', 'ALL', 'ALL')
+    ON CONFLICT (workspace_id, document_type, period_key) DO NOTHING;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_seed_printing_number_series ON public.workspaces;
+CREATE TRIGGER trg_seed_printing_number_series
+    AFTER INSERT ON public.workspaces
+    FOR EACH ROW EXECUTE FUNCTION public.seed_printing_number_series();
 
 -- 5. Invoices generated from printing jobs carry their own source tag.
 ALTER TABLE public.invoices DROP CONSTRAINT IF EXISTS invoices_source_check;
@@ -119,6 +142,8 @@ ALTER TABLE public.invoices ADD CONSTRAINT invoices_source_check
 -- SELECT to_regclass('public.printing_order_items');   -- not null
 -- SELECT count(*) FROM public.platform_number_series
 --   WHERE document_type = 'PRINTING_ORDER';            -- = workspace count
+-- SELECT tgname FROM pg_trigger
+--   WHERE tgname = 'trg_seed_printing_number_series';  -- exists
 -- SELECT conname FROM pg_constraint
 --   WHERE conname = 'invoices_source_check';           -- exists
 -- ============================================================
