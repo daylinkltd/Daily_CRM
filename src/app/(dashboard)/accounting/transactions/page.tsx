@@ -13,15 +13,18 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  ReceiptText,
   ChevronDown,
   ChevronRight,
   Search,
   Loader2,
   ArrowRight,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { formatCurrency } from "@/lib/currency";
 import { PageHeader } from "@/components/ui/page-header";
@@ -29,6 +32,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { IconAction } from "@/components/ui/icon-action";
 
 interface Entry {
   id: string;
@@ -57,8 +64,15 @@ const PAGE_SIZE = 50;
 
 export default function TransactionsPage() {
   const supabase = createClient();
-  const { activeWorkspace, defaultCurrency } = useWorkspace();
+  const { accountRole } = useAuth();
+  const { activeWorkspace, defaultCurrency, can } = useWorkspace();
   const workspaceId = activeWorkspace?.id;
+
+  // ABAC: same key as ledger deletion. Owner/admin permission maps don't
+  // carry CRUD keys, so the role check comes first; the API re-checks
+  // via has_workspace_permission either way.
+  const canVoid =
+    accountRole === "owner" || accountRole === "admin" || can("accounting:delete");
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [linesByEntry, setLinesByEntry] = useState<Record<string, Line[]>>({});
@@ -70,6 +84,8 @@ export default function TransactionsPage() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(0);
   const [total, setTotal] = useState(0);
+  const [voiding, setVoiding] = useState<Entry | null>(null);
+  const [voidBusy, setVoidBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!workspaceId) return;
@@ -143,6 +159,29 @@ export default function TransactionsPage() {
 
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  async function handleVoid() {
+    if (!workspaceId || !voiding) return;
+    setVoidBusy(true);
+    try {
+      const res = await fetch(
+        `/api/accounting/journal/${voiding.id}?workspace_id=${workspaceId}`,
+        { method: "DELETE" },
+      );
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(payload.error || "Failed to void voucher");
+        return;
+      }
+      toast.success(`Voided ${voiding.voucher_number} — balances updated`);
+      setVoiding(null);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not reach the server");
+    } finally {
+      setVoidBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -209,6 +248,7 @@ export default function TransactionsPage() {
                   <th className="px-2 py-3">Narration</th>
                   <th className="px-2 py-3">Source</th>
                   <th className="px-4 py-3 text-right">Amount</th>
+                  {canVoid && <th className="w-10 px-2 py-3" aria-label="Actions" />}
                 </tr>
               </thead>
               <tbody>
@@ -241,11 +281,30 @@ export default function TransactionsPage() {
                         <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-foreground">
                           {formatCurrency(entryTotal(e.id), defaultCurrency)}
                         </td>
+                        {canVoid && (
+                          <td className="px-2 py-3 text-right">
+                            {/* Only manual journals are voidable — system
+                                postings mirror a source document, and the
+                                API refuses them anyway. */}
+                            {(e.reference_type === "MANUAL_JOURNAL" || !e.reference_type) && (
+                              <IconAction
+                                label={`Void ${e.voucher_number}`}
+                                icon={<Trash2 />}
+                                variant="ghost"
+                                className="text-red-400 hover:text-red-300"
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  setVoiding(e);
+                                }}
+                              />
+                            )}
+                          </td>
+                        )}
                       </tr>
                       {open && (
                         <tr className="border-b border-border/50 bg-muted/20">
                           <td />
-                          <td colSpan={5} className="px-2 py-3">
+                          <td colSpan={canVoid ? 6 : 5} className="px-2 py-3">
                             <table className="w-full text-xs">
                               <thead>
                                 <tr className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -291,6 +350,40 @@ export default function TransactionsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Void confirmation — a soft delete: the voucher drops out of
+          every balance and report but the rows stay for the audit
+          trail. */}
+      <Dialog open={!!voiding} onOpenChange={(open) => !open && setVoiding(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-4 text-red-400" />
+              Void voucher
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Void{" "}
+            <span className="font-semibold text-foreground">{voiding?.voucher_number}</span>
+            {voiding?.narration ? ` (“${voiding.narration.slice(0, 80)}”)` : ""}? It will
+            disappear from every balance and report, but stays in the books marked as
+            voided — nothing is erased.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVoiding(null)} disabled={voidBusy}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleVoid}
+              disabled={voidBusy}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {voidBusy ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
+              Void voucher
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {pages > 1 && (
         <div className="flex items-center justify-between text-xs text-muted-foreground">
