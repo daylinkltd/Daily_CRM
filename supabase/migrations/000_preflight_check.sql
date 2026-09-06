@@ -68,7 +68,25 @@ WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
     ('124', 'function','assert_may_create_workspace',
        'Any member can create workspaces under the owner''s plan and seat pool.'),
     ('125', 'function','set_workspace_modules',
-       'Businesses cannot choose their modules; every sidebar shows all of them.')
+       'Businesses cannot choose their modules; every sidebar shows all of them.'),
+    ('127', 'table',   'printing_orders',
+       'Printing Press jobs cannot be created; /printing errors.'),
+    ('127', 'table',   'printing_order_items',
+       'Printing job lines (size/paper/GSM/finishing) have nowhere to go.'),
+    ('128', 'table',   'printing_presets',
+       'Job-form dropdowns and Printing → Presets show empty lists.'),
+    ('128', 'function','seed_printing_presets_for',
+       'New workspaces start with no printing vocabulary at all.'),
+    -- Marketing hub (Vivian) — renumbered 126–130 → 129–133 at merge time
+    -- because printing/HR had already taken 126–128 on main.
+    ('129', 'table',   'marketing_posts',
+       'Social posts and marketing hub content storage is missing.'),
+    ('129', 'table',   'marketing_settings',
+       'Marketing brand voice and workspace defaults fail to persist.'),
+    ('133', 'table',   'marketing_brand_profiles',
+       'Tenant brand profile storage for Universal AI marketing is missing.'),
+    ('133', 'table',   'marketing_brand_assets',
+       'Tenant brand asset library for logos, products, and screenshots is missing.')
 ),
 objects AS (
   SELECT
@@ -178,6 +196,16 @@ details AS (
             WHERE table_name = 'employee_profiles' AND column_name = 'date_of_birth')
          THEN 'present' ELSE '-- MISSING --' END,
          'Personal, family, nominee, education, previous experience, and document fields are missing from employee master.'
+  UNION ALL
+  SELECT '130', 'image_prompt & video_prompt on marketing_posts',
+         CASE WHEN to_regclass('public.marketing_posts') IS NULL
+                THEN '-- MISSING (run 129 first) --'
+              WHEN EXISTS (
+                SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'marketing_posts' AND column_name = 'image_prompt')
+                THEN 'present'
+              ELSE '-- MISSING --' END,
+         'Creative prompts and versions cannot be persisted with marketing posts.'
 )
 SELECT status, migration, check_name, impact
   FROM (SELECT * FROM objects UNION ALL SELECT * FROM details) all_checks

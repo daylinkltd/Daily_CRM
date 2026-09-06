@@ -79,6 +79,27 @@ export const STATUS_CONFIG: Record<
     border: 'border-rose-500/30',
     icon: XCircle,
   },
+  failed: {
+    label: 'Failed',
+    bg: 'bg-rose-600/15 dark:bg-rose-600/25',
+    text: 'text-rose-700 dark:text-rose-300',
+    border: 'border-rose-600/40',
+    icon: XCircle,
+  },
+  publishing: {
+    label: 'Publishing',
+    bg: 'bg-indigo-500/10 dark:bg-indigo-500/20',
+    text: 'text-indigo-600 dark:text-indigo-400',
+    border: 'border-indigo-500/30',
+    icon: Clock,
+  },
+  ai_generated: {
+    label: 'AI Generated',
+    bg: 'bg-purple-500/10 dark:bg-purple-500/20',
+    text: 'text-purple-600 dark:text-purple-400',
+    border: 'border-purple-500/30',
+    icon: Sparkles,
+  },
 };
 
 export function SocialEventCard({

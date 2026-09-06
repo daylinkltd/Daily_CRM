@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { encrypt, decrypt } from '@/lib/whatsapp/encryption';
 
 export interface BufferOrganization {
@@ -104,7 +105,12 @@ export class BufferService {
    * 2. Handle OAuth Callback, exchange token, and initialize integration
    */
   static async handleOAuthCallback(code: string, state: string, isSimulation = false): Promise<{ success: boolean; workspaceId: string; error?: string }> {
-    const supabase = await createClient();
+    let supabase: any;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = await createClient();
+    }
 
     // Verify state
     const { data: stateRecord, error: stateError } = await supabase

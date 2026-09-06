@@ -35,6 +35,7 @@ const STATUS_TABS: (PostStatus | 'all')[] = [
   'approved',
   'scheduled',
   'published',
+  'failed',
   'changes_requested',
   'rejected',
 ];
@@ -55,6 +56,7 @@ export default function MarketingContentPage() {
   const [activeTab, setActiveTab] = useState<PostStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [platformFilter, setPlatformFilter] = useState<SocialPlatform | 'all'>('all');
+  const [contentTypeFilter, setContentTypeFilter] = useState<string>('all');
   const [campaignFilter, setCampaignFilter] = useState<string>('all');
   const [creatorFilter, setCreatorFilter] = useState<string>('all');
   const [gridView, setGridView] = useState(true);
@@ -70,6 +72,17 @@ export default function MarketingContentPage() {
       if (platformFilter !== 'all' && !p.channels.includes(platformFilter)) return false;
       if (campaignFilter !== 'all' && p.campaignId !== campaignFilter && p.tagsCampaign !== campaignFilter) return false;
       if (creatorFilter !== 'all' && p.creatorId !== creatorFilter) return false;
+      if (contentTypeFilter !== 'all') {
+        if (contentTypeFilter === 'video') {
+          const isVideo = p.contentType === 'video' || p.contentType === 'reel' || p.contentType === 'short' || p.mediaUrl?.includes('.mp4') || Boolean(p.video_prompt);
+          if (!isVideo) return false;
+        } else if (contentTypeFilter === 'image') {
+          const isImage = p.mediaUrl?.match(/\.(jpeg|jpg|png|webp|gif)/i) || Boolean(p.image_prompt);
+          if (!isImage) return false;
+        } else if (contentTypeFilter === 'carousel') {
+          if (p.contentType !== 'carousel' && (!p.mediaUrls || p.mediaUrls.length <= 1)) return false;
+        }
+      }
       if (q) {
         const tMatch = p.title.toLowerCase().includes(q);
         const cMatch = p.defaultCaption.toLowerCase().includes(q);
@@ -78,7 +91,7 @@ export default function MarketingContentPage() {
       }
       return true;
     });
-  }, [store.socialPosts, activeTab, platformFilter, campaignFilter, creatorFilter, search]);
+  }, [store.socialPosts, activeTab, platformFilter, contentTypeFilter, campaignFilter, creatorFilter, search]);
 
   const handleDelete = (postId: string) => {
     if (confirm('Delete this post? This action cannot be undone.')) {
@@ -169,6 +182,18 @@ export default function MarketingContentPage() {
             {ALL_PLATFORMS.map((p) => (
               <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
             ))}
+          </NativeSelect>
+
+          {/* Media/Content Type Filter */}
+          <NativeSelect
+            value={contentTypeFilter}
+            onChange={(e) => setContentTypeFilter(e.target.value)}
+            className="h-10 rounded-xl border border-border bg-card px-3 text-xs font-bold text-foreground focus:outline-none"
+          >
+            <option value="all">All Types</option>
+            <option value="video">🎬 Video & Reels</option>
+            <option value="image">🖼️ Images</option>
+            <option value="carousel">📚 Carousels</option>
           </NativeSelect>
 
           {/* Campaign Filter */}

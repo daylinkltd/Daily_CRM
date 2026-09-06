@@ -10,21 +10,59 @@ export type SocialPlatform =
 
 export type PostStatus =
   | 'draft'
+  | 'ai_generated'
   | 'pending_approval'
   | 'changes_requested'
   | 'approved'
   | 'scheduled'
+  | 'publishing'
   | 'published'
+  | 'failed'
   | 'rejected';
 
 export type ContentType =
   | 'post'
+  | 'social'
+  | 'blog'
+  | 'article'
+  | 'promo'
+  | 'product_service'
+  | 'announcement'
+  | 'educational'
+  | 'case_study'
+  | 'testimonial'
+  | 'behind_the_scenes'
+  | 'industry_insights'
+  | 'interactive_poll'
+  | 'tips_tricks'
+  | 'event'
+  | 'meme_humor'
+  | 'comparison'
+  | 'ugc_spotlight'
+  | 'seasonal_holiday'
+  | 'newsletter_digest'
   | 'reel'
   | 'story'
   | 'video'
   | 'carousel'
-  | 'short'
-  | 'article';
+  | 'short';
+
+export type ToneType =
+  | 'creative'
+  | 'engaging'
+  | 'professional'
+  | 'concise'
+  | 'educational'
+  | 'bold'
+  | 'witty'
+  | 'empathetic'
+  | 'urgent'
+  | 'inspirational'
+  | 'technical'
+  | 'casual'
+  | 'storytelling'
+  | 'luxurious'
+  | 'contrarian';
 
 export type CRMActivityType =
   | 'meeting'
@@ -71,6 +109,7 @@ export interface AuditHistoryItem {
     | 'approved'
     | 'scheduled'
     | 'published'
+    | 'failed'
     | 'rejected'
     | 'rescheduled'
     | 'reassigned';
@@ -165,7 +204,16 @@ export interface SocialPost {
   mediaUrl?: string;
   mediaUrls?: string[];
   mediaType?: 'image' | 'video';
+  mediaSource?: 'UPLOADED' | 'AI_GENERATED' | 'STOCK';
+  shortCaption?: string;
+  cta?: string;
   hashtags?: string[];
+  keywords?: string[];
+  image_prompt?: string;
+  video_prompt?: string;
+  image_prompt_version?: number;
+  video_prompt_version?: number;
+  objective?: string;
   mentions?: string[];
   link?: string;
   altText?: string;
@@ -178,6 +226,11 @@ export interface SocialPost {
   creatorAvatar?: string;
   approverId?: string;
   approverName?: string;
+  assignedApproverId?: string;
+  assignedApproverName?: string;
+  rejection_reason?: string;
+  approval_notes?: string;
+  failure_reason?: string;
 
   // CRM Linkages
   crmContactId?: string;

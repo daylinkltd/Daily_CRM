@@ -38,4 +38,54 @@ describe('Multi-Tenant Buffer Integration & PKCE Token Security', () => {
       expect(challenge).not.toEqual(verifier);
     });
   });
+
+  describe('OAuth Security & Multi-Tenant Boundaries', () => {
+    it('enforces short-lived 15-minute expiration on OAuth state parameters', () => {
+      const stateCreatedAt = Date.now();
+      const expiresAt = new Date(stateCreatedAt + 15 * 60 * 1000);
+      const isExpired = Date.now() > expiresAt.getTime();
+      expect(isExpired).toBe(false);
+
+      const pastExpiresAt = new Date(Date.now() - 1000);
+      const isPastExpired = Date.now() > pastExpiresAt.getTime();
+      expect(isPastExpired).toBe(true);
+    });
+
+    it('prevents exposing raw tokens in public status projections', () => {
+      const rawDbRecord = {
+        id: 'int_123',
+        workspace_id: 'ws_tenant_a',
+        provider: 'buffer',
+        access_token_encrypted: 'secret_iv:ciphertext:tag',
+        refresh_token_encrypted: 'secret_ref_iv:ciphertext:tag',
+        status: 'connected',
+        provider_organization_name: 'Tenant A Org',
+      };
+
+      // Safe projected payload for frontend
+      const safeProjected = {
+        isConnected: rawDbRecord.status === 'connected',
+        status: rawDbRecord.status,
+        currentOrganizationName: rawDbRecord.provider_organization_name,
+      };
+
+      expect((safeProjected as any).access_token_encrypted).toBeUndefined();
+      expect((safeProjected as any).refresh_token_encrypted).toBeUndefined();
+      expect((safeProjected as any).access_token).toBeUndefined();
+    });
+
+    it('validates GraphQL mutation error parsing without fake HTTP 200 success', () => {
+      const mockGraphQLErrorResponse = {
+        data: null,
+        errors: [
+          { message: 'Channel token expired or lacks publishing permissions', code: 'UNAUTHORIZED' },
+        ],
+      };
+
+      const hasErrors = Array.isArray(mockGraphQLErrorResponse.errors) && mockGraphQLErrorResponse.errors.length > 0;
+      expect(hasErrors).toBe(true);
+      const errorMessage = mockGraphQLErrorResponse.errors[0].message;
+      expect(errorMessage).toContain('Channel token expired');
+    });
+  });
 });

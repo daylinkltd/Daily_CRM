@@ -37,6 +37,7 @@ export function ApprovalCard({
   onReview,
   className,
 }: ApprovalCardProps) {
+  const [imageError, setImageError] = React.useState(false);
   const isSelfApproval = post.creatorId === currentUserId;
   const lastSubmit = post.auditHistory.find((h) => h.action === 'submitted' || h.action === 'resubmitted');
 
@@ -49,11 +50,16 @@ export function ApprovalCard({
     >
       {/* Thumbnail */}
       <div className="sm:w-32 sm:h-32 w-full h-44 rounded-xl overflow-hidden bg-muted shrink-0 relative">
-        {post.mediaUrl ? (
-          <img src={post.mediaUrl} alt={post.title} className="w-full h-full object-cover" />
+        {post.mediaUrl && !imageError ? (
+          <img
+            src={post.mediaUrl}
+            alt={post.title}
+            onError={() => setImageError(true)}
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/15">
-            <span className="text-3xl opacity-30">📷</span>
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 text-muted-foreground">
+            <span className="text-2xl opacity-50">📷</span>
           </div>
         )}
         <div className="absolute bottom-2 left-2">

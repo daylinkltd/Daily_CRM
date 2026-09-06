@@ -5,6 +5,7 @@ import type { SocialPost, UserRole, SocialPlatform } from '@/types/calendar';
 import { SocialPlatformPreview } from '@/components/social/platform-previews';
 import { StatusBadge } from '@/components/social/status-badge';
 import { PlatformIconStack } from '@/components/social/platform-badge';
+import { ApprovalGovernance } from '@/lib/marketing/approval-governance';
 import {
   X,
   CheckCircle2,
@@ -18,63 +19,131 @@ import {
   History,
   Send,
   UserCheck,
+  Edit3,
+  Save,
+  RefreshCw,
+  Hash,
+  Sparkles,
+  Image as ImageIcon,
+  Trash2,
+  Share2,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { NativeSelect } from "@/components/ui/native-select";
-import { RichTextArea } from "@/components/ui/rich-textarea";
 
 interface ApprovalReviewDrawerProps {
   post: SocialPost | null;
   currentUserRole: UserRole;
   currentUserId: string;
+  currentUserName?: string;
   onClose: () => void;
   onApprove: (postId: string) => void;
   onRequestChanges: (postId: string, comment: string) => void;
   onReject: (postId: string, comment?: string) => void;
+  onScheduleOrPublish?: (postId: string, mode: 'schedule' | 'publish_now', date?: string, time?: string) => void;
   onReassign?: (postId: string, newApproverId: string) => void;
+  onUpdatePost?: (updated: SocialPost) => void;
 }
 
 export function ApprovalReviewDrawer({
   post,
   currentUserRole,
   currentUserId,
+  currentUserName,
   onClose,
   onApprove,
   onRequestChanges,
   onReject,
-  onReassign,
+  onScheduleOrPublish,
+  onUpdatePost,
 }: ApprovalReviewDrawerProps) {
-  const [changesComment, setChangesComment] = useState('');
-  const [isChangesModalOpen, setIsChangesModalOpen] = useState(false);
   const [selectedPreviewPlatform, setSelectedPreviewPlatform] = useState<SocialPlatform>('instagram');
+
+  // Edit Mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(post?.title || '');
+  const [editCaption, setEditCaption] = useState(post?.defaultCaption || '');
+  const [editCta, setEditCta] = useState(post?.link || '');
+  const [editHashtags, setEditHashtags] = useState(post?.hashtags?.join(', ') || '');
+  const [editDate, setEditDate] = useState(post?.date || '');
+  const [editTime, setEditTime] = useState(post?.time || '10:30');
+  const [editMediaUrl, setEditMediaUrl] = useState(post?.mediaUrl || '');
+
+  // Schedule modal state
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState(post?.date || new Date().toISOString().split('T')[0]);
+  const [scheduleTime, setScheduleTime] = useState(post?.time || '10:30');
+
+  // Changes & Reject Modal states
+  const [isChangesModalOpen, setIsChangesModalOpen] = useState(false);
+  const [changesComment, setChangesComment] = useState('');
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   if (!post) return null;
 
-  // RULE 1: Self-Approval Protection!
-  const isSelfCreator = post.creatorId === currentUserId;
-  const isApproverOrAdmin = currentUserRole === 'approver' || currentUserRole === 'admin';
-  const canApprove = isApproverOrAdmin && !isSelfCreator;
+  // Centralized Governance Checks
+  const userContext = {
+    id: currentUserId,
+    name: currentUserName,
+    role: currentUserRole,
+  };
+
+  const approveCheck = ApprovalGovernance.canApprove(post, userContext);
+  const changesCheck = ApprovalGovernance.canRequestChanges(post, userContext);
+  const rejectCheck = ApprovalGovernance.canReject(post, userContext);
+  const editCheck = ApprovalGovernance.canEdit(post, userContext);
+  const scheduleCheck = ApprovalGovernance.canScheduleOrPublish(post, userContext);
+
+  const isCreator = post.creatorId === currentUserId;
+
+  const handleSaveChanges = () => {
+    if (!onUpdatePost) return;
+    const updated: SocialPost = {
+      ...post,
+      title: editTitle.trim(),
+      defaultCaption: editCaption.trim(),
+      link: editCta.trim() || undefined,
+      hashtags: editHashtags.split(',').map((h) => h.trim()).filter(Boolean),
+      date: editDate || undefined,
+      time: editTime || undefined,
+      mediaUrl: editMediaUrl || undefined,
+      updatedAt: new Date().toISOString(),
+      auditHistory: [
+        ...(post.auditHistory || []),
+        {
+          id: `audit_${Date.now()}`,
+          action: 'edited',
+          userId: currentUserId,
+          userName: currentUserName || 'User',
+          userRole: currentUserRole,
+          timestamp: new Date().toISOString(),
+          comment: 'Modified post content fields during review.',
+        },
+      ],
+    };
+    onUpdatePost(updated);
+    setIsEditing(false);
+    toast.success('Post changes saved successfully!');
+  };
 
   const handleApproveClick = () => {
-    if (!canApprove) {
-      if (isSelfCreator) {
-        toast.error('Governance Rule: Creators cannot approve their own posts.');
-      } else {
-        toast.error('Only Approvers or Admins can approve content.');
-      }
+    if (!approveCheck.allowed) {
+      toast.error(approveCheck.reason || 'You are not authorized to approve this post.');
       return;
     }
     onApprove(post.id);
-    onClose();
+    toast.success('Post approved! It is now ready to be scheduled or published.');
   };
 
   const handleChangesSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!changesComment.trim()) {
-      toast.error('Please specify what changes are needed.');
+      toast.error('A feedback comment is mandatory when requesting changes.');
       return;
     }
     onRequestChanges(post.id, changesComment.trim());
@@ -83,276 +152,638 @@ export function ApprovalReviewDrawer({
     onClose();
   };
 
-  const handleRejectClick = () => {
-    if (confirm('Are you sure you want to reject this post?')) {
-      onReject(post.id);
-      onClose();
+  const handleRejectSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectReason.trim()) {
+      toast.error('A rejection reason is mandatory.');
+      return;
     }
+    onReject(post.id, rejectReason.trim());
+    setIsRejectModalOpen(false);
+    setRejectReason('');
+    onClose();
   };
 
-  const sortedHistory = [...post.auditHistory].sort(
+  const handleScheduleConfirm = (mode: 'schedule' | 'publish_now') => {
+    if (onScheduleOrPublish) {
+      onScheduleOrPublish(post.id, mode, scheduleDate, scheduleTime);
+    }
+    setIsScheduleModalOpen(false);
+    onClose();
+  };
+
+  const sortedHistory = [...(post.auditHistory || [])].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-md p-4 overflow-y-auto">
       <div className="relative w-full max-w-6xl rounded-3xl border border-border bg-card shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Modal Top Bar */}
-        <div className="flex items-center justify-between border-b border-border p-5 bg-muted/20">
+        {/* Top Bar */}
+        <div className="p-4 px-6 border-b border-border flex items-center justify-between bg-muted/20">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-600 dark:text-amber-400 border border-amber-500/20">
-              <Clock className="h-3.5 w-3.5" /> Content Approval Review
-            </span>
-            <h2 className="text-base font-black text-foreground tracking-tight line-clamp-1">
-              {post.title}
-            </h2>
+            <StatusBadge status={post.status} size="md" />
+            <PlatformIconStack platforms={post.channels} size="sm" />
+            <span className="text-xs font-bold text-muted-foreground">ID: {post.id}</span>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            {editCheck.allowed && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(!isEditing)}
+                className="h-8 text-xs font-semibold rounded-xl gap-1.5"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                {isEditing ? 'Cancel Edit' : 'Edit Post Fields'}
+              </Button>
+            )}
+            {isEditing && (
+              <Button
+                size="sm"
+                onClick={handleSaveChanges}
+                className="h-8 text-xs font-bold rounded-xl gap-1.5 bg-primary text-primary-foreground shadow-xs"
+              >
+                <Save className="h-3.5 w-3.5" />
+                Save Changes
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Modal Two-Column Body */}
+        {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT: Social Media Live Preview */}
-          <div className="lg:col-span-6 flex flex-col">
-            <SocialPlatformPreview
-              post={post}
-              selectedPlatform={post.channels.includes(selectedPreviewPlatform) ? selectedPreviewPlatform : post.channels[0] || 'instagram'}
-              availablePlatforms={post.channels}
-              onPlatformChange={(p) => setSelectedPreviewPlatform(p)}
-              className="h-full min-h-[480px]"
-            />
-          </div>
+          {/* Left Column (7 cols): Content Details & Edit Form */}
+          <div className="lg:col-span-7 space-y-5">
+            {/* Top Meta Info Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-muted/30 border border-border text-xs">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground block">Creator</span>
+                <span className="font-bold text-foreground truncate block">{post.creatorName || 'Anonymous'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground block">Assigned Approver</span>
+                <span className="font-bold text-foreground truncate block">
+                  {post.assignedApproverName || 'Workspace Approver'}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground block">Created Date</span>
+                <span className="font-medium text-foreground">
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground block">Target Platforms</span>
+                <span className="font-bold text-primary capitalize">
+                  {post.channels.join(', ')}
+                </span>
+              </div>
+            </div>
 
-          {/* RIGHT: Post Information, Metadata, Approver Reassignment, Audit Timeline */}
-          <div className="lg:col-span-6 space-y-4 flex flex-col">
-            {/* Self-approval Governance Alert */}
-            {isSelfCreator && (
-              <div className="flex items-start gap-3 rounded-2xl bg-amber-500/10 p-4 border border-amber-500/20 text-amber-600 dark:text-amber-400">
-                <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
+            {/* Creator Governance Restriction Banner (Only shown if user is NOT authorized to approve) */}
+            {isCreator && post.status === 'pending_approval' && !approveCheck.allowed && (
+              <div className="p-3.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-start gap-2.5">
+                <Lock className="h-4 w-4 mt-0.5 shrink-0" />
                 <div className="text-xs">
-                  <p className="font-extrabold">Self-Approval Protection Active</p>
-                  <p className="mt-0.5 text-foreground/80">
-                    You created this post. A different assigned reviewer (e.g. Vivian) or Administrator must review and approve it.
+                  <span className="font-bold block">Creator Governance Active</span>
+                  <p className="text-muted-foreground mt-0.5">
+                    You authored this post. An authorized workspace approver or administrator must review and approve it before scheduling.
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Post Information Card */}
-            <div className="rounded-2xl border border-border bg-background p-4 space-y-3">
-              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
-                Post Information
-              </h3>
-
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Creator</span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <User className="h-3.5 w-3.5 text-primary" />
-                    <span className="font-bold text-foreground">{post.creatorName}</span>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Scheduled Date</span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Calendar className="h-3.5 w-3.5 text-primary" />
-                    <span className="font-bold text-foreground">
-                      {post.date ? `${post.date} @ ${post.time || '12:00'}` : 'No date set'}
-                    </span>
-                  </div>
+            {/* Admin Self-Approval Authority Banner */}
+            {isCreator && post.status === 'pending_approval' && approveCheck.allowed && (
+              <div className="p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-start gap-2.5">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="text-xs">
+                  <span className="font-bold block">Admin Approval Authority Active</span>
+                  <p className="text-muted-foreground mt-0.5">
+                    You have Admin approval authority enabled. You may review, edit, request changes, or approve this post directly.
+                  </p>
                 </div>
               </div>
+            )}
 
-              {/* Channels & Status */}
-              <div className="flex items-center justify-between pt-2 border-t border-border/60">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Channels:</span>
-                  <PlatformIconStack platforms={post.channels} size="sm" />
-                </div>
-                <StatusBadge status={post.status} size="sm" />
+            {/* Post Title */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Post Title / Topic</label>
+              {isEditing ? (
+                <Input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="rounded-xl text-sm font-semibold"
+                />
+              ) : (
+                <h2 className="text-base font-bold text-foreground">{post.title}</h2>
+              )}
+            </div>
+
+            {/* Post Caption */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Caption & Body</label>
+                {isEditing && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      try {
+                        toast.loading('Regenerating caption with AI...');
+                        const res = await fetch('/api/marketing/generate', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            topic: editTitle || post.title,
+                            regenTarget: 'caption_only',
+                            existingTitle: editTitle || post.title,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (data.social?.caption) {
+                          setEditCaption(data.social.caption);
+                          toast.dismiss();
+                          toast.success('✨ Caption refreshed!');
+                        }
+                      } catch {
+                        toast.dismiss();
+                        toast.error('Failed to regenerate caption.');
+                      }
+                    }}
+                    className="h-6 text-[10px] font-bold text-primary gap-1"
+                  >
+                    <Sparkles className="h-3 w-3" /> Regenerate Caption
+                  </Button>
+                )}
               </div>
 
-              {/* Linked CRM details */}
-              {(post.crmCompanyName || post.crmDealName || post.crmContactName) && (
-                <div className="pt-2 border-t border-border/60 text-xs bg-muted/20 p-2.5 rounded-xl space-y-1">
-                  <span className="text-[10px] font-black text-primary uppercase flex items-center gap-1">
-                    <Building className="h-3 w-3" /> Linked CRM Context
-                  </span>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                    {post.crmCompanyName && <span>Company: <strong className="text-foreground">{post.crmCompanyName}</strong></span>}
-                    {post.crmDealName && <span>Deal: <strong className="text-foreground">{post.crmDealName}</strong></span>}
-                    {post.crmContactName && <span>Contact: <strong className="text-foreground">{post.crmContactName}</strong></span>}
-                  </div>
+              {isEditing ? (
+                <Textarea
+                  rows={6}
+                  value={editCaption}
+                  onChange={(e) => setEditCaption(e.target.value)}
+                  className="rounded-xl text-xs font-mono leading-relaxed"
+                />
+              ) : (
+                <div className="p-4 rounded-2xl border border-border bg-background whitespace-pre-line text-xs leading-relaxed font-sans text-foreground/90">
+                  {post.defaultCaption}
                 </div>
               )}
+            </div>
 
-              {/* Approver Selection / Reassignment */}
-              <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Assigned Reviewer</span>
-                  <span className="font-bold text-foreground">{post.approverName || 'Vivian Torres'}</span>
+            {/* CTA Link */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Call to Action (CTA)</label>
+              {isEditing ? (
+                <Input
+                  value={editCta}
+                  onChange={(e) => setEditCta(e.target.value)}
+                  placeholder="e.g. https://dailybuz.com/pricing"
+                  className="rounded-xl text-xs"
+                />
+              ) : (
+                <p className="text-xs text-foreground font-medium bg-muted/20 p-2.5 rounded-xl border border-border">
+                  {post.link || 'No external URL attached'}
+                </p>
+              )}
+            </div>
+
+            {/* Hashtags */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hashtags</label>
+                {isEditing && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={async () => {
+                      try {
+                        toast.loading('Regenerating hashtags...');
+                        const res = await fetch('/api/marketing/generate', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            topic: editTitle || post.title,
+                            regenTarget: 'hashtags_only',
+                            existingCaption: editCaption,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (data.social?.hashtags) {
+                          setEditHashtags(data.social.hashtags.join(', '));
+                          toast.dismiss();
+                          toast.success('✨ Hashtags updated!');
+                        }
+                      } catch {
+                        toast.dismiss();
+                        toast.error('Failed to regenerate hashtags.');
+                      }
+                    }}
+                    className="h-6 text-[10px] font-bold text-primary gap-1"
+                  >
+                    <Hash className="h-3 w-3" /> Regenerate Hashtags
+                  </Button>
+                )}
+              </div>
+
+              {isEditing ? (
+                <Input
+                  value={editHashtags}
+                  onChange={(e) => setEditHashtags(e.target.value)}
+                  placeholder="#CRM, #SalesAutomation"
+                  className="rounded-xl text-xs font-mono"
+                />
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {(post.hashtags || []).map((h, i) => (
+                    <span key={i} className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-bold">
+                      {h}
+                    </span>
+                  ))}
                 </div>
-                {currentUserRole === 'admin' && onReassign && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-muted-foreground">Reassign:</span>
-                    <NativeSelect
-                      value={post.approverId || 'admin'}
-                      onChange={(e) => onReassign(post.id, e.target.value)}
-                      className="h-7 rounded-lg border border-border bg-background px-2 text-xs font-bold text-primary"
+              )}
+            </div>
+
+            {/* Single Source of Truth: Attached Creative */}
+            <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <ImageIcon className="h-3.5 w-3.5 text-primary" /> Attached Creative Asset
+                </span>
+                {editMediaUrl ? (
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    ✓ Creative attached ({post.mediaSource || 'IMAGE'})
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                    No visual attached
+                  </span>
+                )}
+              </div>
+
+              {editMediaUrl ? (
+                <div className="relative rounded-xl border border-border bg-muted/20 overflow-hidden group max-h-48 flex items-center justify-center">
+                  <img src={editMediaUrl} alt="" className="h-44 w-full object-contain bg-background" />
+                  {isEditing && (
+                    <div className="absolute bottom-2 right-2 flex gap-1.5 bg-background/90 backdrop-blur-md p-1 rounded-xl border border-border">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          const newUrl = prompt('Enter new Image URL:', editMediaUrl);
+                          if (newUrl !== null) setEditMediaUrl(newUrl);
+                        }}
+                        className="h-7 px-2 text-[11px] font-bold text-foreground"
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" /> Replace
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditMediaUrl('')}
+                        className="h-7 px-2 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl border border-dashed border-border flex items-center justify-between text-xs text-muted-foreground">
+                  <span>No media attached to this post</span>
+                  {isEditing && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          toast.loading('Synthesizing AI creative...');
+                          const res = await fetch('/api/marketing/generate-image', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              topic: editTitle || post.title,
+                              platform: post.channels[0] || 'linkedin',
+                            }),
+                          });
+                          const data = await res.json();
+                          if (data.media?.url) {
+                            setEditMediaUrl(data.media.url);
+                            toast.dismiss();
+                            toast.success('✨ AI Creative attached!');
+                          }
+                        } catch {
+                          toast.dismiss();
+                          toast.error('Generation failed.');
+                        }
+                      }}
+                      className="h-7 px-2.5 text-xs font-bold gap-1 text-primary border-primary/30"
                     >
-                      <option value="admin">Administrator</option>
-                      <option value="manager">Marketing Manager</option>
-                      <option value="reviewer">Reviewer</option>
-                    </NativeSelect>
-                  </div>
+                      <Sparkles className="h-3 w-3" /> Generate with AI
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Feedback / Rejection Notice if applicable */}
+            {post.rejection_reason && (
+              <div className="p-3.5 rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 space-y-1">
+                <span className="text-xs font-bold flex items-center gap-1.5">
+                  <XCircle className="h-4 w-4" /> Reviewer Feedback / Reason:
+                </span>
+                <p className="text-xs pl-5 font-medium">{post.rejection_reason}</p>
+              </div>
+            )}
+
+            {/* Audit History Timeline */}
+            <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <History className="h-3.5 w-3.5" /> Chronological Audit Trail
+              </span>
+              <div className="space-y-2 max-h-44 overflow-y-auto">
+                {sortedHistory.length > 0 ? (
+                  sortedHistory.map((item) => (
+                    <div key={item.id} className="p-2.5 rounded-xl bg-muted/40 text-[11px] space-y-1 border border-border/40">
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span className="font-bold text-foreground">
+                          {item.userName} ({item.action})
+                        </span>
+                        <span>{new Date(item.timestamp).toLocaleString()}</span>
+                      </div>
+                      {item.comment && <p className="text-muted-foreground font-medium pl-1">{item.comment}</p>}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No audit entries recorded.</p>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Approval History & Activity Timeline */}
-            <div className="rounded-2xl border border-border bg-background p-4 flex-1 flex flex-col space-y-3">
-              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <History className="h-3.5 w-3.5 text-primary" /> Approval History & Activity
-              </h3>
+          {/* Right Column (5 cols): Preview & Action Governance */}
+          <div className="lg:col-span-5 space-y-5">
+            <div className="rounded-3xl border border-border bg-card p-4 shadow-sm space-y-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+                Target Platform Preview
+              </span>
+              <div className="border border-border rounded-2xl overflow-hidden bg-background">
+                <SocialPlatformPreview
+                  post={{
+                    ...post,
+                    title: editTitle || post.title,
+                    defaultCaption: editCaption || post.defaultCaption,
+                    hashtags: editHashtags.split(',').map((h) => h.trim()).filter(Boolean),
+                    mediaUrl: editMediaUrl || undefined,
+                  }}
+                  selectedPlatform={selectedPreviewPlatform}
+                  onPlatformChange={setSelectedPreviewPlatform}
+                />
+              </div>
 
-              <div className="space-y-3 flex-1 overflow-y-auto max-h-48 pr-1">
-                {sortedHistory.map((item) => (
-                  <div key={item.id} className="flex items-start gap-2.5 text-xs">
-                    <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-foreground capitalize">{item.action.replace('_', ' ')}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              {/* Action Buttons Area */}
+              <div className="pt-3 border-t border-border space-y-2">
+                {/* 1. Pending Approval State Actions */}
+                {post.status === 'pending_approval' && (
+                  <>
+                    {approveCheck.allowed ? (
+                      <>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsChangesModalOpen(true)}
+                            className="h-9 text-xs font-bold rounded-xl border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+                          >
+                            Request Changes
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsRejectModalOpen(true)}
+                            className="h-9 text-xs font-bold rounded-xl border-rose-500/30 text-rose-600 hover:bg-rose-500/10"
+                          >
+                            Reject Post
+                          </Button>
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={handleApproveClick}
+                          className="w-full h-10 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md gap-1.5"
+                        >
+                          <CheckCircle2 className="h-4 w-4" /> Approve
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="p-3 rounded-xl border border-border bg-muted/30 text-center space-y-1">
+                        <span className="text-xs font-bold text-muted-foreground block">
+                          {isCreator ? 'Awaiting Approver Review' : 'Awaiting Assigned Approver'}
                         </span>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        {item.userName} ({item.userRole})
-                      </p>
-                      {item.comment && (
-                        <p className="mt-1 text-xs bg-muted/40 p-2 rounded-lg text-foreground/90 italic border border-border/40">
-                          &ldquo;{item.comment}&rdquo;
+                        <p className="text-[11px] text-muted-foreground">
+                          {approveCheck.reason || 'Only authorized approvers can approve this content.'}
                         </p>
-                      )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* 2. Approved State: Ready to Schedule / Publish */}
+                {post.status === 'approved' && (
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block">
+                        ✓ Content Approved
+                      </span>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        This content has been approved and is ready to schedule or dispatch.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsScheduleModalOpen(true)}
+                        className="h-10 text-xs font-bold rounded-xl gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+                      >
+                        <Calendar className="h-3.5 w-3.5" /> Schedule
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => handleScheduleConfirm('publish_now')}
+                        className="h-10 text-xs font-bold rounded-xl gap-1.5 bg-primary text-primary-foreground shadow-xs"
+                      >
+                        <Share2 className="h-3.5 w-3.5" /> Publish Now
+                      </Button>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* 3. Changes Requested State: Creator can resubmit */}
+                {post.status === 'changes_requested' && isCreator && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (onUpdatePost) {
+                        onUpdatePost({
+                          ...post,
+                          status: 'pending_approval',
+                          updatedAt: new Date().toISOString(),
+                          auditHistory: [
+                            ...(post.auditHistory || []),
+                            {
+                              id: `audit_${Date.now()}`,
+                              action: 'resubmitted',
+                              userId: currentUserId,
+                              userName: currentUserName || 'Creator',
+                              userRole: currentUserRole,
+                              timestamp: new Date().toISOString(),
+                              comment: 'Creator addressed feedback and resubmitted for approval.',
+                            },
+                          ],
+                        });
+                        toast.success('Post resubmitted for Approval!');
+                        onClose();
+                      }
+                    }}
+                    className="w-full h-10 text-xs font-bold rounded-xl bg-primary text-primary-foreground shadow-md gap-1.5"
+                  >
+                    <Send className="h-4 w-4" /> Resubmit for Approval
+                  </Button>
+                )}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Modal Footer Actions (Requirement 12 & 14) */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border p-5 bg-muted/20">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="w-full sm:w-auto h-10 rounded-xl text-xs font-bold"
-          >
-            Close
-          </Button>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            {canApprove ? (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleRejectClick}
-                  className="h-10 text-xs font-bold text-rose-500 border-rose-500/30 hover:bg-rose-500/10 rounded-xl gap-1.5"
-                >
-                  <XCircle className="h-4 w-4" /> Reject
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsChangesModalOpen(true)}
-                  className="h-10 text-xs font-bold text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/10 rounded-xl gap-1.5"
-                >
-                  <AlertCircle className="h-4 w-4" /> Request Changes
-                </Button>
-
-                <Button
-                  type="button"
-                  onClick={handleApproveClick}
-                  className="h-10 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md gap-1.5"
-                >
-                  <CheckCircle2 className="h-4 w-4" /> Approve Post
-                </Button>
-              </>
-            ) : isSelfCreator ? (
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3.5 py-2 rounded-xl">
-                <Clock className="h-4 w-4 shrink-0" />
-                Waiting for another reviewer (Vivian or Admin)
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted border border-border px-3 py-2 rounded-xl">
-                Sign in with Approver or Admin role to act on this post.
-              </div>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Request Changes Modal (Requirement 15) */}
+      {/* Request Changes Modal */}
       {isChangesModalOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="relative w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-amber-500" /> What needs to be changed?
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsChangesModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
-              >
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-foreground">Request Content Revisions</h3>
+              <Button size="icon" variant="ghost" onClick={() => setIsChangesModalOpen(false)}>
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
-
             <form onSubmit={handleChangesSubmit} className="space-y-4">
-              <p className="text-xs text-muted-foreground">
-                Provide clear feedback for <strong className="text-foreground">{post.creatorName}</strong>. The post status will change to <em>Changes Requested</em>.
-              </p>
-
-              <RichTextArea
-                rows={4}
-                placeholder="e.g. Please change the headline and use the updated product image."
-                value={changesComment}
-                onChange={(e) => setChangesComment(e.target.value)}
-                className="rounded-xl text-xs font-medium leading-relaxed"
-                autoFocus
-              />
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsChangesModalOpen(false)}
+              <div>
+                <label className="text-xs font-bold text-muted-foreground block mb-1">
+                  Revision Feedback (Required)
+                </label>
+                <Textarea
+                  rows={4}
+                  required
+                  value={changesComment}
+                  onChange={(e) => setChangesComment(e.target.value)}
+                  placeholder="e.g. Please replace the image with a brand graphic and adjust the CTA to point to the demo page."
                   className="rounded-xl text-xs"
-                >
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={() => setIsChangesModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold gap-1.5"
-                >
-                  <Send className="h-3.5 w-3.5" /> Submit Change Request
+                <Button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl">
+                  Send Back to Creator
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Modal */}
+      {isRejectModalOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-foreground">Reject Content</h3>
+              <Button size="icon" variant="ghost" onClick={() => setIsRejectModalOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <form onSubmit={handleRejectSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-muted-foreground block mb-1">
+                  Rejection Reason (Required)
+                </label>
+                <Textarea
+                  rows={4}
+                  required
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="e.g. This campaign has concluded and content is no longer relevant."
+                  className="rounded-xl text-xs"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={() => setIsRejectModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl">
+                  Confirm Rejection
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Modal */}
+      {isScheduleModalOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-foreground">Schedule Content Publishing</h3>
+              <Button size="icon" variant="ghost" onClick={() => setIsScheduleModalOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-muted-foreground block mb-1">Date</label>
+                <Input
+                  type="date"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                  className="rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-muted-foreground block mb-1">Time</label>
+                <Input
+                  type="time"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                  className="rounded-xl"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="ghost" onClick={() => setIsScheduleModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => handleScheduleConfirm('schedule')}
+                className="bg-primary text-primary-foreground text-xs font-bold rounded-xl"
+              >
+                Confirm Schedule
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -59,8 +59,8 @@ export default function MarketingTeamPage() {
         avatar: profile?.avatar_url || '',
         assignedPlatforms: ['All Channels'],
         canApprove: true,
-        postsCreated: store.socialPosts.length,
-        postsApproved: store.approvedPosts.length,
+        postsCreated: store.socialPosts.filter(p => p.creatorId === user?.id).length,
+        postsApproved: store.socialPosts.filter(p => p.approverId === user?.id && (p.status === 'approved' || p.status === 'scheduled' || p.status === 'published')).length,
       };
 
       if (!activeWorkspace?.id) {
@@ -83,6 +83,7 @@ export default function MarketingTeamPage() {
             const name = prof?.full_name || prof?.email?.split('@')[0] || 'Team Member';
             const email = prof?.email || '';
             const isAdmin = m.role === 'owner' || m.role === 'admin';
+            const memberUserId = m.user_id || m.id;
             return {
               id: m.id || m.user_id,
               name,
@@ -91,8 +92,8 @@ export default function MarketingTeamPage() {
               avatar: prof?.avatar_url || '',
               assignedPlatforms: ['All Channels'],
               canApprove: isAdmin,
-              postsCreated: store.socialPosts.filter(p => p.creatorId === (m.user_id || m.id)).length,
-              postsApproved: 0,
+              postsCreated: store.socialPosts.filter(p => p.creatorId === memberUserId).length,
+              postsApproved: store.socialPosts.filter(p => p.approverId === memberUserId && (p.status === 'approved' || p.status === 'scheduled' || p.status === 'published')).length,
             };
           });
 

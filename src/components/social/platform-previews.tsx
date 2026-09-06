@@ -31,6 +31,12 @@ export interface PostPreviewProps {
   className?: string;
 }
 
+function normalizeHashtags(tags: unknown): string[] {
+  if (Array.isArray(tags)) return tags.map((t) => (typeof t === 'string' ? t : String(t)));
+  if (typeof tags === 'string' && tags.trim()) return tags.split(/\s+/).filter(Boolean);
+  return [];
+}
+
 export function InstagramPreview({
   post,
   override,
@@ -42,7 +48,7 @@ export function InstagramPreview({
   const caption = override?.caption || post.defaultCaption || 'Write your caption...';
   const media = override?.mediaUrl || post.mediaUrl;
   const firstComment = override?.firstComment || post.firstComment;
-  const hashtags = override?.hashtags || post.hashtags || [];
+  const hashtags = normalizeHashtags(override?.hashtags ?? post.hashtags);
 
   return (
     <div className="mx-auto w-full max-w-[380px] rounded-3xl border border-border bg-card shadow-xl overflow-hidden font-sans">
@@ -103,7 +109,15 @@ export function InstagramPreview({
           </button>
         </div>
 
-        <p className="text-xs font-black text-foreground">{liked ? '1,429 likes' : '1,428 likes'}</p>
+        {post.status === 'published' && post.analytics?.likes ? (
+          <p className="text-xs font-black text-foreground">{post.analytics.likes} likes</p>
+        ) : (
+          <div className="flex items-center gap-1.5 py-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              Platform Preview
+            </span>
+          </div>
+        )}
 
         {/* Caption */}
         <div className="text-xs text-foreground leading-relaxed">
@@ -125,8 +139,8 @@ export function InstagramPreview({
         )}
 
         <div className="flex items-center justify-between text-[10px] text-muted-foreground uppercase pt-1">
-          <span>{post.date || 'Just now'}</span>
-          <span>View all 42 comments</span>
+          <span>{post.date || 'Scheduled Date'}</span>
+          <span>{post.status === 'published' ? 'Live on Instagram' : 'Ready for Approval'}</span>
         </div>
       </div>
     </div>
@@ -143,7 +157,7 @@ export function LinkedInPreview({
   const caption = override?.caption || post.defaultCaption || 'Write your professional LinkedIn post...';
   const media = override?.mediaUrl || post.mediaUrl;
   const link = override?.link || post.link;
-  const hashtags = override?.hashtags || post.hashtags || [];
+  const hashtags = normalizeHashtags(override?.hashtags ?? post.hashtags);
 
   return (
     <div className="mx-auto w-full max-w-[420px] rounded-2xl border border-border bg-card shadow-xl overflow-hidden font-sans">
@@ -204,15 +218,19 @@ export function LinkedInPreview({
 
       {/* Reactions Bar */}
       <div className="px-4 py-2 flex items-center justify-between border-b border-border/40 text-[10px] text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <div className="flex -space-x-1">
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-white text-[8px]">👍</span>
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-white text-[8px]">👏</span>
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[8px]">❤️</span>
+        {post.status === 'published' && post.analytics ? (
+          <>
+            <div className="flex items-center gap-1">
+              <span className="font-semibold">{post.analytics.likes || 0} reactions</span>
+            </div>
+            <span>{post.analytics.comments || 0} comments • {post.analytics.shares || 0} reposts</span>
+          </>
+        ) : (
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">LinkedIn Platform Preview</span>
+            <span className="text-[10px] text-muted-foreground">{post.status === 'approved' ? 'Approved & Ready' : 'Pending Review'}</span>
           </div>
-          <span className="font-semibold ml-1">348</span>
-        </div>
-        <span>24 comments • 18 reposts</span>
+        )}
       </div>
 
       {/* Action Buttons */}
@@ -243,7 +261,7 @@ export function XPreview({
 }) {
   const caption = override?.caption || post.defaultCaption || 'What is happening?!';
   const media = override?.mediaUrl || post.mediaUrl;
-  const hashtags = override?.hashtags || post.hashtags || [];
+  const hashtags = normalizeHashtags(override?.hashtags ?? post.hashtags);
 
   return (
     <div className="mx-auto w-full max-w-[400px] rounded-2xl border border-border bg-card shadow-xl p-4 font-sans space-y-3">
@@ -551,7 +569,7 @@ export function PinterestPreview({
 }) {
   const caption = override?.caption || post.defaultCaption || 'Inspiration for modern CRM workflows and workspace productivity.';
   const media = override?.mediaUrl || post.mediaUrl;
-  const link = override?.link || post.link || 'dailybuz.com';
+  const link = String(override?.link || post.link || 'dailybuz.com');
 
   return (
     <div className="mx-auto w-full max-w-[340px] rounded-3xl border border-border bg-card shadow-xl overflow-hidden font-sans group">
@@ -607,9 +625,12 @@ export function SocialPlatformPreview({
   onPlatformChange,
   className,
 }: PostPreviewProps) {
-  const [internalPlatform, setInternalPlatform] = useState<SocialPlatform>(selectedPlatform);
+  const safePlatforms = Array.isArray(availablePlatforms) && availablePlatforms.length > 0
+    ? availablePlatforms
+    : (['instagram', 'linkedin', 'x'] as SocialPlatform[]);
+  const [internalPlatform, setInternalPlatform] = useState<SocialPlatform>(selectedPlatform || safePlatforms[0] || 'instagram');
 
-  const currentPlatform = onPlatformChange ? selectedPlatform : internalPlatform;
+  const currentPlatform = (onPlatformChange ? selectedPlatform : internalPlatform) || 'instagram';
   const handlePlatformSelect = (p: SocialPlatform) => {
     if (onPlatformChange) {
       onPlatformChange(p);
@@ -618,7 +639,7 @@ export function SocialPlatformPreview({
     }
   };
 
-  const override = post.platformOverrides?.[currentPlatform];
+  const override = post?.platformOverrides?.[currentPlatform];
 
   return (
     <div className={cn('flex flex-col h-full rounded-2xl border border-border bg-muted/10 p-4 space-y-4', className)}>
@@ -633,7 +654,7 @@ export function SocialPlatformPreview({
 
         {/* Platform tabs */}
         <div className="flex items-center gap-1 bg-background border border-border rounded-xl p-1 shadow-sm overflow-x-auto max-w-[260px]">
-          {availablePlatforms.map((p) => {
+          {safePlatforms.map((p) => {
             const meta = SOCIAL_PLATFORM_ICONS[p];
             if (!meta) return null;
             const Icon = meta.icon;

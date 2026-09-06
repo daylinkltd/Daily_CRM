@@ -765,6 +765,12 @@ export function useCalendarStore() {
     toast.success('Blog post updated.');
   }, [blogPosts, saveBlog]);
 
+  const deleteBlogPost = useCallback((id: string) => {
+    const next = blogPosts.filter((b) => b.id !== id);
+    saveBlog(next);
+    toast.success('Blog post deleted.');
+  }, [blogPosts, saveBlog]);
+
   // Campaigns Actions
   const createCampaign = useCallback((campData: Partial<Campaign>) => {
     const newCamp: Campaign = {
@@ -1436,6 +1442,7 @@ export function useCalendarStore() {
     deleteSocialPost,
     createBlogPost,
     updateBlogPost,
+    deleteBlogPost,
     createCampaign,
     updateCampaign,
     createContentIdea,

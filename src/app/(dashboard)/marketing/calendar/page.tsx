@@ -139,6 +139,7 @@ export default function MarketingCalendarPage() {
         onRequestChanges={store.requestChanges}
         onReject={store.rejectPost}
         onReassign={store.reassignApprover}
+        onUpdatePost={store.updateSocialPost}
       />
 
       <NoDateSidebar

@@ -232,36 +232,44 @@ they should run instead — don't imply you verified it.
 ## 9. Open work
 
 ### Ready to do
--1. **Paste migration 128** (`printing_presets.sql`) — preset vocabulary for
-   the printing module (sizes/paper/GSM/print types/colours/finishing/units),
-   seeded for every workspace + trigger for new ones. The job form's
-   dropdowns and Printing → Presets read it; they show empty lists until it
-   runs. Also new app-wide pattern: `CreatableSelect` (ui/creatable-select)
-   and `SearchableSelect`'s `createLabel`/`onCreate` — searchable dropdowns
-   with a pinned "+ Add" that opens a quick-create dialog
+0. **Paste the marketing migrations — renumbered at merge time.** Vivian's
+   branch numbered them 126–130, but printing/HR had already taken 126–128
+   on main, so they are now **129–133** (same content, same order):
+   `129_marketing_hub`, `130_marketing_creative_prompts`,
+   `131_expand_marketing_content_types`, `132_marketing_video_and_image_assets`,
+   `133_marketing_brand_profile_and_assets`. Also **re-paste 111**
+   (`111_marketing_buffer_integrations.sql`) — the branch changed its RLS in
+   place (idempotent DROP/CREATE) and the applied DB still has the old
+   policies. Note: the new 111 deliberately loosens integration writes from
+   permission-gated to any-active-member (Vivian's Buffer RLS fix).
+   Preflight covers 129/130/133 — run it after pasting.
+   Marketing hub itself (from the PR): structured AI content generation,
+   prompt-only image/video creation (no fake media), Buffer OAuth PKCE with
+   AES-256-GCM tokens, approval governance with admin precedence.
+1. **Paste migration 128** (`printing_presets.sql`) — preset vocabulary for
+   the printing module — DONE per user (2026-09-06), presets verified live.
+   App-wide pattern that shipped with it: `CreatableSelect`
+   (ui/creatable-select) and `SearchableSelect`'s `createLabel`/`onCreate` —
+   searchable dropdowns with a pinned "+ Add" opening a quick-create dialog
    (`shared/quick-create-contact`, `shared/quick-create-ledger`,
    `printing/quick-create-preset`); adopted in the printing job form, the
    invoice create dialog, and both accounting entry screens. New pickers
    should follow it.
-0. **Paste migration 127** — DONE per user (2026-09-06); PJ-000001 consumed
-   by a verification probe, PJ-000002 was the user's test job. (`printing_press_module.sql`) — the Printing Press
-   module's tables, RLS, PJ- number series, and the `invoices.source` CHECK
-   widened to allow `'printing'`. The sidebar group, pages
-   (`/printing`, `/printing/orders/new`, `/printing/orders/[id]`) and the
-   `module_printing` role key are already live in code; the pages error
-   until the tables exist. Accounting also gained ledger delete + voucher
-   void (ledgers list, ledger statement, transactions pages), all gated by
-   the `accounting:delete` matrix key via `has_workspace_permission`.
-1. **Paste migration 125.** Nothing else in this section depends on it, but the
+2. **Migration 127** (`printing_press_module.sql`) — DONE per user
+   (2026-09-06); PJ-000001 consumed by a verification probe, PJ-000002 was
+   the user's test job. Printing Press module live: tables, RLS, PJ- series,
+   `invoices.source` widened to `'printing'`; accounting gained ledger
+   delete + voucher void gated by the `accounting:delete` matrix key.
+3. **Paste migration 125.** Nothing else in this section depends on it, but the
    module picker is inert until it runs.
-2. **GST Phase 0 remnants** — all agreed, none started:
+4. **GST Phase 0 remnants** — all agreed, none started:
    - GSTIN field on the contact form (column exists from 123, no UI)
    - HSN on products, with the AI-assisted suggestion (model keys are in env)
    - The exception list as a screen — `ledgerExceptions()` in
      `src/lib/commerce/gst/supply-classification.ts` returns the messages, nothing renders them
-3. **GST Phase 0.5** — compute GSTR-1 / GSTR-3B / CMP-08 from the ledger and
+5. **GST Phase 0.5** — compute GSTR-1 / GSTR-3B / CMP-08 from the ledger and
    export GSTN-schema JSON. Zero cost, no vendor, independently sellable.
-4. **Verify licences and modules in the real app** — revoke a licence and
+6. **Verify licences and modules in the real app** — revoke a licence and
    confirm the sign-in refusal names the owner; switch a module off and confirm
    it leaves the sidebar for everyone.
 
