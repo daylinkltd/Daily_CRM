@@ -17,9 +17,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  Receipt, Plus, Search, Send, Banknote, Database, Loader2, Trash2, X,
+  Receipt, Plus, Search, Send, Banknote, Database, Loader2, Trash2, X, Eye,
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -80,6 +82,7 @@ function isMissingTableError(err: { code?: string; message?: string }): boolean 
 }
 
 export default function InvoicesPage() {
+  const router = useRouter();
   const supabase = createClient();
   const { accountId } = useAuth();
   const { activeWorkspace, defaultCurrency } = useWorkspace();
@@ -375,7 +378,9 @@ export default function InvoicesPage() {
                     return (
                       <TableRow key={inv.id}>
                         <TableCell className="font-medium">
-                          {inv.invoice_number}
+                          <Link href={`/invoices/${inv.id}/preview`} className="hover:underline text-primary">
+                            {inv.invoice_number}
+                          </Link>
                           {inv.quotation_id && (
                             <span className="ml-1.5 text-[10px] uppercase text-muted-foreground">from quote</span>
                           )}
@@ -398,6 +403,12 @@ export default function InvoicesPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
+                            <IconAction
+                              label="Preview invoice"
+                              icon={<Eye />}
+                              variant="ghost"
+                              onClick={() => router.push(`/invoices/${inv.id}/preview`)}
+                            />
                             {inv.status === "draft" && (
                               <>
                                 <IconAction label="Send" icon={busy ? <Loader2 className="animate-spin" /> : <Send />} variant="outline" disabled={busy} onClick={() => handleSend(inv)} />
