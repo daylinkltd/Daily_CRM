@@ -110,7 +110,6 @@ export default function InvoicePreviewPage({ params }: { params: Promise<{ id: s
   const supabase = createClient();
   const { accountId } = useAuth();
   const { activeWorkspace, defaultCurrency } = useWorkspace();
-  const workspaceId = activeWorkspace?.id || accountId;
 
   const [loading, setLoading] = useState(true);
   const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
@@ -150,8 +149,8 @@ export default function InvoicePreviewPage({ params }: { params: Promise<{ id: s
         throw new Error("Invoice not found or access denied");
       }
 
-      // 2. Fetch Contact details separately if contact_id exists
-      let contactData = null;
+      // 2. Fetch Contact details separately if contact_id exists, or check printing_orders for walk-in details
+      let contactData: { name: string | null; company: string | null; email: string | null; phone: string | null } | null = null;
       if (inv.contact_id) {
         const { data: c } = await supabase
           .from("contacts")
@@ -159,6 +158,21 @@ export default function InvoicePreviewPage({ params }: { params: Promise<{ id: s
           .eq("id", inv.contact_id)
           .maybeSingle();
         contactData = c;
+      } else {
+        // Check if there is an associated printing order for walk-in customer details
+        const { data: pOrder } = await supabase
+          .from("printing_orders")
+          .select("customer_name, customer_phone")
+          .eq("invoice_id", invoiceId)
+          .maybeSingle();
+        if (pOrder && (pOrder.customer_name || pOrder.customer_phone)) {
+          contactData = {
+            name: pOrder.customer_name || "Walk-in Customer",
+            company: null,
+            email: null,
+            phone: pOrder.customer_phone || null,
+          };
+        }
       }
 
       // 3. Fetch Line Items
@@ -359,6 +373,9 @@ export default function InvoicePreviewPage({ params }: { params: Promise<{ id: s
             )}
             {invoice.contact?.email && (
               <p className="text-xs text-muted-foreground">{invoice.contact.email}</p>
+            )}
+            {invoice.contact?.phone && (
+              <p className="text-xs text-muted-foreground">Phone: {invoice.contact.phone}</p>
             )}
           </div>
 

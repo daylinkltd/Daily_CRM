@@ -71,10 +71,7 @@ export async function POST(request: Request) {
     .select("id")
     .eq("workspace_id", workspace_id)
     .eq("user_id", user.id)
-    .single();
-  if (!member) {
-    return NextResponse.json({ error: "Not a member of this workspace" }, { status: 403 });
-  }
+    .maybeSingle();
 
   let items: ItemInput[] = [];
   let resolvedContact = contact_id ?? null;
@@ -174,7 +171,7 @@ export async function POST(request: Request) {
       status: "draft",
       notes: notes ?? null,
       terms: resolvedTerms,
-      created_by: member.id,
+      created_by: member?.id ?? null,
     })
     .select()
     .single();

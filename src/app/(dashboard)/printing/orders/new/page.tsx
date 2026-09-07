@@ -99,7 +99,7 @@ export default function NewPrintingOrderPage() {
   const [taxRate, setTaxRate] = useState("18");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<DraftItem[]>([{ ...BLANK_ITEM }]);
-  const [saving, setSaving] = useState<"ENQUIRY" | "QUOTED" | null>(null);
+  const [saving, setSaving] = useState<"ENQUIRY" | "QUOTED" | "APPROVED" | null>(null);
 
   // Create-inline plumbing: which dialog is open, and — for presets —
   // which row/field asked for it so the new value lands back there.
@@ -139,6 +139,10 @@ export default function NewPrintingOrderPage() {
   }, [loadContacts, loadPresets]);
 
   const presetsByKind = useMemo(() => groupPresets(presets), [presets]);
+  const contactOptions = useMemo(
+    () => contacts.map((c) => ({ value: c.id, label: c.name, hint: c.company })),
+    [contacts],
+  );
   const presetOptions = useCallback(
     (kind: PresetKind) =>
       presetsByKind[kind].map((p) => ({ value: p.label, label: p.label })),
@@ -225,6 +229,179 @@ export default function NewPrintingOrderPage() {
     }
   }
 
+  async function handleQuickBill() {
+    const filled = items.filter((it) => it.description.trim());
+    if (filled.length === 0) {
+      toast.error("Add at least one job item with a description");
+      return;
+    }
+    if (!contactId && !customerName.trim()) {
+      toast.error("Pick a customer or enter a walk-in name");
+      return;
+    }
+    setSaving("APPROVED");
+    try {
+      // 1. Generate Order Number & Save Order
+      const { data: orderNo } = await supabase.rpc("generate_next_document_number", {
+        p_workspace_id: workspaceId,
+        p_document_type: "PRINTING_ORDER",
+      });
+
+      const { data: order, error } = await supabase
+        .from("printing_orders")
+        .insert({
+          workspace_id: workspaceId,
+          order_no: orderNo || `PJ-${Date.now().toString(36).toUpperCase()}`,
+          contact_id: contactId || null,
+          customer_name: customerName.trim() || null,
+          customer_phone: customerPhone.trim() || null,
+          status: "APPROVED",
+          delivery_date: deliveryDate || null,
+          subtotal: totals.subtotal,
+          tax_rate: Number(taxRate) || 0,
+          tax_amount: totals.taxAmount,
+          grand_total: totals.grandTotal,
+          notes: notes.trim() || null,
+          created_by: activeMember?.id ?? null,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+
+      const { error: itemsError } = await supabase.from("printing_order_items").insert(
+        filled.map((it, i) => ({
+          order_id: order.id,
+          description: it.description.trim(),
+          quantity: Number(it.quantity) || 1,
+          unit: it.unit.trim() || null,
+          rate: Number(it.rate) || 0,
+          amount: Math.round((Number(it.quantity) || 0) * (Number(it.rate) || 0) * 100) / 100,
+          size: it.size.trim() || null,
+          paper_type: it.paper_type.trim() || null,
+          gsm: it.gsm.trim() || null,
+          print_type: it.print_type || null,
+          color_mode: it.color_mode || null,
+          finishing: it.finishing.trim() || null,
+          special_instructions: it.special_instructions.trim() || null,
+          position: i,
+        })),
+      );
+      if (itemsError) throw itemsError;
+
+      // 2. Create Invoice via /api/invoices API
+      const invoiceItems = filled.map((it) => {
+        let desc = it.description.trim();
+        const specs = [it.size, it.paper_type, it.gsm ? `${it.gsm} GSM` : "", it.print_type, it.finishing]
+          .filter(Boolean)
+          .join(" · ");
+        if (specs) desc += ` — ${specs}`;
+        return {
+          description: desc,
+          quantity: Number(it.quantity) || 1,
+          unit_price: Number(it.rate) || 0,
+        };
+      });
+
+      const targetWorkspaceId = activeWorkspace?.id || workspaceId;
+      // 2. Create Invoice
+      let createdInvoiceId: string | null = null;
+      try {
+        const invRes = await fetch("/api/invoices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            workspace_id: targetWorkspaceId,
+            contact_id: contactId || null,
+            source: "retail",
+            tax_rate: Number(taxRate) || 0,
+            items: invoiceItems,
+            notes: notes.trim() ? `Job ${orderNo}: ${notes.trim()}` : `Generated from Printing Order ${orderNo}`,
+          }),
+        });
+
+        const invJson = await invRes.json();
+        if (invRes.ok && invJson?.invoice?.id) {
+          createdInvoiceId = invJson.invoice.id;
+        } else {
+          throw new Error(invJson?.error || "API creation failed");
+        }
+      } catch (fallbackErr) {
+        console.error("[QuickBill API failed, trying direct insert]", fallbackErr);
+        // Fallback: Insert invoice directly via Supabase client
+        const { data: invNumber } = await supabase.rpc("generate_next_document_number", {
+          p_workspace_id: targetWorkspaceId,
+          p_document_type: "INVOICE",
+        });
+
+        const subtotal = invoiceItems.reduce((acc, it) => acc + it.quantity * it.unit_price, 0);
+        const taxAmount = Math.round(subtotal * (Number(taxRate) || 0)) / 100;
+        const totalAmount = subtotal + taxAmount;
+
+        const { data: directInv, error: directErr } = await supabase
+          .from("invoices")
+          .insert({
+            workspace_id: targetWorkspaceId,
+            invoice_number: invNumber || `INV-${Date.now().toString(36).toUpperCase()}`,
+            source: "retail",
+            contact_id: contactId || null,
+            currency: defaultCurrency,
+            tax_rate: Number(taxRate) || 0,
+            tax_amount: taxAmount,
+            subtotal,
+            total_amount: totalAmount,
+            status: "draft",
+            notes: notes.trim() ? `Job ${orderNo}: ${notes.trim()}` : `Generated from Printing Order ${orderNo}`,
+          })
+          .select("id")
+          .single();
+
+        if (directErr || !directInv) {
+          throw new Error(directErr?.message || "Invoices table missing or unapplied in database (Migration 075 needed).");
+        }
+
+        createdInvoiceId = directInv.id;
+
+        await supabase.from("invoice_items").insert(
+          invoiceItems.map((it, i) => ({
+            invoice_id: directInv.id,
+            workspace_id: targetWorkspaceId,
+            description: it.description,
+            quantity: it.quantity,
+            unit_price: it.unit_price,
+            tax_rate: Number(taxRate) || 0,
+            position: i,
+          }))
+        );
+      }
+
+      toast.success(`Job ${orderNo} created & Invoice generated!`);
+      if (createdInvoiceId) {
+        // Link invoice_id back to the printing order
+        await supabase
+          .from("printing_orders")
+          .update({ invoice_id: createdInvoiceId })
+          .eq("id", order.id);
+
+        router.push(`/invoices/${createdInvoiceId}/preview`);
+      } else {
+        router.push(`/printing/orders/${order.id}`);
+      }
+    } catch (err: unknown) {
+      let msg = "Failed to generate invoice";
+      if (err instanceof Error) {
+        msg = err.message;
+      } else if (typeof err === "object" && err !== null) {
+        const e = err as { message?: string; error?: string; details?: string };
+        msg = e.message || e.error || e.details || JSON.stringify(err);
+      } else if (typeof err === "string") {
+        msg = err;
+      }
+      console.error("[QuickBill error]", msg, err);
+      toast.error(msg);
+      setSaving(null);
+    }
+  }
+
   return (
     <div className="p-(--page-padding-desktop)">
       <div className="flex items-start gap-3">
@@ -248,54 +425,91 @@ export default function NewPrintingOrderPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Customer + logistics */}
-        <Card className="lg:col-span-1">
-          <CardContent className="space-y-3">
+        <Card>
+          <CardContent className="space-y-3 pt-6">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Customer (from CRM)</label>
               <CreatableSelect
-                options={contacts.map((c) => ({ value: c.id, label: c.name, hint: c.company }))}
+                options={contactOptions}
                 value={contactId}
-                onValueChange={setContactId}
-                placeholder="Select a contact…"
+                onValueChange={(v) => {
+                  setContactId(v);
+                  if (v) {
+                    const c = contacts.find((x) => x.id === v);
+                    if (c?.name) setCustomerName(c.name);
+                  }
+                }}
+                placeholder="Select a contact..."
                 searchPlaceholder="Search contacts..."
-                createLabel="Add customer"
+                createLabel="Add new contact"
                 onCreate={() => setContactDialogOpen(true)}
-                aria-label="Customer"
+                aria-label="Customer from CRM"
               />
               <p className="text-[11px] text-muted-foreground">
-                …or leave empty and enter a walk-in below.
+                ...or leave empty and enter a walk-in below.
               </p>
             </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Walk-in name</label>
-              <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="e.g. Swaraj Jakanoor" />
+              <Input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="e.g. Swaraj Jakanoor"
+                aria-label="Walk-in customer name"
+              />
             </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Phone</label>
-              <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="Mobile number" />
+              <Input
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="Mobile number"
+                aria-label="Walk-in customer phone"
+              />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+
+            <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Delivery date</label>
-                <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} />
+                <Input
+                  type="date"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  aria-label="Delivery date"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">GST %</label>
-                <Input type="number" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={taxRate}
+                  onChange={(e) => setTaxRate(e.target.value)}
+                  aria-label="GST rate percentage"
+                />
               </div>
             </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Notes</label>
-              <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything the production team should know" />
+              <Input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Anything the production team should know"
+                aria-label="Job notes"
+              />
             </div>
 
-            <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
+            <div className="rounded-lg bg-muted/40 p-3 text-xs space-y-1">
               <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal</span>
                 <span>{formatCurrency(totals.subtotal, defaultCurrency, { decimals: 2 })}</span>
               </div>
               <div className="flex justify-between text-muted-foreground">
-                <span>GST ({Number(taxRate) || 0}%)</span>
+                <span>GST ({taxRate}%)</span>
                 <span>{formatCurrency(totals.taxAmount, defaultCurrency, { decimals: 2 })}</span>
               </div>
               <div className="mt-1 flex justify-between border-t border-border pt-1 font-semibold text-foreground">
@@ -304,31 +518,44 @@ export default function NewPrintingOrderPage() {
               </div>
             </div>
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex flex-col gap-2 pt-1">
               <Button
-                variant="outline"
-                className="flex-1"
+                type="button"
+                className="w-full bg-emerald-600 text-white hover:bg-emerald-700 font-semibold"
                 disabled={!!saving}
-                onClick={() => handleSave("ENQUIRY")}
+                onClick={handleQuickBill}
               >
-                {saving === "ENQUIRY" ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
-                Save as enquiry
+                {saving === "APPROVED" ? (
+                  <Loader2 className="mr-1.5 size-4 animate-spin" />
+                ) : null}
+                Quick Bill & Generate Invoice
               </Button>
-              <Button
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary-hover"
-                disabled={!!saving}
-                onClick={() => handleSave("QUOTED")}
-              >
-                {saving === "QUOTED" ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
-                Save & quote
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  disabled={!!saving}
+                  onClick={() => handleSave("ENQUIRY")}
+                >
+                  {saving === "ENQUIRY" ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
+                  Save as enquiry
+                </Button>
+                <Button
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary-hover"
+                  disabled={!!saving}
+                  onClick={() => handleSave("QUOTED")}
+                >
+                  {saving === "QUOTED" ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
+                  Save & quote
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Job items — every attribute is a preset dropdown with inline add */}
         <Card className="lg:col-span-2">
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             {items.map((it, i) => (
               <div key={i} className="space-y-2 rounded-lg border border-border p-3">
                 <div className="flex items-center gap-2">
