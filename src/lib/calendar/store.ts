@@ -1473,6 +1473,7 @@ export function useCalendarStore() {
     updateCampaign,
     createContentIdea,
     deleteContentIdea,
+    saveNotifications,
     markNotificationRead,
     markAllNotificationsRead,
     saveSettings,
