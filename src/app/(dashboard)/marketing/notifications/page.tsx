@@ -32,12 +32,14 @@ export default function MarketingNotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread' | 'approvals' | 'reminders' | 'publishing' | 'errors'>('all');
   const [serverNotifications, setServerNotifications] = useState<MarketingNotification[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   // Fetch real notifications from backend
   const fetchNotifications = async () => {
     if (!activeWorkspace?.id) return;
     try {
       setIsLoading(true);
+      setHasError(false);
       const res = await fetch(`/api/marketing/notifications?workspace_id=${activeWorkspace.id}&limit=100`, {
         cache: 'no-store',
       });
@@ -45,10 +47,13 @@ export default function MarketingNotificationsPage() {
         const json = await res.json();
         if (Array.isArray(json.notifications)) {
           setServerNotifications(json.notifications);
+          store.saveNotifications(json.notifications);
         }
+      } else {
+        setHasError(true);
       }
     } catch {
-      // Fall back to local store notifications
+      setHasError(true);
     } finally {
       setIsLoading(false);
     }
@@ -56,6 +61,8 @@ export default function MarketingNotificationsPage() {
 
   useEffect(() => {
     fetchNotifications();
+    const interval = setInterval(fetchNotifications, 15000);
+    return () => clearInterval(interval);
   }, [activeWorkspace?.id]);
 
   const allNotifications = serverNotifications || store.notifications || [];
@@ -288,7 +295,21 @@ export default function MarketingNotificationsPage() {
       </div>
 
       {/* Notifications List */}
-      {filteredNotifications.length === 0 ? (
+      {hasError ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground rounded-3xl border border-dashed border-rose-500/30 bg-rose-500/5">
+          <AlertCircle className="h-10 w-10 text-rose-500 mb-2 opacity-80" />
+          <p className="text-sm font-bold text-foreground">Unable to load notifications</p>
+          <p className="text-xs mt-1 text-muted-foreground">Please check your network connection or try again.</p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={fetchNotifications}
+            className="mt-4 rounded-xl text-xs font-bold cursor-pointer"
+          >
+            Retry
+          </Button>
+        </div>
+      ) : filteredNotifications.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground rounded-3xl border border-dashed border-border bg-card/40">
           <CheckCheck className="h-10 w-10 text-emerald-500 mb-2 opacity-80" />
           <p className="text-sm font-bold text-foreground">No notifications in this view</p>
