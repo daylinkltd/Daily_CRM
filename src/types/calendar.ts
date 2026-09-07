@@ -10,6 +10,8 @@ export type SocialPlatform =
 
 export type PostStatus =
   | 'draft'
+  | 'generating'
+  | 'ready_for_review'
   | 'ai_generated'
   | 'pending_approval'
   | 'changes_requested'
@@ -163,23 +165,148 @@ export interface ContentIdea {
   createdAt: string;
 }
 
-export interface MarketingNotification {
+export type MarketingNotificationType =
+  | 'POSTING_TODAY'
+  | 'POST_UPCOMING'
+  | 'POST_READY'
+  | 'APPROVAL_REQUIRED'
+  | 'MEDIA_MISSING'
+  | 'PUBLISHING_FAILED'
+  | 'PUBLISHING_SUCCESS'
+  | 'POST_MISSED'
+  | 'SOCIAL_ACCOUNT_DISCONNECTED'
+  | 'SCHEDULE_CONFLICT'
+  | 'POST_REJECTED'
+  | 'CHANGES_REQUESTED'
+  | 'approval_submitted'
+  | 'approval_approved'
+  | 'approval_rejected'
+  | 'changes_requested'
+  | 'post_published'
+  | 'post_failed'
+  | 'campaign_ending'
+  | 'team_assignment'
+  | 'analytics_report';
+
+export type NotificationSeverity = 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
+
+export type OperationalPostStatus =
+  | 'READY'
+  | 'PENDING_APPROVAL'
+  | 'MISSING_MEDIA'
+  | 'FAILED'
+  | 'SCHEDULED'
+  | 'PUBLISHING'
+  | 'PUBLISHED'
+  | 'REJECTED'
+  | 'CHANGES_REQUESTED'
+  | 'CANCELLED'
+  | 'MISSED';
+
+export interface AttentionItem {
+  id: string;
+  postId: string;
+  title: string;
+  channels: SocialPlatform[];
+  contentType?: string;
+  scheduledAt?: string;
+  scheduledTime?: string;
+  reason: 'approval_pending' | 'media_missing' | 'publishing_failed' | 'post_missed' | 'channel_disconnected' | 'changes_requested' | 'rejected';
+  severity: NotificationSeverity;
+  actionLabel: string;
+  actionUrl: string;
+  details?: string;
+}
+
+export interface TodayScheduledPostItem {
   id: string;
   title: string;
+  channels: SocialPlatform[];
+  contentType: string;
+  scheduledAt?: string;
+  date?: string;
+  time?: string;
+  operationalStatus: OperationalPostStatus;
+  statusLabel: string;
+  statusTone: 'ok' | 'warn' | 'error' | 'muted' | 'info';
+  needsAttention: boolean;
+  attentionReason?: string;
+  mediaUrl?: string;
+  creatorName?: string;
+}
+
+export interface NextScheduledPostItem {
+  id: string;
+  title: string;
+  channels: SocialPlatform[];
+  contentType: string;
+  scheduledAt: string;
+  date: string;
+  time: string;
+  minutesUntil: number;
+  countdownLabel: string;
+  operationalStatus: OperationalPostStatus;
+  needsAttention: boolean;
+  attentionReason?: string;
+}
+
+export interface TodaysPostingSummary {
+  date: string; // YYYY-MM-DD
+  timezone: string;
+  totalScheduled: number;
+  readyCount: number;
+  attentionCount: number;
+  publishedCount: number;
+  posts: TodayScheduledPostItem[];
+  nextPost: NextScheduledPostItem | null;
+  attentionItems: AttentionItem[];
+  upcomingPosts: Array<{
+    id: string;
+    title: string;
+    channels: SocialPlatform[];
+    contentType: string;
+    scheduledAt: string;
+    date: string;
+    time: string;
+    dateLabel: string; // 'Today', 'Tomorrow', 'Wed, 10 Sep'
+  }>;
+}
+
+export interface MarketingNotificationPreferences {
+  workspace_id?: string;
+  user_id?: string;
+  posting_reminders_enabled: boolean;
+  daily_summary_enabled: boolean;
+  daily_summary_time: string; // e.g. '09:00'
+  upcoming_reminders_enabled: boolean;
+  upcoming_timing_minutes: number; // e.g. 15, 30, 60
+  approval_notifications_enabled: boolean;
+  publishing_success_enabled: boolean;
+  publishing_failure_enabled: boolean;
+  missing_media_enabled: boolean;
+  channels: {
+    in_app: boolean;
+    email: boolean;
+  };
+}
+
+export interface MarketingNotification {
+  id: string;
+  workspace_id?: string;
+  recipient_user_id?: string;
+  title: string;
   message: string;
-  type:
-    | 'approval_submitted'
-    | 'approval_approved'
-    | 'approval_rejected'
-    | 'changes_requested'
-    | 'post_published'
-    | 'post_failed'
-    | 'campaign_ending'
-    | 'team_assignment'
-    | 'analytics_report';
+  type: MarketingNotificationType;
+  severity?: NotificationSeverity;
   targetId?: string;
+  related_post_id?: string;
+  related_calendar_event_id?: string;
+  metadata?: Record<string, any>;
+  dedupe_key?: string;
   isRead: boolean;
+  read_at?: string;
   createdAt: string;
+  created_at?: string;
 }
 
 export interface MarketingSettings {
@@ -248,6 +375,8 @@ export interface SocialPost {
 
   date?: string; // YYYY-MM-DD
   time?: string; // HH:mm format
+  scheduled_at?: string;
+  published_at?: string;
   timezone?: string;
   createdAt: string;
   updatedAt: string;
@@ -297,6 +426,7 @@ export interface BlogPost {
   campaignName?: string;
   date?: string; // YYYY-MM-DD
   time?: string; // HH:mm
+  scheduled_at?: string;
   status: PostStatus;
   createdAt: string;
   updatedAt: string;

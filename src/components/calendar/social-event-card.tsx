@@ -100,6 +100,20 @@ export const STATUS_CONFIG: Record<
     border: 'border-purple-500/30',
     icon: Sparkles,
   },
+  generating: {
+    label: 'Generating',
+    bg: 'bg-purple-500/10 dark:bg-purple-500/20',
+    text: 'text-purple-600 dark:text-purple-400',
+    border: 'border-purple-500/30',
+    icon: Sparkles,
+  },
+  ready_for_review: {
+    label: 'Ready for Review',
+    bg: 'bg-amber-500/10 dark:bg-amber-500/20',
+    text: 'text-amber-600 dark:text-amber-400',
+    border: 'border-amber-500/30',
+    icon: Clock,
+  },
 };
 
 export function SocialEventCard({
@@ -193,8 +207,8 @@ export function SocialEventCard({
       )}
 
       {/* Post Title */}
-      <h4 className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-        {post.title}
+      <h4 className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug" title={(post.title || '').replace(/<[^>]*>/g, ' ').trim()}>
+        {(post.title || 'Untitled Post').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim()}
       </h4>
 
       {/* Status Badge + Action Triggers */}
