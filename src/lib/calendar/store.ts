@@ -1277,7 +1277,7 @@ export function useCalendarStore() {
         });
         savePosts(nextPosts);
 
-        if (updatedPost) {
+        if (updatedPost && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventId)) {
           try {
             fetch(`/api/marketing/posts/${eventId}`, {
               method: 'PATCH',
