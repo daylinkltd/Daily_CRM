@@ -222,6 +222,23 @@ export async function POST(request: Request) {
       console.warn('[MarketingPostsAPI] Audit log insert error (non-fatal):', auditErr);
     }
 
+    // Create Notification if pending approval
+    if (initialStatus === 'pending_approval') {
+      try {
+        await supabase.from('marketing_notifications').insert({
+          workspace_id: workspaceId,
+          related_post_id: newPost.id,
+          type: 'APPROVAL_REQUIRED',
+          severity: 'WARNING',
+          title: 'Approval required',
+          message: `${creatorName} submitted "${newPost.title}" for review.`,
+          dedupe_key: `approval_req:${newPost.id}:init`,
+        });
+      } catch (notifErr) {
+        console.warn('[MarketingPostsAPI] Notification insert error (non-fatal):', notifErr);
+      }
+    }
+
     return NextResponse.json({ post: newPost }, { status: 201 });
   } catch (err: any) {
     console.error('[MarketingPostsAPI] Error creating post:', err);

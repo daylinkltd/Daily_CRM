@@ -150,6 +150,23 @@ export async function POST(
         comment: `Publishing failed: ${publishError}`,
       });
 
+      // Insert Failed Notification
+      try {
+        await supabase.from('marketing_notifications').insert({
+          workspace_id: post.workspace_id,
+          recipient_user_id: post.creator_id || null,
+          related_post_id: id,
+          type: 'PUBLISHING_FAILED',
+          severity: 'ERROR',
+          title: 'Publishing Failed',
+          message: `Your ${post.channels?.join('/') || 'social'} post "${post.title}" could not be published: ${publishError}`,
+          dedupe_key: `pub_failed:${id}:${Date.now()}`,
+          metadata: { error: publishError },
+        });
+      } catch (notifErr) {
+        console.warn('[MarketingPublishAPI] Notification error (non-fatal):', notifErr);
+      }
+
       return NextResponse.json(
         {
           success: false,
@@ -189,6 +206,22 @@ export async function POST(
       comment: `Successfully published to ${post.channels?.join(', ') || 'channels'}`,
       metadata: { externalPostIds },
     });
+
+    // Insert Success Notification
+    try {
+      await supabase.from('marketing_notifications').insert({
+        workspace_id: post.workspace_id,
+        recipient_user_id: post.creator_id || null,
+        related_post_id: id,
+        type: 'PUBLISHING_SUCCESS',
+        severity: 'SUCCESS',
+        title: 'Post Published Live',
+        message: `"${post.title}" was successfully published to ${post.channels?.join(', ') || 'social channels'}.`,
+        dedupe_key: `pub_success:${id}`,
+      });
+    } catch (notifErr) {
+      console.warn('[MarketingPublishAPI] Notification error (non-fatal):', notifErr);
+    }
 
     return NextResponse.json({ success: true, post: publishedPost });
   } catch (err: any) {

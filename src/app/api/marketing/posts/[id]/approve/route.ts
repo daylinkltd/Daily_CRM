@@ -91,6 +91,22 @@ export async function POST(
       comment: notes || 'Approved content for scheduling/publishing',
     });
 
+    // Create Notification for creator
+    try {
+      await supabase.from('marketing_notifications').insert({
+        workspace_id: post.workspace_id,
+        recipient_user_id: post.creator_id || null,
+        related_post_id: id,
+        type: 'POST_READY',
+        severity: 'SUCCESS',
+        title: 'Post Approved',
+        message: `"${post.title}" was approved by ${approverName} and is ready for scheduling.`,
+        dedupe_key: `post_ready:${id}:${Date.now()}`,
+      });
+    } catch (notifErr) {
+      console.warn('[MarketingApproveAPI] Notification insert error (non-fatal):', notifErr);
+    }
+
     return NextResponse.json({ post: updatedPost });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Error approving post' }, { status: 500 });

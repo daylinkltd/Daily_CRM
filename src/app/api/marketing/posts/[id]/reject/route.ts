@@ -88,6 +88,22 @@ export async function POST(
       comment: reason.trim(),
     });
 
+    // Create Notification for creator
+    try {
+      await supabase.from('marketing_notifications').insert({
+        workspace_id: post.workspace_id,
+        recipient_user_id: post.creator_id || null,
+        related_post_id: id,
+        type: actionType === 'request_changes' ? 'CHANGES_REQUESTED' : 'POST_REJECTED',
+        severity: 'WARNING',
+        title: actionType === 'request_changes' ? 'Changes Requested' : 'Post Rejected',
+        message: `${reviewerName} ${actionType === 'request_changes' ? 'requested changes on' : 'rejected'} "${post.title}": "${reason.trim()}"`,
+        dedupe_key: `${actionType}:${id}:${Date.now()}`,
+      });
+    } catch (notifErr) {
+      console.warn('[MarketingRejectAPI] Notification insert error (non-fatal):', notifErr);
+    }
+
     return NextResponse.json({ post: updatedPost });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Error processing rejection' }, { status: 500 });

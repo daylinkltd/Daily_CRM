@@ -64,8 +64,8 @@ export function SettingsOverview({
           fetch('/api/account/members', { cache: 'no-store' }).then((r) => r.json()),
           canManageMembers
             ? fetch('/api/account/invitations', { cache: 'no-store' }).then((r) =>
-                r.json(),
-              )
+              r.json(),
+            )
             : Promise.resolve(null),
           supabase
             .from('message_templates')
@@ -95,8 +95,8 @@ export function SettingsOverview({
           : null;
       const pendingInvites =
         invitesRes.status === 'fulfilled' &&
-        invitesRes.value &&
-        Array.isArray(invitesRes.value.invitations)
+          invitesRes.value &&
+          Array.isArray(invitesRes.value.invitations)
           ? invitesRes.value.invitations.length
           : null;
 
@@ -161,101 +161,87 @@ export function SettingsOverview({
     loading: boolean;
     subtitle: ReactNode;
   }[] = [
-    {
-      section: 'whatsapp',
-      loading: whatsappLoading,
-      subtitle: !whatsapp?.configured ? (
-        'Not set up yet'
-      ) : whatsapp.connected ? (
-        <>
-          <StatusDot tone="ok" /> Connected
-        </>
-      ) : (
-        <>
-          <StatusDot tone="muted" /> Needs reconnecting
-        </>
-      ),
-    },
-    {
-      section: 'members',
-      loading: countsLoading,
-      subtitle:
-        counts?.members == null
-          ? 'View team members'
-          : `${counts.members} member${counts.members === 1 ? '' : 's'}${
-              counts.pendingInvites
-                ? ` · ${counts.pendingInvites} pending invite${
-                    counts.pendingInvites === 1 ? '' : 's'
-                  }`
-                : ''
+      {
+        section: 'whatsapp',
+        loading: whatsappLoading,
+        subtitle: !whatsapp?.configured ? (
+          'Not set up yet'
+        ) : whatsapp.connected ? (
+          <>
+            <StatusDot tone="ok" /> Connected
+          </>
+        ) : (
+          <>
+            <StatusDot tone="muted" /> Needs reconnecting
+          </>
+        ),
+      },
+      {
+        section: 'members',
+        loading: countsLoading,
+        subtitle:
+          counts?.members == null
+            ? 'View team members'
+            : `${counts.members} member${counts.members === 1 ? '' : 's'}${counts.pendingInvites
+              ? ` · ${counts.pendingInvites} pending invite${counts.pendingInvites === 1 ? '' : 's'
+              }`
+              : ''
             }`,
-    },
-    {
-      section: 'templates',
-      loading: countsLoading,
-      subtitle:
-        counts?.templates == null
-          ? 'Manage message templates'
-          : `${counts.templates} template${counts.templates === 1 ? '' : 's'}${
-              counts.templatesPending
-                ? ` · ${counts.templatesPending} pending review`
-                : ''
+      },
+      {
+        section: 'members',
+        loading: false,
+        subtitle: 'Per-resource create / read / update / delete access',
+      },
+      {
+        section: 'templates',
+        loading: countsLoading,
+        subtitle:
+          counts?.templates == null
+            ? 'Manage message templates'
+            : `${counts.templates} template${counts.templates === 1 ? '' : 's'}${counts.templatesPending
+              ? ` · ${counts.templatesPending} pending review`
+              : ''
             }`,
-    },
-    {
-      section: 'crm',
-      loading: countsLoading,
-      subtitle:
-        counts?.tags == null && counts?.customFields == null
-          ? 'Tags and custom fields'
-          : `${counts?.tags ?? 0} tag${counts?.tags === 1 ? '' : 's'} · ${
-              counts?.customFields ?? 0
+      },
+      {
+        section: 'crm',
+        loading: false,
+        subtitle: `${defaultCurrency} — ${currencyLabel}`,
+      },
+      {
+        section: 'crm',
+        loading: countsLoading,
+        subtitle:
+          counts?.tags == null && counts?.customFields == null
+            ? 'Tags and custom fields'
+            : `${counts?.tags ?? 0} tag${counts?.tags === 1 ? '' : 's'} · ${counts?.customFields ?? 0
             } custom field${counts?.customFields === 1 ? '' : 's'}`,
-    },
-    {
-      section: 'accounting',
-      loading: false,
-      subtitle: `${defaultCurrency} — ${currencyLabel}`,
-    },
-    {
-      section: 'catalog',
-      loading: countsLoading,
-      subtitle:
-        counts?.catalog == null
-          ? 'Manage catalog & default terms'
-          : `${counts.catalog} catalog item${counts.catalog === 1 ? '' : 's'}`,
-    },
-    {
-      section: 'branding',
-      loading: false,
-      subtitle: 'Logo, company details & letterhead',
-    },
-    {
-      section: 'projects',
-      loading: false,
-      subtitle: 'Project defaults & billing rates',
-    },
-    {
-      section: 'hr',
-      loading: false,
-      subtitle: 'Shift timings, Leave rules & Payroll cycles',
-    },
-    {
-      section: 'retail',
-      loading: false,
-      subtitle: 'Industry presets, POS rules & master forms',
-    },
-    {
-      section: 'modules',
-      loading: false,
-      subtitle: 'Enable or disable platform modules',
-    },
-    {
-      section: 'profile',
-      loading: false,
-      subtitle: `${cap(mode)} mode · ${themeName} accent`,
-    },
-  ];
+      },
+      {
+        section: 'catalog',
+        loading: countsLoading,
+        subtitle:
+          counts?.catalog == null
+            ? 'Manage catalog & default terms'
+            : `${counts.catalog} catalog item${counts.catalog === 1 ? '' : 's'}`,
+      },
+      {
+        section: 'profile',
+        loading: false,
+        subtitle: `${cap(mode)} mode · ${themeName} accent`,
+      },
+      {
+        section: 'hr',
+        loading: false,
+        subtitle: 'Shift timings, Leave rules & Payroll cycles',
+      },
+      {
+        section: 'retail',
+        loading: false,
+        subtitle: 'Industry presets, POS rules & master forms',
+      },
+    ];
 
   return (
     <section className="animate-in fade-in-50 duration-200">

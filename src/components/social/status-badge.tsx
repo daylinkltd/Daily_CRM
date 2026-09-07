@@ -53,6 +53,16 @@ export const STATUS_CONFIG: Record<PostStatus, { label: string; className: strin
     className: 'bg-purple-500/12 text-purple-700 dark:text-purple-400 border-purple-500/20',
     dotClass: 'bg-purple-500',
   },
+  generating: {
+    label: 'Generating...',
+    className: 'bg-purple-500/12 text-purple-700 dark:text-purple-400 border-purple-500/20',
+    dotClass: 'bg-purple-500',
+  },
+  ready_for_review: {
+    label: 'Ready for Review',
+    className: 'bg-amber-500/12 text-amber-700 dark:text-amber-400 border-amber-500/20',
+    dotClass: 'bg-amber-500',
+  },
 };
 
 interface StatusBadgeProps {
