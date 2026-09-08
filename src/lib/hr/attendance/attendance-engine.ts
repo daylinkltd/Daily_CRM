@@ -110,3 +110,54 @@ export function calculateAttendanceMetrics(input: AttendanceMetricsInput): Atten
     status,
   };
 }
+
+// ── Punch-in status ladder ──────────────────────────────────
+//
+// The rule the handbook states in minutes, as data: on time within
+// grace; Late past grace; Half-Day once the delay reaches
+// halfDayAfterMinutes; Absent once it reaches absentAfterMinutes.
+// (Example from the Daylink handbook: grace 0, half-day at 0-15,
+// absent at 15+ — i.e. halfDayAfterMinutes 1, absentAfterMinutes 15.)
+//
+// All thresholds are minutes AFTER SHIFT START, not after grace, so
+// the numbers in settings read exactly like the policy text.
+
+export interface PunchLadderRules {
+  gracePeriodMinutes: number;
+  /** Delay (min after shift start) at which the day becomes a Half-Day. */
+  halfDayAfterMinutes?: number | null;
+  /** Delay (min after shift start) at which the day becomes Absent. */
+  absentAfterMinutes?: number | null;
+}
+
+export function statusFromPunchDelay(
+  minutesAfterShiftStart: number,
+  rules: PunchLadderRules,
+): AttendanceStatus {
+  const grace = Math.max(0, rules.gracePeriodMinutes || 0);
+  const half = rules.halfDayAfterMinutes ?? null;
+  const absent = rules.absentAfterMinutes ?? null;
+
+  if (absent !== null && absent >= 0 && minutesAfterShiftStart >= absent) return 'Absent';
+  if (half !== null && half >= 0 && minutesAfterShiftStart >= half) return 'Half-Day';
+  if (minutesAfterShiftStart > grace) return 'Late';
+  return 'Present';
+}
+
+/**
+ * Minutes between a punch instant and the shift start on that local
+ * day. Positive = late. Timezone-explicit for the same reason the
+ * shift block above is: the server's zone must never score lateness.
+ */
+export function minutesAfterShiftStart(
+  punchISO: string,
+  shiftStartHHMM: string,
+  utcOffsetMinutes: number,
+): number {
+  const [h, m] = shiftStartHHMM.split(':').map(Number);
+  const shiftStartLocal = (h || 0) * 60 + (m || 0);
+  const localMs = new Date(punchISO).getTime() + utcOffsetMinutes * 60 * 1000;
+  const local = new Date(localMs);
+  const punchLocal = local.getUTCHours() * 60 + local.getUTCMinutes();
+  return punchLocal - shiftStartLocal;
+}

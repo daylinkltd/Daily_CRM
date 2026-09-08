@@ -56,7 +56,13 @@ export function HRSettingsPanel() {
   const [shiftStart, setShiftStart] = useState('09:30');
   const [shiftEnd, setShiftEnd] = useState('18:30');
   const [gracePeriod, setGracePeriod] = useState('15');
-  const [halfDayHours, setHalfDayHours] = useState('4');
+  // The punch-in ladder, in minutes AFTER SHIFT START so the numbers
+  // read like the handbook: on time within grace → Late past grace →
+  // Half-Day at halfDayAfterMin → Absent at absentAfterMin.
+  const [halfDayAfterMin, setHalfDayAfterMin] = useState('30');
+  const [absentAfterMin, setAbsentAfterMin] = useState('120');
+  // Saving with this set re-scores attendance from this date onwards.
+  const [effectiveFrom, setEffectiveFrom] = useState('');
 
   // 2. Leave
   const [casualLeaveQuota, setCasualLeaveQuota] = useState('12');
@@ -110,12 +116,16 @@ export function HRSettingsPanel() {
       setShiftStart(att.settings_json.shift_start || '09:30');
       setShiftEnd(att.settings_json.shift_end || '18:30');
       setGracePeriod(att.settings_json.grace_period_minutes?.toString() || '15');
-      setHalfDayHours(att.settings_json.half_day_threshold_hours?.toString() || '4');
+      setHalfDayAfterMin(att.settings_json.half_day_after_minutes?.toString() || '30');
+      setAbsentAfterMin(att.settings_json.absent_after_minutes?.toString() || '120');
+      setEffectiveFrom(att.settings_json.effective_from || '');
     } else {
       setShiftStart('09:30');
       setShiftEnd('18:30');
       setGracePeriod('15');
-      setHalfDayHours('4');
+      setHalfDayAfterMin('30');
+      setAbsentAfterMin('120');
+      setEffectiveFrom('');
     }
 
     if (lve?.settings_json) {
@@ -156,11 +166,23 @@ export function HRSettingsPanel() {
     const targetScopeId = scopeType === 'WORKSPACE_DEFAULT' ? null : scopeId;
 
     try {
+      const halfAfter = parseInt(halfDayAfterMin || '0');
+      const absentAfter = parseInt(absentAfterMin || '0');
+      if (absentAfter > 0 && halfAfter > 0 && absentAfter <= halfAfter) {
+        toast.error('"Absent after" must be more minutes than "Half-day after".');
+        setSaving(false);
+        return;
+      }
       const attendanceJson = {
         shift_start: shiftStart,
         shift_end: shiftEnd,
         grace_period_minutes: parseInt(gracePeriod || '0'),
-        half_day_threshold_hours: parseFloat(halfDayHours || '0')
+        half_day_after_minutes: halfAfter > 0 ? halfAfter : null,
+        absent_after_minutes: absentAfter > 0 ? absentAfter : null,
+        effective_from: effectiveFrom || null,
+        // Workspace-local scoring offset. India-first default; scoring in
+        // the recompute API and the punch flow both read this.
+        utc_offset_minutes: 330
       };
 
       const leaveJson = {
@@ -216,6 +238,24 @@ export function HRSettingsPanel() {
       ]);
 
       toast.success('HR Operational Settings saved successfully');
+
+      // Retroactive application: the punch ladder is policy, and policy
+      // has an effective date — re-score history from it so the calendar
+      // and payroll agree with the rule, not with whatever the rule was
+      // on the day someone punched.
+      if (effectiveFrom && scopeType === 'WORKSPACE_DEFAULT') {
+        const res = await fetch('/api/hr/attendance/recompute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workspaceId: activeWorkspace.id, effectiveFrom })
+        });
+        const json = await res.json().catch(() => ({}));
+        if (res.ok) {
+          toast.success(`Re-scored ${json.updated ?? 0} of ${json.scanned ?? 0} attendance day(s) since ${effectiveFrom}`);
+        } else {
+          toast.error(json.error || 'Settings saved, but re-scoring old attendance failed');
+        }
+      }
       fetchData(); // Refresh list
     } catch (err: any) {
       toast.error(err.message || 'Failed to save settings');
@@ -323,8 +363,24 @@ export function HRSettingsPanel() {
             </div>
 
             <div className="space-y-2">
-              <Label>Half-Day Threshold (Hours)</Label>
-              <Input type="number" min="1" step="0.5" value={halfDayHours} onChange={e => setHalfDayHours(e.target.value)} placeholder="4" className="bg-popover" />
+              <Label>Half-Day after (minutes late)</Label>
+              <Input type="number" min="0" value={halfDayAfterMin} onChange={e => setHalfDayAfterMin(e.target.value)} placeholder="30" className="bg-popover" />
+              <p className="text-[11px] text-muted-foreground">Punching in this many minutes after shift start counts as a Half-Day. 0 disables.</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Absent after (minutes late)</Label>
+              <Input type="number" min="0" value={absentAfterMin} onChange={e => setAbsentAfterMin(e.target.value)} placeholder="120" className="bg-popover" />
+              <p className="text-[11px] text-muted-foreground">Punching in this many minutes after shift start counts as Absent. 0 disables.</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Effective from</Label>
+              <Input type="date" value={effectiveFrom} onChange={e => setEffectiveFrom(e.target.value)} className="bg-popover" />
+              <p className="text-[11px] text-muted-foreground">
+                Saving re-scores every recorded punch-in from this date with the rules above —
+                past days move between Present, Late, Half-Day and Absent to match the policy.
+              </p>
             </div>
           </CardContent>
         </Card>

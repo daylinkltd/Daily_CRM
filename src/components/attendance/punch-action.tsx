@@ -38,7 +38,7 @@ import {
   type PreciseLocation,
 } from '@/lib/attendance/geolocation';
 import { collectDeviceInfo } from '@/lib/attendance/device-info';
-import { calculateAttendanceMetrics } from '@/lib/hr/attendance/attendance-engine';
+import { calculateAttendanceMetrics, minutesAfterShiftStart, statusFromPunchDelay } from '@/lib/hr/attendance/attendance-engine';
 import {
   DEFAULT_ATTENDANCE_POLICY,
   parseAttendancePolicy,
@@ -427,6 +427,38 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
       const now = new Date().toISOString();
 
       if (type === 'in') {
+        // Score the punch against the workspace's ladder (Settings → HR →
+        // Attendance & Shifts): on time within grace, Late past it,
+        // Half-Day / Absent at the configured minutes after shift start.
+        // No settings row → 'Present', same as before the ladder existed.
+        // WFH stays 'Remote' — a work-mode statement, not a verdict.
+        let punchStatus: string = workLocation === 'WFH' ? 'Remote' : 'Present';
+        if (workLocation !== 'WFH') {
+          const { data: settingRow } = await supabase
+            .from('hr_operational_settings')
+            .select('settings_json')
+            .eq('workspace_id', activeWorkspace.id)
+            .eq('setting_type', 'ATTENDANCE_SHIFT')
+            .eq('scope_type', 'WORKSPACE_DEFAULT')
+            .is('scope_id', null)
+            .maybeSingle();
+          const cfg = (settingRow?.settings_json ?? {}) as Record<string, unknown>;
+          if (typeof cfg.shift_start === 'string' && cfg.shift_start) {
+            const delay = minutesAfterShiftStart(
+              now,
+              cfg.shift_start,
+              Number(cfg.utc_offset_minutes) || 330,
+            );
+            punchStatus = statusFromPunchDelay(delay, {
+              gracePeriodMinutes: Number(cfg.grace_period_minutes) || 0,
+              halfDayAfterMinutes:
+                cfg.half_day_after_minutes != null ? Number(cfg.half_day_after_minutes) : null,
+              absentAfterMinutes:
+                cfg.absent_after_minutes != null ? Number(cfg.absent_after_minutes) : null,
+            });
+          }
+        }
+
         const { error } = await supabase
           .from('attendance')
           .insert({
@@ -442,14 +474,22 @@ export function PunchAction({ onPunch }: { onPunch?: () => void }) {
             punch_in_device_json: deviceInfo,
             punch_in_ip: networkContext?.ip ?? null,
             work_location: workLocation,
-            status: workLocation === 'WFH' ? 'Remote' : 'Present'
+            status: punchStatus
           });
         if (error) throw error;
-        toast.success(
-          locationData
-            ? `Punched in (${workLocation}) — location accurate to ±${Math.round(locationData.accuracy)}m.`
-            : `Punched in (${workLocation}).`
-        );
+        const statusNote =
+          punchStatus === 'Late'
+            ? ' Marked Late per shift policy.'
+            : punchStatus === 'Half-Day'
+              ? ' Marked Half-Day per shift policy.'
+              : punchStatus === 'Absent'
+                ? ' Marked Absent per shift policy — speak to HR if this is wrong.'
+                : '';
+        const punchMsg = locationData
+          ? `Punched in (${workLocation}) — location accurate to ±${Math.round(locationData.accuracy)}m.${statusNote}`
+          : `Punched in (${workLocation}).${statusNote}`;
+        if (punchStatus === 'Half-Day' || punchStatus === 'Absent') toast.warning(punchMsg);
+        else toast.success(punchMsg);
       } else {
         if (!todayRecord?.punch_in_time) throw new Error("No punch in record found.");
         

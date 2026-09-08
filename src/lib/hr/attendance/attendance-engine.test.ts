@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateAttendanceMetrics } from "./attendance-engine";
+import { calculateAttendanceMetrics, minutesAfterShiftStart, statusFromPunchDelay } from "./attendance-engine";
 
 /** 09:00 local, 15 min grace, in IST (UTC+5:30). */
 const IST_9AM = { startMinutesLocal: 9 * 60, utcOffsetMinutes: 330, gracePeriodMinutes: 15 };
@@ -117,5 +117,43 @@ describe("calculateAttendanceMetrics", () => {
     });
     expect(r.totalHours).toBe(0);
     expect(r.netProductiveHours).toBe(0);
+  });
+});
+
+describe('statusFromPunchDelay — the handbook ladder in minutes', () => {
+  const daylink = { gracePeriodMinutes: 0, halfDayAfterMinutes: 1, absentAfterMinutes: 15 };
+
+  it('matches the Daylink handbook: by 10:00 on time, 10:00-10:15 half day, 10:15+ absent', () => {
+    expect(statusFromPunchDelay(-30, daylink)).toBe('Present'); // early
+    expect(statusFromPunchDelay(0, daylink)).toBe('Present');   // 10:00 sharp
+    expect(statusFromPunchDelay(1, daylink)).toBe('Half-Day');  // 10:01
+    expect(statusFromPunchDelay(14, daylink)).toBe('Half-Day'); // 10:14
+    expect(statusFromPunchDelay(15, daylink)).toBe('Absent');   // 10:15
+    expect(statusFromPunchDelay(120, daylink)).toBe('Absent');
+  });
+
+  it('grace forgives, then Late fills the gap before the half-day mark', () => {
+    const rules = { gracePeriodMinutes: 10, halfDayAfterMinutes: 30, absentAfterMinutes: 120 };
+    expect(statusFromPunchDelay(10, rules)).toBe('Present');
+    expect(statusFromPunchDelay(11, rules)).toBe('Late');
+    expect(statusFromPunchDelay(29, rules)).toBe('Late');
+    expect(statusFromPunchDelay(30, rules)).toBe('Half-Day');
+    expect(statusFromPunchDelay(120, rules)).toBe('Absent');
+  });
+
+  it('missing thresholds degrade to plain Present/Late', () => {
+    const rules = { gracePeriodMinutes: 15 };
+    expect(statusFromPunchDelay(20, rules)).toBe('Late');
+    expect(statusFromPunchDelay(500, rules)).toBe('Late');
+  });
+});
+
+describe('minutesAfterShiftStart', () => {
+  it('scores an IST punch against an IST shift', () => {
+    // 04:35Z = 10:05 IST → 5 minutes after a 10:00 shift.
+    expect(minutesAfterShiftStart('2026-09-08T04:35:00Z', '10:00', 330)).toBe(5);
+  });
+  it('early arrivals are negative', () => {
+    expect(minutesAfterShiftStart('2026-09-08T04:00:00Z', '10:00', 330)).toBe(-30);
   });
 });
