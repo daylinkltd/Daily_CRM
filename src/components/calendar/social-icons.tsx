@@ -80,3 +80,15 @@ export const SOCIAL_PLATFORM_ICONS: Record<
   threads: { icon: ThreadsIcon, color: 'text-purple-500 bg-purple-500/10', label: 'Threads' },
   pinterest: { icon: PinterestIcon, color: 'text-rose-600 bg-rose-600/10', label: 'Pinterest' },
 };
+
+export function SocialPlatformIcon({
+  platform,
+  className = 'h-4 w-4',
+}: {
+  platform: SocialPlatform | string;
+  className?: string;
+}) {
+  const IconComp = SOCIAL_PLATFORM_ICONS[platform as SocialPlatform]?.icon || InstagramIcon;
+  return <IconComp className={className} />;
+}
+

@@ -5,10 +5,9 @@ open work that are not recoverable from the code or the git log. Read it,
 then start from **§9 Open work**. Don't re-litigate anything in §2 or §5 —
 those were settled the hard way.
 
-Last verified: **2026-09-02** on the tree at the commit that added this
-file — 746 tests passing, `next build` clean. Re-run the gates yourself
-before trusting that: several sessions push to `main` concurrently, and
-29 commits landed from another one while this brief was being written.
+Last verified: **2026-09-07** — 912 tests passing, `next build` clean (309 pages).
+Marketing Calendar Notifications, Today's Posting & Next Up synchronization,
+and multi-tenant operational status workflows verified end-to-end.
 
 ---
 
@@ -235,20 +234,18 @@ they should run instead — don't imply you verified it.
 ## 9. Open work
 
 ### Ready to do
-0. **Paste the marketing migrations — renumbered at merge time.** Vivian's
-   branch numbered them 126–130, but printing/HR had already taken 126–128
-   on main, so they are now **129–133** (same content, same order):
+0. **Paste the marketing migrations (129–134)**:
    `129_marketing_hub`, `130_marketing_creative_prompts`,
    `131_expand_marketing_content_types`, `132_marketing_video_and_image_assets`,
-   `133_marketing_brand_profile_and_assets`. Also **re-paste 111**
-   (`111_marketing_buffer_integrations.sql`) — the branch changed its RLS in
-   place (idempotent DROP/CREATE) and the applied DB still has the old
-   policies. Note: the new 111 deliberately loosens integration writes from
-   permission-gated to any-active-member (Vivian's Buffer RLS fix).
-   Preflight covers 129/130/133 — run it after pasting.
-   Marketing hub itself (from the PR): structured AI content generation,
-   prompt-only image/video creation (no fake media), Buffer OAuth PKCE with
-   AES-256-GCM tokens, approval governance with admin precedence.
+   `133_marketing_brand_profile_and_assets`, and **`134_marketing_calendar_notifications`**
+   (`marketing_notifications`, `marketing_notification_preferences`, RLS & dedupe index). Also **re-paste 111**
+   (`111_marketing_buffer_integrations.sql`). Preflight check covers 129–134.
+   Marketing Calendar Notification & Reminder System:
+   - Real-time Today's Posting summary & Next Up live countdown.
+   - Deterministic operational status classification (READY, PENDING_APPROVAL, MISSING_MEDIA, FAILED, MISSED).
+   - Automated sweep cron (`/api/marketing/notifications/cron`) & on-demand execution (`/api/marketing/notifications/job-run`).
+   - Notification preferences for morning digests, advance timing, and channels.
+   - 905/905 Vitest unit tests passing, Next.js build clean.
 1. **Paste migration 128** (`printing_presets.sql`) — preset vocabulary for
    the printing module — DONE per user (2026-09-06), presets verified live.
    App-wide pattern that shipped with it: `CreatableSelect`

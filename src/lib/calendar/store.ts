@@ -383,9 +383,9 @@ export function useCalendarStore() {
 
   // No-date items (Drafts, CRM activities without dates)
   const noDateEvents = useMemo(() => {
-    const undatedPosts = socialPosts.filter((p) => !p.date);
+    const undatedPosts = socialPosts.filter((p) => !p.date && !p.scheduled_at);
     const undatedCRM = crmActivities.filter((c) => !c.date);
-    const undatedBlog = blogPosts.filter((b) => !b.date);
+    const undatedBlog = blogPosts.filter((b) => !b.date && !b.scheduled_at);
     return [...undatedPosts, ...undatedCRM, ...undatedBlog];
   }, [socialPosts, crmActivities, blogPosts]);
 
@@ -1257,16 +1257,42 @@ export function useCalendarStore() {
       const isBlog = blogPosts.some((b) => b.id === eventId);
 
       if (isPost) {
+        let updatedPost: SocialPost | undefined;
         const nextPosts = socialPosts.map((p) => {
           if (p.id === eventId) {
-            const updated = { ...p, date: newDate };
-            return helperAddAudit(updated, 'rescheduled', `Date moved to ${newDate}`);
+            const time = p.time || '10:00';
+            const scheduledAt = `${newDate}T${time}:00Z`;
+            const updated: SocialPost = {
+              ...p,
+              date: newDate,
+              time: time,
+              scheduled_at: scheduledAt,
+              // If draft, advance to scheduled per calendar drop
+              status: (p.status === 'draft' || p.status === 'ai_generated') ? 'scheduled' : p.status,
+            };
+            updatedPost = helperAddAudit(updated, 'rescheduled', `Date moved to ${newDate}`);
+            return updatedPost;
           }
           return p;
         });
         savePosts(nextPosts);
+
+        if (updatedPost && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventId)) {
+          try {
+            fetch(`/api/marketing/posts/${eventId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                scheduled_at: updatedPost.scheduled_at,
+                status: updatedPost.status,
+              }),
+            }).catch(() => {});
+          } catch {
+            // ignore network err
+          }
+        }
       } else if (isBlog) {
-        const nextBlog = blogPosts.map((b) => (b.id === eventId ? { ...b, date: newDate } : b));
+        const nextBlog = blogPosts.map((b) => (b.id === eventId ? { ...b, date: newDate, scheduled_at: `${newDate}T10:00:00Z` } : b));
         saveBlog(nextBlog);
       } else {
         const nextCRM = crmActivities.map((c) => (c.id === eventId ? { ...c, date: newDate } : c));
@@ -1447,6 +1473,7 @@ export function useCalendarStore() {
     updateCampaign,
     createContentIdea,
     deleteContentIdea,
+    saveNotifications,
     markNotificationRead,
     markAllNotificationsRead,
     saveSettings,

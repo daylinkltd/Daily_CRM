@@ -86,7 +86,11 @@ WITH expected(migration, kind, object_name, what_breaks_without_it) AS (
     ('133', 'table',   'marketing_brand_profiles',
        'Tenant brand profile storage for Universal AI marketing is missing.'),
     ('133', 'table',   'marketing_brand_assets',
-       'Tenant brand asset library for logos, products, and screenshots is missing.')
+       'Tenant brand asset library for logos, products, and screenshots is missing.'),
+    ('134', 'table',   'marketing_notifications',
+       'Marketing calendar notifications, posting reminders, and attention items storage is missing.'),
+    ('134', 'table',   'marketing_notification_preferences',
+       'Marketing notification timing and channel preferences storage is missing.')
 ),
 objects AS (
   SELECT

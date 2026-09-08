@@ -413,6 +413,33 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
     }
   }, [pathname, activeModule]);
 
+  // Sync live marketing notifications for active workspace
+  useEffect(() => {
+    if (!activeWorkspace?.id) return;
+    let cancelled = false;
+
+    const syncMarketingNotifs = async () => {
+      try {
+        const res = await fetch(`/api/marketing/notifications?workspace_id=${activeWorkspace.id}&limit=50`);
+        if (!cancelled && res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json.notifications)) {
+            marketingStore.saveNotifications(json.notifications);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    syncMarketingNotifs();
+    const interval = setInterval(syncMarketingNotifs, 15000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [activeWorkspace?.id]);
+
   const toggleCollapse = () => {
     const next = !isCollapsed;
     setIsCollapsed(next);
