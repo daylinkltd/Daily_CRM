@@ -27,7 +27,7 @@
 
 import { BRAND, absoluteUrl } from '@/config/brand';
 import { MODULES, allCapabilities } from '@/config/modules-content';
-import { BUSINESS_PLAN } from '@/config/plans';
+import { BUSINESS_PLAN, SHOW_PUBLIC_PRICING } from '@/config/plans';
 
 type Json = Record<string, unknown>;
 
@@ -107,25 +107,34 @@ export function softwareApplicationSchema(): Json {
     // purchasable tier is ever added, this must become an AggregateOffer —
     // publishing only one of two prices would have assistants answer "how
     // much is Dailybuz?" with a number that is wrong for half of buyers.
-    offers: {
-      '@type': 'Offer',
-      category: 'SaaS subscription',
-      price: BUSINESS_PLAN.pricePerSeatMonthly,
-      priceCurrency: BRAND.currency,
-      priceSpecification: {
-        '@type': 'UnitPriceSpecification',
-        price: BUSINESS_PLAN.pricePerSeatMonthly,
-        priceCurrency: BRAND.currency,
-        unitText: 'user per month',
-        referenceQuantity: {
-          '@type': 'QuantitativeValue',
-          value: 1,
-          unitCode: 'C62', // UN/CEFACT: "one" — i.e. one user
+    // While SHOW_PUBLIC_PRICING is off the numeric price is withheld here
+    // too — schema.org data is exactly what assistants quote back.
+    offers: SHOW_PUBLIC_PRICING
+      ? {
+          '@type': 'Offer',
+          category: 'SaaS subscription',
+          price: BUSINESS_PLAN.pricePerSeatMonthly,
+          priceCurrency: BRAND.currency,
+          priceSpecification: {
+            '@type': 'UnitPriceSpecification',
+            price: BUSINESS_PLAN.pricePerSeatMonthly,
+            priceCurrency: BRAND.currency,
+            unitText: 'user per month',
+            referenceQuantity: {
+              '@type': 'QuantitativeValue',
+              value: 1,
+              unitCode: 'C62', // UN/CEFACT: "one" — i.e. one user
+            },
+          },
+          availability: 'https://schema.org/InStock',
+          url: absoluteUrl('/pricing'),
+        }
+      : {
+          '@type': 'Offer',
+          category: 'SaaS subscription',
+          availability: 'https://schema.org/InStock',
+          url: absoluteUrl('/pricing'),
         },
-      },
-      availability: 'https://schema.org/InStock',
-      url: absoluteUrl('/pricing'),
-    },
     // Deliberately no aggregateRating: we have no verified review corpus,
     // and inventing one is both a policy violation and a lie an assistant
     // would repeat.

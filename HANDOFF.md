@@ -55,12 +55,15 @@ about this before.
 Run vitest too. Lint repo-wide has ~1290 pre-existing problems — check only
 that *your* files add none, with `npx eslint <paths>`.
 
-**4. Pushing needs a different GitHub account.**
+**4. Push as `swaraj792725` and LEAVE it active.** The user has said
+(2026-09-08) that `swaraj792725` is the main account — do **not** switch
+back to `swarajseamless` after pushing; sessions doing that kept breaking
+each other's pushes with 403s. The repo's local `credential.helper` is
+`!gh auth git-credential`, so plain `git push` works whenever gh's active
+account is right:
 ```bash
-gh auth switch --user swaraj792725 && git push origin main; gh auth switch --user swarajseamless
+gh auth switch --user swaraj792725 && git push origin main
 ```
-The default account (`swarajseamless`) gets 403 on this repo. Always
-switch back.
 
 **5. Other sessions commit to `main` concurrently.** `git fetch` and
 rebase before pushing; prefer staging your own paths.

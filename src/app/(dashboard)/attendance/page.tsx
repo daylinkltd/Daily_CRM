@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -434,15 +436,20 @@ export default function AttendancePage() {
                         {r.attendance_date}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        {/* The name opens the per-employee month calendar
+                            (attendance + timesheet, Daylink-style). */}
+                        <Link
+                          href={`/attendance/${r.workspace_member_id}`}
+                          className="flex items-center gap-2 hover:text-primary"
+                        >
                           <Avatar className="h-7 w-7">
                             <AvatarImage src={avatar} />
                             <AvatarFallback className="bg-muted text-[10px] text-foreground">
                               {name.slice(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-semibold text-foreground">{name}</span>
-                        </div>
+                          <span className="font-semibold text-foreground hover:text-primary hover:underline">{name}</span>
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <button

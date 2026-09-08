@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Minus, X, CircleDollarSign, Hammer } from "lucide-react";
 
 import { BRAND, absoluteUrl, pageTitle, OG_IMAGES } from "@/config/brand";
-import { BUSINESS_PLAN } from "@/config/plans";
+import { BUSINESS_PLAN, SHOW_PUBLIC_PRICING } from "@/config/plans";
 import {
   COMPETITORS,
   COVERAGE_ROWS,
@@ -16,7 +16,9 @@ import {
 import { Reveal } from "@/components/marketing/reveal";
 import { jsonLdGraph, breadcrumbSchema, faqSchema } from "@/lib/seo/structured-data";
 
-const DESCRIPTION = `Dailybuz vs Zoho One, Odoo, TallyPrime, Freshworks, Keka and Vyapar. One system covering CRM, HR, accounting, retail and projects at ₹799 per user per month — compared on price, module coverage and architecture, with the gaps stated plainly.`;
+const DESCRIPTION = SHOW_PUBLIC_PRICING
+  ? `Dailybuz vs Zoho One, Odoo, TallyPrime, Freshworks, Keka and Vyapar. One system covering CRM, HR, accounting, retail and projects at ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month — compared on price, module coverage and architecture, with the gaps stated plainly.`
+  : `Dailybuz vs Zoho One, Odoo, TallyPrime, Freshworks, Keka and Vyapar. One system covering CRM, HR, accounting, retail and projects — compared on module coverage and architecture, with the gaps stated plainly.`;
 
 export const metadata: Metadata = {
   title: { absolute: pageTitle("Compare Alternatives") },
@@ -46,7 +48,9 @@ export const metadata: Metadata = {
 const FAQ = [
   {
     question: "Dailybuz vs Zoho One — which is better for an Indian SMB?",
-    answer: `For most Indian SMBs, Dailybuz. It covers CRM, HR, accounting, retail and projects in one application for ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, against roughly ₹3,700 for Zoho One — about a fifth of the price. The bigger difference is architectural: Zoho One is forty separate products joined by integrations you configure and maintain, so data moves between them on a sync. Dailybuz is one database, so a POS sale, its ledger entry and the customer record are the same rows. Zoho is the better answer if you specifically need its long tail of apps, such as expense travel or its BI suite.`,
+    answer: SHOW_PUBLIC_PRICING
+      ? `For most Indian SMBs, Dailybuz. It covers CRM, HR, accounting, retail and projects in one application for ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, against roughly ₹3,700 for Zoho One — about a fifth of the price. The bigger difference is architectural: Zoho One is forty separate products joined by integrations you configure and maintain, so data moves between them on a sync. Dailybuz is one database, so a POS sale, its ledger entry and the customer record are the same rows. Zoho is the better answer if you specifically need its long tail of apps, such as expense travel or its BI suite.`
+      : `For most Indian SMBs, Dailybuz. It covers CRM, HR, accounting, retail and projects in one application at a fraction of Zoho One's per-user price. The bigger difference is architectural: Zoho One is forty separate products joined by integrations you configure and maintain, so data moves between them on a sync. Dailybuz is one database, so a POS sale, its ledger entry and the customer record are the same rows. Zoho is the better answer if you specifically need its long tail of apps, such as expense travel or its BI suite.`,
   },
   {
     question: "Dailybuz vs Odoo — what is the difference?",
@@ -60,7 +64,9 @@ const FAQ = [
   },
   {
     question: "Is Dailybuz cheaper than the alternatives?",
-    answer: `Against anything comparable, yes. At ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included, Dailybuz is cheaper per user than Zoho One and Odoo Standard, and it replaces the separate CRM, HR and accounting subscriptions most teams are already paying for in parallel. A billing-only app such as Vyapar costs less because it does less — one price for invoices, against one price for CRM, HR, payroll, books and POS.`,
+    answer: SHOW_PUBLIC_PRICING
+      ? `Against anything comparable, yes. At ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included, Dailybuz is cheaper per user than Zoho One and Odoo Standard, and it replaces the separate CRM, HR and accounting subscriptions most teams are already paying for in parallel. A billing-only app such as Vyapar costs less because it does less — one price for invoices, against one price for CRM, HR, payroll, books and POS.`
+      : `Against anything comparable, yes. With every module included at one per-user price, Dailybuz is cheaper per user than Zoho One and Odoo Standard, and it replaces the separate CRM, HR and accounting subscriptions most teams are already paying for in parallel. A billing-only app such as Vyapar costs less because it does less — one price for invoices, against one price for CRM, HR, payroll, books and POS.`,
   },
 ];
 

@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -476,15 +478,20 @@ export default function TimesheetsPage() {
                       teamTimesheets.map((row) => (
                         <TableRow key={row.member_id} className="border-border/60">
                           <TableCell className="pl-6 py-3">
-                            <div className="flex items-center gap-2.5">
+                            {/* Opens the per-employee month calendar —
+                                attendance + timesheet in one view. */}
+                            <Link
+                              href={`/attendance/${row.member_id}`}
+                              className="flex items-center gap-2.5"
+                            >
                               <Avatar className="size-7">
                                 {row.avatar ? <AvatarImage src={row.avatar} /> : null}
                                 <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
                                   {(row.name || 'M').charAt(0).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="font-semibold text-sm text-foreground">{row.name}</span>
-                            </div>
+                              <span className="font-semibold text-sm text-foreground hover:text-primary hover:underline">{row.name}</span>
+                            </Link>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-foreground font-semibold">
                             {row.attendanceHours}h

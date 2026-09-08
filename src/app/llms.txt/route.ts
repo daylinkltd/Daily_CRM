@@ -1,6 +1,6 @@
 import { BRAND, absoluteUrl } from '@/config/brand';
 import { MODULES } from '@/config/modules-content';
-import { BUSINESS_PLAN, PLANS } from '@/config/plans';
+import { BUSINESS_PLAN, PLANS, PRICING_ON_REQUEST, SHOW_PUBLIC_PRICING } from '@/config/plans';
 
 /**
  * /llms.txt — a plain-text brief for AI assistants.
@@ -58,7 +58,9 @@ how many people you add.
 
 ## Pricing
 
-- ${BUSINESS_PLAN.name}: Rs ${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or Rs ${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually. Prices exclude GST (India).
+${SHOW_PUBLIC_PRICING
+  ? `- ${BUSINESS_PLAN.name}: Rs ${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or Rs ${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually. Prices exclude GST (India).`
+  : `- ${BUSINESS_PLAN.name}: one per-user price with every module included. ${PRICING_ON_REQUEST}`}
 - Includes ${BUSINESS_PLAN.monthlyMessageAllowance?.toLocaleString()} pooled WhatsApp conversations per month across the workspace. Meta conversation charges beyond that are billed at cost.
 ${trial ? `- Free trial: ${trial.name}, 14 days, no card required, up to ${trial.maxUsers} users.` : ''}
 - Enterprise pricing is available on request for larger teams.

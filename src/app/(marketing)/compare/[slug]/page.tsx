@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, ArrowLeft, Check, Minus, X } from "lucide-react";
 
 import { BRAND, absoluteUrl, pageTitle, OG_IMAGES } from "@/config/brand";
-import { BUSINESS_PLAN } from "@/config/plans";
+import { BUSINESS_PLAN, SHOW_PUBLIC_PRICING } from "@/config/plans";
 import {
   COMPETITORS,
   COVERAGE_LABEL,
@@ -86,7 +86,9 @@ export default async function CompetitorPage({
     },
     {
       question: `How does ${BRAND.name} pricing compare to ${c.name}?`,
-      answer: `${BRAND.name} is ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included and a 14-day free trial. ${c.name} is priced at roughly: ${c.priceNote}.`,
+      answer: SHOW_PUBLIC_PRICING
+        ? `${BRAND.name} is ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month (₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually, excluding GST) with every module included and a 14-day free trial. ${c.name} is priced at roughly: ${c.priceNote}.`
+        : `${BRAND.name} is one per-user price with every module included and a 14-day free trial — pricing is shared on request. ${c.name} is priced at roughly: ${c.priceNote}.`,
     },
     {
       question: `Can I move from ${c.name} to ${BRAND.name}?`,

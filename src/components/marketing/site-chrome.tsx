@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
 
 import { BRAND } from "@/config/brand";
+import { SHOW_PUBLIC_PRICING } from "@/config/plans";
 import { MODULES } from "@/config/modules-content";
 import { ThemeToggle } from "./theme-toggle";
 import { Logo } from "./logo";
@@ -14,8 +15,9 @@ const NAV = [
   { href: "/modules", label: "Modules" },
   { href: "/industries", label: "Industries" },
   { href: "/compare", label: "Compare" },
+  // Filtered while prices are hidden from the public site.
   { href: "/pricing", label: "Pricing" },
-];
+].filter((item) => SHOW_PUBLIC_PRICING || item.href !== "/pricing");
 
 /**
  * Shared header for every marketing page.
@@ -153,11 +155,13 @@ export function SiteFooter() {
                   Compare alternatives
                 </Link>
               </li>
-              <li>
-                <Link href="/pricing" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
-                  Pricing
-                </Link>
-              </li>
+              {SHOW_PUBLIC_PRICING && (
+                <li>
+                  <Link href="/pricing" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
+                    Pricing
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/industries" className="text-sm text-[var(--mkt-fg-muted)] hover:text-[var(--mkt-fg)]">
                   Industries

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { BRAND, absoluteUrl, pageTitle, OG_IMAGES } from "@/config/brand";
-import { BUSINESS_PLAN, GST_RATE } from "@/config/plans";
+import { BUSINESS_PLAN, GST_RATE, PRICING_ON_REQUEST, SHOW_PUBLIC_PRICING } from "@/config/plans";
 import { Reveal } from "@/components/marketing/reveal";
 import { jsonLdGraph, breadcrumbSchema, faqSchema, type FaqEntry } from "@/lib/seo/structured-data";
 
@@ -38,7 +38,9 @@ const GROUPS: { title: string; items: FaqEntry[] }[] = [
     items: [
       {
         question: `How much does ${BRAND.name} cost?`,
-        answer: `₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually. Every module — CRM, HR, accounting, retail, projects and the WhatsApp inbox — is included at that price; there is no higher tier that unlocks features. Prices exclude GST, and 18% GST is added at checkout with the split shown.`,
+        answer: SHOW_PUBLIC_PRICING
+          ? `₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually. Every module — CRM, HR, accounting, retail, projects and the WhatsApp inbox — is included at that price; there is no higher tier that unlocks features. Prices exclude GST, and 18% GST is added at checkout with the split shown.`
+          : `One per-user price with every module — CRM, HR, accounting, retail, projects and the WhatsApp inbox — included; there is no higher tier that unlocks features. ${PRICING_ON_REQUEST} 18% GST is added at checkout with the split shown.`,
       },
       {
         question: "Is GST included in the price?",

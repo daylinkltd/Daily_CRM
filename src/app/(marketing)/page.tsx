@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, Layers, ShieldCheck, Zap } from "lucide-react
 
 import { BRAND, pageTitle, OG_IMAGES } from "@/config/brand";
 import { MODULES, INCLUDED_MODULES_NOTE } from "@/config/modules-content";
-import { BUSINESS_PLAN } from "@/config/plans";
+import { BUSINESS_PLAN , PRICING_ON_REQUEST, SHOW_PUBLIC_PRICING } from "@/config/plans";
 import { COMPETITORS, COVERAGE_ROWS } from "@/config/competitors";
 import { Reveal } from "@/components/marketing/reveal";
 import { jsonLdGraph, faqSchema } from "@/lib/seo/structured-data";
@@ -40,7 +40,9 @@ const FAQ = [
   },
   {
     question: "How much does Dailybuz cost?",
-    answer: `Dailybuz costs ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually, excluding GST. Every module is included at that price — there is no higher tier. A 14-day free trial is available with no card required.`,
+    answer: SHOW_PUBLIC_PRICING
+      ? `Dailybuz costs ₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} per user per month billed annually, excluding GST. Every module is included at that price — there is no higher tier. A 14-day free trial is available with no card required.`
+      : `Dailybuz is one per-user price with every module included — there is no higher tier. ${PRICING_ON_REQUEST} A 14-day free trial is available with no card required.`,
   },
   {
     question: "Is Dailybuz suitable for a small business in India?",
@@ -73,7 +75,9 @@ const PILLARS = [
   {
     icon: Zap,
     title: "Priced per person, everything included",
-    body: `₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month. No module upsells, no feature gates, no per-integration fees.`,
+    body: SHOW_PUBLIC_PRICING
+      ? `₹${BUSINESS_PLAN.pricePerSeatMonthly} per user per month. No module upsells, no feature gates, no per-integration fees.`
+      : `One per-user price. No module upsells, no feature gates, no per-integration fees.`,
   },
 ];
 
@@ -129,8 +133,9 @@ export default function HomePage() {
             style={{ "--enter-delay": "300ms" } as React.CSSProperties}
             className="mt-4 text-xs text-[var(--mkt-fg-subtle)]"
           >
-            No card required · ₹{BUSINESS_PLAN.pricePerSeatMonthly}/user/month after
-            trial · Prices exclude GST
+            {SHOW_PUBLIC_PRICING
+              ? `No card required · ₹${BUSINESS_PLAN.pricePerSeatMonthly}/user/month after trial · Prices exclude GST`
+              : "No card required · every module included in the trial"}
           </p>
         </div>
       </section>
@@ -263,32 +268,36 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mkt-section">
-        <div className="mkt-container mkt-container-narrow">
-          <Reveal className="border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-8 text-center sm:p-12">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mkt-fg-subtle)]">
-              Simple pricing
-            </p>
-            <p className="mt-4 text-5xl font-extrabold tracking-tight text-[var(--mkt-fg)]">
-              ₹{BUSINESS_PLAN.pricePerSeatMonthly}
-              <span className="text-base font-medium text-[var(--mkt-fg-subtle)]">
-                {" "}
-                /user/month
-              </span>
-            </p>
-            <p className="mt-3 text-sm text-[var(--mkt-fg-muted)]">
-              ₹{BUSINESS_PLAN.pricePerSeatAnnual}/user/month billed annually.
-              Every module included. Excludes GST.
-            </p>
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <Link href="/pricing" className="mkt-btn mkt-btn-md mkt-btn-primary">
-                See what&apos;s included
-                <ArrowRight className="size-4" />
-              </Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+      {/* Pricing card — hidden with SHOW_PUBLIC_PRICING; the section
+          disappears entirely rather than showing a number-less husk. */}
+      {SHOW_PUBLIC_PRICING && (
+        <section className="mkt-section">
+          <div className="mkt-container mkt-container-narrow">
+            <Reveal className="border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-8 text-center sm:p-12">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--mkt-fg-subtle)]">
+                Simple pricing
+              </p>
+              <p className="mt-4 text-5xl font-extrabold tracking-tight text-[var(--mkt-fg)]">
+                ₹{BUSINESS_PLAN.pricePerSeatMonthly}
+                <span className="text-base font-medium text-[var(--mkt-fg-subtle)]">
+                  {" "}
+                  /user/month
+                </span>
+              </p>
+              <p className="mt-3 text-sm text-[var(--mkt-fg-muted)]">
+                ₹{BUSINESS_PLAN.pricePerSeatAnnual}/user/month billed annually.
+                Every module included. Excludes GST.
+              </p>
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <Link href="/pricing" className="mkt-btn mkt-btn-md mkt-btn-primary">
+                  See what&apos;s included
+                  <ArrowRight className="size-4" />
+                </Link>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      )}
 
       {/* ── FAQ ────────────────────────────────────────────────────────── */}
       <section className="mkt-section mkt-band-surface">

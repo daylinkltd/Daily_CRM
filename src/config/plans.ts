@@ -39,6 +39,20 @@ export type BillingPeriod = 'monthly' | 'annual';
  */
 export const GST_RATE = 0.18;
 
+/**
+ * Master switch for the public site's price disclosure. While false,
+ * every marketing surface (nav, pricing page, home, FAQ, compare,
+ * llms.txt, Offer schema) says "pricing on request" instead of a
+ * number — flip it back to true to restore all of them at once.
+ * Checkout and billing are untouched; this is about what the WEBSITE
+ * says, not what the product charges.
+ */
+export const SHOW_PUBLIC_PRICING = false;
+
+/** The one sentence every hidden-price surface shows instead. */
+export const PRICING_ON_REQUEST =
+  'Pricing is shared on request — tell us your team size and we will quote the same day.';
+
 export interface Plan {
   id: string;
   name: string;

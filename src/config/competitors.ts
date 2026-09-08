@@ -32,7 +32,7 @@
 // a stale price on a comparison page is the fastest way to lose trust.
 // ============================================================
 
-import { BUSINESS_PLAN } from './plans';
+import { BUSINESS_PLAN, SHOW_PUBLIC_PRICING } from './plans';
 
 export interface Competitor {
   slug: string;
@@ -182,7 +182,10 @@ export const OURS = {
   name: 'Dailybuz',
   // Derived, never typed twice — a comparison page with a stale own-price
   // is worse than one with a stale competitor price.
-  priceNote: `₹${BUSINESS_PLAN.pricePerSeatMonthly}/user/month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually`,
+  priceNote: SHOW_PUBLIC_PRICING
+    ? `₹${BUSINESS_PLAN.pricePerSeatMonthly}/user/month, or ₹${BUSINESS_PLAN.pricePerSeatAnnual} billed annually`
+    : 'One per-user price, every module included — shared on request',
+
   coverage: {
     crm: 'full',
     hr: 'full',
