@@ -28,7 +28,10 @@ export async function POST(
       .single();
 
     if (!policy) {
-      return NextResponse.json({ error: 'Policy not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'This policy no longer exists — it may have been deleted or regenerated. Refresh the policies list.' },
+        { status: 404 },
+      );
     }
 
     const versions = policy.versions || [];

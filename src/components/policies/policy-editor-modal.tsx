@@ -47,6 +47,12 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Set when the policy this modal was opened for can't be loaded —
+  // usually a deleted/regenerated policy behind a stale list row or a
+  // dead ?edit= deep link. Saving is blocked: without this the modal
+  // kept the PREVIOUS policy's fields, looked perfectly real, and the
+  // save came back "Policy not found" against a row that is gone.
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('CODE_OF_CONDUCT');
@@ -72,10 +78,22 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
     async function fetchPolicyDetails() {
       if (!policyId || !open) return;
       setLoading(true);
+      setLoadError(null);
+      // Clear before fetching, not after: a failed load must never leave
+      // the previous policy's content sitting in the form.
+      setTitle('');
+      setContent('');
+      setChangeSummary('');
       try {
         const res = await fetch(`/api/hr/policies/${policyId}`);
         const json = await res.json();
-        if (json.policy) {
+        if (!res.ok || json.error || !json.policy) {
+          setLoadError(
+            json.error === 'Policy not found' || res.status === 404
+              ? 'This policy no longer exists — it may have been deleted or regenerated. Close this dialog and refresh the list.'
+              : json.error || 'Failed to load policy details',
+          );
+        } else if (json.policy) {
           const p = json.policy;
           setTitle(p.title);
           setCategory(p.category);
@@ -98,7 +116,7 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
           setSelectedDeptIds(targetDepts);
         }
       } catch {
-        toast.error('Failed to load policy details');
+        setLoadError('Could not reach the server to load this policy.');
       } finally {
         setLoading(false);
       }
@@ -108,6 +126,7 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
       fetchPolicyDetails();
     } else if (open) {
       // Reset form
+      setLoadError(null);
       setTitle('');
       setCategory('CODE_OF_CONDUCT');
       setContent('');
@@ -175,7 +194,15 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
       onSaved();
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err.message || 'Failed to save policy');
+      if (typeof err?.message === 'string' && err.message.includes('no longer exists')) {
+        // Stale row: surface the reason, close, and refresh the list so
+        // the dead entry disappears instead of inviting another attempt.
+        toast.error(err.message);
+        onSaved();
+        onOpenChange(false);
+      } else {
+        toast.error(err.message || 'Failed to save policy');
+      }
     } finally {
       setSaving(false);
     }
@@ -197,6 +224,13 @@ export function PolicyEditorModal({ open, onOpenChange, policyId, onSaved }: Pol
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="size-8 animate-spin text-primary" />
+          </div>
+        ) : loadError ? (
+          <div className="space-y-4 py-8 text-center">
+            <p className="text-sm text-red-400">{loadError}</p>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 py-2">

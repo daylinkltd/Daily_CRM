@@ -72,7 +72,13 @@ export async function PUT(
       .single();
 
     if (fetchErr || !existingPolicy) {
-      return NextResponse.json({ error: 'Policy not found' }, { status: 404 });
+      // The commonest real cause is a stale id: the policy was deleted
+      // (or the handbook regenerated) while a list row, an open editor
+      // or a ?edit= deep link still pointed at the old row.
+      return NextResponse.json(
+        { error: 'This policy no longer exists — it may have been deleted or regenerated. Refresh the policies list.' },
+        { status: 404 },
+      );
     }
 
     // Every write below was previously fire-and-forget: the route returned
