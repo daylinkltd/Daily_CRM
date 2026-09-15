@@ -511,7 +511,7 @@ function isValidStatusTransition(current: string, incoming: string): boolean {
   return ii > ci
 }
 
-async function handleStatusUpdate(status: {
+export async function handleStatusUpdate(status: {
   id: string
   status: string
   timestamp: string
@@ -1025,7 +1025,7 @@ async function findExistingContactByPhone(
   )
 }
 
-async function findOrCreateContact(
+export async function findOrCreateContact(
   userId: string,
   phone: string,
   name: string,
@@ -1078,7 +1078,7 @@ async function findOrCreateContact(
   return { contact: newContact, wasCreated: true }
 }
 
-async function findOrCreateConversation(userId: string, contactId: string, workspaceId: string) {
+export async function findOrCreateConversation(userId: string, contactId: string, workspaceId: string) {
   // Look for existing conversation by contact_id first. The table has
   // no unique constraint on (workspace_id, contact_id), so duplicates
   // can exist — .maybeSingle() would error on >1 row and we'd insert

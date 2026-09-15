@@ -235,6 +235,24 @@ they should run instead — don't imply you verified it.
 ## 9. Open work
 
 ### Ready to do
+-2. **WhatsApp Bridge (unofficial WhatsApp Web) — code complete, needs
+   deploy + migration 134.** `whatsapp-bridge/` is our own Go service on
+   whatsmeow (NOT Evolution's code — MPL-2.0 dependency, no branding
+   obligations): QR pairing, text/media send with per-number pacing
+   (min-gap+jitter+hourly cap — deliberately NO detection evasion),
+   HMAC-signed webhooks. App side: provider `'bridge'` in the factory
+   (`bridge-provider.ts`; templates render to plain text — no approvals,
+   no 24h window on this protocol), inbound at
+   `/api/whatsapp/bridge-webhook` reusing the Meta webhook's
+   contact/conversation helpers (now exported from that route file),
+   media proxy `/api/whatsapp/bridge-media`, pairing tab "WhatsApp Web
+   (Free)" in Settings → WhatsApp with the ban-risk warning box.
+   To go live: (a) paste migration 134 (provider CHECK += 'bridge');
+   (b) deploy the bridge per `whatsapp-bridge/README.md` (own small
+   Postgres, volume at /data/media); (c) set app env
+   `WHATSAPP_BRIDGE_URL/_API_KEY/_WEBHOOK_SECRET`; (d) smoke-test by
+   pairing a THROWAWAY number, never the business line. v1 boundaries:
+   1:1 chats only (no groups), inbound reactions/polls ignored.
 0. **Paste the marketing migrations — renumbered at merge time.** Vivian's
    branch numbered them 126–130, but printing/HR had already taken 126–128
    on main, so they are now **129–133** (same content, same order):

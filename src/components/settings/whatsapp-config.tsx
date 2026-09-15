@@ -15,6 +15,7 @@ import {
   MessageSquare,
   PhoneCall,
   Bot,
+  QrCode,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useWorkspace } from '@/hooks/use-workspace';
@@ -34,7 +35,9 @@ import { IconAction } from "@/components/ui/icon-action";
 
 const MASKED_TOKEN = '••••••••••••••••';
 
-type Provider = 'meta' | 'twilio' | 'mock' | 'apiauto';
+import { WhatsAppBridgePanel } from './whatsapp-bridge-panel';
+
+type Provider = 'meta' | 'twilio' | 'mock' | 'apiauto' | 'bridge';
 type ConnectionStatus = 'connected' | 'disconnected' | 'unknown';
 
 interface ProviderTab {
@@ -68,6 +71,12 @@ const PROVIDER_TABS: ProviderTab[] = [
     label: 'ApiAuto.in',
     icon: <Zap className="h-4 w-4 shrink-0" />,
     description: 'Connect via official.apiauto.in API.',
+  },
+  {
+    id: 'bridge',
+    label: 'WhatsApp Web (Free)',
+    icon: <QrCode className="h-4 w-4 shrink-0" />,
+    description: 'Scan a QR with your phone — unofficial, free, at your own risk.',
   },
 ];
 
@@ -579,6 +588,9 @@ export function WhatsAppConfig() {
         </Card>
 
         {/* ── Provider-specific credential fields ── */}
+        {selectedProvider === 'bridge' ? (
+          <WhatsAppBridgePanel />
+        ) : (
         <Card className="bg-card text-card-foreground border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-foreground text-base flex items-center gap-2">
@@ -829,6 +841,7 @@ export function WhatsAppConfig() {
             )}
           </CardContent>
         </Card>
+        )}
 
         {/* Webhook URL & Verify Token — shown for Meta and ApiAuto */}
         {(selectedProvider === 'meta' || selectedProvider === 'apiauto') && (
@@ -892,7 +905,8 @@ export function WhatsAppConfig() {
           </Card>
         )}
 
-        {/* Action Buttons */}
+        {/* Action Buttons — the bridge tab manages its own connect/unlink */}
+        {selectedProvider !== 'bridge' && (
         <div className="flex flex-wrap gap-3">
           <Button
             onClick={handleSave}
@@ -920,6 +934,7 @@ export function WhatsAppConfig() {
             </Button>
           )}
         </div>
+        )}
       </div>
 
       {/* ── Setup Instructions Sidebar ── */}
