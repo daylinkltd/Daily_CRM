@@ -167,9 +167,14 @@ export async function proxy(request: NextRequest) {
     return withRefreshedCookies(NextResponse.redirect(url))
   }
 
-  // API routes that need auth (not webhooks)
+  // API routes that need auth (not webhooks). The bridge's inbound
+  // endpoint is server-to-server like Meta's webhook — it has no user
+  // session and authenticates itself with an HMAC signature; the
+  // `/webhook` substring test misses it ('bridge-webhook' has no
+  // slash), which silently blocked every bridge event.
   if (!user && request.nextUrl.pathname.startsWith('/api/whatsapp/') &&
-      !request.nextUrl.pathname.includes('/webhook')) {
+      !request.nextUrl.pathname.includes('/webhook') &&
+      request.nextUrl.pathname !== '/api/whatsapp/bridge-webhook') {
     return withRefreshedCookies(
       NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     )
