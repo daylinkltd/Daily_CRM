@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: Request) {
   try {
-    const supabase = await createClient();
+    const admin = createAdminClient();
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
 
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'workspaceId is required' }, { status: 400 });
     }
 
-    const { data: requests, error } = await supabase
+    const { data: requests, error } = await admin
       .from('hr_employee_requests')
       .select('*')
       .eq('workspace_id', workspaceId)
