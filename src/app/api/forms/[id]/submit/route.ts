@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { phonesMatch } from '@/lib/whatsapp/phone-utils';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import crypto from 'crypto';
 
 // Helper to instantiate supabase admin client
@@ -281,8 +279,11 @@ export async function POST(
         const sanitizedOriginalName = sanitize(
           String(fileObj.name).replace(/\.[^.]*$/, '')
         );
-        const savedName = `${sanitizedOriginalName}_${uniqueId}.${extension}`;
-        const relativePath = `/uploads/${workspaceName}/${subFolder}/${savedName}`;
+        const savedName = `${sanitizedOriginalName || 'file'}_${uniqueId}.${extension}`;
+        // Object key in the private media-files bucket (migration 135).
+        // This used to be `/uploads/<Workspace>/…` on the container's
+        // own disk, which every deploy deleted.
+        const relativePath = `${form.workspace_id}/${sanitize(subFolder).replace(/\s+/g, '-') || 'form-submissions'}/${savedName}`;
 
         filesToProcess.push({
           fieldKey: key,
@@ -358,15 +359,20 @@ export async function POST(
     if (filesToProcess.length > 0) {
       for (const item of filesToProcess) {
         try {
-          const { fileObj, relativePath, savedName, workspaceName, subFolder } = item;
+          const { fileObj, relativePath } = item;
           const base64Data = fileObj.base64.split(';base64,').pop();
           const buffer = Buffer.from(base64Data, 'base64');
 
-          const uploadDir = join(process.cwd(), 'public', 'uploads', workspaceName, subFolder);
-          await mkdir(uploadDir, { recursive: true });
-
-          const filePath = join(uploadDir, savedName);
-          await writeFile(filePath, buffer);
+          const { error: upErr } = await supabaseAdmin()
+            .storage.from('media-files')
+            .upload(relativePath, buffer, {
+              contentType: fileObj.type || 'application/octet-stream',
+              upsert: false,
+            });
+          if (upErr) {
+            console.error('[forms/submit] storage upload failed:', upErr.message);
+            continue;
+          }
 
           // Insert into media_files table
           const insertData: any = {
@@ -375,6 +381,7 @@ export async function POST(
             mime_type: fileObj.type,
             file_size: fileObj.size,
             local_path: relativePath,
+            storage_path: relativePath,
           };
           if (dealId) {
             insertData.deal_id = dealId;

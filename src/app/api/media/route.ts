@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { unlink } from "fs/promises";
-import { join } from "path";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(req: NextRequest) {
   try {
@@ -56,12 +55,14 @@ export async function DELETE(req: NextRequest) {
     if (fileId) {
       const { data: file } = await supabase.from("media_files").select("*").eq("id", fileId).single();
       if (file) {
-        // Delete from local fs
-        try {
-          const absolutePath = join(process.cwd(), "public", file.local_path.replace(/^\//, ''));
-          await unlink(absolutePath);
-        } catch (e) {
-          console.error("Failed to delete local file", e);
+        // Remove the object. Legacy rows (storage_path null) have no
+        // object to remove — their bytes died with the container that
+        // wrote them, so there is only the row to clear.
+        if (file.storage_path) {
+          const { error: rmErr } = await createAdminClient()
+            .storage.from("media-files")
+            .remove([file.storage_path]);
+          if (rmErr) console.error("Failed to remove stored object", rmErr.message);
         }
         await supabase.from("media_files").delete().eq("id", fileId);
       }

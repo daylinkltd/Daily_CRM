@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { IconAction } from "@/components/ui/icon-action";
 import { EmptyState } from "@/components/ui/empty-state";
+import { isLegacyMedia, mediaHref } from "@/lib/media/urls";
 
 export default function MediaPage() {
   const { activeWorkspace } = useWorkspace();
@@ -251,11 +252,21 @@ export default function MediaPage() {
                   key={file.id}
                   className="group flex flex-col items-center justify-center p-4 bg-card border border-border hover:border-blue-900/30 rounded-xl transition-colors relative"
                 >
-                  <a href={file.local_path} target="_blank" rel="noreferrer" className="w-full flex flex-col items-center">
-                    {file.mime_type?.startsWith('image/') ? (
+                  {/* Legacy rows (uploaded before durable storage) have no
+                      bytes behind them: render them as plainly missing
+                      rather than as a link that 404s. */}
+                  <a
+                    href={mediaHref(file) ?? undefined}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled={isLegacyMedia(file)}
+                    onClick={(e) => { if (isLegacyMedia(file)) e.preventDefault(); }}
+                    className={`w-full flex flex-col items-center ${isLegacyMedia(file) ? 'cursor-not-allowed opacity-60' : ''}`}
+                  >
+                    {file.mime_type?.startsWith('image/') && !isLegacyMedia(file) ? (
                       <div className="w-16 h-16 mb-3 rounded-lg overflow-hidden bg-background border border-border">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={file.local_path} alt={file.name} className="w-full h-full object-cover" />
+                        <img src={mediaHref(file) ?? ''} alt={file.name} className="w-full h-full object-cover" />
                       </div>
                     ) : (
                       <File className="w-12 h-12 text-muted-foreground mb-3" />
@@ -264,7 +275,7 @@ export default function MediaPage() {
                       {file.name}
                     </span>
                     <span className="text-xs text-muted-foreground mt-1">
-                      {formatSize(file.file_size)}
+                      {isLegacyMedia(file) ? 'Missing — re-upload' : formatSize(file.file_size)}
                     </span>
                   </a>
                   

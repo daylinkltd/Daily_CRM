@@ -235,6 +235,18 @@ they should run instead — don't imply you verified it.
 ## 9. Open work
 
 ### Ready to do
+-3. **Paste migration 135** (`media_files_durable_storage.sql`) — CRM Media
+   uploads were written to `public/uploads/` INSIDE the container, which is
+   gitignored (ships empty) and lives only in the container's writable
+   layer: every Coolify deploy silently deleted every uploaded document
+   while leaving its `media_files` row behind, and the UI 404'd. They were
+   also world-readable — no session, no membership check, guessable path.
+   Fixed by moving uploads (media + form submissions) to a PRIVATE
+   `media-files` bucket, read only through `/api/media/file` (session +
+   membership). Rows with `storage_path IS NULL` are the legacy ones whose
+   bytes are gone; the UI marks them "Missing — re-upload" instead of
+   linking to a dead URL. **Files uploaded before this are unrecoverable**
+   unless a volume was mounted (it was not).
 -2. **WhatsApp Bridge (unofficial WhatsApp Web) — code complete, needs
    deploy + migration 134.** `whatsapp-bridge/` is our own Go service on
    whatsmeow (NOT Evolution's code — MPL-2.0 dependency, no branding

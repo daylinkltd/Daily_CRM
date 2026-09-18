@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { v4 as uuidv4 } from "uuid";
+
+/**
+ * Uploads go to the private `media-files` bucket (migration 135), NOT
+ * to the container filesystem. The old code wrote to
+ * public/uploads/<Workspace>/… — a path that ships empty in the image
+ * and lives only in the container's writable layer, so every Coolify
+ * deploy deleted every document while leaving its DB row behind.
+ *
+ * Object key: <workspace_id>/<folder>/<uuid>-<name>.<ext> — keyed by
+ * ID, not by workspace NAME, so renaming a workspace or a deal can
+ * never orphan files.
+ */
+const BUCKET = "media-files";
+const MAX_BYTES = 50 * 1024 * 1024; // matches the bucket's limit
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,51 +72,52 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Save to local filesystem
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    if (buffer.byteLength > MAX_BYTES) {
+      return NextResponse.json(
+        { error: "File exceeds the 50 MB limit." },
+        { status: 413 },
+      );
+    }
 
-    // Fetch workspace name
-    const { data: workspaceData } = await supabase.from('workspaces').select('name').eq('id', workspaceId).single();
-    const workspaceName = workspaceData ? sanitize(workspaceData.name) : workspaceId;
-
-    // Determine subfolder path
+    // Folder segment is for humans reading the bucket; the workspace id
+    // prefix is what isolation keys on.
     let subFolderPath = '';
-    
-    // If it belongs to a deal, fetch the deal name
     if (dealId && dealId !== 'null') {
       const { data: dealData } = await supabase.from('deals').select('title').eq('id', dealId).single();
-      if (dealData) {
-        subFolderPath = sanitize(dealData.title);
-      }
-    } 
-    // Otherwise if it's placed in a specific folder, fetch the folder hierarchy (for now just the folder name)
-    else if (targetFolderId && targetFolderId !== 'null') {
+      if (dealData) subFolderPath = sanitize(dealData.title);
+    } else if (targetFolderId && targetFolderId !== 'null') {
       const { data: folderData } = await supabase.from('media_folders').select('name').eq('id', targetFolderId).single();
-      if (folderData) {
-        subFolderPath = sanitize(folderData.name);
-      }
+      if (folderData) subFolderPath = sanitize(folderData.name);
     } else if (autoFolder) {
       subFolderPath = sanitize(autoFolder);
     }
 
     const uniqueId = uuidv4();
     // Sanitize the extension as well as the stem — an unsanitized
-    // extension like "js/../../x" lets join() escape public/uploads.
+    // extension is how a crafted name escapes its prefix.
     const rawExtension = file.name.split('.').pop() || 'bin';
     const extension =
       rawExtension.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10) || 'bin';
-    const sanitizedOriginalName = sanitize(file.name.replace(/\.[^.]*$/, ''));
-    const savedName = `${sanitizedOriginalName}_${uniqueId.substring(0, 8)}.${extension}`;
-    
-    // Construct local path: public/uploads/[Workspace Name]/[Subfolder]/[savedName]
-    const uploadDir = join(process.cwd(), "public", "uploads", workspaceName, subFolderPath);
-    await mkdir(uploadDir, { recursive: true });
-    
-    const filePath = join(uploadDir, savedName);
-    await writeFile(filePath, buffer);
+    const sanitizedOriginalName = sanitize(file.name.replace(/\.[^.]*$/, '')).replace(/\s+/g, '-');
+    const savedName = `${sanitizedOriginalName || 'file'}_${uniqueId.substring(0, 8)}.${extension}`;
 
-    const relativePath = `/uploads/${workspaceName}${subFolderPath ? `/${subFolderPath}` : ''}/${savedName}`;
+    const folderSegment = subFolderPath ? `${subFolderPath.replace(/\s+/g, '-')}/` : '';
+    const storagePath = `${workspaceId}/${folderSegment}${savedName}`;
+
+    const admin = createAdminClient();
+    const { error: upErr } = await admin.storage.from(BUCKET).upload(storagePath, buffer, {
+      contentType: file.type || 'application/octet-stream',
+      upsert: false,
+    });
+    if (upErr) {
+      console.error('[media/upload] storage upload failed:', upErr);
+      return NextResponse.json(
+        { error: `Upload failed: ${upErr.message}` },
+        { status: 500 },
+      );
+    }
 
     // Insert into DB
     const insertData: any = {
@@ -111,7 +125,10 @@ export async function POST(req: NextRequest) {
       name: file.name,
       mime_type: file.type,
       file_size: file.size,
-      local_path: relativePath,
+      // local_path is NOT NULL and predates the bucket; it now holds the
+      // same key so nothing reads a stale /uploads/… URL.
+      local_path: storagePath,
+      storage_path: storagePath,
     };
     if (targetFolderId && targetFolderId !== 'null') insertData.folder_id = targetFolderId;
     if (dealId && dealId !== 'null') insertData.deal_id = dealId;
@@ -122,7 +139,13 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
     
-    if (dbErr) throw dbErr;
+    if (dbErr) {
+      // The bytes are already in the bucket; without the row nothing
+      // will ever reference them, so remove the orphan rather than
+      // leaving storage to accumulate files nobody can see.
+      await admin.storage.from(BUCKET).remove([storagePath]);
+      throw dbErr;
+    }
 
     return NextResponse.json({ success: true, file: dbFile });
 

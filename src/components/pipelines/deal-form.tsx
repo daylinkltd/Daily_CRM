@@ -48,6 +48,7 @@ import { useRef } from "react";
 import { IconAction } from "@/components/ui/icon-action";
 import { NativeSelect } from "@/components/ui/native-select";
 import { RichTextArea } from "@/components/ui/rich-textarea";
+import { isLegacyMedia, mediaHref } from "@/lib/media/urls";
 
 export function DealForm({
   open,
@@ -587,7 +588,9 @@ export function DealForm({
                   {files.map(f => (
                     <a 
                       key={f.id}
-                      href={f.local_path} 
+                      href={mediaHref(f) ?? undefined}
+                      aria-disabled={isLegacyMedia(f)}
+                      onClick={(e) => { if (isLegacyMedia(f)) e.preventDefault(); }} 
                       target="_blank" 
                       rel="noreferrer"
                       className="flex items-center gap-2 p-2 rounded-lg bg-card/50 border border-border hover:border-border transition-colors text-sm text-foreground hover:text-foreground"
