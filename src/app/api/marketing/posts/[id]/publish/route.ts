@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { BufferService } from '@/lib/integrations/buffer-service';
-import { validateMediaForPlatforms } from '@/lib/marketing/media-validator';
+import { publishMarketingPost } from '@/lib/social/publishing-engine';
 
 export async function POST(
   request: Request,
@@ -18,7 +17,7 @@ export async function POST(
 
     const { data: post } = await supabase
       .from('marketing_posts')
-      .select('*')
+      .select('id, workspace_id, status, title')
       .eq('id', id)
       .maybeSingle();
 
@@ -38,194 +37,28 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden: Insufficient permissions to publish' }, { status: 403 });
     }
 
-    // Role check: Only approved or scheduled posts can be published unless user is admin/owner
-    if (
-      post.status !== 'approved' &&
-      post.status !== 'scheduled' &&
-      post.status !== 'failed' &&
-      membership.role !== 'admin' &&
-      membership.role !== 'owner'
-    ) {
-      return NextResponse.json(
-        { error: `Cannot publish post in "${post.status}" status. Post must be Approved first.` },
-        { status: 400 }
-      );
-    }
+    const body = await request.json().catch(() => ({}));
+    const { targetChannelIds, isRetry } = body;
 
-    // Media & Channel Validation
-    if (post.media_url) {
-      const mediaVal = validateMediaForPlatforms(
-        { url: post.media_url, type: post.media_type },
-        post.channels || []
-      );
-      if (!mediaVal.valid) {
-        return NextResponse.json(
-          { error: `Media validation failed: ${mediaVal.errors.join(' ')}` },
-          { status: 400 }
-        );
-      }
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name, email')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    const publisherName = profile?.full_name || profile?.email?.split('@')[0] || 'Publisher';
-
-    // Transition status to 'publishing'
-    await supabase
-      .from('marketing_posts')
-      .update({ status: 'publishing', failure_reason: null })
-      .eq('id', id);
-
-    let externalPostIds: Record<string, string> = {};
-    let isPublished = false;
-    let publishError: string | null = null;
-
-    // Check if workspace has connected Buffer channels
-    const { data: channels } = await supabase
-      .from('marketing_social_channels')
-      .select('provider_channel_id, platform')
-      .eq('workspace_id', post.workspace_id)
-      .eq('is_enabled', true)
-      .eq('status', 'connected');
-
-    const hasConnectedBuffer = channels && channels.length > 0;
-
-    if (hasConnectedBuffer) {
-      try {
-        const textPayload = post.title ? `${post.title}\n\n${post.default_caption}` : post.default_caption;
-        const targetChannelIds = channels.map((c: any) => c.provider_channel_id);
-
-        const result: any = await BufferService.createPost(post.workspace_id, {
-          channelIds: targetChannelIds,
-          text: textPayload,
-          mediaUrl: post.media_url || undefined,
-        });
-
-        if (result.success) {
-          isPublished = true;
-          externalPostIds = result.bufferPostIds || {};
-        } else {
-          publishError = result.error || 'Failed to dispatch via Buffer API';
-        }
-      } catch (bufErr: any) {
-        publishError = bufErr.message || 'Buffer publishing integration encountered an error.';
-      }
-    } else {
-      // Direct simulated multichannel dispatcher for development/staging when external Buffer is not linked
-      // Checks for basic network / validity constraints
-      if (!post.default_caption && !post.media_url) {
-        publishError = 'Cannot publish empty post. Caption or media is required.';
-      } else {
-        isPublished = true;
-        (post.channels || ['linkedin']).forEach((ch: string) => {
-          externalPostIds[ch] = `live_${ch}_${Date.now()}`;
-        });
-      }
-    }
-
-    if (!isPublished) {
-      // Update as Failed
-      const { data: failedPost } = await supabase
-        .from('marketing_posts')
-        .update({
-          status: 'failed',
-          failure_reason: publishError || 'External social API returned an error.',
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-      await supabase.from('marketing_audit_logs').insert({
-        workspace_id: post.workspace_id,
-        entity_type: 'post',
-        entity_id: id,
-        action: 'failed',
-        user_id: user.id,
-        user_name: publisherName,
-        user_role: membership.role,
-        comment: `Publishing failed: ${publishError}`,
-      });
-
-      // Insert Failed Notification
-      try {
-        await supabase.from('marketing_notifications').insert({
-          workspace_id: post.workspace_id,
-          recipient_user_id: post.creator_id || null,
-          related_post_id: id,
-          type: 'PUBLISHING_FAILED',
-          severity: 'ERROR',
-          title: 'Publishing Failed',
-          message: `Your ${post.channels?.join('/') || 'social'} post "${post.title}" could not be published: ${publishError}`,
-          dedupe_key: `pub_failed:${id}:${Date.now()}`,
-          metadata: { error: publishError },
-        });
-      } catch (notifErr) {
-        console.warn('[MarketingPublishAPI] Notification error (non-fatal):', notifErr);
-      }
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: publishError || 'Publishing failed',
-          post: failedPost,
-        },
-        { status: 422 }
-      );
-    }
-
-    // Success: Update as Published
-    const nowIso = new Date().toISOString();
-    const { data: publishedPost, error: finalError } = await supabase
-      .from('marketing_posts')
-      .update({
-        status: 'published',
-        published_at: nowIso,
-        external_post_ids: externalPostIds,
-        failure_reason: null,
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (finalError) {
-      return NextResponse.json({ error: finalError.message }, { status: 500 });
-    }
-
-    await supabase.from('marketing_audit_logs').insert({
-      workspace_id: post.workspace_id,
-      entity_type: 'post',
-      entity_id: id,
-      action: 'published',
-      user_id: user.id,
-      user_name: publisherName,
-      user_role: membership.role,
-      comment: `Successfully published to ${post.channels?.join(', ') || 'channels'}`,
-      metadata: { externalPostIds },
+    // Execute standard publishing engine
+    const result = await publishMarketingPost({
+      postId: id,
+      workspaceId: post.workspace_id,
+      targetChannelIds,
+      isRetry: Boolean(isRetry),
+      triggeredByUserId: user.id,
+      workerId: `user_${user.id.slice(0, 8)}`,
     });
 
-    // Insert Success Notification
-    try {
-      await supabase.from('marketing_notifications').insert({
-        workspace_id: post.workspace_id,
-        recipient_user_id: post.creator_id || null,
-        related_post_id: id,
-        type: 'PUBLISHING_SUCCESS',
-        severity: 'SUCCESS',
-        title: 'Post Published Live',
-        message: `"${post.title}" was successfully published to ${post.channels?.join(', ') || 'social channels'}.`,
-        dedupe_key: `pub_success:${id}`,
-      });
-    } catch (notifErr) {
-      console.warn('[MarketingPublishAPI] Notification error (non-fatal):', notifErr);
-    }
-
-    return NextResponse.json({ success: true, post: publishedPost });
+    return NextResponse.json({
+      success: result.success,
+      status: result.aggregateStatus,
+      platformResults: result.platformResults,
+      externalPostIds: result.externalPostIds,
+      message: result.message,
+    });
   } catch (err: any) {
-    console.error('[MarketingPublishAPI] Error:', err);
-    return NextResponse.json({ error: err.message || 'Error publishing post' }, { status: 500 });
+    console.error('[InstantPublish] Error publishing post:', err);
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }

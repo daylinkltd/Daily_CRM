@@ -210,6 +210,16 @@ details AS (
                 THEN 'present'
               ELSE '-- MISSING --' END,
          'Creative prompts and versions cannot be persisted with marketing posts.'
+  UNION ALL
+  SELECT '136', 'platform_results & locked_at on marketing_posts',
+         CASE WHEN to_regclass('public.marketing_posts') IS NULL
+                THEN '-- MISSING (run 129 first) --'
+              WHEN EXISTS (
+                SELECT 1 FROM information_schema.columns
+                 WHERE table_name = 'marketing_posts' AND column_name = 'platform_results')
+                THEN 'present'
+              ELSE '-- MISSING --' END,
+         'Native social publishing state and lock recovery columns missing from marketing_posts.'
 )
 SELECT status, migration, check_name, impact
   FROM (SELECT * FROM objects UNION ALL SELECT * FROM details) all_checks

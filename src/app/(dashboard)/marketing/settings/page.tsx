@@ -5,6 +5,7 @@ import { useCalendarStore } from '@/lib/calendar/store';
 import { useWorkspace } from '@/hooks/use-workspace';
 import { PageHeader } from '@/components/ui/page-header';
 import { BufferIntegrationCard } from '@/components/marketing/buffer-integration-card';
+import { NativeSocialAccountsCard } from '@/components/marketing/native-social-accounts-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -202,9 +203,9 @@ export default function MarketingSettingsPage() {
         <BrandSettingsSection />
       )}
 
-      {/* 1. SOCIAL ACCOUNTS TAB (MULTI-TENANT BUFFER INTEGRATION) */}
+      {/* 1. NATIVE SOCIAL ACCOUNTS TAB (PHASE 1 META & LINKEDIN) */}
       {activeTab === 'accounts' && (
-        <BufferIntegrationCard />
+        <NativeSocialAccountsCard />
       )}
 
       {/* 2. PUBLISHING TAB */}

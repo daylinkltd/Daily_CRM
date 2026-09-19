@@ -233,7 +233,12 @@ they should run instead — don't imply you verified it.
 
 ## 9. Open work
 
-### Ready to do
+-4. **Paste migration 136** (`136_native_social_publishing.sql`) — Native Social
+   Publishing Engine (Phase 1: Meta & LinkedIn). Direct publishing to Facebook
+   Pages, Instagram Professional Accounts, and LinkedIn Profiles / Company Pages.
+   Adds `platform_results` (granular JSONB), `target_channel_ids`, and atomic lock
+   columns (`locked_at`, `locked_by`, queue index) to `marketing_posts`, and `account_type`,
+   `page_access_token_encrypted`, `token_expires_at` to `marketing_social_channels`.
 -3. **Paste migration 135** (`media_files_durable_storage.sql`) — CRM Media
    uploads were written to `public/uploads/` INSIDE the container, which is
    gitignored (ships empty) and lives only in the container's writable
